@@ -80,14 +80,14 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
         {/* ── Header: Name + Drawdown + Account# ── */}
         <div className="flex items-center justify-between mb-2.5">
           <div className="flex items-center gap-2 min-w-0">
-            <div className={`w-2 h-2 rounded-full shrink-0 ${isOnline ? 'bg-success animate-pulse' : 'bg-gray-600'}`} />
-            <span className="text-sm font-semibold text-white truncate">{account.name}</span>
+            <div className={`w-2 h-2 shrink-0 ${isOnline ? 'bg-success animate-pulse' : 'bg-gray-600'}`} />
+            <span className="font-tech text-sm text-white truncate">{account.name}</span>
             {isOnline
               ? <Wifi size={12} className="text-success shrink-0" />
               : <WifiOff size={12} className="text-gray-500 shrink-0" />
             }
             {/* Drawdown — moved to header */}
-            <span className={`shrink-0 text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded bg-gray-800 ${ddColor}`}>
+            <span className={`shrink-0 font-pixel text-[8px] px-1.5 py-0.5 border border-gray-700 tracking-widest ${ddColor}`}>
               DD {formatPercent(account.drawdown)}
             </span>
           </div>
@@ -148,14 +148,14 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           {/* Left: Balance + Equity */}
           <div className="flex gap-5 shrink-0">
             <div>
-              <div className="text-[10px] text-gray-500 mb-0.5">
-                Balance <span className="text-accent-blue font-medium">{cur}</span>
+              <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">
+                Balance <span className="text-accent-blue">{cur}</span>
               </div>
-              <div className="font-mono text-sm text-white font-medium">{fmtNum(account.balance)}</div>
+              <div className="font-display text-2xl leading-none text-white">{fmtNum(account.balance)}</div>
             </div>
             <div>
-              <div className="text-[10px] text-gray-500 mb-0.5">Equity</div>
-              <div className="font-mono text-sm font-medium">
+              <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">Equity</div>
+              <div className="font-display text-2xl leading-none">
                 <FlashNumber value={account.equity} format={fmtNum} positiveGreen={false} className="text-white" />
               </div>
             </div>
@@ -167,30 +167,30 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               {/* Today + P/L on same row */}
               <div className="flex items-baseline gap-5">
                 <div>
-                  <div className="text-[10px] text-gray-500 mb-0.5">Today</div>
-                  <div className={`font-mono text-sm font-semibold ${
+                  <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">Today</div>
+                  <div className={`font-display text-2xl leading-none ${
                     todayPnl > 0 ? 'text-success' : todayPnl < 0 ? 'text-danger' : 'text-gray-400'
                   }`}>
                     {todayPnl >= 0 ? '+' : '-'}{fmtNum(todayPnl)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-gray-500 mb-0.5">P/L</div>
+                  <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">P/L</div>
                   <FlashNumber
                     value={account.profit}
                     format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(Math.abs(v))}`}
                     positiveGreen
-                    className="font-mono text-xl font-bold"
+                    className="font-display text-3xl leading-none"
                   />
                 </div>
               </div>
               {/* Lots — below P/L */}
-              <div className="flex items-center gap-1.5 mt-1 text-[11px]">
-                <span className="text-gray-500 font-mono">{orderCount} open</span>
+              <div className="flex items-center gap-1.5 mt-1.5 font-tech text-[11px]">
+                <span className="text-gray-600">{orderCount} open</span>
                 <span className="text-gray-700">|</span>
-                <span className="text-success font-mono">B:{formatLots(account.buyLots)}</span>
+                <span className="text-success">B:{formatLots(account.buyLots)}</span>
                 <span className="text-gray-700">/</span>
-                <span className="text-danger font-mono">S:{formatLots(account.sellLots)}</span>
+                <span className="text-danger">S:{formatLots(account.sellLots)}</span>
               </div>
             </div>
           </div>
@@ -251,7 +251,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
         </div>
 
         {/* Broker */}
-        <div className="mt-2 text-[10px] text-gray-600 truncate">{account.broker}</div>
+        <div className="mt-2 font-tech text-[10px] text-gray-700 truncate">{account.broker}</div>
       </div>
 
       {/* Position Panel — inline expandable */}

@@ -1,4 +1,4 @@
-import { Shield, Wifi, WifiOff, LogOut, User, Settings, Users, ChevronDown, BarChart3, History, FileText, Sun, Moon, Globe, CalendarDays } from 'lucide-react';
+import { Wifi, WifiOff, LogOut, User, Settings, Users, ChevronDown, BarChart3, History, FileText, Sun, Moon, Globe, CalendarDays, LayoutDashboard, Shield } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { DualClock } from '../clocks/DualClock';
 import { useAccountStore } from '../../stores/accountStore';
@@ -36,20 +36,28 @@ export const Header = () => {
       <div className="px-4 py-3">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           {/* Logo — click to go to dashboard */}
-          <button onClick={() => setCurrentPage('dashboard')} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-accent-blue rounded-lg flex items-center justify-center">
-              <Shield size={18} className="text-white" />
+          <button onClick={() => setCurrentPage('dashboard')} className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
+            <div
+              className="w-8 h-8 flex items-center justify-center border border-accent-blue/50 text-accent-blue text-base font-pixel"
+              style={{ boxShadow: '0 0 10px rgba(56,189,248,0.25)' }}
+            >
+              ◈
             </div>
             <div className="text-left">
-              <h1 className="text-base font-bold text-white tracking-wider">{t('app.title')}</h1>
-              <p className="text-[10px] text-gray-500 -mt-0.5">{t('app.subtitle')}</p>
+              <h1
+                className="font-pixel text-[11px] text-accent-blue tracking-widest leading-none"
+                style={{ textShadow: '0 0 8px rgba(56,189,248,0.6)' }}
+              >
+                DOI DASH
+              </h1>
+              <p className="font-tech text-[9px] text-gray-600 tracking-[0.2em] uppercase mt-0.5">{t('app.subtitle')}</p>
             </div>
           </button>
 
           {/* Nav links */}
           <nav className="hidden md:flex items-center gap-1">
             {[
-              { page: 'dashboard' as const,     label: t('nav.dashboard'), icon: Shield },
+              { page: 'dashboard' as const,     label: t('nav.dashboard'), icon: LayoutDashboard },
               { page: 'analytics' as const,     label: t('nav.analytics'), icon: BarChart3 },
               { page: 'trade-history' as const, label: t('nav.trades'),    icon: History },
               { page: 'calendar' as const,      label: t('nav.calendar'),  icon: CalendarDays },
@@ -57,13 +65,13 @@ export const Header = () => {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 font-pixel text-[8px] tracking-wider transition-colors ${
                   currentPage === page
-                    ? 'bg-accent-blue/15 text-accent-blue'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    ? 'text-accent-blue border-b border-accent-blue/60'
+                    : 'text-gray-500 hover:text-gray-200'
                 }`}
               >
-                <Icon size={13} />
+                <Icon size={11} />
                 {label}
               </button>
             ))}
@@ -96,12 +104,18 @@ export const Header = () => {
             </button>
 
             {/* WS Status */}
-            <div className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border ${
-              wsConnected
-                ? 'border-success/30 bg-success/10 text-success'
-                : 'border-danger/30 bg-danger/10 text-danger'
-            }`}>
-              {wsConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
+            <div
+              className={`flex items-center gap-1.5 font-pixel text-[8px] px-2.5 py-1.5 border ${
+                wsConnected
+                  ? 'border-success/40 text-success'
+                  : 'border-danger/40 text-danger'
+              }`}
+              style={wsConnected
+                ? { boxShadow: '0 0 8px rgba(34,197,94,0.2)' }
+                : { boxShadow: '0 0 8px rgba(239,68,68,0.2)' }
+              }
+            >
+              {wsConnected ? <Wifi size={11} /> : <WifiOff size={11} />}
               <span className="hidden sm:inline">{wsConnected ? t('ws.connected') : t('ws.disconnected')}</span>
             </div>
 

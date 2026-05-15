@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { Shield } from 'lucide-react';
 import { login } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -18,7 +17,7 @@ export const LoginPage = () => {
       const { token, user } = await login(email, password);
       setAuth(token, user);
     } catch {
-      setError('Invalid credentials. Try admin@sentinel.com / password');
+      setError('Invalid credentials. Try admin@doi-dash.com / password');
     } finally {
       setLoading(false);
     }
@@ -29,51 +28,65 @@ export const LoginPage = () => {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-accent-blue rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
-            <Shield size={28} className="text-white" />
+          <div
+            className="w-16 h-16 flex items-center justify-center mb-4 border border-accent-blue/60 text-accent-blue text-3xl"
+            style={{ boxShadow: '0 0 18px rgba(56,189,248,0.35), inset 0 0 18px rgba(56,189,248,0.08)' }}
+          >
+            ◈
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-wider">SENTINEL</h1>
-          <p className="text-sm text-gray-400 mt-1">MT5 Trading Dashboard</p>
+          <h1
+            className="font-pixel text-xl text-accent-blue tracking-widest"
+            style={{ textShadow: '0 0 12px rgba(56,189,248,0.7)' }}
+          >
+            DOI DASH
+          </h1>
+          <p className="font-tech text-[11px] text-gray-500 tracking-[0.3em] uppercase mt-1">
+            MT5 Trading Dashboard
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="card space-y-4" autoComplete="off">
+        <form onSubmit={handleSubmit} className="card space-y-5" autoComplete="off">
           <div>
-            <label className="text-xs text-gray-400 block mb-1.5">Email</label>
+            <label className="font-pixel text-[8px] text-gray-400 tracking-widest uppercase block mb-2">
+              Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               autoComplete="off"
-              placeholder="admin@sentinel.com"
-              className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accent-blue transition-colors"
+              placeholder="admin@doi-dash.com"
+              className="w-full bg-bg-primary border border-border2 px-3 py-2.5 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue transition-colors"
               required
             />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1.5">Password</label>
+            <label className="font-pixel text-[8px] text-gray-400 tracking-widest uppercase block mb-2">
+              Password
+            </label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               autoComplete="new-password"
               placeholder="••••••••"
-              className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accent-blue transition-colors"
+              className="w-full bg-bg-primary border border-border2 px-3 py-2.5 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue transition-colors"
               required
             />
           </div>
 
           {error && (
-            <p className="text-xs text-danger bg-danger/10 border border-danger/30 rounded-lg px-3 py-2">
-              {error}
+            <p className="font-tech text-xs text-danger bg-danger/10 border border-danger/30 px-3 py-2">
+              ✗ {error}
             </p>
           )}
 
           <button type="submit" className="btn-primary w-full py-2.5" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'CONNECTING...' : 'SIGN IN'}
           </button>
 
-          <p className="text-center text-xs text-gray-600">
-            Demo: admin@sentinel.com / password
+          <p className="text-center font-tech text-[11px] text-gray-700">
+            demo: admin@doi-dash.com / password
           </p>
         </form>
       </div>

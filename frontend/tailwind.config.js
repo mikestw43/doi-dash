@@ -19,6 +19,7 @@ export default {
         danger:  'var(--danger)',
         warning: 'var(--warning)',
         neutral: '#6b7280',
+        border2: 'var(--border2)',
         // DOI DASH aliases
         cyan:    'var(--accent-blue)',
         green:   'var(--success)',

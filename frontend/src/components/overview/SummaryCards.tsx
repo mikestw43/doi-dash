@@ -16,16 +16,16 @@ interface CardProps {
 const StatCard = ({ label, value, sub, icon, valueColor = 'text-white', isFlash, flashValue }: CardProps) => (
   <div className="card flex flex-col gap-2 min-w-0">
     <div className="flex items-center justify-between">
-      <span className="text-xs text-gray-400 font-medium truncate">{label}</span>
+      <span className="font-pixel text-[8px] text-gray-500 tracking-widest uppercase truncate">{label}</span>
       {icon && <div className="text-gray-600 shrink-0">{icon}</div>}
     </div>
-    <div className={`text-xl font-bold font-mono ${valueColor} truncate`}>
+    <div className={`font-display text-3xl leading-none ${valueColor} truncate`}>
       {isFlash && flashValue !== undefined
         ? <FlashNumber value={flashValue} format={() => String(value)} positiveGreen={flashValue > 0} />
         : value
       }
     </div>
-    {sub && <span className="text-xs text-gray-500">{sub}</span>}
+    {sub && <span className="font-tech text-[11px] text-gray-600">{sub}</span>}
   </div>
 );
 
@@ -42,14 +42,14 @@ export const SummaryCards = ({ stats }: Props) => {
       {/* Compact: Online / Total */}
       <div className="card flex flex-col gap-2 min-w-0">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-400 font-medium">Accounts</span>
-          <div className="shrink-0">{allOnline ? <Wifi size={16} className="text-success" /> : <Users size={16} className="text-gray-600" />}</div>
+          <span className="font-pixel text-[8px] text-gray-500 tracking-widest uppercase">Accounts</span>
+          <div className="shrink-0">{allOnline ? <Wifi size={14} className="text-success" /> : <Users size={14} className="text-gray-600" />}</div>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className={`text-xl font-bold font-mono ${allOnline ? 'text-success' : 'text-warning'}`}>{stats.onlineAccounts}</span>
-          <span className="text-sm text-gray-500 font-mono">/ {stats.totalAccounts}</span>
+          <span className={`font-display text-3xl leading-none ${allOnline ? 'text-success' : 'text-warning'}`}>{stats.onlineAccounts}</span>
+          <span className="font-display text-xl text-gray-600">/ {stats.totalAccounts}</span>
         </div>
-        <span className="text-xs text-gray-500">
+        <span className="font-tech text-[11px] text-gray-600">
           {allOnline ? 'All online' : `${stats.offlineAccounts} offline`}
         </span>
       </div>
