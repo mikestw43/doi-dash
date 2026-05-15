@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const TIMEFRAMES = [
   { label: '5M',  value: '5'  },
@@ -9,29 +9,50 @@ const TIMEFRAMES = [
 ];
 
 export const TradingViewChart = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [tf, setTf] = useState('15');
 
-  // Build the TradingView widget iframe URL
-  const params = new URLSearchParams({
-    symbol:             'OANDA:XAUUSD',
-    interval:           tf,
-    theme:              'dark',
-    style:              '1',
-    locale:             'en',
-    toolbar_bg:         '#0a0e1a',
-    enable_publishing:  '0',
-    allow_symbol_change:'0',
-    save_image:         '0',
-    hide_top_toolbar:   '1',
-    hide_legend:        '1',
-    hide_side_toolbar:  '1',
-    withdateranges:     '0',
-    backgroundColor:    'rgba(10,14,26,1)',
-    gridColor:          'rgba(255,255,255,0.03)',
-    timezone:           'Asia/Bangkok',
-  });
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-  const src = `https://www.tradingview.com/widgetembed/?frameElementId=tv_chart&${params.toString()}`;
+    // Clean up
+    container.innerHTML = '';
+
+    // Inner widget target div
+    const widgetDiv = document.createElement('div');
+    widgetDiv.className = 'tradingview-widget-container__widget';
+    widgetDiv.style.cssText = 'height:100%;width:100%;';
+    container.appendChild(widgetDiv);
+
+    // Config script — textContent avoids HTML entity encoding
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+    script.async = true;
+    script.textContent = JSON.stringify({
+      autosize:           true,
+      symbol:             'OANDA:XAUUSD',
+      interval:           tf,
+      timezone:           'Asia/Bangkok',
+      theme:              'dark',
+      style:              '1',
+      locale:             'en',
+      backgroundColor:    'rgba(10, 14, 26, 1)',
+      gridColor:          'rgba(255, 255, 255, 0.03)',
+      hide_top_toolbar:   true,
+      hide_legend:        true,
+      withdateranges:     false,
+      hide_side_toolbar:  true,
+      allow_symbol_change:false,
+      save_image:         false,
+      enable_publishing:  false,
+      support_host:       'https://www.tradingview.com',
+    });
+    container.appendChild(script);
+
+    return () => { container.innerHTML = ''; };
+  }, [tf]);
 
   return (
     <div style={{
@@ -84,14 +105,12 @@ export const TradingViewChart = () => {
         </div>
       </div>
 
-      {/* ── Chart body — iframe approach ── */}
-      <div style={{ height: '200px', position: 'relative', background: '#0a0e1a' }}>
-        <iframe
-          key={tf}
-          src={src}
-          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-          allow="clipboard-write"
-          title="XAUUSD Chart"
+      {/* ── Chart body ── */}
+      <div style={{ height: '200px', position: 'relative', background: 'rgba(10,14,26,1)' }}>
+        <div
+          ref={containerRef}
+          className="tradingview-widget-container"
+          style={{ height: '100%', width: '100%' }}
         />
       </div>
     </div>
