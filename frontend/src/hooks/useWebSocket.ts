@@ -20,7 +20,8 @@ export const useWebSocket = (token: string | null) => {
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws?token=${encodeURIComponent(token)}`;
+    const wsBase = import.meta.env.VITE_WS_URL || `${protocol}//${host}`;
+    const wsUrl = `${wsBase}/ws?token=${encodeURIComponent(token)}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
