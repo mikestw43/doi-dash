@@ -141,6 +141,7 @@ export interface UserInfo {
   email: string;
   name: string | null;
   role: string;
+  status: string;   // 'active' | 'pending' | 'rejected'
   createdAt: string;
   _count: { accounts: number };
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchUsers, createUser, deleteUser, changeUserRole } from '../../services/api';
+import { fetchUsers, createUser, deleteUser, changeUserRole, changeUserStatus } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 import { useAuthStore } from '../../stores/authStore';
 import { Dialog } from '../ui/Dialog';
@@ -81,9 +81,20 @@ export const UserManagement = () => {
     },
   });
 
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'active' | 'pending' | 'rejected' }) => changeUserStatus(id, status),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      addToast({ type: 'success', title: vars.status === 'active' ? 'User approved' : 'User rejected' });
+    },
+    onError: () => { addToast({ type: 'error', title: 'Failed to update status' }); },
+  });
+
   const deleteTarget = users.find(u => u.id === deleteId);
 
+  const pendingUsers = users.filter(u => u.status === 'pending');
   const filteredUsers = users.filter(u => {
+    if (u.status === 'pending') return false; // pending shown separately
     if (roleFilter !== 'all' && u.role !== roleFilter) return false;
     return true;
   });
@@ -177,6 +188,59 @@ export const UserManagement = () => {
                 + CREATE USER
               </button>
             </div>
+
+            {/* Pending approval section */}
+            {pendingUsers.length > 0 && (
+              <div style={{ borderBottom: '1px solid var(--border2)', padding: '12px 14px', background: 'rgba(250,204,21,.04)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ width: '6px', height: '6px', background: 'var(--yellow)', boxShadow: '0 0 6px var(--yellow)' }} />
+                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--yellow)', letterSpacing: '1px' }}>
+                    PENDING APPROVAL
+                  </span>
+                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--yellow)', padding: '3px 8px', border: '1px solid rgba(250,204,21,.4)' }}>
+                    {pendingUsers.length}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {pendingUsers.map(u => (
+                    <div key={u.id} style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.2)',
+                      flexWrap: 'wrap', gap: '8px',
+                    }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text)' }}>
+                          {u.name || '—'}
+                        </span>
+                        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
+                          {u.email}
+                        </span>
+                        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
+                          Registered: {new Date(u.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={() => statusMutation.mutate({ id: u.id, status: 'active' })}
+                          disabled={statusMutation.isPending}
+                          style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '6px 12px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(34,197,94,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
+                        >
+                          ✓ APPROVE
+                        </button>
+                        <button
+                          onClick={() => statusMutation.mutate({ id: u.id, status: 'rejected' })}
+                          disabled={statusMutation.isPending}
+                          style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '6px 12px', border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(239,68,68,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
+                        >
+                          ✕ REJECT
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>

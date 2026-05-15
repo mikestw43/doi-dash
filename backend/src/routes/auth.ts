@@ -22,9 +22,41 @@ router.post('/login', async (req: Request, res: Response) => {
     return;
   }
 
+  if (user.status === 'pending') {
+    res.status(403).json({ error: 'Your account is pending admin approval.' });
+    return;
+  }
+  if (user.status === 'rejected') {
+    res.status(403).json({ error: 'Your account registration was rejected.' });
+    return;
+  }
+
   const token = generateToken({ id: user.id, email: user.email, role: user.role });
   logAudit(user.id, 'login', 'user', user.id);
   res.json({ token, user: { id: user.id, email: user.email, role: user.role, name: user.name } });
+});
+
+// POST /api/auth/register
+router.post('/register', async (req: Request, res: Response) => {
+  const { email, password, name } = req.body as { email: string; password: string; name?: string };
+  if (!email || !password) {
+    res.status(400).json({ error: 'Email and password are required' });
+    return;
+  }
+  if (password.length < 6) {
+    res.status(400).json({ error: 'Password must be at least 6 characters' });
+    return;
+  }
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    res.status(409).json({ error: 'Email already in use' });
+    return;
+  }
+  const hash = await bcrypt.hash(password, 10);
+  const user = await prisma.user.create({
+    data: { email, password: hash, name: name || null, role: 'user', status: 'pending' },
+  });
+  res.status(201).json({ message: 'Registration submitted. Please wait for admin approval.' });
 });
 
 // GET /api/auth/me

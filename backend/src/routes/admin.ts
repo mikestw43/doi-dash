@@ -13,7 +13,7 @@ router.use(adminMiddleware);
 router.get('/users', async (_req: AuthRequest, res: Response) => {
   const users = await prisma.user.findMany({
     select: {
-      id: true, email: true, name: true, role: true, createdAt: true,
+      id: true, email: true, name: true, role: true, status: true, createdAt: true,
       _count: { select: { accounts: true } },
     },
     orderBy: { createdAt: 'asc' },
@@ -99,6 +99,28 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
     JSON.stringify({ email: user.email, oldRole: user.role, newRole: role }));
 
   res.json({ id: updated.id, email: updated.email, role: updated.role });
+});
+
+// PATCH /api/admin/users/:id/status
+router.patch('/users/:id/status', async (req: AuthRequest, res: Response) => {
+  const { status } = req.body as { status: string };
+  if (!status || !['active', 'pending', 'rejected'].includes(status)) {
+    res.status(400).json({ error: 'Status must be active, pending, or rejected' });
+    return;
+  }
+  const paramId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const user = await prisma.user.findUnique({ where: { id: paramId } });
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  const updated = await prisma.user.update({
+    where: { id: paramId },
+    data: { status },
+  });
+  logAudit(req.user!.id, 'change_status', 'user', paramId,
+    JSON.stringify({ email: user.email, oldStatus: user.status, newStatus: status }));
+  res.json({ id: updated.id, email: updated.email, status: updated.status });
 });
 
 export default router;

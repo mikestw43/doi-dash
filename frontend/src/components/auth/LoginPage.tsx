@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { login } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
+import { SignUpPage } from './SignUpPage';
 
 const InfoModal = ({ title, message, onClose }: { title: string; message: string; onClose: () => void }) => (
   <div style={{
@@ -39,6 +40,7 @@ export const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState<{ title: string; message: string } | null>(null);
+  const [showSignUp, setShowSignUp] = useState(false);
   const { setAuth } = useAuthStore();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -57,6 +59,7 @@ export const LoginPage = () => {
 
   return (
     <>
+    {showSignUp && <SignUpPage onBack={() => setShowSignUp(false)} />}
     {modal && <InfoModal title={modal.title} message={modal.message} onClose={() => setModal(null)} />}
     <div
       className="auth-screen"
@@ -272,7 +275,7 @@ export const LoginPage = () => {
           No account?{' '}
           <span
             style={{ color: 'var(--accent-blue)', cursor: 'pointer' }}
-            onClick={() => setModal({ title: 'SIGN UP', message: 'Account registration is managed by your administrator. Please contact your admin to create an account.' })}
+            onClick={() => setShowSignUp(true)}
           >SIGN UP</span>
         </div>
       </div>

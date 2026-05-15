@@ -31,6 +31,11 @@ export const login = async (email: string, password: string) => {
   return res.data as { token: string; user: { id: string; email: string; role: string; name: string | null } };
 };
 
+export const register = async (data: { email: string; password: string; name?: string }) => {
+  const res = await api.post('/auth/register', data);
+  return res.data as { message: string };
+};
+
 export const getProfile = async () => {
   const res = await api.get('/auth/me');
   return res.data;
@@ -155,6 +160,11 @@ export const deleteUser = async (id: string) => {
 
 export const changeUserRole = async (id: string, role: string) => {
   const res = await api.patch(`/admin/users/${id}/role`, { role });
+  return res.data;
+};
+
+export const changeUserStatus = async (id: string, status: 'active' | 'pending' | 'rejected') => {
+  const res = await api.patch(`/admin/users/${id}/status`, { status });
   return res.data;
 };
 

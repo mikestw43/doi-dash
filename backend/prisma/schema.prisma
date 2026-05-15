@@ -13,6 +13,7 @@ model User {
   password         String
   name             String?
   role             String    @default("user")
+  status           String    @default("active") // 'active' | 'pending' | 'rejected'
   telegramBotToken String?
   telegramChatId   String?
   // Scheduled Reports
