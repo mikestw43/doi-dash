@@ -1,9 +1,11 @@
 import { useRef, useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 
 interface FlashNumberProps {
   value: number;
   format?: (v: number) => string;
   positiveGreen?: boolean;
+  style?: CSSProperties;
   className?: string;
 }
 
@@ -11,6 +13,7 @@ export const FlashNumber = ({
   value,
   format = (v) => v.toFixed(2),
   positiveGreen = false,
+  style,
   className = '',
 }: FlashNumberProps) => {
   const prevRef = useRef<number>(value);
@@ -26,14 +29,26 @@ export const FlashNumber = ({
     }
   }, [value]);
 
-  const colorClass = positiveGreen
-    ? value > 0 ? 'text-success' : value < 0 ? 'text-danger' : 'text-gray-300'
-    : 'text-gray-100';
+  const resolvedColor = positiveGreen
+    ? value > 0 ? 'var(--green)' : value < 0 ? 'var(--red)' : 'var(--text-dim)'
+    : 'var(--text)';
 
-  const flashClass = flash === 'green' ? 'value-flash-green' : flash === 'red' ? 'value-flash-red' : '';
+  const flashBg: CSSProperties = flash === 'green'
+    ? { backgroundColor: 'rgba(34,197,94,.3)', transition: 'background-color .6s' }
+    : flash === 'red'
+    ? { backgroundColor: 'rgba(239,68,68,.3)', transition: 'background-color .6s' }
+    : {};
+
+  const computedStyle: CSSProperties = {
+    display: 'inline-block',
+    color: resolvedColor,
+    ...flashBg,
+    ...style,
+    ...(style?.color ? { color: style.color } : {}),
+  };
 
   return (
-    <span className={`${colorClass} ${flashClass} ${className} inline-block`}>
+    <span className={className} style={computedStyle}>
       {format(value)}
     </span>
   );

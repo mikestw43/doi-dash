@@ -6,7 +6,6 @@ import { CloseAllDialog } from './CloseAllDialog';
 import { ProtectionSettings } from '../settings/ProtectionSettings';
 import { PositionPanel } from './PositionPanel';
 import { NewTradeDialog } from './NewTradeDialog';
-import { Wifi, WifiOff, XCircle, Shield, Folder, LayoutList, PlusCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
 import { fetchGroups, assignAccountGroup } from '../../services/api';
@@ -15,6 +14,36 @@ interface Props {
   account: Account;
   todayPnl?: number;
 }
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+const fmtNum = (v: number) =>
+  Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const fmtPrice = (v: number) =>
+  v === 0 ? '—' : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const getDdBadgeStyle = (dd: number, offline: boolean) => {
+  if (offline) return {
+    border: '1px solid rgba(239,68,68,.5)',
+    color: 'var(--danger)',
+    background: 'rgba(239,68,68,.08)',
+  };
+  if (dd < 5) return {
+    border: '1px solid rgba(34,197,94,.5)',
+    color: 'var(--success)',
+    background: 'rgba(34,197,94,.08)',
+  };
+  if (dd < 20) return {
+    border: '1px solid rgba(250,204,21,.5)',
+    color: 'var(--warning)',
+    background: 'rgba(250,204,21,.07)',
+  };
+  return {
+    border: '1px solid rgba(239,68,68,.5)',
+    color: 'var(--danger)',
+    background: 'rgba(239,68,68,.08)',
+  };
+};
 
 export const BotCard = ({ account, todayPnl = 0 }: Props) => {
   const [showCloseAll, setShowCloseAll] = useState(false);
@@ -58,227 +87,345 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
   const isOnline = account.status === 'online';
   const orderCount = typeof account.orders === 'number' ? account.orders : account.orders.length;
   const ordersArray: Order[] = Array.isArray(account.orders) ? account.orders : [];
-  const isRealAccount = account.brokerTimeOffset != null;
   const rawCur = account.currency || 'USD';
   const cur = rawCur.toUpperCase() === 'USDC' ? 'USC' : rawCur;
-  const fmtNum = (v: number) => {
-    const abs = Math.abs(v);
-    return abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
 
   const onSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['overview'] });
     queryClient.invalidateQueries({ queryKey: ['heatmap-orders'] });
   };
 
-  const ddColor = getDrawdownColor(account.drawdown);
+  const ddBadge = getDdBadgeStyle(account.drawdown, !isOnline);
+  const ddPct = Math.min(account.drawdown, 100);
 
   return (
     <>
-      <div className={`card transition-all duration-300 ${!isOnline ? 'opacity-60' : ''}`}>
+      <div className={`bot-card${!isOnline ? ' bc-offline' : ''}`}>
 
-        {/* ── Header: Name + Drawdown + Account# ── */}
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className={`w-2 h-2 shrink-0 ${isOnline ? 'bg-success animate-pulse' : 'bg-gray-600'}`} />
-            <span className="font-tech text-sm text-white truncate">{account.name}</span>
-            {isOnline
-              ? <Wifi size={12} className="text-success shrink-0" />
-              : <WifiOff size={12} className="text-gray-500 shrink-0" />
-            }
-            {/* Drawdown — moved to header */}
-            <span className={`shrink-0 font-pixel text-[8px] px-1.5 py-0.5 border border-gray-700 tracking-widest ${ddColor}`}>
-              DD {formatPercent(account.drawdown)}
+        {/* ── bc-top ── */}
+        <div style={{
+          padding: '10px 12px 8px',
+          background: 'var(--bg-tertiary)',
+          borderBottom: '1px solid var(--border-color)',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            {/* Status dot */}
+            <div className={isOnline ? 'sdot-on' : 'sdot-off'} />
+
+            <div>
+              <div style={{
+                fontFamily: "'Press Start 2P'", fontSize: '8px', fontWeight: 400,
+                color: isOnline ? 'var(--text-primary)' : 'var(--text-muted)',
+              }}>
+                {account.name}
+              </div>
+              <div style={{
+                fontFamily: "'Press Start 2P'", fontSize: '6px',
+                color: 'var(--text-muted)', marginTop: '4px',
+                display: 'flex', alignItems: 'center', gap: '4px',
+              }}>
+                #{account.accountNumber}
+                <span style={{
+                  border: '1px solid var(--border2)', padding: '1px 4px',
+                  fontFamily: "'Press Start 2P'", fontSize: '5px', color: 'var(--text-muted)',
+                }}>{cur}</span>
+                {/* Group picker */}
+                <div style={{ position: 'relative' }} ref={groupRef}>
+                  <button
+                    onClick={handleGroupPicker}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '2px',
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'var(--text-muted)', fontFamily: 'inherit', fontSize: 'inherit',
+                      padding: '0 2px',
+                    }}
+                    title={account.groupName || 'Assign group'}
+                  >
+                    {account.groupName ? (
+                      <>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: account.groupColor || '#6b7280' }} />
+                        <span style={{ maxWidth: '50px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{account.groupName}</span>
+                      </>
+                    ) : (
+                      <span>⊙</span>
+                    )}
+                  </button>
+                  {showGroupPicker && (
+                    <div style={{
+                      position: 'absolute', left: 0, top: '100%', marginTop: '2px',
+                      width: '150px', background: 'var(--bg-card)', border: '1px solid var(--border2)',
+                      zIndex: 50, maxHeight: '160px', overflowY: 'auto',
+                      boxShadow: '4px 4px 0 rgba(0,0,0,.5)',
+                    }}>
+                      {account.groupId && (
+                        <button onClick={() => handleAssignGroup(null)} style={{ width: '100%', padding: '6px 10px', textAlign: 'left', fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                          ✕ Remove group
+                        </button>
+                      )}
+                      {groups.map(g => (
+                        <button key={g.id} onClick={() => handleAssignGroup(g.id)} style={{ width: '100%', padding: '6px 10px', textAlign: 'left', fontFamily: "'Share Tech Mono'", fontSize: '9px', color: account.groupId === g.id ? 'var(--accent-blue)' : 'var(--text-primary)', background: account.groupId === g.id ? 'rgba(56,189,248,.08)' : 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: g.color, flexShrink: 0 }} />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
+                        </button>
+                      ))}
+                      {groups.length === 0 && <p style={{ padding: '8px 10px', fontSize: '9px', color: 'var(--text-muted)', fontFamily: "'Share Tech Mono'" }}>No groups</p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* DD Badge */}
+          <div style={{
+            fontFamily: "'Press Start 2P'", fontSize: '7px', fontWeight: 400,
+            padding: '3px 8px',
+            ...ddBadge,
+            ...((!isOnline) ? { animation: 'blink-border .8s step-end infinite' } : {}),
+          }}>
+            {isOnline ? `DD ${formatPercent(account.drawdown)}` : 'OFFLINE'}
+          </div>
+        </div>
+
+        {/* ── Progress bar ── */}
+        <div style={{ height: '3px', background: 'var(--border-color)' }}>
+          <div style={{
+            height: '100%',
+            width: isOnline ? `${ddPct}%` : '100%',
+            background: isOnline
+              ? `linear-gradient(90deg, var(--success), var(--accent-blue))`
+              : `linear-gradient(90deg, var(--danger), #f97316)`,
+            transition: 'width .4s',
+          }} />
+        </div>
+
+        {/* ── bc-body ── */}
+        <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+
+          {/* Row 1: Balance | Equity | Orders */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+            {[
+              { label: 'Balance', value: fmtPrice(account.balance), color: 'var(--text-primary)' },
+              { label: 'Equity',  value: fmtPrice(account.equity),  color: 'var(--warning)' },
+              { label: 'Orders',  value: `${orderCount} open`,      color: 'var(--accent-blue)' },
+            ].map(({ label, value, color }) => (
+              <div key={label}>
+                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
+                <div style={{ fontFamily: "'VT323'", fontSize: '22px', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Row 2: Margin | Margin Level */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
+            {[
+              { label: 'Margin', value: isOnline ? fmtPrice(account.margin ?? 0) : '—', color: 'var(--accent-blue)' },
+              { label: 'Margin Level', value: isOnline && (account.marginLevel ?? 0) > 0 ? `${Math.round(account.marginLevel ?? 0)}%` : '—', color: 'var(--success)' },
+            ].map(({ label, value, color }) => (
+              <div key={label}>
+                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
+                <div style={{ fontFamily: "'VT323'", fontSize: '22px', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
+              </div>
+            ))}
+            <div /> {/* empty */}
+          </div>
+
+          {/* P/L section */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            {/* Today P/L */}
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
+              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>TODAY</div>
+              <div style={{
+                fontFamily: "'VT323'", fontSize: '28px', fontWeight: 400, lineHeight: 1.1,
+                color: todayPnl > 0 ? 'var(--success)' : todayPnl < 0 ? 'var(--danger)' : 'var(--text-muted)',
+              }}>
+                {todayPnl >= 0 ? '+' : '-'}{fmtNum(todayPnl)}
+              </div>
+            </div>
+            {/* Floating P/L */}
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
+              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>FLOATING P/L</div>
+              <FlashNumber
+                value={account.profit}
+                format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(Math.abs(v))}`}
+                positiveGreen
+                style={{ fontFamily: "'VT323'", fontSize: '28px', fontWeight: 400, lineHeight: 1.1 }}
+              />
+            </div>
+          </div>
+
+          {/* Lot exposure */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px' }}>Lot Exposure</span>
+            <span style={{ padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '10px', fontWeight: 700, background: 'rgba(56,189,248,.12)', color: 'var(--accent-blue)', border: '1px solid rgba(56,189,248,.3)' }}>
+              B:{formatLots(account.buyLots)}
+            </span>
+            <span style={{ padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '10px', fontWeight: 700, background: 'rgba(239,68,68,.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,.3)' }}>
+              S:{formatLots(account.sellLots)}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-500 shrink-0 ml-3">
-            {/* Group picker */}
-            <div className="relative" ref={groupRef}>
+          {/* Broker */}
+          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', letterSpacing: '.5px' }}>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--text-muted)', flexShrink: 0 }} />
+            {account.broker}
+          </div>
+        </div>
+
+        {/* ── bc-footer ── */}
+        <div style={{
+          padding: '8px 12px',
+          borderTop: '1px solid var(--border-color)',
+          display: 'flex', gap: '5px',
+          background: 'var(--bg-tertiary)',
+        }}>
+          {isOnline ? (
+            <>
+              {/* ORDERS — toggle positions */}
               <button
-                onClick={handleGroupPicker}
-                className={`inline-flex items-center gap-0.5 px-1 py-0.5 rounded transition-colors ${
-                  account.groupName
-                    ? 'hover:bg-gray-700'
-                    : 'text-gray-600 hover:text-gray-400 hover:bg-gray-800'
-                }`}
-                title={account.groupName || 'Assign group'}
+                onClick={() => setShowPositions(p => !p)}
+                style={{
+                  flex: 1, padding: '7px 4px',
+                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  border: showPositions ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
+                  color: showPositions ? 'var(--accent-blue)' : 'var(--text-muted)',
+                  background: showPositions ? 'rgba(56,189,248,.08)' : 'none',
+                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  transition: 'all .15s',
+                }}
               >
-                {account.groupName ? (
-                  <>
-                    <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: account.groupColor || '#6b7280' }} />
-                    <span className="max-w-[60px] truncate">{account.groupName}</span>
-                  </>
-                ) : (
-                  <Folder size={10} />
-                )}
+                {showPositions ? '▾ ORDERS' : 'ORDERS'}
               </button>
 
-              {showGroupPicker && (
-                <div className="absolute right-0 top-full mt-1 w-40 bg-bg-secondary border border-gray-700 rounded-lg shadow-xl z-50 py-1 max-h-48 overflow-y-auto">
-                  {account.groupId && (
-                    <button onClick={() => handleAssignGroup(null)} className="w-full text-left px-3 py-1.5 text-xs text-gray-400 hover:bg-gray-700 hover:text-white transition-colors">
-                      ✕ Remove group
-                    </button>
-                  )}
-                  {groups.map(g => (
-                    <button
-                      key={g.id}
-                      onClick={() => handleAssignGroup(g.id)}
-                      className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors ${
-                        account.groupId === g.id ? 'text-white bg-gray-700' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                      }`}
-                    >
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: g.color }} />
-                      <span className="truncate">{g.name}</span>
-                      {account.groupId === g.id && <span className="ml-auto text-accent-blue">✓</span>}
-                    </button>
-                  ))}
-                  {groups.length === 0 && <p className="px-3 py-2 text-[11px] text-gray-500">No groups yet</p>}
-                </div>
-              )}
-            </div>
-            <span>#{account.accountNumber}</span>
-          </div>
+              {/* + TRADE */}
+              <button
+                onClick={() => setShowNewTrade(true)}
+                style={{
+                  flex: 1, padding: '7px 4px',
+                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  border: '1px solid var(--border2)',
+                  color: 'var(--text-muted)',
+                  background: 'none',
+                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  transition: 'all .15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(56,189,248,.08)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
+              >
+                + TRADE
+              </button>
+
+              {/* Protection */}
+              <button
+                onClick={() => setShowProtection(true)}
+                title="Drawdown Protection"
+                style={{
+                  flex: 1, padding: '7px 4px',
+                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  border: account.protectionEnabled ? '1px solid rgba(250,204,21,.5)' : '1px solid var(--border2)',
+                  color: account.protectionEnabled ? 'var(--warning)' : 'var(--text-muted)',
+                  background: account.protectionEnabled ? 'rgba(250,204,21,.07)' : 'none',
+                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  transition: 'all .15s',
+                }}
+              >
+                {account.protectionEnabled ? '⛨ ON' : '⛨ SL'}
+              </button>
+
+              {/* Close all — ✕ */}
+              <button
+                onClick={() => setShowCloseAll(true)}
+                style={{
+                  flexBasis: '28px', flexShrink: 0, padding: '7px 4px',
+                  fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                  border: '1px solid rgba(239,68,68,.4)',
+                  color: 'var(--danger)',
+                  background: 'none',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all .15s',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,.08)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,.4)'; }}
+                title="Close All Positions"
+              >
+                ✕
+              </button>
+            </>
+          ) : (
+            <>
+              {/* RECONNECT */}
+              <button
+                style={{
+                  flex: 2, padding: '7px 4px',
+                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  border: '1px solid rgba(239,68,68,.4)',
+                  color: 'var(--danger)',
+                  background: 'none',
+                  cursor: 'default', letterSpacing: '.5px', textAlign: 'center',
+                }}
+              >
+                RECONNECT
+              </button>
+              <button
+                onClick={() => setShowPositions(p => !p)}
+                style={{
+                  flex: 1, padding: '7px 4px',
+                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  border: '1px solid var(--border2)',
+                  color: 'var(--text-muted)',
+                  background: 'none',
+                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                }}
+              >
+                ORDERS
+              </button>
+              <button
+                onClick={() => setShowCloseAll(true)}
+                style={{
+                  flexBasis: '28px', flexShrink: 0, padding: '7px 4px',
+                  fontSize: '12px',
+                  border: '1px solid rgba(239,68,68,.4)',
+                  color: 'var(--danger)',
+                  background: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                ✕
+              </button>
+            </>
+          )}
         </div>
 
-        {/* ── Main row: Balance+Equity | Today+P/L+Lots | Actions ── */}
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-
-          {/* Left: Balance + Equity */}
-          <div className="flex gap-5 shrink-0">
-            <div>
-              <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">
-                Balance <span className="text-accent-blue">{cur}</span>
-              </div>
-              <div className="font-display text-2xl leading-none text-white">{fmtNum(account.balance)}</div>
+        {/* ── Positions panel (inline expandable) ── */}
+        {showPositions && (
+          <div style={{ borderTop: '1px solid var(--border2)' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '6px 12px',
+              borderBottom: '1px solid var(--border-color)',
+              background: 'var(--bg-tertiary)',
+            }}>
+              <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--accent-blue)', letterSpacing: '1px' }}>
+                OPEN POSITIONS ({ordersArray.length})
+              </span>
+              <button
+                onClick={() => setShowPositions(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '12px' }}
+              >✕</button>
             </div>
-            <div>
-              <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">Equity</div>
-              <div className="font-display text-2xl leading-none">
-                <FlashNumber value={account.equity} format={fmtNum} positiveGreen={false} className="text-white" />
-              </div>
-            </div>
+            <PositionPanel
+              accountId={account.id}
+              accountName={account.name}
+              orders={ordersArray}
+              currency={account.currency}
+            />
           </div>
-
-          {/* Center: Today + P/L (prominent) + Lots below */}
-          <div className="flex-1 flex justify-center min-w-[200px]">
-            <div>
-              {/* Today + P/L on same row */}
-              <div className="flex items-baseline gap-5">
-                <div>
-                  <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">Today</div>
-                  <div className={`font-display text-2xl leading-none ${
-                    todayPnl > 0 ? 'text-success' : todayPnl < 0 ? 'text-danger' : 'text-gray-400'
-                  }`}>
-                    {todayPnl >= 0 ? '+' : '-'}{fmtNum(todayPnl)}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mb-1">P/L</div>
-                  <FlashNumber
-                    value={account.profit}
-                    format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(Math.abs(v))}`}
-                    positiveGreen
-                    className="font-display text-3xl leading-none"
-                  />
-                </div>
-              </div>
-              {/* Lots — below P/L */}
-              <div className="flex items-center gap-1.5 mt-1.5 font-tech text-[11px]">
-                <span className="text-gray-600">{orderCount} open</span>
-                <span className="text-gray-700">|</span>
-                <span className="text-success">B:{formatLots(account.buyLots)}</span>
-                <span className="text-gray-700">/</span>
-                <span className="text-danger">S:{formatLots(account.sellLots)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Shield + Trade buttons */}
-          <div className="flex items-center gap-2 shrink-0 ml-auto">
-            <button
-              onClick={() => setShowProtection(true)}
-              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs transition-colors ${
-                account.protectionEnabled
-                  ? 'text-warning bg-warning/10 hover:bg-warning/20'
-                  : 'text-gray-600 hover:text-gray-400 hover:bg-gray-800'
-              }`}
-              title="Drawdown Protection"
-            >
-              <Shield size={12} />
-              {account.protectionEnabled && <span className="text-[10px]">ON</span>}
-            </button>
-
-            {isRealAccount && isOnline && (
-              <>
-                <button
-                  onClick={() => setShowPositions(p => !p)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 border ${
-                    showPositions
-                      ? 'border-accent-blue text-accent-blue bg-accent-blue/10'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-300'
-                  }`}
-                  title="Manage Positions"
-                >
-                  <LayoutList size={12} />
-                  {showPositions ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-                </button>
-                <button
-                  onClick={() => setShowNewTrade(true)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-success/50 text-success hover:bg-success hover:text-white hover:border-success transition-all duration-150"
-                  title="Open New Trade"
-                >
-                  <PlusCircle size={12} />
-                  NEW
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={() => isOnline && setShowCloseAll(true)}
-              disabled={!isOnline}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 border ${
-                isOnline
-                  ? 'border-danger/50 text-danger hover:bg-danger hover:text-white hover:border-danger cursor-pointer'
-                  : 'border-gray-700 text-gray-600 cursor-not-allowed'
-              }`}
-              title="Close All Positions"
-            >
-              <XCircle size={12} />
-            </button>
-          </div>
-        </div>
-
-        {/* Broker */}
-        <div className="mt-2 font-tech text-[10px] text-gray-700 truncate">{account.broker}</div>
+        )}
       </div>
 
-      {/* Position Panel — inline expandable */}
-      {showPositions && (
-        <div className="border border-gray-800 rounded-xl mt-2 bg-bg-primary overflow-hidden">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-800">
-            <span className="text-xs font-medium text-gray-300 flex items-center gap-1.5">
-              <LayoutList size={12} className="text-accent-blue" />
-              Open Positions — {account.name}
-              <span className="text-gray-600 font-mono">({ordersArray.length})</span>
-            </span>
-            <button
-              onClick={() => setShowPositions(false)}
-              className="text-gray-600 hover:text-gray-400 transition-colors"
-            >
-              <ChevronUp size={14} />
-            </button>
-          </div>
-          <PositionPanel
-            accountId={account.id}
-            accountName={account.name}
-            orders={ordersArray}
-            currency={account.currency}
-          />
-        </div>
-      )}
-
+      {/* Dialogs */}
       {showCloseAll && (
         <CloseAllDialog accountId={account.id} accountName={account.name} onClose={() => setShowCloseAll(false)} onSuccess={onSuccess} />
       )}

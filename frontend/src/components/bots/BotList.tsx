@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { Search, SlidersHorizontal, Settings2, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAccountStore } from '../../stores/accountStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -9,12 +8,31 @@ import { BotCard } from './BotCard';
 import { GroupManager } from '../groups/GroupManager';
 
 const SORT_OPTIONS = [
-  { value: 'name', label: 'Name' },
-  { value: 'profit', label: 'P/L (High→Low)' },
-  { value: 'balance', label: 'Balance (High→Low)' },
-  { value: 'drawdown', label: 'Drawdown (High→Low)' },
-  { value: 'status', label: 'Status (Online first)' },
+  { value: 'name',     label: 'Name A-Z' },
+  { value: 'profit',   label: 'P/L ↓' },
+  { value: 'balance',  label: 'Balance ↓' },
+  { value: 'drawdown', label: 'DD% ↓' },
+  { value: 'status',   label: 'Online first' },
 ];
+
+// ── Section header matching mockup ──────────────────────────────────────────
+const SecHdr = ({ title, count, dot = 'var(--accent-blue)' }: { title: string; count?: string; dot?: string }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+    <div style={{ width: '7px', height: '7px', background: dot, boxShadow: `0 0 6px ${dot}`, flexShrink: 0 }} />
+    <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '2px' }}>
+      {title}
+    </span>
+    <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
+    {count && (
+      <span style={{
+        fontFamily: "'Press Start 2P'", fontSize: '7px',
+        color: 'var(--text-muted)',
+        padding: '4px 10px',
+        border: '1px solid var(--border2)',
+      }}>{count}</span>
+    )}
+  </div>
+);
 
 export const BotList = () => {
   const accounts = useAccountStore(s => s.accounts);
@@ -34,11 +52,8 @@ export const BotList = () => {
     fetchGroups().then(setGroups).catch(() => {});
   }, []);
 
-  useEffect(() => {
-    loadGroups();
-  }, [loadGroups]);
+  useEffect(() => { loadGroups(); }, [loadGroups]);
 
-  // Close filter popup on outside click
   useEffect(() => {
     if (!showFilter) return;
     const handler = (e: MouseEvent) => {
@@ -55,32 +70,13 @@ export const BotList = () => {
     return ['all', ...Array.from(b)];
   }, [accounts]);
 
-  // Count active filters
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (botFilter.status !== 'all') count++;
-    if (botFilter.broker !== 'all') count++;
-    if (botFilter.group !== 'all') count++;
-    if (botFilter.sort !== 'name') count++;
-    if (botFilter.search.trim()) count++;
-    return count;
-  }, [botFilter]);
-
   const filtered = useMemo(() => {
     let result = [...accounts];
-
-    if (botFilter.status !== 'all') {
-      result = result.filter(a => a.status === botFilter.status);
-    }
-    if (botFilter.broker !== 'all') {
-      result = result.filter(a => a.broker === botFilter.broker);
-    }
+    if (botFilter.status !== 'all') result = result.filter(a => a.status === botFilter.status);
+    if (botFilter.broker !== 'all') result = result.filter(a => a.broker === botFilter.broker);
     if (botFilter.group !== 'all') {
-      if (botFilter.group === 'ungrouped') {
-        result = result.filter(a => !a.groupId);
-      } else {
-        result = result.filter(a => a.groupId === botFilter.group);
-      }
+      if (botFilter.group === 'ungrouped') result = result.filter(a => !a.groupId);
+      else result = result.filter(a => a.groupId === botFilter.group);
     }
     if (botFilter.search.trim()) {
       const q = botFilter.search.toLowerCase();
@@ -90,8 +86,6 @@ export const BotList = () => {
         a.accountNumber.includes(q)
       );
     }
-
-    // Sort
     result.sort((a, b) => {
       switch (botFilter.sort) {
         case 'profit': return b.profit - a.profit;
@@ -101,7 +95,6 @@ export const BotList = () => {
         default: return a.name.localeCompare(b.name);
       }
     });
-
     return result;
   }, [accounts, botFilter]);
 
@@ -109,179 +102,172 @@ export const BotList = () => {
     setBotFilter({ status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' });
   };
 
-  const selectClass = "w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-accent-blue";
+  const onlineCount = accounts.filter(a => a.status === 'online').length;
+
+  // button style factory
+  const ftabStyle = (active: boolean) => ({
+    padding: '5px 10px',
+    fontFamily: "'Press Start 2P'",
+    fontSize: '7px',
+    border: active ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
+    color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
+    background: active ? 'rgba(56,189,248,.08)' : 'none',
+    cursor: 'pointer',
+    transition: 'all .15s',
+  } as React.CSSProperties);
 
   return (
     <div>
-      {/* Compact header bar */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-300">Bot Accounts</span>
-          <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">
-            {filtered.length}/{accounts.length}
-          </span>
-        </div>
+      {/* Section header */}
+      <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${accounts.length}`} />
 
-        <div className="flex items-center gap-2 relative" ref={filterRef}>
-          {/* Filter button */}
+      {/* Toolbar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', position: 'relative' }} ref={filterRef}>
+        {/* ⚙ FILTER */}
+        <button
+          onClick={() => setShowFilter(f => !f)}
+          style={ftabStyle(showFilter)}
+        >
+          ⚙ FILTER
+        </button>
+
+        {/* Status chips */}
+        {(['all', 'online', 'offline'] as const).map(s => (
           <button
-            onClick={() => setShowFilter(f => !f)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-              showFilter || activeFilterCount > 0
-                ? 'border-accent-blue text-accent-blue bg-accent-blue/10'
-                : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-300'
-            }`}
+            key={s}
+            onClick={() => setBotFilter({ status: s })}
+            style={ftabStyle(botFilter.status === s)}
           >
-            <SlidersHorizontal size={13} />
-            <span>Filter</span>
-            {activeFilterCount > 0 && (
-              <span className="bg-accent-blue text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                {activeFilterCount}
-              </span>
-            )}
+            {s.toUpperCase()}
           </button>
+        ))}
 
-          {/* Groups button */}
-          <button
-            onClick={() => setShowGroupManager(true)}
-            className="flex items-center gap-1.5 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors"
-          >
-            <Settings2 size={13} />
-            <span>Groups</span>
-          </button>
+        {/* Groups button */}
+        <button onClick={() => setShowGroupManager(true)} style={ftabStyle(false)}>
+          GROUPS
+        </button>
 
-          {/* Filter popup */}
-          {showFilter && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-bg-secondary border border-gray-700 rounded-xl shadow-2xl z-50 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-semibold text-white">Filter & Sort</h4>
-                <button onClick={() => setShowFilter(false)} className="text-gray-500 hover:text-gray-300">
-                  <X size={16} />
-                </button>
-              </div>
+        {/* Count */}
+        <span style={{ marginLeft: 'auto', fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)' }}>
+          {filtered.length} / {accounts.length}
+        </span>
 
-              <div className="space-y-3">
-                {/* Search */}
-                <div>
-                  <label className="text-[11px] text-gray-500 block mb-1">Search</label>
-                  <div className="relative">
-                    <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
-                    <input
-                      type="text"
-                      placeholder="Bot name, broker, account #..."
-                      value={botFilter.search}
-                      onChange={e => setBotFilter({ search: e.target.value })}
-                      className="w-full pl-8 pr-3 py-2 bg-bg-primary border border-gray-700 rounded-lg text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-accent-blue"
-                    />
-                  </div>
-                </div>
-
-                {/* Status + Broker row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] text-gray-500 block mb-1">Status</label>
-                    <select
-                      value={botFilter.status}
-                      onChange={e => setBotFilter({ status: e.target.value })}
-                      className={selectClass}
-                    >
-                      <option value="all">All</option>
-                      <option value="online">Online</option>
-                      <option value="offline">Offline</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-gray-500 block mb-1">Broker</label>
-                    <select
-                      value={botFilter.broker}
-                      onChange={e => setBotFilter({ broker: e.target.value })}
-                      className={selectClass}
-                    >
-                      {brokers.map(b => (
-                        <option key={b} value={b}>{b === 'all' ? 'All' : b}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Group + Sort row */}
-                <div className="grid grid-cols-2 gap-3">
-                  {groups.length > 0 && (
-                    <div>
-                      <label className="text-[11px] text-gray-500 block mb-1">Group</label>
-                      <select
-                        value={botFilter.group}
-                        onChange={e => setBotFilter({ group: e.target.value })}
-                        className={selectClass}
-                      >
-                        <option value="all">All</option>
-                        <option value="ungrouped">Ungrouped</option>
-                        {groups.map(g => (
-                          <option key={g.id} value={g.id}>{g.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-[11px] text-gray-500 block mb-1">Sort by</label>
-                    <select
-                      value={botFilter.sort}
-                      onChange={e => setBotFilter({ sort: e.target.value })}
-                      className={selectClass}
-                    >
-                      {SORT_OPTIONS.map(o => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={clearFilters}
-                    className="flex-1 py-2 rounded-lg text-xs text-gray-400 border border-gray-700 hover:border-gray-500 hover:text-gray-300 transition-colors"
-                  >
-                    Clear all
-                  </button>
-                  <button
-                    onClick={() => setShowFilter(false)}
-                    className="flex-1 py-2 rounded-lg text-xs font-semibold text-white bg-accent-blue hover:bg-blue-600 transition-colors"
-                  >
-                    Apply
-                  </button>
-                </div>
-              </div>
+        {/* Filter popup */}
+        {showFilter && (
+          <div style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0,
+            zIndex: 500,
+            background: 'var(--bg-card)',
+            border: '2px solid var(--border2)',
+            padding: '12px 14px',
+            minWidth: '220px',
+            boxShadow: '4px 4px 0 rgba(56,189,248,.2)',
+          }}>
+            {/* Search */}
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SEARCH</div>
+              <input
+                type="text"
+                placeholder="name, broker, account #"
+                value={botFilter.search}
+                onChange={e => setBotFilter({ search: e.target.value })}
+                style={{
+                  width: '100%', background: 'var(--bg-input)',
+                  border: '1px solid var(--border2)', color: 'var(--text-primary)',
+                  padding: '7px 9px', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+                  outline: 'none',
+                }}
+              />
             </div>
-          )}
-        </div>
+
+            {/* Broker */}
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>BROKER</div>
+              <select
+                value={botFilter.broker}
+                onChange={e => setBotFilter({ broker: e.target.value })}
+                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+              >
+                {brokers.map(b => <option key={b} value={b}>{b === 'all' ? 'All brokers' : b}</option>)}
+              </select>
+            </div>
+
+            {/* Group */}
+            {groups.length > 0 && (
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>GROUP</div>
+                <select
+                  value={botFilter.group}
+                  onChange={e => setBotFilter({ group: e.target.value })}
+                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="all">All</option>
+                  <option value="ungrouped">Ungrouped</option>
+                  {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                </select>
+              </div>
+            )}
+
+            {/* Sort */}
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SORT BY</div>
+              <select
+                value={botFilter.sort}
+                onChange={e => setBotFilter({ sort: e.target.value })}
+                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+              >
+                {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+
+            <button
+              onClick={() => { clearFilters(); setShowFilter(false); }}
+              style={{
+                width: '100%', padding: '7px',
+                fontFamily: "'Press Start 2P'", fontSize: '7px',
+                border: '1px solid var(--border2)', color: 'var(--text-muted)',
+                background: 'none', cursor: 'pointer',
+              }}
+            >
+              CLEAR ALL
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Cards grid */}
+      {/* Bot grid — 3 columns matching mockup */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-sm">No bots match your filters</p>
-          <button
-            className="text-xs text-accent-blue hover:underline mt-2"
-            onClick={clearFilters}
-          >
-            Clear filters
-          </button>
+        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontFamily: "'Share Tech Mono'", fontSize: '12px' }}>
+          No bots match your filters
+          {botFilter.status !== 'all' || botFilter.broker !== 'all' || botFilter.search ? (
+            <div style={{ marginTop: '8px' }}>
+              <button onClick={clearFilters} style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--accent-blue)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                CLEAR FILTERS
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {filtered.map(account => (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '10px',
+          marginTop: '10px',
+        }}
+          className="bot-grid-responsive"
+        >
+          {filtered.map((account: Account) => (
             <BotCard key={account.id} account={account} todayPnl={todayPnlData?.[account.id] ?? 0} />
           ))}
         </div>
       )}
 
-      {/* Group Manager Dialog */}
-      <GroupManager
-        open={showGroupManager}
-        onClose={() => setShowGroupManager(false)}
-        onGroupsChanged={loadGroups}
-      />
+      <style>{`
+        @media (max-width: 1280px) { .bot-grid-responsive { grid-template-columns: repeat(2,1fr) !important; } }
+        @media (max-width: 900px)  { .bot-grid-responsive { grid-template-columns: 1fr !important; } }
+      `}</style>
+
+      <GroupManager open={showGroupManager} onClose={() => setShowGroupManager(false)} onGroupsChanged={loadGroups} />
     </div>
   );
 };

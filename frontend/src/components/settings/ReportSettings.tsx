@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Clock, Save, Loader2, Send } from 'lucide-react';
 import { fetchReportSettings, saveReportSettings, sendReportNow } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
 import type { ReportSettings as ReportSettingsType } from '../../types';
+
+const selStyle: React.CSSProperties = {
+  background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)',
+  fontFamily: "'Share Tech Mono'", fontSize: '12px', padding: '7px 10px', outline: 'none', cursor: 'pointer',
+};
+const lbl: React.CSSProperties = {
+  fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+  letterSpacing: '.5px', display: 'block', marginBottom: '6px',
+};
 
 export const ReportSettings = () => {
   const addToast = useUIStore(s => s.addToast);
@@ -26,7 +34,7 @@ export const ReportSettings = () => {
     try {
       const updated = await saveReportSettings(settings);
       setSettings(updated);
-      addToast({ type: 'success', title: t('reports.saved') });
+      addToast({ type: 'success', title: t('reports.saved') || 'Saved' });
     } catch {
       addToast({ type: 'error', title: 'Failed to save' });
     } finally {
@@ -38,7 +46,7 @@ export const ReportSettings = () => {
     setSending(true);
     try {
       await sendReportNow();
-      addToast({ type: 'success', title: t('reports.sent') });
+      addToast({ type: 'success', title: t('reports.sent') || 'Report sent' });
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed';
       addToast({ type: 'error', title: msg });
@@ -47,100 +55,91 @@ export const ReportSettings = () => {
     }
   };
 
-  if (loading) return <div className="text-sm text-gray-500 py-4">{t('common.loading')}</div>;
+  if (loading) {
+    return <div style={{ color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px', padding: '12px 0' }}>Loading...</div>;
+  }
   if (!settings) return null;
 
+  const hours = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
   const days = [
-    { value: 1, label: t('reports.mon') },
-    { value: 2, label: t('reports.tue') },
-    { value: 3, label: t('reports.wed') },
-    { value: 4, label: t('reports.thu') },
-    { value: 5, label: t('reports.fri') },
-    { value: 6, label: t('reports.sat') },
-    { value: 7, label: t('reports.sun') },
+    { value: 1, label: t('reports.mon') || 'Mon' },
+    { value: 2, label: t('reports.tue') || 'Tue' },
+    { value: 3, label: t('reports.wed') || 'Wed' },
+    { value: 4, label: t('reports.thu') || 'Thu' },
+    { value: 5, label: t('reports.fri') || 'Fri' },
+    { value: 6, label: t('reports.sat') || 'Sat' },
+    { value: 7, label: t('reports.sun') || 'Sun' },
   ];
 
-  const hours = Array.from({ length: 24 }, (_, i) =>
-    `${String(i).padStart(2, '0')}:00`
-  );
-
   return (
-    <div className="bg-bg-secondary border border-border2 p-6 space-y-4">
-      <div className="flex items-center gap-2 text-accent-blue mb-2">
-        <Clock size={14} />
-        <h3 className="font-pixel text-[9px] tracking-widest">{t('reports.title')}</h3>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '20px 22px', marginBottom: '12px' }}>
+      {/* Title */}
+      <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--cyan)', letterSpacing: '1px', marginBottom: '12px' }}>
+        SCHEDULED REPORTS
       </div>
+      <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
+        {t('reports.description') || 'Receive automated P&L reports via Telegram.'}
+      </p>
 
-      <p className="font-tech text-xs text-gray-600">{t('reports.description')}</p>
-
-      {/* Toggle */}
-      <label className="flex items-center gap-3 cursor-pointer">
+      {/* Enable toggle */}
+      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: '14px' }}>
         <input
           type="checkbox"
           checked={settings.reportEnabled}
           onChange={e => setSettings({ ...settings, reportEnabled: e.target.checked })}
-          className="w-4 h-4 accent-accent-blue"
+          style={{ width: '14px', height: '14px', accentColor: 'var(--cyan)', cursor: 'pointer' }}
         />
-        <span className="font-tech text-sm text-gray-400">{t('reports.enabled')}</span>
+        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: settings.reportEnabled ? 'var(--cyan)' : 'var(--text-dim)' }}>
+          {t('reports.enabled') || 'Enable scheduled reports'}
+        </span>
       </label>
 
       {settings.reportEnabled && (
-        <div className="space-y-3 pl-7">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginBottom: '14px', paddingLeft: '24px' }}>
           {/* Frequency */}
           <div>
-            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('reports.frequency')}</label>
-            <select
-              value={settings.reportFrequency}
-              onChange={e => setSettings({ ...settings, reportFrequency: e.target.value })}
-              className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
-            >
-              <option value="daily">{t('reports.daily')}</option>
-              <option value="weekly">{t('reports.weekly')}</option>
+            <label style={lbl}>{t('reports.frequency') || 'FREQUENCY'}</label>
+            <select value={settings.reportFrequency} onChange={e => setSettings({ ...settings, reportFrequency: e.target.value })} style={selStyle}>
+              <option value="daily">{t('reports.daily') || 'Daily'}</option>
+              <option value="weekly">{t('reports.weekly') || 'Weekly'}</option>
             </select>
           </div>
 
           {/* Time */}
           <div>
-            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('reports.time')}</label>
-            <select
-              value={settings.reportTime}
-              onChange={e => setSettings({ ...settings, reportTime: e.target.value })}
-              className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
-            >
-              {hours.map(h => (
-                <option key={h} value={h}>{h}</option>
-              ))}
+            <label style={lbl}>{t('reports.time') || 'SEND TIME'}</label>
+            <select value={settings.reportTime} onChange={e => setSettings({ ...settings, reportTime: e.target.value })} style={selStyle}>
+              {hours.map(h => <option key={h} value={h}>{h}</option>)}
             </select>
           </div>
 
           {/* Day (weekly only) */}
           {settings.reportFrequency === 'weekly' && (
             <div>
-              <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('reports.day')}</label>
-              <select
-                value={settings.reportDay}
-                onChange={e => setSettings({ ...settings, reportDay: parseInt(e.target.value) })}
-                className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
-              >
-                {days.map(d => (
-                  <option key={d.value} value={d.value}>{d.label}</option>
-                ))}
+              <label style={lbl}>{t('reports.day') || 'DAY'}</label>
+              <select value={settings.reportDay} onChange={e => setSettings({ ...settings, reportDay: parseInt(e.target.value) })} style={selStyle}>
+                {days.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
               </select>
             </div>
           )}
         </div>
       )}
 
-      <div className="flex items-center gap-3 pt-2">
-        <button onClick={handleSave} disabled={saving}
-          className="btn-primary flex items-center gap-2 disabled:opacity-50">
-          {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
-          {t('common.save')}
+      {/* Actions */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px', padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? .6 : 1, boxShadow: saving ? 'none' : '0 0 8px rgba(56,189,248,.4)' }}
+        >
+          {saving ? 'SAVING...' : t('common.save') || 'SAVE'}
         </button>
-        <button onClick={handleSendNow} disabled={sending}
-          className="btn-ghost flex items-center gap-2 disabled:opacity-50">
-          {sending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-          {t('reports.send_now')}
+        <button
+          onClick={handleSendNow}
+          disabled={sending}
+          style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px', padding: '9px 16px', background: 'none', color: sending ? 'var(--text-dim)' : 'var(--text)', border: '1px solid var(--border2)', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? .6 : 1 }}
+        >
+          {sending ? 'SENDING...' : t('reports.send_now') || 'SEND NOW'}
         </button>
       </div>
     </div>

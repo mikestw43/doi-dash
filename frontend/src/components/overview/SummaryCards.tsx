@@ -1,90 +1,174 @@
 import type { OverviewStats } from '../../types';
 import { formatCurrency, formatPercent, formatLots } from '../../utils/formatters';
 import { FlashNumber } from '../ui/FlashNumber';
-import { Users, Wifi, WifiOff, DollarSign, TrendingUp, TrendingDown, Activity } from 'lucide-react';
-
-interface CardProps {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon?: React.ReactNode;
-  valueColor?: string;
-  isFlash?: boolean;
-  flashValue?: number;
-}
-
-const StatCard = ({ label, value, sub, icon, valueColor = 'text-white', isFlash, flashValue }: CardProps) => (
-  <div className="card flex flex-col gap-2 min-w-0">
-    <div className="flex items-center justify-between">
-      <span className="font-pixel text-[8px] text-gray-500 tracking-widest uppercase truncate">{label}</span>
-      {icon && <div className="text-gray-600 shrink-0">{icon}</div>}
-    </div>
-    <div className={`font-display text-3xl leading-none ${valueColor} truncate`}>
-      {isFlash && flashValue !== undefined
-        ? <FlashNumber value={flashValue} format={() => String(value)} positiveGreen={flashValue > 0} />
-        : value
-      }
-    </div>
-    {sub && <span className="font-tech text-[11px] text-gray-600">{sub}</span>}
-  </div>
-);
 
 interface Props {
   stats: OverviewStats;
 }
 
+interface KpiCardProps {
+  label: string;
+  icon?: string;
+  value: React.ReactNode;
+  sub?: React.ReactNode;
+  barWidth?: number;        // 0–100
+  barColor?: string;        // CSS variable name like 'var(--accent-blue)'
+  variant?: 'default' | 'red' | 'yellow';
+}
+
+const KpiCard = ({ label, icon, value, sub, barWidth = 0, barColor = 'var(--accent-blue)', variant = 'default' }: KpiCardProps) => (
+  <div className={`kpi-card${variant === 'red' ? ' kpi-red' : variant === 'yellow' ? ' kpi-yellow' : ''}`}>
+    {/* Header */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+      <span style={{
+        fontFamily: "'Press Start 2P'", fontSize: '7px',
+        color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px',
+      }}>{label}</span>
+      {icon && (
+        <span style={{ fontSize: '13px', color: 'var(--text-muted)', opacity: .5 }}>{icon}</span>
+      )}
+    </div>
+
+    {/* Value */}
+    <div style={{ fontFamily: "'VT323'", fontSize: '38px', fontWeight: 400, lineHeight: 1 }}>
+      {value}
+    </div>
+
+    {/* Sub */}
+    {sub && (
+      <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px', letterSpacing: '.5px' }}>
+        {sub}
+      </div>
+    )}
+
+    {/* Progress bar */}
+    <div style={{ height: '2px', background: 'var(--border-color)', marginTop: '10px' }}>
+      <div style={{
+        height: '100%', width: `${barWidth}%`,
+        background: barColor,
+        boxShadow: `0 0 4px ${barColor}`,
+        transition: 'width .4s',
+      }} />
+    </div>
+  </div>
+);
+
 export const SummaryCards = ({ stats }: Props) => {
   const equityChange = ((stats.totalEquity - stats.totalBalance) / Math.max(stats.totalBalance, 1)) * 100;
-  const allOnline = stats.onlineAccounts === stats.totalAccounts;
+  const offlineCount = stats.offlineAccounts || (stats.totalAccounts - stats.onlineAccounts);
+  const hasOffline = offlineCount > 0;
+  const onlinePct = stats.totalAccounts > 0 ? (stats.onlineAccounts / stats.totalAccounts) * 100 : 100;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-      {/* Compact: Online / Total */}
-      <div className="card flex flex-col gap-2 min-w-0">
-        <div className="flex items-center justify-between">
-          <span className="font-pixel text-[8px] text-gray-500 tracking-widest uppercase">Accounts</span>
-          <div className="shrink-0">{allOnline ? <Wifi size={14} className="text-success" /> : <Users size={14} className="text-gray-600" />}</div>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className={`font-display text-3xl leading-none ${allOnline ? 'text-success' : 'text-warning'}`}>{stats.onlineAccounts}</span>
-          <span className="font-display text-xl text-gray-600">/ {stats.totalAccounts}</span>
-        </div>
-        <span className="font-tech text-[11px] text-gray-600">
-          {allOnline ? 'All online' : `${stats.offlineAccounts} offline`}
-        </span>
-      </div>
-      <StatCard
-        label="Total Balance"
-        value={formatCurrency(stats.totalBalance)}
-        icon={<DollarSign size={16} />}
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '10px',
+    }}>
+      {/* ACCOUNTS */}
+      <KpiCard
+        label="ACCOUNTS"
+        icon="◇"
+        value={
+          <span style={{ color: hasOffline ? 'var(--warning)' : 'var(--accent-blue)' }}>
+            {stats.onlineAccounts}
+            <span style={{ fontSize: '16px', color: 'var(--text-muted)', fontWeight: 400 }}>
+              {' '}/ {stats.totalAccounts}
+            </span>
+          </span>
+        }
+        sub={
+          hasOffline
+            ? <span style={{ color: 'var(--danger)' }}>■ {offlineCount} offline</span>
+            : 'All online'
+        }
+        barWidth={onlinePct}
+        barColor="var(--accent-blue)"
+      />
+
+      {/* TOTAL BALANCE */}
+      <KpiCard
+        label="TOTAL BALANCE"
+        icon="$"
+        value={
+          <span style={{ color: 'var(--text-primary)', fontSize: '24px' }}>
+            {formatCurrency(stats.totalBalance)}
+          </span>
+        }
         sub="USD"
+        barWidth={65}
+        barColor="var(--accent-blue)"
       />
-      <StatCard
-        label="Total Equity"
-        value={formatCurrency(stats.totalEquity)}
-        icon={<Activity size={16} />}
-        valueColor={equityChange >= 0 ? 'text-success' : 'text-danger'}
-        sub={`${equityChange >= 0 ? '+' : ''}${formatPercent(equityChange)} vs balance`}
-        isFlash
-        flashValue={stats.totalEquity}
+
+      {/* TOTAL EQUITY */}
+      <KpiCard
+        label="TOTAL EQUITY"
+        icon="○"
+        value={
+          <FlashNumber
+            value={stats.totalEquity}
+            format={(v) => formatCurrency(v)}
+            positiveGreen={equityChange >= 0}
+            className=""
+            style={{ fontFamily: "'VT323'", fontSize: '24px', lineHeight: 1, color: equityChange >= 0 ? 'var(--success)' : 'var(--danger)' }}
+          />
+        }
+        sub={
+          <span style={{ color: equityChange >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+            {equityChange >= 0 ? '▲' : '▼'} {equityChange >= 0 ? '+' : ''}{formatPercent(equityChange)} vs balance
+          </span>
+        }
+        barWidth={82}
+        barColor="var(--success)"
+        variant="default"
       />
-      <StatCard
-        label="Total P/L"
-        value={formatCurrency(stats.totalProfit)}
-        icon={stats.totalProfit >= 0 ? <TrendingUp size={16} className="text-success" /> : <TrendingDown size={16} className="text-danger" />}
-        valueColor={stats.totalProfit >= 0 ? 'text-success' : 'text-danger'}
-        isFlash
-        flashValue={stats.totalProfit}
+
+      {/* TOTAL P/L */}
+      <KpiCard
+        label="TOTAL P/L"
+        icon="P/L"
+        value={
+          <FlashNumber
+            value={stats.totalProfit}
+            format={(v) => formatCurrency(v)}
+            positiveGreen
+            className=""
+            style={{ fontFamily: "'VT323'", fontSize: '38px', lineHeight: 1, color: stats.totalProfit >= 0 ? 'var(--success)' : 'var(--danger)' }}
+          />
+        }
+        sub="Floating unrealized"
+        barWidth={Math.min(Math.abs(stats.totalProfit / Math.max(stats.totalBalance, 1)) * 100, 100)}
+        barColor={stats.totalProfit >= 0 ? 'var(--success)' : 'var(--danger)'}
+        variant={stats.totalProfit < 0 ? 'red' : 'default'}
       />
-      <StatCard
-        label="Open Lots"
-        value={formatLots(stats.totalOpenLots)}
+
+      {/* OPEN LOTS */}
+      <KpiCard
+        label="OPEN LOTS"
+        icon="◇"
+        value={
+          <span style={{ color: 'var(--accent-blue)' }}>
+            {formatLots(stats.totalOpenLots)}
+          </span>
+        }
         sub={`B:${formatLots(stats.totalBuyLots)} / S:${formatLots(stats.totalSellLots)}`}
+        barWidth={40}
+        barColor="var(--accent-blue)"
       />
-      <StatCard
-        label="Pending Orders"
-        value={stats.totalPendingOrders}
+
+      {/* PENDING ORDERS */}
+      <KpiCard
+        label="PENDING ORDERS"
+        icon="□"
+        value={
+          <span style={{ color: 'var(--warning)', fontSize: '36px' }}>
+            {stats.totalPendingOrders}
+          </span>
+        }
         sub="total pending"
+        barWidth={30}
+        barColor="var(--warning)"
+        variant={stats.totalPendingOrders > 0 ? 'yellow' : 'default'}
       />
     </div>
   );

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAccountStore } from '../../stores/accountStore';
 import { fetchTradeHistory } from '../../services/api';
 import { exportToCSV } from '../../utils/export';
-import { History, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ClosedTrade } from '../../types';
 
 export const TradeHistoryPage = () => {
@@ -20,180 +19,126 @@ export const TradeHistoryPage = () => {
 
   const load = () => {
     setLoading(true);
-    fetchTradeHistory({
-      accountId: accountId || undefined,
-      page,
-      limit,
-      symbol: symbol || undefined,
-      type: type || undefined,
-      sortBy,
-      sortDir,
-    })
-      .then(res => {
-        setTrades(res.trades);
-        setTotal(res.total);
-      })
-      .catch(() => {
-        setTrades([]);
-        setTotal(0);
-      })
+    fetchTradeHistory({ accountId: accountId || undefined, page, limit, symbol: symbol || undefined, type: type || undefined, sortBy, sortDir })
+      .then(res => { setTrades(res.trades); setTotal(res.total); })
+      .catch(() => { setTrades([]); setTotal(0); })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, [accountId, symbol, type, page, sortBy, sortDir]);
+  useEffect(() => { load(); }, [accountId, symbol, type, page, sortBy, sortDir]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalPages = Math.ceil(total / limit) || 1;
 
   const handleSort = (col: string) => {
-    if (sortBy === col) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(col);
-      setSortDir('desc');
-    }
+    if (sortBy === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(col); setSortDir('desc'); }
     setPage(1);
   };
-
-  const sortIcon = (col: string) => {
-    if (sortBy !== col) return '';
-    return sortDir === 'asc' ? ' ↑' : ' ↓';
-  };
+  const sortIcon = (col: string) => sortBy !== col ? '' : sortDir === 'asc' ? ' ↑' : ' ↓';
 
   const handleExport = () => {
-    if (trades.length === 0) return;
+    if (!trades.length) return;
     exportToCSV(
-      trades.map(t => ({
-        ticket: t.ticket,
-        symbol: t.symbol,
-        type: t.type,
-        lots: t.lots,
-        openPrice: t.openPrice,
-        closePrice: t.closePrice,
-        profit: t.profit,
-        openTime: t.openTime,
-        closeTime: t.closeTime,
-        sl: t.sl,
-        tp: t.tp,
-        account: t.account?.name || '',
-      })),
+      trades.map(t => ({ ticket: t.ticket, symbol: t.symbol, type: t.type, lots: t.lots, openPrice: t.openPrice, closePrice: t.closePrice, profit: t.profit, openTime: t.openTime, closeTime: t.closeTime, sl: t.sl, tp: t.tp, account: t.account?.name || '' })),
       `trade-history-${new Date().toISOString().slice(0, 10)}`,
-      [
-        { key: 'ticket', label: 'Ticket' },
-        { key: 'symbol', label: 'Symbol' },
-        { key: 'type', label: 'Type' },
-        { key: 'lots', label: 'Lots' },
-        { key: 'openPrice', label: 'Open Price' },
-        { key: 'closePrice', label: 'Close Price' },
-        { key: 'profit', label: 'Profit' },
-        { key: 'openTime', label: 'Open Time' },
-        { key: 'closeTime', label: 'Close Time' },
-        { key: 'sl', label: 'SL' },
-        { key: 'tp', label: 'TP' },
-        { key: 'account', label: 'Account' },
-      ],
+      [{ key: 'ticket', label: 'Ticket' }, { key: 'symbol', label: 'Symbol' }, { key: 'type', label: 'Type' }, { key: 'lots', label: 'Lots' }, { key: 'openPrice', label: 'Open Price' }, { key: 'closePrice', label: 'Close Price' }, { key: 'profit', label: 'Profit' }, { key: 'openTime', label: 'Open Time' }, { key: 'closeTime', label: 'Close Time' }, { key: 'sl', label: 'SL' }, { key: 'tp', label: 'TP' }, { key: 'account', label: 'Account' }],
     );
   };
 
+  const selStyle: React.CSSProperties = { background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '11px', padding: '6px 10px', outline: 'none', cursor: 'pointer' };
+  const thStyle = (clickable = false): React.CSSProperties => ({
+    fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px',
+    padding: '9px 8px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400,
+    cursor: clickable ? 'pointer' : 'default', whiteSpace: 'nowrap',
+  });
+  const thR = (clickable = false): React.CSSProperties => ({ ...thStyle(clickable), textAlign: 'right' });
+  const td: React.CSSProperties = { padding: '7px 8px', borderBottom: '1px solid rgba(45,64,96,.3)', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', whiteSpace: 'nowrap' };
+  const tdR: React.CSSProperties = { ...td, textAlign: 'right' };
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <History size={16} className="text-accent-blue" />
-          <h2 className="font-pixel text-[11px] text-accent-blue tracking-wider">Trade History</h2>
-          <span className="font-tech text-xs bg-bg-secondary border border-border2 text-gray-500 px-2 py-0.5">{total}</span>
-        </div>
-        <button
-          onClick={handleExport}
-          disabled={trades.length === 0}
-          className="btn-ghost text-xs flex items-center gap-1.5"
-        >
-          <Download size={13} />
-          EXPORT CSV
-        </button>
+    <div>
+      {/* Section header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text)', letterSpacing: '2px' }}>TRADE HISTORY</span>
+        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', padding: '4px 10px', border: '1px solid var(--border2)' }}>{total}</span>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={accountId}
-          onChange={e => { setAccountId(e.target.value); setPage(1); }}
-          className="bg-bg-secondary border border-border2 px-3 py-1.5 font-tech text-sm text-gray-300 focus:outline-none focus:border-accent-blue"
-        >
+      {/* Filters + Export */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+        <select value={accountId} onChange={e => { setAccountId(e.target.value); setPage(1); }} style={selStyle}>
           <option value="">All Accounts</option>
-          {accounts.map(a => (
-            <option key={a.id} value={a.id}>{a.name}</option>
-          ))}
+          {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
-
         <input
-          type="text"
-          placeholder="Symbol..."
-          value={symbol}
-          onChange={e => { setSymbol(e.target.value); setPage(1); }}
-          className="bg-bg-secondary border border-border2 px-3 py-1.5 font-tech text-sm text-gray-300 placeholder-gray-700 focus:outline-none focus:border-accent-blue w-28"
+          type="text" placeholder="Symbol..." value={symbol}
+          onChange={e => { setSymbol(e.target.value.toUpperCase()); setPage(1); }}
+          style={{ ...selStyle, width: '100px' }}
         />
-
-        <select
-          value={type}
-          onChange={e => { setType(e.target.value); setPage(1); }}
-          className="bg-bg-secondary border border-border2 px-3 py-1.5 font-tech text-sm text-gray-300 focus:outline-none focus:border-accent-blue"
-        >
+        <select value={type} onChange={e => { setType(e.target.value); setPage(1); }} style={selStyle}>
           <option value="">All Types</option>
           <option value="BUY">BUY</option>
           <option value="SELL">SELL</option>
         </select>
+        <button
+          onClick={handleExport}
+          disabled={!trades.length}
+          style={{ marginLeft: 'auto', fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '7px 12px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: trades.length ? 'pointer' : 'not-allowed', opacity: trades.length ? 1 : .3 }}
+        >
+          ↓ EXPORT CSV
+        </button>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
+      <div style={{ overflowX: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border2)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
           <thead>
-            <tr className="border-b border-border2">
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('ticket')}>
-                Ticket{sortIcon('ticket')}
-              </th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('symbol')}>
-                Symbol{sortIcon('symbol')}
-              </th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2">Type</th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2">Lots</th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2">Open</th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2">Close</th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('profit')}>
-                Profit{sortIcon('profit')}
-              </th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('closeTime')}>
-                Close{sortIcon('closeTime')}
-              </th>
-              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2">Account</th>
+            <tr style={{ background: 'var(--bg-card2)' }}>
+              <th style={thStyle(true)} onClick={() => handleSort('ticket')}>TICKET{sortIcon('ticket')}</th>
+              <th style={thStyle(true)} onClick={() => handleSort('symbol')}>SYMBOL{sortIcon('symbol')}</th>
+              <th style={thStyle()}>TYPE</th>
+              <th style={thR()}>LOTS</th>
+              <th style={thR()}>OPEN</th>
+              <th style={thR()}>CLOSE</th>
+              <th style={thR(true)} onClick={() => handleSort('profit')}>PROFIT{sortIcon('profit')}</th>
+              <th style={thStyle(true)} onClick={() => handleSort('closeTime')}>CLOSE TIME{sortIcon('closeTime')}</th>
+              <th style={thStyle()}>ACCOUNT</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} className="text-center py-8 font-tech text-gray-600">Loading...</td></tr>
+              <tr><td colSpan={9} style={{ ...td, textAlign: 'center', padding: '32px', color: 'var(--text-dim)' }}>Loading...</td></tr>
             ) : trades.length === 0 ? (
-              <tr><td colSpan={9} className="text-center py-8 font-tech text-gray-600">No closed trades found.</td></tr>
+              <tr><td colSpan={9} style={{ ...td, textAlign: 'center', padding: '32px', color: 'var(--text-dim)' }}>No closed trades found.</td></tr>
             ) : (
               trades.map(t => (
-                <tr key={t.id} className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors">
-                  <td className="py-2 px-2 font-tech text-gray-600">#{t.ticket}</td>
-                  <td className="py-2 px-2 font-tech font-bold text-white">{t.symbol}</td>
-                  <td className="py-2 px-2">
-                    <span className={`font-pixel text-[8px] tracking-wider ${t.type === 'BUY' ? 'text-success' : 'text-danger'}`}>
+                <tr key={t.id}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <td style={{ ...td, color: 'var(--text-dim)' }}>#{t.ticket}</td>
+                  <td style={{ ...td, color: 'var(--text)', fontWeight: 700 }}>{t.symbol}</td>
+                  <td style={td}>
+                    <span style={{
+                      fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '3px 6px', letterSpacing: '.5px',
+                      border: `1px solid ${t.type === 'BUY' ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
+                      color: t.type === 'BUY' ? 'var(--green)' : 'var(--red)',
+                      background: t.type === 'BUY' ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)',
+                    }}>
                       {t.type}
                     </span>
                   </td>
-                  <td className="py-2 px-2 text-right font-tech text-gray-400">{t.lots.toFixed(2)}</td>
-                  <td className="py-2 px-2 text-right font-tech text-gray-500">{t.openPrice.toFixed(5)}</td>
-                  <td className="py-2 px-2 text-right font-tech text-gray-500">{t.closePrice.toFixed(5)}</td>
-                  <td className={`py-2 px-2 text-right font-display text-xl leading-none ${t.profit >= 0 ? 'text-success' : 'text-danger'}`}>
+                  <td style={{ ...tdR, color: 'var(--text-dim)' }}>{t.lots.toFixed(2)}</td>
+                  <td style={{ ...tdR, color: 'var(--text-dim)' }}>{t.openPrice.toFixed(5)}</td>
+                  <td style={{ ...tdR, color: 'var(--text-dim)' }}>{t.closePrice.toFixed(5)}</td>
+                  <td style={{ ...tdR, fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1, color: t.profit >= 0 ? 'var(--green)' : 'var(--red)' }}>
                     {t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}
                   </td>
-                  <td className="py-2 px-2 font-tech text-gray-500">
+                  <td style={{ ...td, color: 'var(--text-dim)', fontSize: '10px' }}>
                     {new Date(t.closeTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </td>
-                  <td className="py-2 px-2 font-tech text-gray-600">{t.account?.name || '—'}</td>
+                  <td style={{ ...td, color: 'var(--text-dim)' }}>{t.account?.name || '—'}</td>
                 </tr>
               ))
             )}
@@ -203,24 +148,18 @@ export const TradeHistoryPage = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="font-tech text-xs text-gray-600">
-            Page {page} of {totalPages} ({total} trades)
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
+          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+            Page {page} / {totalPages} &nbsp;·&nbsp; {total} trades
           </span>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page <= 1}
-              className="btn-ghost p-1.5 disabled:opacity-30"
-            >
-              <ChevronLeft size={13} />
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
+              style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: page > 1 ? 'pointer' : 'not-allowed', padding: '5px 10px', opacity: page > 1 ? 1 : .3, fontFamily: "'Share Tech Mono'", fontSize: '12px' }}>
+              ‹
             </button>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
-              className="btn-ghost p-1.5 disabled:opacity-30"
-            >
-              <ChevronRight size={13} />
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+              style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: page < totalPages ? 'pointer' : 'not-allowed', padding: '5px 10px', opacity: page < totalPages ? 1 : .3, fontFamily: "'Share Tech Mono'", fontSize: '12px' }}>
+              ›
             </button>
           </div>
         </div>

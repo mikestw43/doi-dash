@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Shield, Save, Loader2, X } from 'lucide-react';
 import { fetchProtectionSettings, saveProtectionSettings } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -9,6 +8,12 @@ interface Props {
   accountName: string;
   onClose: () => void;
 }
+
+const inp: React.CSSProperties = {
+  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
+  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  padding: '7px 10px', outline: 'none', boxSizing: 'border-box',
+};
 
 export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) => {
   const addToast = useUIStore(s => s.addToast);
@@ -45,73 +50,108 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-bg-secondary border border-gray-700 rounded-xl p-6 w-full max-w-md mx-4 space-y-4">
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 500,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(0,0,0,.65)',
+    }}>
+      <div style={{
+        background: 'var(--bg-card)', border: '1px solid var(--border2)',
+        padding: '20px 22px', width: '100%', maxWidth: '400px',
+        margin: '0 16px', position: 'relative',
+        boxShadow: '4px 4px 0 rgba(56,189,248,.3)',
+      }}>
+        {/* Corner brackets */}
+        <div style={{ position: 'absolute', top: 5, left: 5, width: 12, height: 12, borderTop: '2px solid var(--cyan)', borderLeft: '2px solid var(--cyan)' }} />
+        <div style={{ position: 'absolute', bottom: 5, right: 5, width: 12, height: 12, borderBottom: '2px solid var(--cyan)', borderRight: '2px solid var(--cyan)' }} />
+
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-white">
-            <Shield size={18} className="text-warning" />
-            <h3 className="font-semibold">{t('protection.title')}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div>
+            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--yellow)', letterSpacing: '.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              ⛨ {t('protection.title') || 'DRAWDOWN PROTECTION'}
+            </div>
+            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginTop: '4px' }}>{accountName}</div>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white">
-            <X size={18} />
-          </button>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}
+          >✕</button>
         </div>
 
-        <p className="text-xs text-gray-500">{accountName}</p>
-
-        <p className="text-xs text-warning/80 bg-warning/10 border border-warning/20 rounded-lg p-3">
-          {t('protection.description')}
-        </p>
+        {/* Warning */}
+        <div style={{
+          padding: '10px 12px', marginBottom: '14px',
+          background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.3)',
+          fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', lineHeight: 1.6,
+        }}>
+          {t('protection.description') || '⚠ When drawdown exceeds the threshold, all positions will be closed automatically.'}
+        </div>
 
         {loading ? (
-          <div className="text-sm text-gray-500 text-center py-4">{t('common.loading')}</div>
+          <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>
+            Loading...
+          </div>
         ) : (
-          <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* Toggle */}
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={enabled}
                 onChange={e => setEnabled(e.target.checked)}
-                className="w-4 h-4 accent-warning"
+                style={{ width: '14px', height: '14px', accentColor: 'var(--yellow)', cursor: 'pointer' }}
               />
-              <span className="text-sm text-gray-300">{t('protection.enabled')}</span>
+              <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: enabled ? 'var(--yellow)' : 'var(--text-dim)' }}>
+                {t('protection.enabled') || 'Enable drawdown protection'}
+              </span>
             </label>
 
             {enabled && (
               <div>
-                <label className="block text-xs text-gray-400 mb-1">{t('protection.threshold')}</label>
+                <label style={{ display: 'block', fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '6px' }}>
+                  {t('protection.threshold') || 'THRESHOLD (%)'}
+                </label>
                 <input
                   type="number"
                   value={threshold}
                   onChange={e => setThreshold(e.target.value)}
                   placeholder="e.g. 10"
-                  min={1}
-                  max={100}
-                  step={0.5}
-                  className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-warning"
+                  min={1} max={100} step={0.5}
+                  style={inp}
                 />
+                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                  {threshold ? `Close all when drawdown ≥ ${threshold}%` : 'Enter threshold percentage'}
+                </div>
               </div>
             )}
 
-            <div className="flex items-center gap-3 pt-2">
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 bg-warning text-black text-sm font-medium rounded-lg hover:bg-warning/80 disabled:opacity-50 transition-colors"
+                style={{
+                  fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                  padding: '9px 16px', background: 'var(--yellow)', color: '#0c1422',
+                  border: '1px solid var(--yellow)', cursor: saving ? 'not-allowed' : 'pointer',
+                  opacity: saving ? .6 : 1,
+                }}
               >
-                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                {t('protection.save')}
+                {saving ? 'SAVING...' : t('protection.save') || 'SAVE'}
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
+                style={{
+                  fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                  padding: '9px 14px', background: 'none',
+                  border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer',
+                }}
               >
-                {t('common.cancel')}
+                {t('common.cancel') || 'CANCEL'}
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

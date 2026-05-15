@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { X } from 'lucide-react';
 
 interface DialogProps {
   open: boolean;
@@ -12,29 +11,40 @@ export const Dialog = ({ open, onClose, title, children }: DialogProps) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+    }}>
+      {/* backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
+        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.72)' }}
       />
-      <div
-        className="relative bg-bg-secondary border border-border2 shadow-2xl w-full max-w-md"
-        style={{ boxShadow: '0 0 40px rgba(56,189,248,0.08)' }}
-      >
+      {/* dialog */}
+      <div style={{
+        position: 'relative', background: 'var(--bg-card)',
+        border: '2px solid var(--border2)',
+        boxShadow: '4px 4px 0 rgba(56,189,248,.3)',
+        width: '100%', maxWidth: '440px',
+      }}>
         {/* corner brackets */}
-        <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-accent-blue/60 pointer-events-none" />
-        <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-accent-blue/60 pointer-events-none" />
+        <div style={{ position: 'absolute', top: '6px', left: '6px', width: '12px', height: '12px', borderTop: '2px solid var(--cyan)', borderLeft: '2px solid var(--cyan)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '6px', right: '6px', width: '12px', height: '12px', borderBottom: '2px solid var(--cyan)', borderRight: '2px solid var(--cyan)', pointerEvents: 'none' }} />
 
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border2">
-          <h2 className="font-pixel text-[11px] text-accent-blue tracking-wider">{title}</h2>
+        {/* header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 18px', borderBottom: '1px solid var(--border2)' }}>
+          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--cyan)', letterSpacing: '1px' }}>
+            {title}
+          </span>
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-white transition-colors"
+            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '13px', lineHeight: 1 }}
           >
-            <X size={16} />
+            ✕
           </button>
         </div>
-        <div className="p-5">{children}</div>
+
+        <div style={{ padding: '18px' }}>{children}</div>
       </div>
     </div>
   );

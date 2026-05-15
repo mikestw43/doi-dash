@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Dialog } from '../ui/Dialog';
-import { AlertTriangle } from 'lucide-react';
 import { closeAllOrders } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 
@@ -20,17 +19,9 @@ export const CloseAllDialog = ({ accountId, accountName, onClose, onSuccess }: P
     try {
       const result = await closeAllOrders(accountId);
       if (result.mode === 'immediate') {
-        addToast({
-          type: 'success',
-          title: 'All positions closed',
-          message: `Closed ${result.closed} orders, deleted ${result.deleted} pending on ${accountName}`,
-        });
+        addToast({ type: 'success', title: 'All positions closed', message: `Closed ${result.closed} orders, deleted ${result.deleted} pending on ${accountName}` });
       } else {
-        addToast({
-          type: 'warning',
-          title: 'Close All queued',
-          message: `Command will execute on ${accountName} when EA polls next (~2s)`,
-        });
+        addToast({ type: 'warning', title: 'Close All queued', message: `Command will execute on ${accountName} when EA polls next (~2s)` });
       }
       onSuccess();
       onClose();
@@ -42,27 +33,36 @@ export const CloseAllDialog = ({ accountId, accountName, onClose, onSuccess }: P
   };
 
   return (
-    <Dialog open onClose={onClose} title="Confirm Close All Orders">
-      <div className="space-y-4">
-        <div className="flex items-start gap-3 p-3 bg-danger/10 border border-danger/30 rounded-xl">
-          <AlertTriangle size={18} className="text-danger shrink-0 mt-0.5" />
+    <Dialog open onClose={onClose} title="CLOSE ALL ORDERS">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Warning box */}
+        <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)' }}>
+          <span style={{ color: 'var(--red)', fontSize: '16px', flexShrink: 0 }}>⚠</span>
           <div>
-            <p className="text-sm font-medium text-danger">Dangerous Action</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              This will close ALL open orders on <strong className="text-white">{accountName}</strong>.
+            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--red)', marginBottom: '6px', letterSpacing: '.5px' }}>
+              DANGEROUS ACTION
+            </div>
+            <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+              This will close ALL open orders on{' '}
+              <span style={{ color: 'var(--text)', fontWeight: 700 }}>{accountName}</span>.
               This action cannot be undone.
             </p>
           </div>
         </div>
 
-        <div className="flex gap-3 justify-end">
-          <button className="btn-ghost" onClick={onClose}>Cancel</button>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
-            className="btn-danger"
+            onClick={onClose}
+            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
+          >
+            CANCEL
+          </button>
+          <button
             onClick={handleConfirm}
             disabled={loading}
+            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '9px 16px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: loading ? .6 : 1 }}
           >
-            {loading ? 'Sending...' : 'Yes, Close All'}
+            {loading ? 'SENDING...' : 'YES, CLOSE ALL'}
           </button>
         </div>
       </div>

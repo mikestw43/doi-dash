@@ -5,7 +5,6 @@ import { useWebSocket } from './hooks/useWebSocket';
 import { getProfile } from './services/api';
 import { LoginPage } from './components/auth/LoginPage';
 import { Layout } from './components/layout/Layout';
-import { TradingViewChart } from './components/chart/TradingViewChart';
 
 import { OverviewTabs } from './components/overview/OverviewTabs';
 import { BotList } from './components/bots/BotList';
@@ -41,7 +40,6 @@ const Dashboard = () => {
     <Layout>
       {currentPage === 'dashboard' && (
         <>
-          <TradingViewChart />
           <OverviewTabs />
           <BotList />
         </>

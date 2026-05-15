@@ -1,11 +1,28 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, UserPlus, Trash2, ShieldCheck, Shield, Loader2 } from 'lucide-react';
 import { fetchUsers, createUser, deleteUser, changeUserRole } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 import { useAuthStore } from '../../stores/authStore';
 import { Dialog } from '../ui/Dialog';
 import type { UserInfo } from '../../types';
+
+const ROLE_COLOR: Record<string, { border: string; color: string; bg: string }> = {
+  admin: { border: 'rgba(56,189,248,.4)',  color: 'var(--cyan)',   bg: 'rgba(56,189,248,.08)' },
+  vip:   { border: 'rgba(250,204,21,.4)',  color: 'var(--yellow)', bg: 'rgba(250,204,21,.07)' },
+  user:  { border: 'var(--border2)',       color: 'var(--text-dim)', bg: 'none' },
+};
+
+const roleBadge = (role: string) => {
+  const r = ROLE_COLOR[role] || ROLE_COLOR.user;
+  return (
+    <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '3px 8px', border: `1px solid ${r.border}`, color: r.color, background: r.bg }}>
+      {role.toUpperCase()}
+    </span>
+  );
+};
+
+const inp: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px', padding: '8px 10px', outline: 'none', boxSizing: 'border-box' };
+const lbl: React.CSSProperties = { fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
 
 export const UserManagement = () => {
   const { setCurrentPage, addToast } = useUIStore();
@@ -14,8 +31,6 @@ export const UserManagement = () => {
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  // Form state
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
@@ -64,170 +79,150 @@ export const UserManagement = () => {
 
   const deleteTarget = users.find(u => u.id === deleteId);
 
+  const thStyle: React.CSSProperties = { fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap' };
+  const tdStyle: React.CSSProperties = { padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+      {/* Back */}
       <button
         onClick={() => setCurrentPage('dashboard')}
-        className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+        style={{ background: 'none', border: 'none', color: 'var(--cyan)', fontFamily: "'Press Start 2P'", fontSize: '7px', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
       >
-        <ArrowLeft size={16} />
-        Back to Dashboard
+        ← BACK
       </button>
 
-      <div className="flex items-center justify-between">
-        <h2 className="font-pixel text-[13px] text-accent-blue tracking-wider" style={{ textShadow: '0 0 8px rgba(56,189,248,0.5)' }}>User Management</h2>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>USER MANAGEMENT</span>
+        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
         <button
           onClick={() => setShowAddDialog(true)}
-          className="btn-primary flex items-center gap-2"
+          style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer', boxShadow: '0 0 8px rgba(56,189,248,.4)' }}
         >
-          <UserPlus size={12} />
-          ADD USER
+          + ADD USER
         </button>
       </div>
 
-      {/* User Table */}
-      <div className="bg-bg-secondary border border-border2 overflow-hidden">
+      {/* Table */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', overflowX: 'auto' }}>
         {isLoading ? (
-          <div className="p-8 text-center font-tech text-gray-600">Loading...</div>
+          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Loading...</div>
         ) : (
-          <table className="w-full text-sm">
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '640px' }}>
             <thead>
-              <tr className="border-b border-border2">
-                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Email</th>
-                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Name</th>
-                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Role</th>
-                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-center p-4">Accounts</th>
-                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Created</th>
-                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right p-4">Actions</th>
+              <tr style={{ background: 'var(--bg-card2)' }}>
+                <th style={thStyle}>USER</th>
+                <th style={thStyle}>EMAIL</th>
+                <th style={thStyle}>ROLE</th>
+                <th style={{ ...thStyle, textAlign: 'center' }}>ACCOUNTS</th>
+                <th style={thStyle}>CREATED</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
-                <tr key={user.id} className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors">
-                  <td className="p-4 font-tech text-white">{user.email}</td>
-                  <td className="p-4 font-tech text-gray-400">{user.name || '-'}</td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => {
-                        if (user.id === currentUserId) return;
-                        roleMutation.mutate({ id: user.id, role: user.role === 'admin' ? 'user' : 'admin' });
-                      }}
-                      disabled={user.id === currentUserId}
-                      className={`font-pixel text-[8px] flex items-center gap-1 px-2 py-1 border transition-colors ${
-                        user.role === 'admin'
-                          ? 'border-accent-blue/40 text-accent-blue hover:bg-accent-blue/10'
-                          : 'border-gray-700 text-gray-500 hover:border-gray-500'
-                      } ${user.id === currentUserId ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                      {user.role === 'admin' ? <ShieldCheck size={10} /> : <Shield size={10} />}
-                      {user.role}
-                    </button>
-                  </td>
-                  <td className="p-4 text-center font-display text-xl text-gray-400">{user._count.accounts}</td>
-                  <td className="p-4 font-tech text-xs text-gray-600">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="p-4 text-right">
-                    {user.id !== currentUserId && (
+              {users.map(user => {
+                const initials = (user.name || user.email).slice(0, 2).toUpperCase();
+                const rc = ROLE_COLOR[user.role] || ROLE_COLOR.user;
+                return (
+                  <tr key={user.id}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <td style={tdStyle}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '26px', height: '26px', flexShrink: 0, background: rc.bg, border: `1px solid ${rc.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Press Start 2P'", fontSize: '7px', color: rc.color }}>
+                          {initials}
+                        </div>
+                        <span style={{ color: 'var(--text)', fontWeight: 700 }}>{user.name || '—'}</span>
+                      </div>
+                    </td>
+                    <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>{user.email}</td>
+                    <td style={tdStyle}>
                       <button
-                        onClick={() => setDeleteId(user.id)}
-                        className="text-gray-600 hover:text-danger transition-colors p-1"
-                        title="Delete user"
+                        onClick={() => {
+                          if (user.id === currentUserId) return;
+                          roleMutation.mutate({ id: user.id, role: user.role === 'admin' ? 'user' : 'admin' });
+                        }}
+                        disabled={user.id === currentUserId}
+                        title={user.id === currentUserId ? 'Cannot change your own role' : 'Click to toggle role'}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: user.id === currentUserId ? 'not-allowed' : 'pointer', opacity: user.id === currentUserId ? .5 : 1 }}
                       >
-                        <Trash2 size={13} />
+                        {roleBadge(user.role)}
                       </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--cyan)' }}>
+                      {user._count.accounts}
+                    </td>
+                    <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }}>
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right' }}>
+                      {user.id !== currentUserId && (
+                        <button
+                          onClick={() => setDeleteId(user.id)}
+                          style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '4px 8px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--red)', background: 'none', cursor: 'pointer', letterSpacing: '.5px' }}
+                        >
+                          ✕ DEL
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
       </div>
 
       {/* Add User Dialog */}
-      <Dialog
-        open={showAddDialog}
-        onClose={() => setShowAddDialog(false)}
-        title="Add New User"
-      >
-        <div className="space-y-4">
+      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} title="ADD NEW USER">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div><label style={lbl}>EMAIL *</label><input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="user@example.com" style={inp} /></div>
+          <div><label style={lbl}>PASSWORD * (min 6)</label><input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={inp} /></div>
+          <div><label style={lbl}>NAME</label><input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Optional" style={inp} /></div>
           <div>
-            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Email *</label>
-            <input
-              type="email"
-              value={newEmail}
-              onChange={e => setNewEmail(e.target.value)}
-              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
-              placeholder="user@example.com"
-            />
-          </div>
-          <div>
-            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Password * (min 6 chars)</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
-            />
-          </div>
-          <div>
-            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Name</label>
-            <input
-              type="text"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
-              placeholder="Optional"
-            />
-          </div>
-          <div>
-            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Role</label>
-            <select
-              value={newRole}
-              onChange={e => setNewRole(e.target.value)}
-              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
-            >
+            <label style={lbl}>ROLE</label>
+            <select value={newRole} onChange={e => setNewRole(e.target.value)} style={{ ...inp }}>
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
-          <div className="flex gap-3 pt-2">
-            <button onClick={() => setShowAddDialog(false)} className="btn-ghost flex-1">
+          <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
+            <button onClick={() => setShowAddDialog(false)}
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
               onClick={() => createMutation.mutate({ email: newEmail, password: newPassword, name: newName || undefined, role: newRole })}
               disabled={!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending}
-              className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
             >
-              {createMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <UserPlus size={12} />}
-              CREATE USER
+              {createMutation.isPending ? '...' : 'CREATE USER'}
             </button>
           </div>
         </div>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={!!deleteId}
-        onClose={() => setDeleteId(null)}
-        title="Delete User"
-      >
-        <div className="space-y-4">
-          <p className="font-tech text-sm text-gray-400">
-            Delete <span className="text-white">{deleteTarget?.email}</span>?
-            This will also remove {deleteTarget?._count.accounts || 0} accounts.
+      {/* Delete Confirm Dialog */}
+      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} title="DELETE USER">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', lineHeight: 1.6 }}>
+            Delete <span style={{ color: 'var(--cyan)' }}>{deleteTarget?.email}</span>?
+            <br />This will also remove {deleteTarget?._count.accounts || 0} account{deleteTarget?._count.accounts !== 1 ? 's' : ''}.
           </p>
-          <div className="flex gap-3">
-            <button onClick={() => setDeleteId(null)} className="btn-ghost flex-1">CANCEL</button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setDeleteId(null)}
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              CANCEL
+            </button>
             <button
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               disabled={deleteMutation.isPending}
-              className="btn-danger flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: 'pointer', opacity: deleteMutation.isPending ? .5 : 1 }}
             >
-              {deleteMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-              DELETE
+              {deleteMutation.isPending ? '...' : 'DELETE'}
             </button>
           </div>
         </div>

@@ -3,7 +3,6 @@ import type { Order } from '../../types';
 import { FlashNumber } from '../ui/FlashNumber';
 import { closePosition, setPositionSLTP } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
-import { X, Check, Edit2, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface Props {
   accountId: string;
@@ -18,26 +17,23 @@ interface EditState {
   tp: string;
 }
 
+const fmtNum = (v: number) =>
+  Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtPrice = (v: number) =>
+  v === 0 ? '—' : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+
 export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   const { addToast } = useUIStore();
   const [editing, setEditing] = useState<EditState | null>(null);
   const [loadingTicket, setLoadingTicket] = useState<number | null>(null);
 
   const rawCur = currency || 'USD';
-  const fmtNum = (v: number) =>
-    Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmtPrice = (v: number) =>
-    v === 0 ? '—' : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 });
 
   const handleClose = async (ticket: number, symbol: string) => {
     setLoadingTicket(ticket);
     try {
       await closePosition(accountId, ticket);
-      addToast({
-        type: 'warning',
-        title: 'Close queued',
-        message: `Close #${ticket} (${symbol}) sent to EA (~2s)`,
-      });
+      addToast({ type: 'warning', title: 'Close queued', message: `Close #${ticket} (${symbol}) sent to EA (~2s)` });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to close position';
       addToast({ type: 'error', title: 'Error', message: msg });
@@ -47,11 +43,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   };
 
   const startEdit = (order: Order) => {
-    setEditing({
-      ticket: order.ticket,
-      sl: order.sl > 0 ? String(order.sl) : '',
-      tp: order.tp > 0 ? String(order.tp) : '',
-    });
+    setEditing({ ticket: order.ticket, sl: order.sl > 0 ? String(order.sl) : '', tp: order.tp > 0 ? String(order.tp) : '' });
   };
 
   const cancelEdit = () => setEditing(null);
@@ -63,11 +55,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
     setLoadingTicket(editing.ticket);
     try {
       await setPositionSLTP(accountId, editing.ticket, sl, tp);
-      addToast({
-        type: 'success',
-        title: 'SL/TP queued',
-        message: `SL/TP update for #${editing.ticket} sent to EA (~2s)`,
-      });
+      addToast({ type: 'success', title: 'SL/TP queued', message: `SL/TP update for #${editing.ticket} sent to EA (~2s)` });
       setEditing(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to set SL/TP';
@@ -79,26 +67,43 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
 
   if (orders.length === 0) {
     return (
-      <div className="px-4 py-3 text-center text-xs text-gray-500">
+      <div style={{ padding: '12px 16px', textAlign: 'center', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
         No open positions
       </div>
     );
   }
 
+  const totalPL = orders.reduce((s, o) => s + o.profit, 0);
+
+  const thStyle: React.CSSProperties = {
+    fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+    letterSpacing: '.5px', padding: '8px 8px', textAlign: 'left',
+    borderBottom: '1px solid var(--border2)', fontWeight: 400,
+  };
+  const thR: React.CSSProperties = { ...thStyle, textAlign: 'right' };
+  const tdStyle: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid rgba(45,64,96,.4)', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' };
+  const tdR: React.CSSProperties = { ...tdStyle, textAlign: 'right' };
+
+  const inputStyle: React.CSSProperties = {
+    width: '72px', background: 'var(--bg-input)', border: '1px solid var(--border2)',
+    color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+    padding: '3px 6px', textAlign: 'right', outline: 'none',
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '580px' }}>
         <thead>
-          <tr className="border-b border-border2">
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-3">Symbol</th>
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-2">Type</th>
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">Lots</th>
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">Open</th>
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">Current</th>
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">P/L {rawCur}</th>
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">SL</th>
-            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">TP</th>
-            <th className="py-2.5 px-2"></th>
+          <tr>
+            <th style={thStyle}>Symbol</th>
+            <th style={thStyle}>Type</th>
+            <th style={thR}>Lots</th>
+            <th style={thR}>Open</th>
+            <th style={thR}>Current</th>
+            <th style={thR}>P/L {rawCur}</th>
+            <th style={thR}>SL</th>
+            <th style={thR}>TP</th>
+            <th style={{ ...thStyle, width: '80px' }}></th>
           </tr>
         </thead>
         <tbody>
@@ -108,106 +113,103 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
             const isBuy = order.type === 'BUY';
 
             return (
-              <tr
-                key={order.ticket}
-                className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors"
+              <tr key={order.ticket} style={{ transition: 'background .12s' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.3)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                {/* Symbol */}
-                <td className="py-2 px-3 font-tech font-bold text-white">{order.symbol}</td>
-
-                {/* Type badge */}
-                <td className="py-2 px-2">
-                  <span className={`font-pixel text-[8px] inline-flex items-center gap-0.5 px-1.5 py-0.5 border ${
-                    isBuy ? 'border-success/40 text-success bg-success/10' : 'border-danger/40 text-danger bg-danger/10'
-                  }`}>
-                    {isBuy ? <TrendingUp size={8} /> : <TrendingDown size={8} />}
+                <td style={tdStyle}>
+                  <span style={{ color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontWeight: 700 }}>{order.symbol}</span>
+                </td>
+                <td style={tdStyle}>
+                  <span style={{
+                    fontFamily: "'Press Start 2P'", fontSize: '7px',
+                    padding: '3px 6px', letterSpacing: '.5px',
+                    border: `1px solid ${isBuy ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
+                    color: isBuy ? 'var(--green)' : 'var(--red)',
+                    background: isBuy ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)',
+                  }}>
                     {order.type}
                   </span>
                 </td>
-
-                {/* Lots */}
-                <td className="py-2 px-2 text-right font-tech text-gray-400">
-                  {order.lots.toFixed(2)}
-                </td>
-
-                {/* Open Price */}
-                <td className="py-2 px-2 text-right font-tech text-gray-500">
-                  {fmtPrice(order.openPrice)}
-                </td>
-
-                {/* Current Price */}
-                <td className="py-2 px-2 text-right font-tech text-gray-300">
-                  {fmtPrice(order.currentPrice)}
-                </td>
+                <td style={{ ...tdR, color: 'var(--text-dim)' }}>{order.lots.toFixed(2)}</td>
+                <td style={{ ...tdR, color: 'var(--text-dim)' }}>{fmtPrice(order.openPrice)}</td>
+                <td style={{ ...tdR, color: 'var(--cyan)' }}>{fmtPrice(order.currentPrice)}</td>
 
                 {/* P/L */}
-                <td className="py-2 px-2 text-right">
+                <td style={tdR}>
                   <FlashNumber
                     value={order.profit}
                     format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(v)}`}
                     positiveGreen
-                    className="font-display text-xl leading-none"
+                    style={{ fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1 }}
                   />
                 </td>
 
                 {/* SL */}
-                <td className="py-2 px-2 text-right">
+                <td style={tdR}>
                   {isEdit ? (
                     <input
-                      type="number"
-                      step="0.00001"
+                      type="number" step="0.00001"
                       value={editing.sl}
                       onChange={e => setEditing(prev => prev ? { ...prev, sl: e.target.value } : null)}
                       placeholder="0"
-                      className="w-20 bg-bg-primary border border-border2 px-1.5 py-0.5 font-tech text-xs text-white text-right focus:outline-none focus:border-accent-blue"
+                      style={inputStyle}
                       autoFocus
                     />
                   ) : (
-                    <span className="font-tech text-xs text-gray-500">{fmtPrice(order.sl)}</span>
+                    <span style={{ color: 'var(--text-dim)' }}>{fmtPrice(order.sl)}</span>
                   )}
                 </td>
 
                 {/* TP */}
-                <td className="py-2 px-2 text-right">
+                <td style={tdR}>
                   {isEdit ? (
                     <input
-                      type="number"
-                      step="0.00001"
+                      type="number" step="0.00001"
                       value={editing.tp}
                       onChange={e => setEditing(prev => prev ? { ...prev, tp: e.target.value } : null)}
                       placeholder="0"
-                      className="w-20 bg-bg-primary border border-border2 px-1.5 py-0.5 font-tech text-xs text-white text-right focus:outline-none focus:border-accent-blue"
+                      style={inputStyle}
                     />
                   ) : (
-                    <span className="font-tech text-xs text-gray-500">{fmtPrice(order.tp)}</span>
+                    <span style={{ color: 'var(--text-dim)' }}>{fmtPrice(order.tp)}</span>
                   )}
                 </td>
 
                 {/* Actions */}
-                <td className="py-2 px-2">
-                  <div className="flex items-center gap-1 justify-end">
+                <td style={{ ...tdStyle, textAlign: 'right' }}>
+                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                     {isEdit ? (
                       <>
-                        <button onClick={commitEdit} disabled={isLoading}
-                          className="p-1 text-success hover:bg-success/20 transition-colors disabled:opacity-40" title="Confirm SL/TP">
-                          <Check size={12} />
-                        </button>
-                        <button onClick={cancelEdit}
-                          className="p-1 text-gray-500 hover:bg-gray-700 transition-colors" title="Cancel">
-                          <X size={12} />
-                        </button>
+                        <button
+                          onClick={commitEdit}
+                          disabled={isLoading}
+                          title="Confirm SL/TP"
+                          style={{ background: 'none', border: 'none', color: 'var(--green)', cursor: 'pointer', fontSize: '13px', opacity: isLoading ? .4 : 1 }}
+                        >✓</button>
+                        <button
+                          onClick={cancelEdit}
+                          style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '13px' }}
+                        >✕</button>
                       </>
                     ) : (
                       <>
-                        <button onClick={() => startEdit(order)} disabled={isLoading}
-                          className="p-1 text-gray-600 hover:text-accent-blue transition-colors disabled:opacity-40" title="Edit SL/TP">
-                          <Edit2 size={11} />
-                        </button>
+                        <button
+                          onClick={() => startEdit(order)}
+                          disabled={isLoading}
+                          title="Edit SL/TP"
+                          style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '10px', padding: '2px 5px', opacity: isLoading ? .4 : 1 }}
+                        >✎</button>
                         <button
                           onClick={() => handleClose(order.ticket, order.symbol)}
                           disabled={isLoading}
-                          className="font-pixel text-[8px] px-2 py-0.5 text-danger border border-danger/40 hover:bg-danger hover:text-white transition-colors disabled:opacity-40"
                           title="Close position"
+                          style={{
+                            fontFamily: "'Press Start 2P'", fontSize: '7px',
+                            padding: '3px 6px', letterSpacing: '.5px',
+                            color: 'var(--red)', border: '1px solid rgba(239,68,68,.4)',
+                            background: 'none', cursor: 'pointer', opacity: isLoading ? .4 : 1,
+                          }}
                         >
                           {isLoading ? '...' : 'CLOSE'}
                         </button>
@@ -222,16 +224,15 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
       </table>
 
       {/* Summary row */}
-      <div className="flex items-center gap-4 px-3 py-2 border-t border-border2">
-        <span className="font-tech text-xs text-gray-600">{orders.length} position{orders.length !== 1 ? 's' : ''}</span>
-        <span className="text-gray-700">|</span>
-        <span className="font-pixel text-[8px] text-gray-600">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px', borderTop: '1px solid var(--border2)' }}>
+        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+          {orders.length} position{orders.length !== 1 ? 's' : ''}
+        </span>
+        <span style={{ color: 'var(--border2)' }}>|</span>
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)' }}>
           TOTAL P/L:{' '}
-          <span className={`font-display text-lg leading-none ${
-            orders.reduce((s, o) => s + o.profit, 0) >= 0 ? 'text-success' : 'text-danger'
-          }`}>
-            {orders.reduce((s, o) => s + o.profit, 0) >= 0 ? '+' : '-'}
-            {fmtNum(orders.reduce((s, o) => s + o.profit, 0))} {rawCur}
+          <span style={{ fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1, color: totalPL >= 0 ? 'var(--green)' : 'var(--red)' }}>
+            {totalPL >= 0 ? '+' : '-'}{fmtNum(totalPL)} {rawCur}
           </span>
         </span>
       </div>

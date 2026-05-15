@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { EconomicEvent } from '../../types';
 import { fetchEconomicCalendar } from '../../services/api';
-import { RefreshCw, AlertCircle, CalendarDays } from 'lucide-react';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -12,12 +11,20 @@ const CURRENCY_FLAGS: Record<string, string> = {
   CNY: '🇨🇳', CNH: '🇨🇳',
 };
 
-const IMPACT_CFG = {
-  High:           { label: 'High', cls: 'bg-danger/20 text-danger border-danger/30',     dot: 'bg-danger' },
-  Medium:         { label: 'Med',  cls: 'bg-warning/20 text-warning border-warning/30', dot: 'bg-warning' },
-  Low:            { label: 'Low',  cls: 'bg-gray-700 text-gray-400 border-gray-600',    dot: 'bg-gray-500' },
-  'Non-Economic': { label: 'N/E',  cls: 'bg-gray-800 text-gray-600 border-gray-700',    dot: 'bg-gray-700' },
-} as const;
+interface ImpactCfg {
+  label: string;
+  color: string;
+  bg: string;
+  border: string;
+  dot: string;
+}
+
+const IMPACT_CFG: Record<string, ImpactCfg> = {
+  High:           { label: 'HIGH', color: 'var(--red)',    bg: 'rgba(239,68,68,.12)',  border: 'rgba(239,68,68,.35)',  dot: 'var(--red)' },
+  Medium:         { label: 'MED',  color: 'var(--orange)', bg: 'rgba(249,115,22,.12)', border: 'rgba(249,115,22,.35)', dot: 'var(--orange)' },
+  Low:            { label: 'LOW',  color: 'var(--text-dim)', bg: 'rgba(100,116,139,.1)', border: 'rgba(100,116,139,.25)', dot: '#475569' },
+  'Non-Economic': { label: 'N/E',  color: '#475569',       bg: 'rgba(71,85,105,.08)',  border: 'rgba(71,85,105,.2)',   dot: '#334155' },
+};
 
 const ALL_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF', 'CNY'];
 
@@ -29,63 +36,96 @@ const fmtTime = (dateStr: string) =>
 const fmtDateLabel = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
-const impactCfg = (impact: string) =>
-  IMPACT_CFG[impact as keyof typeof IMPACT_CFG] ?? IMPACT_CFG['Low'];
+const getImpactCfg = (impact: string): ImpactCfg =>
+  IMPACT_CFG[impact] ?? IMPACT_CFG['Low'];
+
+// ─── Shared table styles ──────────────────────────────────────────────────────
+
+const thSt: React.CSSProperties = {
+  fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+  letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left',
+  borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
+};
+const thR: React.CSSProperties = { ...thSt, textAlign: 'right' };
+const thC: React.CSSProperties = { ...thSt, textAlign: 'center' };
+
+const tdSt: React.CSSProperties = {
+  padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
+  fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)',
+  whiteSpace: 'nowrap',
+};
+const tdR: React.CSSProperties = { ...tdSt, textAlign: 'right' };
+const tdC: React.CSSProperties = { ...tdSt, textAlign: 'center' };
 
 // ─── EventTable ──────────────────────────────────────────────────────────────
 
 interface EventTableProps { events: EconomicEvent[]; now: Date }
 
 const EventTable = ({ events, now }: EventTableProps) => (
-  <div className="bg-bg-secondary border border-border2 overflow-hidden">
-    <table className="w-full text-xs">
+  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', overflowX: 'auto' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
       <thead>
-        <tr className="border-b border-border2 bg-bg-primary/50">
-          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-3 w-14">Time</th>
-          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-2 w-16">Cur</th>
-          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-2">Event</th>
-          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-center py-2.5 px-2 w-16">Impact</th>
-          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2 w-16">Actual</th>
-          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2 w-16">Forecast</th>
-          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-3 w-16">Prev</th>
+        <tr style={{ background: 'var(--bg-card2)' }}>
+          <th style={{ ...thSt, width: '64px' }}>TIME (BKK)</th>
+          <th style={{ ...thSt, width: '72px' }}>CCY</th>
+          <th style={thSt}>EVENT</th>
+          <th style={{ ...thC, width: '72px' }}>IMPACT</th>
+          <th style={{ ...thR, width: '72px' }}>ACTUAL</th>
+          <th style={{ ...thR, width: '72px' }}>FORECAST</th>
+          <th style={{ ...thR, width: '72px' }}>PREV</th>
         </tr>
       </thead>
       <tbody>
         {events.map((event, i) => {
           const past   = new Date(event.date) < now;
-          const cfg    = impactCfg(event.impact);
+          const cfg    = getImpactCfg(event.impact);
           const isHigh = event.impact === 'High';
+          const rowOpacity = past ? 0.45 : 1;
 
           return (
             <tr
               key={`${event.date}-${i}`}
-              className={`border-b border-gray-800/40 transition-colors
-                ${isHigh && !past ? 'hover:bg-danger/5' : 'hover:bg-gray-800/20'}
-                ${past ? 'opacity-50' : ''}`}
+              style={{ opacity: rowOpacity }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLTableRowElement).style.background =
+                  isHigh && !past ? 'rgba(239,68,68,.05)' : 'rgba(45,64,96,.2)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
+              }}
             >
-              <td className="py-2 px-3 font-tech text-gray-400 whitespace-nowrap">
+              <td style={{ ...tdSt, color: 'var(--text-dim)' }}>
                 {fmtTime(event.date)}
               </td>
-              <td className="py-2 px-2">
-                <span className="flex items-center gap-1">
-                  <span className="text-sm leading-none">{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
-                  <span className="font-tech text-gray-300">{event.country}</span>
+              <td style={tdSt}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
+                  <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' }}>{event.country}</span>
                 </span>
               </td>
-              <td className="py-2 px-2">
-                <span className={`font-tech ${isHigh && !past ? 'text-white' : 'text-gray-400'}`}>{event.title}</span>
+              <td style={{ ...tdSt, color: isHigh && !past ? 'var(--text)' : 'var(--text-dim)' }}>
+                {event.title}
               </td>
-              <td className="py-2 px-2 text-center">
-                <span className={`font-pixel text-[8px] inline-flex items-center gap-1 px-1.5 py-0.5 border ${cfg.cls}`}>
-                  <span className={`w-1.5 h-1.5 flex-shrink-0 ${cfg.dot}`} />
+              <td style={tdC}>
+                <span style={{
+                  fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  padding: '3px 6px', border: `1px solid ${cfg.border}`,
+                  background: cfg.bg, color: cfg.color,
+                }}>
+                  <span style={{ width: '5px', height: '5px', background: cfg.dot, flexShrink: 0 }} />
                   {cfg.label}
                 </span>
               </td>
-              <td className={`py-2 px-2 text-right font-tech ${event.actual ? 'text-white font-bold' : 'text-gray-700'}`}>
+              <td style={{ ...tdR, color: event.actual ? 'var(--text)' : '#334155', fontWeight: event.actual ? 700 : 400 }}>
                 {event.actual || '—'}
               </td>
-              <td className="py-2 px-2 text-right font-tech text-gray-500">{event.forecast || '—'}</td>
-              <td className="py-2 px-3 text-right font-tech text-gray-600">{event.previous || '—'}</td>
+              <td style={{ ...tdR, color: '#475569' }}>
+                {event.forecast || '—'}
+              </td>
+              <td style={{ ...tdR, color: '#334155' }}>
+                {event.previous || '—'}
+              </td>
             </tr>
           );
         })}
@@ -125,7 +165,7 @@ export const EconomicCalendar = () => {
         const d = new Date(e.date);
         if (viewMode === 'today' ? (d < todayStart || d >= todayEnd) : (d < weekStart || d >= weekEnd)) return false;
         if (selected.length > 0 && !selected.includes(e.country)) return false;
-        if (minImpact === 'high'   && e.impact !== 'High')              return false;
+        if (minImpact === 'high'   && e.impact !== 'High') return false;
         if (minImpact === 'medium' && (e.impact === 'Low' || e.impact === 'Non-Economic')) return false;
         return true;
       })
@@ -139,25 +179,41 @@ export const EconomicCalendar = () => {
     return data.filter(ev => { const d = new Date(ev.date); return d >= s && d < e && ev.impact === 'High'; }).length;
   }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Loading ─────────────────────────────────────────────────────────────
+  // ─── Loading ────────────────────────────────────────────────────────────
   if (isLoading) return (
-    <div className="flex items-center justify-center py-24">
-      <div className="text-center">
-        <div className="w-8 h-8 border-2 border-accent-blue border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-sm text-gray-500">Loading economic calendar...</p>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          width: '28px', height: '28px', border: '2px solid var(--cyan)', borderTopColor: 'transparent',
+          borderRadius: '50%', margin: '0 auto 12px', animation: 'spin 0.8s linear infinite',
+        }} />
+        <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+          Loading economic calendar...
+        </p>
       </div>
     </div>
   );
 
   // ─── Error ───────────────────────────────────────────────────────────────
   if (error) return (
-    <div className="flex items-center justify-center py-24">
-      <div className="text-center">
-        <AlertCircle size={36} className="text-danger mx-auto mb-3" />
-        <p className="text-sm text-danger mb-2">Failed to load calendar data</p>
-        <p className="text-xs text-gray-500 mb-4">Could not reach ForexFactory. Check network connectivity.</p>
-        <button onClick={() => refetch()} className="px-4 py-2 rounded-lg bg-accent-blue hover:bg-blue-600 text-white text-xs font-medium transition-colors">
-          Try again
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '28px', marginBottom: '12px' }}>⚠</div>
+        <p style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--red)', marginBottom: '8px', letterSpacing: '.5px' }}>
+          FAILED TO LOAD CALENDAR
+        </p>
+        <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginBottom: '16px' }}>
+          Could not reach ForexFactory. Check network connectivity.
+        </p>
+        <button
+          onClick={() => refetch()}
+          style={{
+            fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px',
+            padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422',
+            border: '1px solid var(--cyan)', cursor: 'pointer',
+          }}
+        >
+          TRY AGAIN
         </button>
       </div>
     </div>
@@ -172,103 +228,163 @@ export const EconomicCalendar = () => {
       }, {})
     : null;
 
+  const tabBtn = (active: boolean): React.CSSProperties => ({
+    fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px',
+    padding: '6px 12px', cursor: 'pointer', border: 'none',
+    background: active ? 'var(--cyan)' : 'none',
+    color: active ? '#0c1422' : 'var(--text-dim)',
+    transition: 'background .15s, color .15s',
+  });
+
+  const impactBtn = (active: boolean): React.CSSProperties => ({
+    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    padding: '5px 10px', cursor: 'pointer',
+    border: active ? '1px solid var(--cyan)' : '1px solid var(--border2)',
+    background: active ? 'rgba(56,189,248,.1)' : 'none',
+    color: active ? 'var(--cyan)' : 'var(--text-dim)',
+  });
+
+  const ccyBtn = (active: boolean): React.CSSProperties => ({
+    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    display: 'inline-flex', alignItems: 'center', gap: '3px',
+    padding: '4px 7px', cursor: 'pointer',
+    border: active ? '1px solid rgba(56,189,248,.6)' : '1px solid var(--border2)',
+    background: active ? 'rgba(56,189,248,.1)' : 'none',
+    color: active ? 'var(--cyan)' : 'var(--text-dim)',
+  });
+
   return (
     <div>
       {/* ── Header ── */}
-      <div className="flex items-center justify-between mb-4">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
-          <div className="flex items-center gap-3">
-            <CalendarDays size={15} className="text-accent-blue" />
-            <h2 className="font-pixel text-[11px] text-accent-blue tracking-wider">Economic Calendar</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+              ECONOMIC CALENDAR
+            </span>
             {todayHighCount > 0 && (
-              <span className="font-pixel text-[8px] flex items-center gap-1 px-2 py-0.5 border border-danger/40 text-danger">
-                <span className="w-1.5 h-1.5 bg-danger animate-pulse" />
+              <span style={{
+                fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                padding: '3px 8px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--red)',
+              }}>
+                <span style={{ width: '5px', height: '5px', background: 'var(--red)', display: 'inline-block' }} />
                 {todayHighCount} HIGH TODAY
               </span>
             )}
           </div>
-          <p className="font-tech text-[10px] text-gray-700 mt-1 ml-6">
+          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginLeft: '15px' }}>
             ForexFactory · cached 30min · local timezone
           </p>
         </div>
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="btn-ghost flex items-center gap-1.5 disabled:opacity-50"
+          style={{
+            fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+            padding: '7px 12px', background: 'none', border: '1px solid var(--border2)',
+            color: isFetching ? 'var(--text-dim)' : 'var(--text)',
+            cursor: isFetching ? 'not-allowed' : 'pointer',
+            opacity: isFetching ? .5 : 1,
+          }}
         >
-          <RefreshCw size={11} className={isFetching ? 'animate-spin' : ''} />
-          REFRESH
+          ↻ {isFetching ? 'REFRESHING...' : 'REFRESH'}
         </button>
       </div>
 
       {/* ── Filters ── */}
-      <div className="flex flex-wrap gap-3 items-start mb-5 p-3 bg-bg-secondary border border-border2">
-        {/* Today / Week */}
-        <div className="flex gap-1 border border-border2 p-0.5">
-          {(['today', 'week'] as const).map(m => (
-            <button key={m} onClick={() => setViewMode(m)}
-              className={`font-pixel text-[8px] px-3 py-1.5 transition-colors ${viewMode === m ? 'bg-accent-blue text-bg-primary' : 'text-gray-500 hover:text-gray-200'}`}>
-              {m === 'today' ? 'TODAY' : 'THIS WEEK'}
-            </button>
-          ))}
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-start',
+        marginBottom: '14px', padding: '12px', background: 'var(--bg-card)',
+        border: '1px solid var(--border2)',
+      }}>
+        {/* Today / Week tabs */}
+        <div style={{ display: 'flex', border: '1px solid var(--border2)', flexShrink: 0 }}>
+          <button onClick={() => setViewMode('today')} style={tabBtn(viewMode === 'today')}>TODAY</button>
+          <button
+            onClick={() => setViewMode('week')}
+            style={{ ...tabBtn(viewMode === 'week'), borderLeft: '1px solid var(--border2)' }}
+          >THIS WEEK</button>
         </div>
 
         {/* Currency chips */}
-        <div className="flex flex-wrap gap-1 items-center">
-          <span className="font-pixel text-[8px] text-gray-600 mr-1">CUR:</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
+          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+            CUR:
+          </span>
           {ALL_CURRENCIES.map(cur => (
-            <button key={cur} onClick={() => setSelected(p => p.includes(cur) ? p.filter(c => c !== cur) : [...p, cur])}
-              className={`font-pixel text-[8px] flex items-center gap-0.5 px-2 py-0.5 border transition-colors ${
-                selected.includes(cur)
-                  ? 'border-accent-blue/60 text-accent-blue bg-accent-blue/10'
-                  : 'border-gray-800 text-gray-600 hover:text-gray-300 hover:border-gray-600'
-              }`}>
-              <span className="text-xs leading-none">{CURRENCY_FLAGS[cur] ?? ''}</span>
-              <span>{cur}</span>
+            <button
+              key={cur}
+              onClick={() => setSelected(p => p.includes(cur) ? p.filter(c => c !== cur) : [...p, cur])}
+              style={ccyBtn(selected.includes(cur))}
+            >
+              <span style={{ fontSize: '12px', lineHeight: 1 }}>{CURRENCY_FLAGS[cur] ?? ''}</span>
+              {cur}
             </button>
           ))}
           {selected.length > 0 && (
-            <button onClick={() => setSelected([])} className="font-pixel text-[8px] text-gray-600 hover:text-danger ml-1">✕ CLEAR</button>
+            <button
+              onClick={() => setSelected([])}
+              style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.5px', marginLeft: '2px' }}
+            >
+              ✕ CLEAR
+            </button>
           )}
         </div>
 
-        {/* Impact */}
-        <div className="flex gap-1 items-center">
-          <span className="font-pixel text-[8px] text-gray-600">IMPACT:</span>
-          {([['all','ALL'],['medium','MED+'],['high','HIGH']] as const).map(([key, label]) => (
-            <button key={key} onClick={() => setMinImpact(key)}
-              className={`font-pixel text-[8px] px-2.5 py-0.5 border transition-colors ${
-                minImpact === key ? 'border-accent-blue text-accent-blue bg-accent-blue/10' : 'border-gray-800 text-gray-600 hover:text-gray-300'
-              }`}>
-              {label}
+        {/* Impact filter */}
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginLeft: 'auto' }}>
+          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+            IMPACT:
+          </span>
+          {(['all', 'medium', 'high'] as const).map(key => (
+            <button key={key} onClick={() => setMinImpact(key)} style={impactBtn(minImpact === key)}>
+              {key === 'all' ? 'ALL' : key === 'medium' ? 'MED+' : 'HIGH'}
             </button>
           ))}
-        </div>
-
-        <div className="ml-auto font-tech text-xs text-gray-600 self-center">
-          {filtered.length} events
+          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginLeft: '10px' }}>
+            {filtered.length} events
+          </span>
         </div>
       </div>
 
       {/* ── Events ── */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <CalendarDays size={28} className="mx-auto mb-3 text-gray-700" />
-          <p className="font-tech text-sm text-gray-600">No events match your filters</p>
+        <div style={{ textAlign: 'center', padding: '60px 0' }}>
+          <div style={{ fontSize: '28px', marginBottom: '12px', color: 'var(--text-dim)' }}>📅</div>
+          <p style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
+            NO EVENTS MATCH FILTERS
+          </p>
         </div>
       ) : viewMode === 'today' ? (
         <EventTable events={filtered} now={now} />
       ) : (
-        <div className="space-y-4">
-          {Object.entries(grouped!).map(([dateLabel, evs]) => (
-            <div key={dateLabel}>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="font-pixel text-[9px] text-gray-400 tracking-wider">{dateLabel}</span>
-                <span className="font-tech text-[10px] text-danger">{evs.filter(e => e.impact === 'High').length} high</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {Object.entries(grouped!).map(([dateLabel, evs]) => {
+            const highCount = evs.filter(e => e.impact === 'High').length;
+            return (
+              <div key={dateLabel}>
+                {/* Date separator */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px',
+                }}>
+                  <span style={{
+                    fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)',
+                    letterSpacing: '.5px', padding: '4px 10px',
+                    border: '1px solid var(--border2)', background: 'var(--bg-card2)',
+                  }}>{dateLabel}</span>
+                  {highCount > 0 && (
+                    <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--red)' }}>
+                      {highCount} high impact
+                    </span>
+                  )}
+                  <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
+                </div>
+                <EventTable events={evs} now={now} />
               </div>
-              <EventTable events={evs} now={now} />
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

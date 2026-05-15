@@ -1,15 +1,23 @@
+const skeletonStyle: React.CSSProperties = {
+  background: 'linear-gradient(90deg, var(--bg-card2) 25%, rgba(45,64,96,.4) 50%, var(--bg-card2) 75%)',
+  backgroundSize: '200% 100%',
+  animation: 'skeleton-shimmer 1.4s ease infinite',
+};
+
 interface SkeletonProps {
-  className?: string;
+  width?: string;
+  height?: string;
+  style?: React.CSSProperties;
 }
 
-export const Skeleton = ({ className = '' }: SkeletonProps) => (
-  <div className={`animate-pulse bg-gray-800 rounded ${className}`} />
+export const Skeleton = ({ width = '100%', height = '12px', style }: SkeletonProps) => (
+  <div style={{ ...skeletonStyle, width, height, ...style }} />
 );
 
 export const CardSkeleton = () => (
-  <div className="card space-y-3">
-    <Skeleton className="h-4 w-1/3" />
-    <Skeleton className="h-8 w-2/3" />
-    <Skeleton className="h-3 w-1/2" />
+  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <Skeleton width="35%" height="10px" />
+    <Skeleton width="65%" height="20px" />
+    <Skeleton width="50%" height="10px" />
   </div>
 );
