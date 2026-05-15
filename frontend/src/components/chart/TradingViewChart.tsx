@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 
 const TIMEFRAMES = [
   { label: '5M',  value: '5'  },
@@ -9,50 +9,29 @@ const TIMEFRAMES = [
 ];
 
 export const TradingViewChart = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [tf, setTf] = useState('15');
-  const widgetKey = useRef(0);
 
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    container.innerHTML = '';
-    widgetKey.current += 1;
+  // Build the TradingView widget iframe URL
+  const params = new URLSearchParams({
+    symbol:             'OANDA:XAUUSD',
+    interval:           tf,
+    theme:              'dark',
+    style:              '1',
+    locale:             'en',
+    toolbar_bg:         '#0a0e1a',
+    enable_publishing:  '0',
+    allow_symbol_change:'0',
+    save_image:         '0',
+    hide_top_toolbar:   '1',
+    hide_legend:        '1',
+    hide_side_toolbar:  '1',
+    withdateranges:     '0',
+    backgroundColor:    'rgba(10,14,26,1)',
+    gridColor:          'rgba(255,255,255,0.03)',
+    timezone:           'Asia/Bangkok',
+  });
 
-    const widgetDiv = document.createElement('div');
-    widgetDiv.className = 'tradingview-widget-container__widget';
-    widgetDiv.style.height = '100%';
-    widgetDiv.style.width = '100%';
-    container.appendChild(widgetDiv);
-
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-    script.type = 'text/javascript';
-    script.async = true;
-    script.innerHTML = JSON.stringify({
-      autosize: true,
-      symbol: 'OANDA:XAUUSD',
-      interval: tf,
-      timezone: 'Asia/Bangkok',
-      theme: 'dark',
-      style: '1',
-      locale: 'en',
-      toolbar_bg: '#0a0e1a',
-      enable_publishing: false,
-      allow_symbol_change: false,
-      save_image: false,
-      backgroundColor: '#0a0e1a',
-      gridColor: 'rgba(255,255,255,0.03)',
-      hide_top_toolbar: true,
-      hide_legend: true,
-      withdateranges: false,
-      hide_side_toolbar: true,
-      support_host: 'https://www.tradingview.com',
-    });
-    container.appendChild(script);
-
-    return () => { container.innerHTML = ''; };
-  }, [tf]);
+  const src = `https://www.tradingview.com/widgetembed/?frameElementId=tv_chart&${params.toString()}`;
 
   return (
     <div style={{
@@ -100,18 +79,19 @@ export const TradingViewChart = () => {
               {t.label}
             </button>
           ))}
-          {/* collapse placeholder — not in mockup but keep for expand */}
           <div style={{ width: '1px', height: '14px', background: 'var(--border2)', margin: '0 4px' }} />
           <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)', cursor: 'default' }}>▲</span>
         </div>
       </div>
 
-      {/* ── Chart body ── */}
+      {/* ── Chart body — iframe approach ── */}
       <div style={{ height: '200px', position: 'relative', background: '#0a0e1a' }}>
-        <div
-          ref={containerRef}
-          className="tradingview-widget-container"
-          style={{ height: '100%', width: '100%' }}
+        <iframe
+          key={tf}
+          src={src}
+          style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+          allow="clipboard-write"
+          title="XAUUSD Chart"
         />
       </div>
     </div>
