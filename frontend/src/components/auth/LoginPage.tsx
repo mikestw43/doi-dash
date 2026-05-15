@@ -59,7 +59,6 @@ export const LoginPage = () => {
 
   return (
     <>
-    {showSignUp && <SignUpPage onBack={() => setShowSignUp(false)} />}
     {modal && <InfoModal title={modal.title} message={modal.message} onClose={() => setModal(null)} />}
     <div
       className="auth-screen"
@@ -280,6 +279,7 @@ export const LoginPage = () => {
         </div>
       </div>
     </div>
+    {showSignUp && <SignUpPage onBack={() => setShowSignUp(false)} />}
     </>
   );
 };
