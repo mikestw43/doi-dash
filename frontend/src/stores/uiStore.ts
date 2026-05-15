@@ -15,7 +15,7 @@ interface UIState {
   toasts: Toast[];
   botFilter: { status: string; broker: string; search: string; sort: string; group: string };
   activeTab: string;
-  currentPage: 'dashboard' | 'profile' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar';
+  currentPage: 'dashboard' | 'profile' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce';
   language: Language;
   theme: Theme;
   addToast: (toast: Omit<Toast, 'id'>) => void;

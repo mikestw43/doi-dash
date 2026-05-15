@@ -15,6 +15,8 @@ import { AnalyticsPage } from './components/analytics/AnalyticsPage';
 import { TradeHistoryPage } from './components/trades/TradeHistoryPage';
 import { PrivacyPolicy } from './components/privacy/PrivacyPolicy';
 import { EconomicCalendar } from './components/calendar/EconomicCalendar';
+import { EaRepository } from './components/ea/EaRepository';
+import { AnnouncePage } from './components/admin/AnnouncePage';
 import { ToastContainer } from './components/ui/Toast';
 
 /** Sync theme class on <html> element */
@@ -51,6 +53,8 @@ const Dashboard = () => {
       {currentPage === 'audit' && <AuditLogViewer />}
       {currentPage === 'privacy' && <PrivacyPolicy />}
       {currentPage === 'calendar' && <EconomicCalendar />}
+      {currentPage === 'ea-repository' && <EaRepository />}
+      {currentPage === 'announce' && <AnnouncePage />}
       <ToastContainer />
     </Layout>
   );

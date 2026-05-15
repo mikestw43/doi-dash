@@ -261,13 +261,14 @@ export const Header = () => {
 
                 <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
 
-                {/* Menu items */}
-                {[
+                {/* User menu items */}
+                {([
                   { symbol: '◈', label: 'Profile', page: 'profile' as const },
+                  { symbol: '⚙', label: 'Settings', page: 'profile' as const },
                   { symbol: '☵', label: 'Privacy Policy', page: 'privacy' as const },
-                ].map(({ symbol, label, page }) => (
+                ] as { symbol: string; label: string; page: ReturnType<typeof useUIStore.getState>['currentPage'] }[]).map(({ symbol, label, page }) => (
                   <button
-                    key={page}
+                    key={label}
                     onClick={() => { setCurrentPage(page); setShowMenu(false); }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '9px',
@@ -285,18 +286,41 @@ export const Header = () => {
                   </button>
                 ))}
 
+                {/* Download EA */}
+                <a
+                  href="/ea/DOI_DASH_Reporter.ex5"
+                  download
+                  onClick={() => setShowMenu(false)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '9px',
+                    width: '100%', padding: '8px 14px',
+                    fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer', background: 'none', border: 'none',
+                    textDecoration: 'none', transition: 'background .1s',
+                    boxSizing: 'border-box',
+                  }}
+                  onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,.04)')}
+                  onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'none')}
+                >
+                  <span style={{ fontSize: '13px', lineHeight: 1 }}>⬇</span>
+                  Download EA
+                </a>
+
                 {user?.role === 'admin' && (
                   <>
                     <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
                     <div style={{ padding: '5px 14px 2px', fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '1px' }}>
                       ADMIN
                     </div>
-                    {[
+                    {([
                       { symbol: '◫', label: 'User Management', page: 'admin' as const },
+                      { symbol: '▦', label: 'EA Repository', page: 'ea-repository' as const },
+                      { symbol: '▣', label: 'Announce', page: 'announce' as const },
                       { symbol: '☰', label: 'Audit Log', page: 'audit' as const },
-                    ].map(({ symbol, label, page }) => (
+                    ] as { symbol: string; label: string; page: ReturnType<typeof useUIStore.getState>['currentPage'] }[]).map(({ symbol, label, page }) => (
                       <button
-                        key={page}
+                        key={label}
                         onClick={() => { setCurrentPage(page); setShowMenu(false); }}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '9px',
