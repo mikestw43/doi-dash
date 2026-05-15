@@ -37,17 +37,17 @@ const impactCfg = (impact: string) =>
 interface EventTableProps { events: EconomicEvent[]; now: Date }
 
 const EventTable = ({ events, now }: EventTableProps) => (
-  <div className="bg-bg-secondary border border-gray-800 rounded-xl overflow-hidden">
+  <div className="bg-bg-secondary border border-border2 overflow-hidden">
     <table className="w-full text-xs">
       <thead>
-        <tr className="text-gray-500 border-b border-gray-800 bg-gray-900/40">
-          <th className="text-left py-2 px-3 font-medium w-14">Time</th>
-          <th className="text-left py-2 px-2 font-medium w-16">Cur</th>
-          <th className="text-left py-2 px-2 font-medium">Event</th>
-          <th className="text-center py-2 px-2 font-medium w-16">Impact</th>
-          <th className="text-right py-2 px-2 font-medium w-16">Actual</th>
-          <th className="text-right py-2 px-2 font-medium w-16">Forecast</th>
-          <th className="text-right py-2 px-3 font-medium w-16">Previous</th>
+        <tr className="border-b border-border2 bg-bg-primary/50">
+          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-3 w-14">Time</th>
+          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-2 w-16">Cur</th>
+          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-2">Event</th>
+          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-center py-2.5 px-2 w-16">Impact</th>
+          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2 w-16">Actual</th>
+          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2 w-16">Forecast</th>
+          <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-3 w-16">Prev</th>
         </tr>
       </thead>
       <tbody>
@@ -60,32 +60,32 @@ const EventTable = ({ events, now }: EventTableProps) => (
             <tr
               key={`${event.date}-${i}`}
               className={`border-b border-gray-800/40 transition-colors
-                ${isHigh && !past ? 'hover:bg-danger/5' : 'hover:bg-gray-800/30'}
-                ${past ? 'opacity-55' : ''}`}
+                ${isHigh && !past ? 'hover:bg-danger/5' : 'hover:bg-gray-800/20'}
+                ${past ? 'opacity-50' : ''}`}
             >
-              <td className="py-2 px-3 font-mono text-gray-300 whitespace-nowrap">
+              <td className="py-2 px-3 font-tech text-gray-400 whitespace-nowrap">
                 {fmtTime(event.date)}
               </td>
               <td className="py-2 px-2">
                 <span className="flex items-center gap-1">
                   <span className="text-sm leading-none">{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
-                  <span className="text-gray-300 font-medium">{event.country}</span>
+                  <span className="font-tech text-gray-300">{event.country}</span>
                 </span>
               </td>
-              <td className="py-2 px-2 text-gray-200">
-                <span className={isHigh && !past ? 'font-medium text-white' : ''}>{event.title}</span>
+              <td className="py-2 px-2">
+                <span className={`font-tech ${isHigh && !past ? 'text-white' : 'text-gray-400'}`}>{event.title}</span>
               </td>
               <td className="py-2 px-2 text-center">
-                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] font-semibold ${cfg.cls}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
+                <span className={`font-pixel text-[8px] inline-flex items-center gap-1 px-1.5 py-0.5 border ${cfg.cls}`}>
+                  <span className={`w-1.5 h-1.5 flex-shrink-0 ${cfg.dot}`} />
                   {cfg.label}
                 </span>
               </td>
-              <td className={`py-2 px-2 text-right font-mono ${event.actual ? 'text-white font-semibold' : 'text-gray-600'}`}>
+              <td className={`py-2 px-2 text-right font-tech ${event.actual ? 'text-white font-bold' : 'text-gray-700'}`}>
                 {event.actual || '—'}
               </td>
-              <td className="py-2 px-2 text-right font-mono text-gray-400">{event.forecast || '—'}</td>
-              <td className="py-2 px-3 text-right font-mono text-gray-500">{event.previous || '—'}</td>
+              <td className="py-2 px-2 text-right font-tech text-gray-500">{event.forecast || '—'}</td>
+              <td className="py-2 px-3 text-right font-tech text-gray-600">{event.previous || '—'}</td>
             </tr>
           );
         })}
@@ -177,84 +177,84 @@ export const EconomicCalendar = () => {
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <CalendarDays size={18} className="text-accent-blue" />
-            <h2 className="text-lg font-semibold text-white">Economic Calendar</h2>
+          <div className="flex items-center gap-3">
+            <CalendarDays size={15} className="text-accent-blue" />
+            <h2 className="font-pixel text-[11px] text-accent-blue tracking-wider">Economic Calendar</h2>
             {todayHighCount > 0 && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-danger/15 border border-danger/30 text-[10px] font-semibold text-danger">
-                <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
-                {todayHighCount} High today
+              <span className="font-pixel text-[8px] flex items-center gap-1 px-2 py-0.5 border border-danger/40 text-danger">
+                <span className="w-1.5 h-1.5 bg-danger animate-pulse" />
+                {todayHighCount} HIGH TODAY
               </span>
             )}
           </div>
-          <p className="text-[10px] text-gray-500 mt-0.5 ml-7">
-            Source: ForexFactory · Cached 30 min · Times in local browser timezone
+          <p className="font-tech text-[10px] text-gray-700 mt-1 ml-6">
+            ForexFactory · cached 30min · local timezone
           </p>
         </div>
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 transition-colors disabled:opacity-50"
+          className="btn-ghost flex items-center gap-1.5 disabled:opacity-50"
         >
-          <RefreshCw size={12} className={isFetching ? 'animate-spin' : ''} />
-          Refresh
+          <RefreshCw size={11} className={isFetching ? 'animate-spin' : ''} />
+          REFRESH
         </button>
       </div>
 
       {/* ── Filters ── */}
-      <div className="flex flex-wrap gap-3 items-start mb-5 p-3 bg-bg-secondary border border-gray-800 rounded-xl">
+      <div className="flex flex-wrap gap-3 items-start mb-5 p-3 bg-bg-secondary border border-border2">
         {/* Today / Week */}
-        <div className="flex gap-1.5 bg-gray-900 rounded-lg p-1">
+        <div className="flex gap-1 border border-border2 p-0.5">
           {(['today', 'week'] as const).map(m => (
             <button key={m} onClick={() => setViewMode(m)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === m ? 'bg-accent-blue text-white' : 'text-gray-400 hover:text-white'}`}>
-              {m === 'today' ? 'Today' : 'This Week'}
+              className={`font-pixel text-[8px] px-3 py-1.5 transition-colors ${viewMode === m ? 'bg-accent-blue text-bg-primary' : 'text-gray-500 hover:text-gray-200'}`}>
+              {m === 'today' ? 'TODAY' : 'THIS WEEK'}
             </button>
           ))}
         </div>
 
         {/* Currency chips */}
         <div className="flex flex-wrap gap-1 items-center">
-          <span className="text-[10px] text-gray-500 mr-0.5">Currency:</span>
+          <span className="font-pixel text-[8px] text-gray-600 mr-1">CUR:</span>
           {ALL_CURRENCIES.map(cur => (
             <button key={cur} onClick={() => setSelected(p => p.includes(cur) ? p.filter(c => c !== cur) : [...p, cur])}
-              className={`flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-medium transition-colors border ${
+              className={`font-pixel text-[8px] flex items-center gap-0.5 px-2 py-0.5 border transition-colors ${
                 selected.includes(cur)
-                  ? 'bg-accent-blue/20 border-accent-blue text-accent-blue'
-                  : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
+                  ? 'border-accent-blue/60 text-accent-blue bg-accent-blue/10'
+                  : 'border-gray-800 text-gray-600 hover:text-gray-300 hover:border-gray-600'
               }`}>
               <span className="text-xs leading-none">{CURRENCY_FLAGS[cur] ?? ''}</span>
               <span>{cur}</span>
             </button>
           ))}
           {selected.length > 0 && (
-            <button onClick={() => setSelected([])} className="text-[10px] text-gray-500 hover:text-gray-300 underline ml-0.5">Clear</button>
+            <button onClick={() => setSelected([])} className="font-pixel text-[8px] text-gray-600 hover:text-danger ml-1">✕ CLEAR</button>
           )}
         </div>
 
         {/* Impact */}
-        <div className="flex gap-1.5 items-center">
-          <span className="text-[10px] text-gray-500">Impact:</span>
-          {([['all','All'],['medium','Med+'],['high','High only']] as const).map(([key, label]) => (
+        <div className="flex gap-1 items-center">
+          <span className="font-pixel text-[8px] text-gray-600">IMPACT:</span>
+          {([['all','ALL'],['medium','MED+'],['high','HIGH']] as const).map(([key, label]) => (
             <button key={key} onClick={() => setMinImpact(key)}
-              className={`px-2.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                minImpact === key ? 'bg-accent-blue text-white' : 'bg-gray-900 border border-gray-700 text-gray-400 hover:text-white'
+              className={`font-pixel text-[8px] px-2.5 py-0.5 border transition-colors ${
+                minImpact === key ? 'border-accent-blue text-accent-blue bg-accent-blue/10' : 'border-gray-800 text-gray-600 hover:text-gray-300'
               }`}>
               {label}
             </button>
           ))}
         </div>
 
-        <div className="ml-auto text-[10px] text-gray-500 self-center">
-          {filtered.length} event{filtered.length !== 1 ? 's' : ''}
+        <div className="ml-auto font-tech text-xs text-gray-600 self-center">
+          {filtered.length} events
         </div>
       </div>
 
       {/* ── Events ── */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
-          <CalendarDays size={32} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No events match your filters</p>
+        <div className="text-center py-16">
+          <CalendarDays size={28} className="mx-auto mb-3 text-gray-700" />
+          <p className="font-tech text-sm text-gray-600">No events match your filters</p>
         </div>
       ) : viewMode === 'today' ? (
         <EventTable events={filtered} now={now} />
@@ -262,9 +262,9 @@ export const EconomicCalendar = () => {
         <div className="space-y-4">
           {Object.entries(grouped!).map(([dateLabel, evs]) => (
             <div key={dateLabel}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-semibold text-gray-300">{dateLabel}</span>
-                <span className="text-[10px] text-gray-600">{evs.filter(e => e.impact === 'High').length} high</span>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="font-pixel text-[9px] text-gray-400 tracking-wider">{dateLabel}</span>
+                <span className="font-tech text-[10px] text-danger">{evs.filter(e => e.impact === 'High').length} high</span>
               </div>
               <EventTable events={evs} now={now} />
             </div>
