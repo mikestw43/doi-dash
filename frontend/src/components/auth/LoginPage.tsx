@@ -2,12 +2,43 @@ import { useState, type FormEvent } from 'react';
 import { login } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 
+const InfoModal = ({ title, message, onClose }: { title: string; message: string; onClose: () => void }) => (
+  <div style={{
+    position: 'fixed', inset: 0, zIndex: 99999,
+    background: 'rgba(0,0,0,.7)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: '16px',
+  }} onClick={onClose}>
+    <div style={{
+      background: 'var(--bg-card)',
+      border: '2px solid var(--accent-blue)',
+      boxShadow: '4px 4px 0 rgba(56,189,248,.3)',
+      padding: '24px 28px',
+      maxWidth: '340px', width: '100%',
+    }} onClick={e => e.stopPropagation()}>
+      <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--accent-blue)', letterSpacing: '1px', marginBottom: '14px' }}>
+        {title}
+      </div>
+      <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: '20px' }}>
+        {message}
+      </div>
+      <button onClick={onClose} style={{
+        width: '100%', padding: '9px',
+        background: 'none', border: '1px solid var(--accent-blue)',
+        color: 'var(--accent-blue)', fontFamily: "'Press Start 2P'",
+        fontSize: '7px', letterSpacing: '1px', cursor: 'pointer',
+      }}>OK</button>
+    </div>
+  </div>
+);
+
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState<{ title: string; message: string } | null>(null);
   const { setAuth } = useAuthStore();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -25,6 +56,8 @@ export const LoginPage = () => {
   };
 
   return (
+    <>
+    {modal && <InfoModal title={modal.title} message={modal.message} onClose={() => setModal(null)} />}
     <div
       className="auth-screen"
       style={{
@@ -154,7 +187,10 @@ export const LoginPage = () => {
 
           {/* Forgot password */}
           <div style={{ textAlign: 'right', margin: '-4px 0 10px', fontSize: '10px', fontFamily: "'Share Tech Mono'", color: 'var(--text-muted)' }}>
-            <span style={{ color: 'rgba(56,189,248,.5)', cursor: 'pointer' }}>Forgot password?</span>
+            <span
+              style={{ color: 'rgba(56,189,248,.5)', cursor: 'pointer' }}
+              onClick={() => setModal({ title: 'FORGOT PASSWORD', message: 'Password reset is managed by your administrator. Please contact your admin to reset your password.' })}
+            >Forgot password?</span>
           </div>
 
           {/* Error */}
@@ -234,9 +270,13 @@ export const LoginPage = () => {
           fontFamily: "'Share Tech Mono'",
         }}>
           No account?{' '}
-          <span style={{ color: 'var(--accent-blue)', cursor: 'pointer' }}>SIGN UP</span>
+          <span
+            style={{ color: 'var(--accent-blue)', cursor: 'pointer' }}
+            onClick={() => setModal({ title: 'SIGN UP', message: 'Account registration is managed by your administrator. Please contact your admin to create an account.' })}
+          >SIGN UP</span>
         </div>
       </div>
     </div>
+    </>
   );
 };
