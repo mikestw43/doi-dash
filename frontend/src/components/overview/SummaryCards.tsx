@@ -91,7 +91,7 @@ export const SummaryCards = ({ stats }: Props) => {
         label="TOTAL BALANCE"
         icon="$"
         value={
-          <span style={{ color: 'var(--text-primary)', fontSize: '24px' }}>
+          <span style={{ color: 'var(--accent-blue)', fontSize: '24px' }}>
             {formatCurrency(stats.totalBalance)}
           </span>
         }
