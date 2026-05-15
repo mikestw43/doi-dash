@@ -31,6 +31,13 @@ export const OverviewTabs = () => {
       flexDirection: 'column',
       overflow: 'hidden',
     }}>
+      {/* Section header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px 0', }}>
+        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '2px' }}>PORTFOLIO</span>
+        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
+      </div>
+
       {/* Tab nav */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)' }}>
         {TABS.map(tab => (
