@@ -60,7 +60,7 @@ export const SummaryCards = ({ stats }: Props) => {
   const onlinePct = stats.totalAccounts > 0 ? (stats.onlineAccounts / stats.totalAccounts) * 100 : 100;
 
   return (
-    <div style={{
+    <div className="summary-grid" style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
       gap: '10px',
@@ -170,6 +170,12 @@ export const SummaryCards = ({ stats }: Props) => {
         barColor="var(--warning)"
         variant={stats.totalPendingOrders > 0 ? 'yellow' : 'default'}
       />
+
+      <style>{`
+        @media (max-width: 640px) {
+          .summary-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
     </div>
   );
 };

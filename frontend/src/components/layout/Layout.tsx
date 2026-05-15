@@ -124,6 +124,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
         {/* ── Main content ── */}
         <main
+          className="main-content"
           style={{
             flex: 1,
             overflowY: 'auto',
@@ -165,8 +166,15 @@ export const Layout = ({ children }: LayoutProps) => {
           .sidebar-nav button .sb-label {
             display: block !important;
           }
-          main {
-            padding-bottom: 72px !important;
+          .main-content {
+            padding-bottom: 70px !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .main-content {
+            padding: 10px !important;
+            padding-bottom: 70px !important;
+            gap: 10px !important;
           }
         }
       `}</style>

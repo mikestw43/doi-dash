@@ -81,13 +81,13 @@ export const Header = () => {
   return (
     <>
       {/* ══ TOP NAV ══ */}
-      <nav style={{
+      <nav className="header-nav" style={{
         background: 'var(--bg-secondary)',
         borderBottom: '1px solid var(--border2)',
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        padding: '0 16px',
+        padding: '0 12px',
         height: '54px',
         flexShrink: 0,
         position: 'sticky',
@@ -95,8 +95,8 @@ export const Header = () => {
         zIndex: 100,
       }}>
         {/* Left: Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+          <div className="header-logo-box" style={{
             width: '36px', height: '36px',
             background: 'var(--accent-blue)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -105,13 +105,13 @@ export const Header = () => {
           }}>
             <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#0c1422' }}>D</span>
           </div>
-          <div>
+          <div className="header-logo-text">
             <div style={{
               fontFamily: "'Press Start 2P'", fontSize: '9px',
               color: 'var(--text-primary)', letterSpacing: '2px',
               textShadow: '0 0 12px rgba(56,189,248,.8)',
             }}>DOI DASH</div>
-            <div style={{
+            <div className="header-subtitle" style={{
               fontFamily: "'Press Start 2P'", fontSize: '5px',
               color: 'var(--text-muted)', letterSpacing: '.5px',
               opacity: .5, marginTop: '3px',
@@ -120,7 +120,7 @@ export const Header = () => {
         </div>
 
         {/* Center: Clock + Sessions */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+        <div className="header-center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
           <div style={{
             fontFamily: "'VT323'", fontSize: '34px', fontWeight: 400,
             color: 'var(--warning)', letterSpacing: '2px', lineHeight: 1,
@@ -158,7 +158,7 @@ export const Header = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
 
           {/* WiFi widget */}
-          <div style={{
+          <div className="header-wifi" style={{
             display: 'flex', alignItems: 'center', gap: '7px',
             padding: '5px 10px',
             border: '1px solid var(--border2)',
@@ -212,7 +212,7 @@ export const Header = () => {
               }}>
                 {initials}
               </div>
-              <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-primary)', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span className="header-username" style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-primary)', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {displayName}
               </span>
               <span style={{ color: 'var(--text-muted)', fontSize: '8px', display: 'inline-block', transform: showMenu ? 'rotate(180deg)' : 'none', transition: 'transform .2s', lineHeight: 1 }}>▾</span>
@@ -361,6 +361,26 @@ export const Header = () => {
           </div>
         </div>
       </nav>
+
+      {/* ══ MOBILE RESPONSIVE ══ */}
+      <style>{`
+        @media (max-width: 768px) {
+          .header-nav {
+            grid-template-columns: auto 1fr !important;
+            padding: 0 10px !important;
+            height: 48px !important;
+          }
+          .header-center { display: none !important; }
+          .header-wifi   { display: none !important; }
+          .header-username { display: none !important; }
+          .header-subtitle { display: none !important; }
+        }
+        @media (max-width: 400px) {
+          .header-logo-text { display: none !important; }
+          .header-logo-box  { width: 30px !important; height: 30px !important; }
+          .header-logo-box span { font-size: 11px !important; }
+        }
+      `}</style>
 
       {/* ══ TICKER BAR ══ */}
       <div style={{
