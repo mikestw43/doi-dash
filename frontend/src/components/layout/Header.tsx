@@ -263,7 +263,8 @@ export const Header = () => {
 
                 {/* Menu items */}
                 {[
-                  { symbol: '◈', label: 'Profile / Settings', page: 'profile' as const },
+                  { symbol: '◈', label: 'Profile', page: 'profile' as const },
+                  { symbol: '☵', label: 'Privacy Policy', page: 'privacy' as const },
                 ].map(({ symbol, label, page }) => (
                   <button
                     key={page}

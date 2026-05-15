@@ -45,7 +45,6 @@ export const OverviewTabs = () => {
               color: activeTab === tab.id ? 'var(--accent-blue)' : 'var(--text-muted)',
               cursor: 'pointer',
               textAlign: 'center',
-              borderBottom: `2px solid ${activeTab === tab.id ? 'var(--accent-blue)' : 'transparent'}`,
               background: 'none',
               border: 'none',
               borderBottom: `2px solid ${activeTab === tab.id ? 'var(--accent-blue)' : 'transparent'}`,
