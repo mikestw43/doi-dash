@@ -131,27 +131,6 @@ export const BotList = () => {
           ⚙ FILTER
         </button>
 
-        {/* Status chips */}
-        {(['all', 'online', 'offline'] as const).map(s => (
-          <button
-            key={s}
-            onClick={() => setBotFilter({ status: s })}
-            style={ftabStyle(botFilter.status === s)}
-          >
-            {s.toUpperCase()}
-          </button>
-        ))}
-
-        {/* Groups button */}
-        <button onClick={() => setShowGroupManager(true)} style={ftabStyle(false)}>
-          GROUPS
-        </button>
-
-        {/* Count */}
-        <span style={{ marginLeft: 'auto', fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)' }}>
-          {filtered.length} / {accounts.length}
-        </span>
-
         {/* Filter popup */}
         {showFilter && (
           <div style={{

@@ -282,20 +282,39 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
         }}>
           {isOnline ? (
             <>
-              {/* ORDERS — toggle positions */}
+              {/* DETAILS — toggle positions */}
               <button
                 onClick={() => setShowPositions(p => !p)}
                 style={{
                   flex: 1, padding: '7px 4px',
                   fontFamily: "'Share Tech Mono'", fontSize: '9px',
-                  border: showPositions ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
-                  color: showPositions ? 'var(--accent-blue)' : 'var(--text-muted)',
-                  background: showPositions ? 'rgba(56,189,248,.08)' : 'none',
+                  border: '1px solid var(--accent-blue)',
+                  color: showPositions ? '#0c1422' : 'var(--accent-blue)',
+                  background: showPositions ? 'var(--accent-blue)' : 'rgba(56,189,248,.08)',
+                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  transition: 'all .15s',
+                  boxShadow: showPositions ? 'none' : '0 0 6px rgba(56,189,248,.2)',
+                }}
+              >
+                {showPositions ? '▾ DETAILS' : 'DETAILS'}
+              </button>
+
+              {/* ORDERS */}
+              <button
+                onClick={() => setShowPositions(p => !p)}
+                style={{
+                  flex: 1, padding: '7px 4px',
+                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  border: '1px solid var(--border2)',
+                  color: 'var(--text-muted)',
+                  background: 'none',
                   cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
                   transition: 'all .15s',
                 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
               >
-                {showPositions ? '▾ ORDERS' : 'ORDERS'}
+                ORDERS
               </button>
 
               {/* + TRADE */}
@@ -314,23 +333,6 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
               >
                 + TRADE
-              </button>
-
-              {/* Protection */}
-              <button
-                onClick={() => setShowProtection(true)}
-                title="Drawdown Protection"
-                style={{
-                  flex: 1, padding: '7px 4px',
-                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
-                  border: account.protectionEnabled ? '1px solid rgba(250,204,21,.5)' : '1px solid var(--border2)',
-                  color: account.protectionEnabled ? 'var(--warning)' : 'var(--text-muted)',
-                  background: account.protectionEnabled ? 'rgba(250,204,21,.07)' : 'none',
-                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
-                  transition: 'all .15s',
-                }}
-              >
-                {account.protectionEnabled ? '⛨ ON' : '⛨ SL'}
               </button>
 
               {/* Close all — ✕ */}

@@ -30,14 +30,14 @@ const getActiveSessions = (): Set<string> => {
 
 // ── Ticker data ─────────────────────────────────────────────────────────────
 const TICKER_ITEMS = [
-  { sym: 'EURUSD', price: '1.0872', up: false },
-  { sym: 'GBPUSD', price: '1.2913', up: true },
-  { sym: 'USDJPY', price: '148.23', up: false },
-  { sym: 'XAUUSD', price: '3,154.82', up: true },
-  { sym: 'BTCUSD', price: '82,441', up: true },
-  { sym: 'SP500',  price: '5,628.35', up: false },
-  { sym: 'NASDAQ', price: '17,849.4', up: true },
-  { sym: 'DXY',    price: '104.32',  up: true },
+  { sym: 'EURUSD', price: '1.0872',    chg: '0.12', up: false },
+  { sym: 'OXY',    price: '104.32',    chg: '0.09', up: true  },
+  { sym: 'GBPUSD', price: '1.2913',    chg: '0.88', up: true  },
+  { sym: 'USDJPY', price: '148.23',    chg: '0.21', up: false },
+  { sym: 'BTCUSD', price: '82,441',    chg: '1.54', up: true  },
+  { sym: 'SP500',  price: '5,628.35',  chg: '0.43', up: true  },
+  { sym: 'NASDAQ', price: '17,849.4',  chg: '0.61', up: true  },
+  { sym: 'XAUUSD', price: '3,154.82',  chg: '0.34', up: true  },
 ];
 const TICKER_DOUBLED = [...TICKER_ITEMS, ...TICKER_ITEMS];
 
@@ -265,7 +265,6 @@ export const Header = () => {
                 {([
                   { symbol: '◈', label: 'Profile', page: 'profile' as const },
                   { symbol: '⚙', label: 'Settings', page: 'profile' as const },
-                  { symbol: '☵', label: 'Privacy Policy', page: 'privacy' as const },
                 ] as { symbol: string; label: string; page: ReturnType<typeof useUIStore.getState>['currentPage'] }[]).map(({ symbol, label, page }) => (
                   <button
                     key={label}
@@ -317,7 +316,6 @@ export const Header = () => {
                       { symbol: '◫', label: 'User Management', page: 'admin' as const },
                       { symbol: '▦', label: 'EA Repository', page: 'ea-repository' as const },
                       { symbol: '▣', label: 'Announce', page: 'announce' as const },
-                      { symbol: '☰', label: 'Audit Log', page: 'audit' as const },
                     ] as { symbol: string; label: string; page: ReturnType<typeof useUIStore.getState>['currentPage'] }[]).map(({ symbol, label, page }) => (
                       <button
                         key={label}
@@ -395,7 +393,7 @@ export const Header = () => {
                 {item.price}
               </span>
               <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: item.up ? 'var(--success)' : 'var(--danger)' }}>
-                {item.up ? '▲' : '▼'}
+                {item.up ? '▲' : '▼'}{item.chg}%
               </span>
             </div>
           ))}

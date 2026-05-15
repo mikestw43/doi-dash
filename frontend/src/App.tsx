@@ -17,6 +17,7 @@ import { PrivacyPolicy } from './components/privacy/PrivacyPolicy';
 import { EconomicCalendar } from './components/calendar/EconomicCalendar';
 import { EaRepository } from './components/ea/EaRepository';
 import { AnnouncePage } from './components/admin/AnnouncePage';
+import { TradingViewChart } from './components/chart/TradingViewChart';
 import { ToastContainer } from './components/ui/Toast';
 
 /** Sync theme class on <html> element */
@@ -43,6 +44,7 @@ const Dashboard = () => {
       {currentPage === 'dashboard' && (
         <>
           <OverviewTabs />
+          <TradingViewChart />
           <BotList />
         </>
       )}

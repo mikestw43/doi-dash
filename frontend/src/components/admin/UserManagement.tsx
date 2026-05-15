@@ -4,6 +4,7 @@ import { fetchUsers, createUser, deleteUser, changeUserRole } from '../../servic
 import { useUIStore } from '../../stores/uiStore';
 import { useAuthStore } from '../../stores/authStore';
 import { Dialog } from '../ui/Dialog';
+import { AuditLogViewer } from './AuditLogViewer';
 import type { UserInfo } from '../../types';
 
 const ROLE_COLOR: Record<string, { border: string; color: string; bg: string }> = {
@@ -29,12 +30,15 @@ export const UserManagement = () => {
   const currentUserId = useAuthStore(s => s.user?.id);
   const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
   const [newRole, setNewRole] = useState('user');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const { data: users = [], isLoading } = useQuery<UserInfo[]>({
     queryKey: ['admin-users'],
@@ -79,11 +83,30 @@ export const UserManagement = () => {
 
   const deleteTarget = users.find(u => u.id === deleteId);
 
-  const thStyle: React.CSSProperties = { fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap' };
-  const tdStyle: React.CSSProperties = { padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' };
+  const filteredUsers = users.filter(u => {
+    if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+    return true;
+  });
+
+  const thStyle: React.CSSProperties = {
+    fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+    letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left',
+    borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
+  };
+  const tdStyle: React.CSSProperties = {
+    padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
+    fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)',
+  };
+  const tabBtn = (active: boolean) => ({
+    padding: '9px 20px',
+    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    color: active ? 'var(--cyan)' : 'var(--text-dim)',
+    background: 'none', border: 'none', borderBottom: `2px solid ${active ? 'var(--cyan)' : 'transparent'}`,
+    cursor: 'pointer', transition: 'all .15s',
+  } as React.CSSProperties);
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '960px', margin: '0 auto' }}>
       {/* Back */}
       <button
         onClick={() => setCurrentPage('dashboard')}
@@ -92,92 +115,177 @@ export const UserManagement = () => {
         ← BACK
       </button>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+      {/* Section title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>USER MANAGEMENT</span>
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>ADMIN</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-        <button
-          onClick={() => setShowAddDialog(true)}
-          style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer', boxShadow: '0 0 8px rgba(56,189,248,.4)' }}
-        >
-          + ADD USER
+      </div>
+
+      {/* Tabs row */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        background: 'var(--bg-card)', border: '1px solid var(--border2)',
+        borderBottom: 'none', marginBottom: 0,
+      }}>
+        <button style={tabBtn(activeTab === 'users')} onClick={() => setActiveTab('users')}>
+          USER MANAGEMENT
+        </button>
+        <button style={tabBtn(activeTab === 'audit')} onClick={() => setActiveTab('audit')}>
+          AUDIT LOG
         </button>
       </div>
 
-      {/* Table */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', overflowX: 'auto' }}>
-        {isLoading ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Loading...</div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '640px' }}>
-            <thead>
-              <tr style={{ background: 'var(--bg-card2)' }}>
-                <th style={thStyle}>USER</th>
-                <th style={thStyle}>EMAIL</th>
-                <th style={thStyle}>ROLE</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>ACCOUNTS</th>
-                <th style={thStyle}>CREATED</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(user => {
-                const initials = (user.name || user.email).slice(0, 2).toUpperCase();
-                const rc = ROLE_COLOR[user.role] || ROLE_COLOR.user;
-                return (
-                  <tr key={user.id}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '26px', height: '26px', flexShrink: 0, background: rc.bg, border: `1px solid ${rc.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Press Start 2P'", fontSize: '7px', color: rc.color }}>
-                          {initials}
-                        </div>
-                        <span style={{ color: 'var(--text)', fontWeight: 700 }}>{user.name || '—'}</span>
-                      </div>
-                    </td>
-                    <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>{user.email}</td>
-                    <td style={tdStyle}>
-                      <button
-                        onClick={() => {
-                          if (user.id === currentUserId) return;
-                          roleMutation.mutate({ id: user.id, role: user.role === 'admin' ? 'user' : 'admin' });
-                        }}
-                        disabled={user.id === currentUserId}
-                        title={user.id === currentUserId ? 'Cannot change your own role' : 'Click to toggle role'}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: user.id === currentUserId ? 'not-allowed' : 'pointer', opacity: user.id === currentUserId ? .5 : 1 }}
-                      >
-                        {roleBadge(user.role)}
-                      </button>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--cyan)' }}>
-                      {user._count.accounts}
-                    </td>
-                    <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }}>
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      {user.id !== currentUserId && (
-                        <button
-                          onClick={() => setDeleteId(user.id)}
-                          style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '4px 8px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--red)', background: 'none', cursor: 'pointer', letterSpacing: '.5px' }}
+      {/* Tab content */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderTop: '2px solid var(--border2)' }}>
+
+        {activeTab === 'users' && (
+          <>
+            {/* Toolbar */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '10px 14px', borderBottom: '1px solid var(--border2)',
+              flexWrap: 'wrap', gap: '8px',
+            }}>
+              {/* Filters */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <select
+                  value={roleFilter}
+                  onChange={e => setRoleFilter(e.target.value)}
+                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 28px 6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="all">All Roles</option>
+                  <option value="admin">Admin</option>
+                  <option value="vip">VIP</option>
+                  <option value="user">User</option>
+                </select>
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 28px 6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+              {/* + CREATE USER */}
+              <button
+                onClick={() => setShowAddDialog(true)}
+                style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--cyan)', border: '1px solid var(--cyan)', cursor: 'pointer' }}
+              >
+                + CREATE USER
+              </button>
+            </div>
+
+            {/* Table */}
+            <div style={{ overflowX: 'auto' }}>
+              {isLoading ? (
+                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Loading...</div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+                  <thead>
+                    <tr style={{ background: 'var(--bg-card2)' }}>
+                      <th style={thStyle}>USER</th>
+                      <th style={thStyle}>EMAIL</th>
+                      <th style={thStyle}>MOBILE</th>
+                      <th style={thStyle}>ROLE</th>
+                      <th style={{ ...thStyle, textAlign: 'center' }}>ACCOUNTS</th>
+                      <th style={thStyle}>CREATED</th>
+                      <th style={thStyle}>STATUS</th>
+                      <th style={{ ...thStyle, textAlign: 'right' }}>ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map(user => {
+                      const initials = (user.name || user.email).slice(0, 2).toUpperCase();
+                      const rc = ROLE_COLOR[user.role] || ROLE_COLOR.user;
+                      const isSelf = user.id === currentUserId;
+                      return (
+                        <tr key={user.id}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
-                          ✕ DEL
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                          {/* USER */}
+                          <td style={tdStyle}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ width: '26px', height: '26px', flexShrink: 0, background: rc.bg, border: `1px solid ${rc.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Press Start 2P'", fontSize: '7px', color: rc.color }}>
+                                {initials}
+                              </div>
+                              <span style={{ color: 'var(--text)', fontWeight: 700 }}>{user.name || '—'}</span>
+                            </div>
+                          </td>
+                          {/* EMAIL */}
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>{user.email}</td>
+                          {/* MOBILE */}
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>—</td>
+                          {/* ROLE */}
+                          <td style={tdStyle}>
+                            <button
+                              onClick={() => {
+                                if (isSelf) return;
+                                roleMutation.mutate({ id: user.id, role: user.role === 'admin' ? 'user' : 'admin' });
+                              }}
+                              disabled={isSelf}
+                              title={isSelf ? 'Cannot change your own role' : 'Click to toggle role'}
+                              style={{ background: 'none', border: 'none', padding: 0, cursor: isSelf ? 'not-allowed' : 'pointer', opacity: isSelf ? .5 : 1 }}
+                            >
+                              {roleBadge(user.role)}
+                            </button>
+                          </td>
+                          {/* ACCOUNTS */}
+                          <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--cyan)' }}>
+                            {user._count.accounts}
+                          </td>
+                          {/* CREATED */}
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }}>
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </td>
+                          {/* STATUS */}
+                          <td style={tdStyle}>
+                            <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--green)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--green)', display: 'inline-block', flexShrink: 0 }} />
+                              ACTIVE
+                            </span>
+                          </td>
+                          {/* ACTIONS */}
+                          <td style={{ ...tdStyle, textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                              <button
+                                onClick={() => { /* edit placeholder */ }}
+                                style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid var(--border2)', color: 'var(--text-dim)', background: 'none', cursor: 'pointer', letterSpacing: '.5px' }}
+                              >
+                                EDIT
+                              </button>
+                              {!isSelf && (
+                                <button
+                                  onClick={() => setDeleteId(user.id)}
+                                  style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid rgba(250,204,21,.4)', color: 'var(--yellow)', background: 'rgba(250,204,21,.06)', cursor: 'pointer', letterSpacing: '.5px' }}
+                                >
+                                  SUSPEND
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'audit' && (
+          <div style={{ padding: '14px' }}>
+            <AuditLogViewer embedded />
+          </div>
         )}
       </div>
 
       {/* Add User Dialog */}
-      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} title="ADD NEW USER">
+      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} title="CREATE NEW USER">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div><label style={lbl}>EMAIL *</label><input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="user@example.com" style={inp} /></div>
           <div><label style={lbl}>PASSWORD * (min 6)</label><input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={inp} /></div>
@@ -186,6 +294,7 @@ export const UserManagement = () => {
             <label style={lbl}>ROLE</label>
             <select value={newRole} onChange={e => setNewRole(e.target.value)} style={{ ...inp }}>
               <option value="user">User</option>
+              <option value="vip">VIP</option>
               <option value="admin">Admin</option>
             </select>
           </div>
@@ -199,7 +308,7 @@ export const UserManagement = () => {
               disabled={!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending}
               style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
             >
-              {createMutation.isPending ? '...' : 'CREATE USER'}
+              {createMutation.isPending ? '...' : 'CREATE'}
             </button>
           </div>
         </div>

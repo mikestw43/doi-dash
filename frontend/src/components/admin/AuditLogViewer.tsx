@@ -28,7 +28,7 @@ const selStyle: React.CSSProperties = { background: 'var(--bg-input)', border: '
 const thStyle: React.CSSProperties = { fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap' };
 const tdStyle: React.CSSProperties = { padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' };
 
-export const AuditLogViewer = () => {
+export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [total, setTotal] = useState(0);
@@ -68,28 +68,32 @@ export const AuditLogViewer = () => {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-      {/* Back */}
-      <button
-        onClick={() => setCurrentPage('dashboard')}
-        style={{ background: 'none', border: 'none', color: 'var(--cyan)', fontFamily: "'Press Start 2P'", fontSize: '7px', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
-      >
-        ← BACK
-      </button>
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>AUDIT LOG</span>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', padding: '4px 10px', border: '1px solid var(--border2)' }}>{total}</span>
+      {/* Back — hidden when embedded */}
+      {!embedded && (
         <button
-          onClick={handleExport}
-          disabled={!logs.length}
-          style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '7px 12px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: logs.length ? 'pointer' : 'not-allowed', opacity: logs.length ? 1 : .3 }}
+          onClick={() => setCurrentPage('dashboard')}
+          style={{ background: 'none', border: 'none', color: 'var(--cyan)', fontFamily: "'Press Start 2P'", fontSize: '7px', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
         >
-          ↓ EXPORT
+          ← BACK
         </button>
-      </div>
+      )}
+
+      {/* Header — hidden when embedded */}
+      {!embedded && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
+          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>AUDIT LOG</span>
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
+          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', padding: '4px 10px', border: '1px solid var(--border2)' }}>{total}</span>
+          <button
+            onClick={handleExport}
+            disabled={!logs.length}
+            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '7px 12px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: logs.length ? 'pointer' : 'not-allowed', opacity: logs.length ? 1 : .3 }}
+          >
+            ↓ EXPORT
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
