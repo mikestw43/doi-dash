@@ -65,13 +65,13 @@ export const ReportSettings = () => {
   );
 
   return (
-    <div className="bg-bg-secondary border border-gray-800 rounded-xl p-6 space-y-4">
-      <div className="flex items-center gap-2 text-white mb-2">
-        <Clock size={18} />
-        <h3 className="font-semibold">{t('reports.title')}</h3>
+    <div className="bg-bg-secondary border border-border2 p-6 space-y-4">
+      <div className="flex items-center gap-2 text-accent-blue mb-2">
+        <Clock size={14} />
+        <h3 className="font-pixel text-[9px] tracking-widest">{t('reports.title')}</h3>
       </div>
 
-      <p className="text-xs text-gray-500">{t('reports.description')}</p>
+      <p className="font-tech text-xs text-gray-600">{t('reports.description')}</p>
 
       {/* Toggle */}
       <label className="flex items-center gap-3 cursor-pointer">
@@ -81,18 +81,18 @@ export const ReportSettings = () => {
           onChange={e => setSettings({ ...settings, reportEnabled: e.target.checked })}
           className="w-4 h-4 accent-accent-blue"
         />
-        <span className="text-sm text-gray-300">{t('reports.enabled')}</span>
+        <span className="font-tech text-sm text-gray-400">{t('reports.enabled')}</span>
       </label>
 
       {settings.reportEnabled && (
         <div className="space-y-3 pl-7">
           {/* Frequency */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('reports.frequency')}</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('reports.frequency')}</label>
             <select
               value={settings.reportFrequency}
               onChange={e => setSettings({ ...settings, reportFrequency: e.target.value })}
-              className="bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+              className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
             >
               <option value="daily">{t('reports.daily')}</option>
               <option value="weekly">{t('reports.weekly')}</option>
@@ -101,11 +101,11 @@ export const ReportSettings = () => {
 
           {/* Time */}
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('reports.time')}</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('reports.time')}</label>
             <select
               value={settings.reportTime}
               onChange={e => setSettings({ ...settings, reportTime: e.target.value })}
-              className="bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+              className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
             >
               {hours.map(h => (
                 <option key={h} value={h}>{h}</option>
@@ -116,11 +116,11 @@ export const ReportSettings = () => {
           {/* Day (weekly only) */}
           {settings.reportFrequency === 'weekly' && (
             <div>
-              <label className="block text-xs text-gray-400 mb-1">{t('reports.day')}</label>
+              <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('reports.day')}</label>
               <select
                 value={settings.reportDay}
                 onChange={e => setSettings({ ...settings, reportDay: parseInt(e.target.value) })}
-                className="bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+                className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
               >
                 {days.map(d => (
                   <option key={d.value} value={d.value}>{d.label}</option>
@@ -132,20 +132,14 @@ export const ReportSettings = () => {
       )}
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white text-sm rounded-lg hover:bg-accent-blue/80 disabled:opacity-50 transition-colors"
-        >
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+        <button onClick={handleSave} disabled={saving}
+          className="btn-primary flex items-center gap-2 disabled:opacity-50">
+          {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
           {t('common.save')}
         </button>
-        <button
-          onClick={handleSendNow}
-          disabled={sending}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-colors"
-        >
-          {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+        <button onClick={handleSendNow} disabled={sending}
+          className="btn-ghost flex items-center gap-2 disabled:opacity-50">
+          {sending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
           {t('reports.send_now')}
         </button>
       </div>

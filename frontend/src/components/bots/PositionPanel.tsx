@@ -89,16 +89,16 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
         <thead>
-          <tr className="text-gray-500 border-b border-gray-800">
-            <th className="text-left py-2 px-3 font-medium">Symbol</th>
-            <th className="text-left py-2 px-2 font-medium">Type</th>
-            <th className="text-right py-2 px-2 font-medium">Lots</th>
-            <th className="text-right py-2 px-2 font-medium">Open</th>
-            <th className="text-right py-2 px-2 font-medium">Current</th>
-            <th className="text-right py-2 px-2 font-medium">P/L&nbsp;{rawCur}</th>
-            <th className="text-right py-2 px-2 font-medium">SL</th>
-            <th className="text-right py-2 px-2 font-medium">TP</th>
-            <th className="py-2 px-2"></th>
+          <tr className="border-b border-border2">
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-3">Symbol</th>
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left py-2.5 px-2">Type</th>
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">Lots</th>
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">Open</th>
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">Current</th>
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">P/L {rawCur}</th>
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">SL</th>
+            <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right py-2.5 px-2">TP</th>
+            <th className="py-2.5 px-2"></th>
           </tr>
         </thead>
         <tbody>
@@ -110,43 +110,43 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
             return (
               <tr
                 key={order.ticket}
-                className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+                className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors"
               >
                 {/* Symbol */}
-                <td className="py-2 px-3 font-medium text-white">{order.symbol}</td>
+                <td className="py-2 px-3 font-tech font-bold text-white">{order.symbol}</td>
 
                 {/* Type badge */}
                 <td className="py-2 px-2">
-                  <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                    isBuy ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'
+                  <span className={`font-pixel text-[8px] inline-flex items-center gap-0.5 px-1.5 py-0.5 border ${
+                    isBuy ? 'border-success/40 text-success bg-success/10' : 'border-danger/40 text-danger bg-danger/10'
                   }`}>
-                    {isBuy ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
+                    {isBuy ? <TrendingUp size={8} /> : <TrendingDown size={8} />}
                     {order.type}
                   </span>
                 </td>
 
                 {/* Lots */}
-                <td className="py-2 px-2 text-right font-mono text-gray-300">
+                <td className="py-2 px-2 text-right font-tech text-gray-400">
                   {order.lots.toFixed(2)}
                 </td>
 
                 {/* Open Price */}
-                <td className="py-2 px-2 text-right font-mono text-gray-400">
+                <td className="py-2 px-2 text-right font-tech text-gray-500">
                   {fmtPrice(order.openPrice)}
                 </td>
 
                 {/* Current Price */}
-                <td className="py-2 px-2 text-right font-mono text-gray-300">
+                <td className="py-2 px-2 text-right font-tech text-gray-300">
                   {fmtPrice(order.currentPrice)}
                 </td>
 
                 {/* P/L */}
-                <td className="py-2 px-2 text-right font-mono">
+                <td className="py-2 px-2 text-right">
                   <FlashNumber
                     value={order.profit}
                     format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(v)}`}
                     positiveGreen
-                    className="font-semibold"
+                    className="font-display text-xl leading-none"
                   />
                 </td>
 
@@ -159,11 +159,11 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                       value={editing.sl}
                       onChange={e => setEditing(prev => prev ? { ...prev, sl: e.target.value } : null)}
                       placeholder="0"
-                      className="w-20 bg-gray-700 border border-gray-600 rounded px-1.5 py-0.5 text-xs text-white text-right focus:outline-none focus:border-accent-blue"
+                      className="w-20 bg-bg-primary border border-border2 px-1.5 py-0.5 font-tech text-xs text-white text-right focus:outline-none focus:border-accent-blue"
                       autoFocus
                     />
                   ) : (
-                    <span className="font-mono text-gray-400">{fmtPrice(order.sl)}</span>
+                    <span className="font-tech text-xs text-gray-500">{fmtPrice(order.sl)}</span>
                   )}
                 </td>
 
@@ -176,10 +176,10 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                       value={editing.tp}
                       onChange={e => setEditing(prev => prev ? { ...prev, tp: e.target.value } : null)}
                       placeholder="0"
-                      className="w-20 bg-gray-700 border border-gray-600 rounded px-1.5 py-0.5 text-xs text-white text-right focus:outline-none focus:border-accent-blue"
+                      className="w-20 bg-bg-primary border border-border2 px-1.5 py-0.5 font-tech text-xs text-white text-right focus:outline-none focus:border-accent-blue"
                     />
                   ) : (
-                    <span className="font-mono text-gray-400">{fmtPrice(order.tp)}</span>
+                    <span className="font-tech text-xs text-gray-500">{fmtPrice(order.tp)}</span>
                   )}
                 </td>
 
@@ -188,39 +188,28 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                   <div className="flex items-center gap-1 justify-end">
                     {isEdit ? (
                       <>
-                        <button
-                          onClick={commitEdit}
-                          disabled={isLoading}
-                          className="p-1 rounded text-success hover:bg-success/20 transition-colors disabled:opacity-40"
-                          title="Confirm SL/TP"
-                        >
-                          <Check size={13} />
+                        <button onClick={commitEdit} disabled={isLoading}
+                          className="p-1 text-success hover:bg-success/20 transition-colors disabled:opacity-40" title="Confirm SL/TP">
+                          <Check size={12} />
                         </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="p-1 rounded text-gray-400 hover:bg-gray-700 transition-colors"
-                          title="Cancel"
-                        >
-                          <X size={13} />
+                        <button onClick={cancelEdit}
+                          className="p-1 text-gray-500 hover:bg-gray-700 transition-colors" title="Cancel">
+                          <X size={12} />
                         </button>
                       </>
                     ) : (
                       <>
-                        <button
-                          onClick={() => startEdit(order)}
-                          disabled={isLoading}
-                          className="p-1 rounded text-gray-400 hover:text-accent-blue hover:bg-accent-blue/10 transition-colors disabled:opacity-40"
-                          title="Edit SL/TP"
-                        >
-                          <Edit2 size={12} />
+                        <button onClick={() => startEdit(order)} disabled={isLoading}
+                          className="p-1 text-gray-600 hover:text-accent-blue transition-colors disabled:opacity-40" title="Edit SL/TP">
+                          <Edit2 size={11} />
                         </button>
                         <button
                           onClick={() => handleClose(order.ticket, order.symbol)}
                           disabled={isLoading}
-                          className="px-2 py-0.5 rounded text-[10px] font-semibold text-danger border border-danger/40 hover:bg-danger hover:text-white transition-colors disabled:opacity-40"
+                          className="font-pixel text-[8px] px-2 py-0.5 text-danger border border-danger/40 hover:bg-danger hover:text-white transition-colors disabled:opacity-40"
                           title="Close position"
                         >
-                          {isLoading ? '...' : 'Close'}
+                          {isLoading ? '...' : 'CLOSE'}
                         </button>
                       </>
                     )}
@@ -233,12 +222,12 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
       </table>
 
       {/* Summary row */}
-      <div className="flex items-center gap-4 px-3 py-2 border-t border-gray-800 text-xs text-gray-500">
-        <span>{orders.length} position{orders.length !== 1 ? 's' : ''}</span>
-        <span className="text-gray-600">|</span>
-        <span>
-          Total P/L:{' '}
-          <span className={`font-mono font-semibold ${
+      <div className="flex items-center gap-4 px-3 py-2 border-t border-border2">
+        <span className="font-tech text-xs text-gray-600">{orders.length} position{orders.length !== 1 ? 's' : ''}</span>
+        <span className="text-gray-700">|</span>
+        <span className="font-pixel text-[8px] text-gray-600">
+          TOTAL P/L:{' '}
+          <span className={`font-display text-lg leading-none ${
             orders.reduce((s, o) => s + o.profit, 0) >= 0 ? 'text-success' : 'text-danger'
           }`}>
             {orders.reduce((s, o) => s + o.profit, 0) >= 0 ? '+' : '-'}
