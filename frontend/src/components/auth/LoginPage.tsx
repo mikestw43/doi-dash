@@ -152,6 +152,11 @@ export const LoginPage = () => {
             </div>
           </div>
 
+          {/* Forgot password */}
+          <div style={{ textAlign: 'right', margin: '-4px 0 10px', fontSize: '10px', fontFamily: "'Share Tech Mono'", color: 'var(--text-muted)' }}>
+            <span style={{ color: 'rgba(56,189,248,.5)', cursor: 'pointer' }}>Forgot password?</span>
+          </div>
+
           {/* Error */}
           {error && (
             <div style={{
@@ -183,7 +188,54 @@ export const LoginPage = () => {
             {loading ? 'CONNECTING...' : 'LOGIN'}
           </button>
 
+          {/* Divider */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            margin: '12px 0', color: 'var(--text-muted)',
+            fontSize: '10px', fontFamily: "'Share Tech Mono'",
+          }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+            OR
+            <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+          </div>
+
+          {/* Google button */}
+          <button
+            type="button"
+            style={{
+              width: '100%', padding: '10px',
+              background: 'transparent',
+              border: '1px solid var(--border2)',
+              color: 'var(--text-primary)',
+              fontFamily: "'Share Tech Mono'", fontSize: '13px',
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
+              transition: 'border-color .15s',
+            }}
+            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-primary)')}
+            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)')}
+          >
+            <span style={{
+              fontSize: '16px', fontWeight: 700,
+              background: 'linear-gradient(135deg,#4285F4 25%,#EA4335 50%,#FBBC05 75%,#34A853 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              lineHeight: 1,
+            }}>G</span>
+            CONTINUE WITH GOOGLE
+          </button>
         </form>
+
+        {/* Footer */}
+        <div style={{
+          textAlign: 'center', fontSize: '11px',
+          color: 'var(--text-muted)', marginTop: '14px',
+          fontFamily: "'Share Tech Mono'",
+        }}>
+          No account?{' '}
+          <span style={{ color: 'var(--accent-blue)', cursor: 'pointer' }}>SIGN UP</span>
+        </div>
       </div>
     </div>
   );
