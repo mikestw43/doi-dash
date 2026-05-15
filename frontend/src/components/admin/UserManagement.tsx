@@ -75,37 +75,37 @@ export const UserManagement = () => {
       </button>
 
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white">User Management</h2>
+        <h2 className="font-pixel text-[13px] text-accent-blue tracking-wider" style={{ textShadow: '0 0 8px rgba(56,189,248,0.5)' }}>User Management</h2>
         <button
           onClick={() => setShowAddDialog(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white text-sm rounded-lg hover:bg-accent-blue/80 transition-colors"
+          className="btn-primary flex items-center gap-2"
         >
-          <UserPlus size={14} />
-          Add User
+          <UserPlus size={12} />
+          ADD USER
         </button>
       </div>
 
       {/* User Table */}
-      <div className="bg-bg-secondary border border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-bg-secondary border border-border2 overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-gray-500">Loading...</div>
+          <div className="p-8 text-center font-tech text-gray-600">Loading...</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-400">
-                <th className="text-left p-4 font-medium">Email</th>
-                <th className="text-left p-4 font-medium">Name</th>
-                <th className="text-left p-4 font-medium">Role</th>
-                <th className="text-center p-4 font-medium">Accounts</th>
-                <th className="text-left p-4 font-medium">Created</th>
-                <th className="text-right p-4 font-medium">Actions</th>
+              <tr className="border-b border-border2">
+                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Email</th>
+                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Name</th>
+                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Role</th>
+                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-center p-4">Accounts</th>
+                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left p-4">Created</th>
+                <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right p-4">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map(user => (
-                <tr key={user.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                  <td className="p-4 text-white">{user.email}</td>
-                  <td className="p-4 text-gray-300">{user.name || '-'}</td>
+                <tr key={user.id} className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors">
+                  <td className="p-4 font-tech text-white">{user.email}</td>
+                  <td className="p-4 font-tech text-gray-400">{user.name || '-'}</td>
                   <td className="p-4">
                     <button
                       onClick={() => {
@@ -113,28 +113,28 @@ export const UserManagement = () => {
                         roleMutation.mutate({ id: user.id, role: user.role === 'admin' ? 'user' : 'admin' });
                       }}
                       disabled={user.id === currentUserId}
-                      className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full transition-colors ${
+                      className={`font-pixel text-[8px] flex items-center gap-1 px-2 py-1 border transition-colors ${
                         user.role === 'admin'
-                          ? 'bg-accent-blue/20 text-accent-blue hover:bg-accent-blue/30'
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      } ${user.id === currentUserId ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          ? 'border-accent-blue/40 text-accent-blue hover:bg-accent-blue/10'
+                          : 'border-gray-700 text-gray-500 hover:border-gray-500'
+                      } ${user.id === currentUserId ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
-                      {user.role === 'admin' ? <ShieldCheck size={12} /> : <Shield size={12} />}
+                      {user.role === 'admin' ? <ShieldCheck size={10} /> : <Shield size={10} />}
                       {user.role}
                     </button>
                   </td>
-                  <td className="p-4 text-center text-gray-300">{user._count.accounts}</td>
-                  <td className="p-4 text-gray-500 text-xs">
+                  <td className="p-4 text-center font-display text-xl text-gray-400">{user._count.accounts}</td>
+                  <td className="p-4 font-tech text-xs text-gray-600">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="p-4 text-right">
                     {user.id !== currentUserId && (
                       <button
                         onClick={() => setDeleteId(user.id)}
-                        className="text-gray-500 hover:text-danger transition-colors p-1"
+                        className="text-gray-600 hover:text-danger transition-colors p-1"
                         title="Delete user"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={13} />
                       </button>
                     )}
                   </td>
@@ -153,59 +153,56 @@ export const UserManagement = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Email *</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Email *</label>
             <input
               type="email"
               value={newEmail}
               onChange={e => setNewEmail(e.target.value)}
-              className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
               placeholder="user@example.com"
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Password * (min 6 chars)</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Password * (min 6 chars)</label>
             <input
               type="password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
-              className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Name</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Name</label>
             <input
               type="text"
               value={newName}
               onChange={e => setNewName(e.target.value)}
-              className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
               placeholder="Optional"
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Role</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Role</label>
             <select
               value={newRole}
               onChange={e => setNewRole(e.target.value)}
-              className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+              className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
             >
               <option value="user">User</option>
               <option value="admin">Admin</option>
             </select>
           </div>
           <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => setShowAddDialog(false)}
-              className="flex-1 px-4 py-2 text-sm text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              Cancel
+            <button onClick={() => setShowAddDialog(false)} className="btn-ghost flex-1">
+              CANCEL
             </button>
             <button
               onClick={() => createMutation.mutate({ email: newEmail, password: newPassword, name: newName || undefined, role: newRole })}
               disabled={!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-accent-blue text-white text-sm rounded-lg hover:bg-accent-blue/80 disabled:opacity-50 transition-colors"
+              className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
-              Create User
+              {createMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <UserPlus size={12} />}
+              CREATE USER
             </button>
           </div>
         </div>
@@ -218,24 +215,19 @@ export const UserManagement = () => {
         title="Delete User"
       >
         <div className="space-y-4">
-          <p className="text-sm text-gray-300">
-            Are you sure you want to delete <span className="text-white font-medium">{deleteTarget?.email}</span>?
-            This will also delete all their accounts ({deleteTarget?._count.accounts || 0} accounts).
+          <p className="font-tech text-sm text-gray-400">
+            Delete <span className="text-white">{deleteTarget?.email}</span>?
+            This will also remove {deleteTarget?._count.accounts || 0} accounts.
           </p>
           <div className="flex gap-3">
-            <button
-              onClick={() => setDeleteId(null)}
-              className="flex-1 px-4 py-2 text-sm text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
+            <button onClick={() => setDeleteId(null)} className="btn-ghost flex-1">CANCEL</button>
             <button
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               disabled={deleteMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-danger text-white text-sm rounded-lg hover:bg-danger/80 disabled:opacity-50 transition-colors"
+              className="btn-danger flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {deleteMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-              Delete User
+              {deleteMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+              DELETE
             </button>
           </div>
         </div>

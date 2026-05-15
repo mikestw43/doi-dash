@@ -28,15 +28,15 @@ export const OverviewTabs = () => {
   return (
     <div className="card p-0 overflow-hidden">
       {/* Tab nav */}
-      <div className="flex border-b border-gray-800 overflow-x-auto">
+      <div className="flex border-b border-border2 overflow-x-auto">
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
+            className={`flex items-center gap-1.5 px-4 py-3 font-pixel text-[8px] tracking-wider whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === tab.id
                 ? 'border-accent-blue text-accent-blue'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
+                : 'border-transparent text-gray-600 hover:text-gray-300'
             }`}
           >
             {tab.icon}

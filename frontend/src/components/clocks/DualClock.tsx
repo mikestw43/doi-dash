@@ -20,30 +20,24 @@ export const DualClock = () => {
   const { thai, ny, session } = useClock();
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6">
-      <div className="flex items-center gap-2">
-        <Clock size={14} className="text-accent-blue shrink-0" />
-        <div className="flex flex-col">
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider">Bangkok</span>
-          <span className="font-mono text-xs text-gray-200 whitespace-nowrap">{thai}</span>
-        </div>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-5">
+      <div className="flex flex-col items-center">
+        <span className="font-pixel text-[7px] text-gray-600 tracking-widest uppercase mb-0.5">Bangkok</span>
+        <span className="font-display text-xl leading-none text-accent-blue whitespace-nowrap">{thai}</span>
       </div>
 
-      <div className="hidden sm:block h-8 w-px bg-gray-700" />
+      <div className="hidden sm:block h-6 w-px bg-border2" />
 
-      <div className="flex items-center gap-2">
-        <Clock size={14} className="text-accent-purple shrink-0" />
-        <div className="flex flex-col">
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider">New York</span>
-          <span className="font-mono text-xs text-gray-200 whitespace-nowrap">{ny}</span>
-        </div>
+      <div className="flex flex-col items-center">
+        <span className="font-pixel text-[7px] text-gray-600 tracking-widest uppercase mb-0.5">New York</span>
+        <span className="font-display text-xl leading-none text-accent-purple whitespace-nowrap">{ny}</span>
       </div>
 
-      <div className="hidden sm:block h-8 w-px bg-gray-700" />
+      <div className="hidden sm:block h-6 w-px bg-border2" />
 
-      <div className="flex items-center gap-2">
-        <span className={`text-xs font-medium ${getSessionColor(session)}`}>
-          ● {session}
+      <div className="flex items-center">
+        <span className={`font-pixel text-[8px] tracking-wider ${getSessionColor(session)}`}>
+          ◆ {session}
         </span>
       </div>
     </div>

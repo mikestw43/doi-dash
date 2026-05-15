@@ -149,7 +149,7 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
     unit: string,
   ) => (
     <div>
-      <label className="block text-xs text-gray-400 mb-1">{label}</label>
+      <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{label}</label>
       <div className="flex items-center gap-2">
         <input
           type="number"
@@ -163,9 +163,9 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
             }))
           }
           placeholder={placeholder}
-          className="flex-1 bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accent-blue"
+          className="flex-1 bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
         />
-        <span className="text-xs text-gray-500 w-8">{unit}</span>
+        <span className="font-pixel text-[8px] text-gray-600 w-8">{unit}</span>
         {form[key] !== null && (
           <button
             type="button"
@@ -239,43 +239,42 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
   return (
     <Dialog open onClose={onClose} title="Account Created Successfully">
       <div className="space-y-4">
-        <div className="flex items-start gap-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-          <AlertTriangle size={16} className="text-yellow-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-yellow-400">
+        <div className="flex items-start gap-2 bg-warning/10 border border-warning/30 p-3">
+          <AlertTriangle size={14} className="text-warning shrink-0 mt-0.5" />
+          <p className="font-tech text-xs text-warning/90">
             Copy your API Key now! This is the only time it will be shown in full.
-            You need this key in the MT5 EA settings.
           </p>
         </div>
 
         <div>
-          <label className="text-xs text-gray-400 block mb-1.5">Account</label>
-          <p className="text-sm text-white font-medium">{accountName}</p>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Account</label>
+          <p className="font-tech text-sm text-white">{accountName}</p>
         </div>
 
         <div>
-          <label className="text-xs text-gray-400 block mb-1.5">API Key</label>
-          <div className="flex items-center gap-2 bg-bg-primary border border-gray-700 rounded-lg px-3 py-2.5">
-            <code className="text-sm text-accent-blue font-mono flex-1 break-all select-all">{apiKey}</code>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">API Key</label>
+          <div className="flex items-center gap-2 bg-bg-primary border border-border2 px-3 py-2.5">
+            <code className="font-tech text-sm text-accent-blue flex-1 break-all select-all">{apiKey}</code>
             <button
               onClick={copyKey}
-              className={`shrink-0 p-1.5 rounded transition-colors ${copied ? 'text-success' : 'text-gray-400 hover:text-white'}`}
+              className={`shrink-0 p-1.5 transition-colors ${copied ? 'text-success' : 'text-gray-500 hover:text-white'}`}
             >
-              {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
+              {copied ? <CheckCircle size={15} /> : <Copy size={15} />}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="text-xs text-gray-400 block mb-1.5">EA Settings</label>
-          <div className="bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 font-mono text-xs text-gray-300 space-y-1">
-            <p>InpApiKey = <span className="text-accent-blue">{apiKey}</span></p>
-            <p>InpServerUrl = <span className="text-gray-400">http://127.0.0.1:4000/api/mt5/push</span></p>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">EA Settings</label>
+          <div className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-xs text-gray-400 space-y-1">
+            <p>ApiKey = <span className="text-accent-blue">{apiKey}</span></p>
+            <p>ServerURL = <span className="text-gray-500">https://doi-dash-production.up.railway.app</span></p>
           </div>
         </div>
 
         <div className="flex justify-end pt-1">
           <button className="btn-primary" onClick={onClose}>
-            {copied ? 'Done' : 'I\'ve copied the key'}
+            {copied ? 'DONE ✓' : 'COPIED THE KEY'}
           </button>
         </div>
       </div>
@@ -312,13 +311,13 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
 
   const field = (key: keyof typeof form, label: string, placeholder = '', type = 'text') => (
     <div>
-      <label className="text-xs text-gray-400 block mb-1">{label}</label>
+      <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{label}</label>
       <input
         type={type}
         value={form[key]}
         onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accent-blue"
+        className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
       />
     </div>
   );
@@ -336,7 +335,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
               value={form.apiKey}
               onChange={e => setForm(p => ({ ...p, apiKey: e.target.value }))}
               placeholder="snl_xxxxxxxx_xxxx_xxxx_xxxxxxxxxxxx"
-              className="flex-1 bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-gray-600 focus:outline-none focus:border-accent-blue"
+              className="flex-1 bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
             />
             <button
               type="button"
@@ -349,11 +348,11 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
           </div>
         </div>
         <div>
-          <label className="text-xs text-gray-400 block mb-1">Currency</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Currency</label>
           <select
             value={form.currency}
             onChange={e => setForm(p => ({ ...p, currency: e.target.value }))}
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
           >
             <option value="USD">USD</option>
             <option value="USDC">USDC (Cent)</option>
@@ -393,21 +392,21 @@ export const AccountsSection = () => {
         onClick={() => setExpanded(e => !e)}
       >
         <div className="flex items-center gap-2">
-          <Key size={16} className="text-accent-blue" />
-          <h2 className="text-sm font-semibold text-white">API Key Management</h2>
-          <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">
-            {accounts.length} accounts
+          <Key size={14} className="text-accent-blue" />
+          <h2 className="font-pixel text-[9px] text-accent-blue tracking-widest">API Key Management</h2>
+          <span className="font-tech text-xs border border-border2 text-gray-600 px-2 py-0.5">
+            {accounts.length}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="btn-primary text-xs py-1.5 px-3"
+            className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1"
             onClick={e => { e.stopPropagation(); setShowAdd(true); }}
           >
-            <Plus size={13} className="inline -mt-0.5 mr-1" />
-            Add Account
+            <Plus size={11} />
+            ADD ACCOUNT
           </button>
-          {expanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+          {expanded ? <ChevronUp size={14} className="text-gray-600" /> : <ChevronDown size={14} className="text-gray-600" />}
         </div>
       </div>
 
@@ -421,25 +420,25 @@ export const AccountsSection = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-gray-800">
-                    <th className="text-left text-gray-500 pb-2 pr-4 font-medium">Name</th>
-                    <th className="text-left text-gray-500 pb-2 pr-4 font-medium">Broker</th>
-                    <th className="text-left text-gray-500 pb-2 pr-4 font-medium">Account #</th>
-                    <th className="text-left text-gray-500 pb-2 pr-4 font-medium">API Key</th>
-                    <th className="text-left text-gray-500 pb-2 pr-4 font-medium">Status</th>
-                    <th className="text-right text-gray-500 pb-2 font-medium">Actions</th>
+                  <tr className="border-b border-border2">
+                    <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left pb-2.5 pr-4">Name</th>
+                    <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left pb-2.5 pr-4">Broker</th>
+                    <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left pb-2.5 pr-4">Account #</th>
+                    <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left pb-2.5 pr-4">API Key</th>
+                    <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-left pb-2.5 pr-4">Status</th>
+                    <th className="font-pixel text-[8px] text-gray-600 tracking-widest text-right pb-2.5">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accounts.map((acc: Account) => (
-                    <tr key={acc.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
-                      <td className="py-2.5 pr-4 text-white font-medium">{acc.name}</td>
-                      <td className="py-2.5 pr-4 text-gray-300">{acc.broker}</td>
-                      <td className="py-2.5 pr-4 font-mono text-gray-400">{acc.accountNumber}</td>
+                    <tr key={acc.id} className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors">
+                      <td className="py-2.5 pr-4 font-tech text-white">{acc.name}</td>
+                      <td className="py-2.5 pr-4 font-tech text-gray-400">{acc.broker}</td>
+                      <td className="py-2.5 pr-4 font-tech text-gray-500">{acc.accountNumber}</td>
                       <td className="py-2.5 pr-4"><MaskedKey accountId={acc.id} maskedKey={acc.apiKey} /></td>
                       <td className="py-2.5 pr-4">
-                        <span className={`inline-flex items-center gap-1 ${acc.status === 'online' ? 'text-success' : 'text-gray-500'}`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                        <span className={`font-pixel text-[8px] tracking-wider inline-flex items-center gap-1 ${acc.status === 'online' ? 'text-success' : 'text-gray-600'}`}>
+                          <span className={`w-1.5 h-1.5 ${acc.status === 'online' ? 'bg-success' : 'bg-gray-600'}`} />
                           {acc.status}
                         </span>
                       </td>
