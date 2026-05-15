@@ -1,0 +1,295 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── DOI DASH dark theme ── */
+    --bg-primary:   #0f172a;
+    --bg-secondary: #0c1422;
+    --bg-tertiary:  #162032;
+    --bg-card:      #1e293b;
+    --success:      #22c55e;
+    --danger:       #ef4444;
+    --warning:      #facc15;
+    --accent-blue:  #38bdf8;
+    --accent-purple:#a855f7;
+    --text-primary: #e5e7eb;
+    --text-secondary:#94a3b8;
+    --text-muted:   #64748b;
+    --border-color: #162032;
+    --border2:      #2d4060;
+    /* glow shortcuts */
+    --glow-cyan:  0 0 10px rgba(56,189,248,.6);
+    --glow-green: 0 0 8px rgba(34,197,94,.8);
+    --glow-red:   0 0 10px rgba(239,68,68,.6);
+    --glow-yellow:0 0 10px rgba(250,204,21,.5);
+  }
+
+  :root.light {
+    --bg-primary: #f1f5f9;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e2e8f0;
+    --bg-card: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+  }
+
+  :root.hud {
+    --bg-primary: #040c18;
+    --bg-secondary: #071020;
+    --bg-tertiary: #0a162c;
+    --bg-card: #060e1c;
+    --accent-blue: #00d4ff;
+    --accent-purple: #a855f7;
+    --border-color: rgba(0, 212, 255, 0.12);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Share Tech Mono', 'JetBrains Mono', monospace;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+  .light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+  }
+  .light ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-bg-card p-4;
+    border: 1px solid var(--border2);
+    position: relative;
+  }
+  /* DOI DASH corner brackets on cards */
+  .card::before, .card::after {
+    content: '';
+    position: absolute;
+    width: 10px; height: 10px;
+    border-color: rgba(56,189,248,.5);
+    border-style: solid;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .card::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .card::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .btn-primary {
+    @apply font-pixel text-xs px-4 py-2 transition-all duration-150;
+    background: var(--accent-blue);
+    color: var(--bg-secondary);
+    border: none;
+    letter-spacing: .5px;
+  }
+  .btn-primary:hover { box-shadow: var(--glow-cyan); }
+
+  .btn-danger {
+    @apply font-pixel text-xs px-4 py-2 transition-all duration-150;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+  }
+  .btn-danger:hover { box-shadow: var(--glow-red); }
+
+  .btn-ghost {
+    @apply font-pixel text-xs px-4 py-2 transition-all duration-150;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border2);
+  }
+  .btn-ghost:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+  .mono {
+    @apply font-mono;
+  }
+
+  .value-flash-green {
+    animation: flashGreen 0.6s ease-out;
+  }
+
+  .value-flash-red {
+    animation: flashRed 0.6s ease-out;
+  }
+
+  .status-online {
+    @apply text-success;
+  }
+  .status-offline {
+    @apply text-neutral;
+  }
+}
+
+/* Light mode text overrides */
+.light .text-white { color: #1e293b; }
+.light .text-gray-300 { color: #475569; }
+.light .text-gray-400 { color: #64748b; }
+.light .text-gray-500 { color: #94a3b8; }
+.light .text-gray-600 { color: #94a3b8; }
+.light .border-gray-700 { border-color: #e2e8f0; }
+.light .border-gray-800 { border-color: #e2e8f0; }
+.light .border-gray-800\/50 { border-color: rgba(226, 232, 240, 0.5); }
+.light .bg-gray-800 { background-color: #e2e8f0; }
+.light .bg-gray-800\/30 { background-color: rgba(226, 232, 240, 0.3); }
+.light .bg-gray-700 { background-color: #e2e8f0; }
+.light .hover\:bg-gray-800:hover { background-color: #e2e8f0; }
+.light .hover\:bg-gray-600:hover { background-color: #cbd5e1; }
+.light .hover\:text-white:hover { color: #1e293b; }
+.light .bg-bg-primary { background-color: var(--bg-primary); }
+.light .bg-bg-secondary { background-color: var(--bg-secondary); }
+.light .placeholder-gray-600::placeholder { color: #94a3b8; }
+
+/* Light mode inputs */
+.light input, .light select, .light textarea {
+  color: #1e293b;
+}
+.light input::placeholder, .light select::placeholder, .light textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Light mode dropdown */
+.light [data-radix-popper-content-wrapper] [role="menu"] {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+}
+
+/* TradingView widget — force iframe to fill container */
+.tradingview-widget-container iframe {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* ── HUD / Military Theme ──────────────────────────────────────── */
+.hud body {
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 212, 255, 0.012) 2px,
+      rgba(0, 212, 255, 0.012) 4px
+    );
+}
+
+.hud .card {
+  border-color: rgba(0, 212, 255, 0.18);
+  box-shadow:
+    0 0 20px rgba(0, 212, 255, 0.04),
+    inset 0 1px 0 rgba(0, 212, 255, 0.08);
+  position: relative;
+  overflow: visible;
+}
+
+/* Corner bracket decorations */
+.hud .card::before,
+.hud .card::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(0, 212, 255, 0.55);
+  border-style: solid;
+  pointer-events: none;
+  z-index: 1;
+}
+.hud .card::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+  border-radius: 1px 0 0 0;
+}
+.hud .card::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 1px 0;
+}
+
+/* Text overrides */
+.hud .text-white { color: #e0f8ff; }
+.hud .text-gray-300 { color: rgba(0, 220, 255, 0.8); }
+.hud .text-gray-400 { color: rgba(0, 200, 240, 0.65); }
+.hud .text-gray-500 { color: rgba(0, 180, 220, 0.45); }
+.hud .text-gray-600 { color: rgba(0, 180, 220, 0.28); }
+.hud .text-gray-700 { color: rgba(0, 180, 220, 0.18); }
+
+/* Border overrides */
+.hud .border-gray-700 { border-color: rgba(0, 212, 255, 0.15); }
+.hud .border-gray-800 { border-color: rgba(0, 212, 255, 0.08); }
+.hud .border-gray-800\/50 { border-color: rgba(0, 212, 255, 0.05); }
+
+/* Background overrides */
+.hud .bg-gray-700 { background-color: rgba(0, 212, 255, 0.08); }
+.hud .bg-gray-800 { background-color: rgba(0, 212, 255, 0.04); }
+.hud .bg-gray-800\/30 { background-color: rgba(0, 212, 255, 0.03); }
+.hud .bg-bg-primary { background-color: var(--bg-primary); }
+.hud .bg-bg-secondary { background-color: var(--bg-secondary); }
+.hud .hover\:bg-gray-700:hover { background-color: rgba(0, 212, 255, 0.1); }
+.hud .hover\:bg-gray-800:hover { background-color: rgba(0, 212, 255, 0.06); }
+.hud .hover\:text-white:hover { color: #e0f8ff; }
+
+/* Accent glow for success/danger values */
+.hud .text-success { color: #00ff88; text-shadow: 0 0 8px rgba(0, 255, 136, 0.4); }
+.hud .text-danger { color: #ff4466; text-shadow: 0 0 8px rgba(255, 68, 102, 0.4); }
+.hud .text-warning { color: #ffcc00; text-shadow: 0 0 8px rgba(255, 204, 0, 0.3); }
+.hud .text-accent-blue { color: #00d4ff; text-shadow: 0 0 8px rgba(0, 212, 255, 0.5); }
+
+/* Inputs */
+.hud input, .hud select, .hud textarea {
+  color: #e0f8ff;
+  background-color: var(--bg-secondary);
+}
+.hud input::placeholder, .hud select::placeholder, .hud textarea::placeholder {
+  color: rgba(0, 212, 255, 0.3);
+}
+
+/* Scrollbar */
+.hud ::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.25); }
+.hud ::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.45); }
+.hud ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+
+@keyframes flashGreen {
+  0% { background-color: rgba(34, 197, 94, 0.35); border-radius: 4px; }
+  100% { background-color: transparent; }
+}
+
+@keyframes flashRed {
+  0% { background-color: rgba(239, 68, 68, 0.35); border-radius: 4px; }
+  100% { background-color: transparent; }
+}
