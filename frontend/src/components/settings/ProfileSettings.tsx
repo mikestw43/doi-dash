@@ -129,97 +129,98 @@ export const ProfileSettings = () => {
         {t('nav.back_dashboard')}
       </button>
 
-      <h2 className="text-xl font-bold text-white">{t('profile.title')}</h2>
+      <h2 className="font-pixel text-[13px] text-accent-blue tracking-wider" style={{ textShadow: '0 0 8px rgba(56,189,248,0.5)' }}>{t('profile.title')}</h2>
 
       {/* Profile Info */}
-      <div className="bg-bg-secondary border border-gray-800 rounded-xl p-6 space-y-4">
-        <div className="flex items-center gap-2 text-white mb-2">
-          <User size={18} />
-          <h3 className="font-semibold">Profile Information</h3>
+      <div className="bg-bg-secondary border border-border2 p-6 space-y-4">
+        <div className="flex items-center gap-2 text-accent-blue mb-2">
+          <User size={14} />
+          <h3 className="font-pixel text-[9px] tracking-widest">Profile Information</h3>
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Name</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Name</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="Your name"
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Email</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Email</label>
           <input
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">Role:</span>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${
-            user?.role === 'admin' ? 'bg-accent-blue/20 text-accent-blue' : 'bg-gray-700 text-gray-300'
+          <span className="font-pixel text-[8px] text-gray-600 tracking-widest">Role:</span>
+          <span className={`font-pixel text-[8px] px-2 py-0.5 border ${
+            user?.role === 'admin' ? 'border-accent-blue/40 text-accent-blue' : 'border-gray-700 text-gray-500'
           }`}>{user?.role}</span>
         </div>
 
         <button
           onClick={handleSaveProfile}
           disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white text-sm rounded-lg hover:bg-accent-blue/80 disabled:opacity-50 transition-colors"
+          className="btn-primary flex items-center gap-2 disabled:opacity-50"
         >
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          Save Changes
+          {saving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+          SAVE CHANGES
         </button>
       </div>
 
       {/* Change Password */}
-      <div className="bg-bg-secondary border border-gray-800 rounded-xl p-6 space-y-4">
-        <div className="flex items-center gap-2 text-white mb-2">
-          <Lock size={18} />
-          <h3 className="font-semibold">Change Password</h3>
+      <div className="bg-bg-secondary border border-border2 p-6 space-y-4">
+        <div className="flex items-center gap-2 text-warning mb-2">
+          <Lock size={14} />
+          <h3 className="font-pixel text-[9px] tracking-widest">Change Password</h3>
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Current Password</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Current Password</label>
           <input
             type="password"
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">New Password</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">New Password</label>
           <input
             type="password"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Confirm New Password</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Confirm New Password</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
           />
         </div>
 
         <button
           onClick={handleChangePassword}
           disabled={changingPw || !currentPassword || !newPassword || !confirmPassword}
-          className="flex items-center gap-2 px-4 py-2 bg-warning text-black text-sm rounded-lg hover:bg-warning/80 disabled:opacity-50 transition-colors"
+          className="btn-primary flex items-center gap-2 disabled:opacity-50"
+          style={{ background: 'var(--warning)', color: '#000' }}
         >
-          {changingPw ? <Loader2 size={14} className="animate-spin" /> : <Lock size={14} />}
-          Change Password
+          {changingPw ? <Loader2 size={12} className="animate-spin" /> : <Lock size={12} />}
+          CHANGE PASSWORD
         </button>
       </div>
 
@@ -227,43 +228,42 @@ export const ProfileSettings = () => {
       <AccountsSection />
 
       {/* Telegram Alerts */}
-      <div className="bg-bg-secondary border border-gray-800 rounded-xl p-6 space-y-4">
+      <div className="bg-bg-secondary border border-border2 p-6 space-y-4">
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 text-white">
-            <MessageSquare size={18} />
-            <h3 className="font-semibold">Telegram Alerts</h3>
+          <div className="flex items-center gap-2 text-accent-blue">
+            <MessageSquare size={14} />
+            <h3 className="font-pixel text-[9px] tracking-widest">Telegram Alerts</h3>
           </div>
           {telegramData?.configured && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-success/20 text-success">
-              Configured
+            <span className="font-pixel text-[8px] px-2 py-0.5 border border-success/40 text-success">
+              ✓ Configured
             </span>
           )}
         </div>
 
-        <p className="text-xs text-gray-500">
+        <p className="font-tech text-xs text-gray-600">
           Enter your Telegram Bot Token and Chat ID to receive account alerts.
-          Per-account alert thresholds are configured via the bell icon in API Key Management.
         </p>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Bot Token</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Bot Token</label>
           <input
             type="password"
             value={botToken}
             onChange={e => setBotToken(e.target.value)}
             placeholder={telegramData?.telegramBotToken ?? 'Paste your bot token from @BotFather'}
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accent-blue"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">Chat ID</label>
+          <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">Chat ID</label>
           <input
             type="text"
             value={chatId}
             onChange={e => setChatId(e.target.value)}
-            placeholder="Your Telegram chat ID (e.g. 123456789)"
-            className="w-full bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-accent-blue"
+            placeholder="123456789"
+            className="w-full bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-blue"
           />
         </div>
 
@@ -271,32 +271,32 @@ export const ProfileSettings = () => {
           <button
             onClick={handleSaveTelegram}
             disabled={savingTelegram}
-            className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white text-sm rounded-lg hover:bg-accent-blue/80 disabled:opacity-50 transition-colors"
+            className="btn-primary flex items-center gap-2 disabled:opacity-50"
           >
-            {savingTelegram ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-            Save
+            {savingTelegram ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+            SAVE
           </button>
           <button
             onClick={handleTestTelegram}
             disabled={testingTelegram || !telegramData?.configured}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 disabled:opacity-50 transition-colors"
+            className="btn-ghost flex items-center gap-2 disabled:opacity-50"
           >
-            {testingTelegram ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-            Send Test
+            {testingTelegram ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+            SEND TEST
           </button>
         </div>
       </div>
 
       {/* Preferences */}
-      <div className="bg-bg-secondary border border-gray-800 rounded-xl p-6 space-y-4">
-        <div className="flex items-center gap-2 text-white mb-2">
-          <Globe size={18} />
-          <h3 className="font-semibold">{t('preferences.title')}</h3>
+      <div className="bg-bg-secondary border border-border2 p-6 space-y-4">
+        <div className="flex items-center gap-2 text-accent-blue mb-2">
+          <Globe size={14} />
+          <h3 className="font-pixel text-[9px] tracking-widest">{t('preferences.title')}</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-6">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('preferences.language')}</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('preferences.language')}</label>
             <select
               value={language}
               onChange={e => {
@@ -304,7 +304,7 @@ export const ProfileSettings = () => {
                 setLanguage(val);
                 savePreferences({ language: val }).catch(() => {});
               }}
-              className="bg-bg-primary border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-blue"
+              className="bg-bg-primary border border-border2 px-3 py-2 font-tech text-sm text-white focus:outline-none focus:border-accent-blue"
             >
               <option value="en">English</option>
               <option value="th">ภาษาไทย</option>
@@ -312,35 +312,27 @@ export const ProfileSettings = () => {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1">{t('preferences.theme')}</label>
+            <label className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase block mb-2">{t('preferences.theme')}</label>
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => { setTheme('dark'); savePreferences({ theme: 'dark' }).catch(() => {}); }}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  theme === 'dark' ? 'bg-accent-blue text-white' : 'bg-bg-primary border border-gray-700 text-gray-400'
-                }`}
+                className={`btn-ghost flex items-center gap-1.5 ${theme === 'dark' ? 'border-accent-blue text-accent-blue' : ''}`}
               >
-                <Moon size={14} />
+                <Moon size={12} />
                 {t('preferences.dark')}
               </button>
               <button
                 onClick={() => { setTheme('light'); savePreferences({ theme: 'light' }).catch(() => {}); }}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  theme === 'light' ? 'bg-accent-blue text-white' : 'bg-bg-primary border border-gray-700 text-gray-400'
-                }`}
+                className={`btn-ghost flex items-center gap-1.5 ${theme === 'light' ? 'border-accent-blue text-accent-blue' : ''}`}
               >
-                <Sun size={14} />
+                <Sun size={12} />
                 {t('preferences.light')}
               </button>
               <button
                 onClick={() => { setTheme('hud'); savePreferences({ theme: 'hud' }).catch(() => {}); }}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  theme === 'hud'
-                    ? 'bg-cyan-500 text-black font-semibold'
-                    : 'bg-bg-primary border border-gray-700 text-gray-400'
-                }`}
+                className={`btn-ghost flex items-center gap-1.5 ${theme === 'hud' ? 'border-accent-blue text-accent-blue' : ''}`}
               >
-                <Cpu size={14} />
+                <Cpu size={12} />
                 {t('preferences.hud')}
               </button>
             </div>
@@ -406,50 +398,50 @@ const NotificationHistory = () => {
   };
 
   return (
-    <div className="bg-bg-secondary border border-gray-800 rounded-xl p-6 space-y-4">
+    <div className="bg-bg-secondary border border-border2 p-6 space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2 text-white">
-          <Bell size={18} />
-          <h3 className="font-semibold">Notification History</h3>
-          <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">{total}</span>
+        <div className="flex items-center gap-2 text-accent-blue">
+          <Bell size={14} />
+          <h3 className="font-pixel text-[9px] tracking-widest">Notification History</h3>
+          <span className="font-tech text-xs border border-border2 text-gray-600 px-2 py-0.5">{total}</span>
         </div>
         <button
           onClick={handleExport}
           disabled={logs.length === 0}
-          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors"
+          className="font-pixel text-[8px] text-gray-600 hover:text-accent-blue flex items-center gap-1.5 transition-colors disabled:opacity-30"
         >
-          <Download size={12} />
-          Export
+          <Download size={11} />
+          EXPORT
         </button>
       </div>
 
       {loading ? (
-        <div className="text-sm text-gray-500 text-center py-6">Loading...</div>
+        <div className="font-tech text-sm text-gray-600 text-center py-6">Loading...</div>
       ) : logs.length === 0 ? (
-        <div className="text-sm text-gray-500 text-center py-6">No notifications sent yet.</div>
+        <div className="font-tech text-sm text-gray-600 text-center py-6">No notifications sent yet.</div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {logs.map(log => (
             <div
               key={log.id}
-              className="flex items-start gap-3 bg-bg-primary border border-gray-800 rounded-lg px-3 py-2"
+              className="flex items-start gap-3 bg-bg-primary border border-gray-800/60 px-3 py-2"
             >
-              <div className={`text-xs font-mono font-medium uppercase shrink-0 w-16 ${typeColors[log.type] || 'text-gray-400'}`}>
+              <div className={`font-pixel text-[8px] tracking-wider uppercase shrink-0 w-14 ${typeColors[log.type] || 'text-gray-500'}`}>
                 {log.type}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-300 truncate">
-                  {log.message.replace(/<[^>]+>/g, '').replace(/\[SENTINEL\]\n?/, '').slice(0, 120)}
+                <p className="font-tech text-xs text-gray-400 truncate">
+                  {log.message.replace(/<[^>]+>/g, '').replace(/\[DOI DASH\]\n?|\[SENTINEL\]\n?/, '').slice(0, 120)}
                 </p>
-                <p className="text-[10px] text-gray-600 mt-0.5">
+                <p className="font-tech text-[10px] text-gray-700 mt-0.5">
                   {new Date(log.sentAt).toLocaleString()}
                 </p>
               </div>
               <div className="shrink-0">
                 {log.success ? (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-success/20 text-success">Sent</span>
+                  <span className="font-pixel text-[8px] px-1.5 py-0.5 border border-success/30 text-success">OK</span>
                 ) : (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-danger/20 text-danger">Failed</span>
+                  <span className="font-pixel text-[8px] px-1.5 py-0.5 border border-danger/30 text-danger">ERR</span>
                 )}
               </div>
             </div>
@@ -459,23 +451,23 @@ const NotificationHistory = () => {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-2">
-          <span className="text-[10px] text-gray-500">
+          <span className="font-tech text-[10px] text-gray-600">
             Page {page}/{totalPages}
           </span>
           <div className="flex gap-1">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="p-1 text-gray-500 hover:text-white disabled:opacity-30"
+              className="p-1 text-gray-600 hover:text-white disabled:opacity-30"
             >
-              <ChevronLeft size={14} />
+              <ChevronLeft size={13} />
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="p-1 text-gray-500 hover:text-white disabled:opacity-30"
+              className="p-1 text-gray-600 hover:text-white disabled:opacity-30"
             >
-              <ChevronRight size={14} />
+              <ChevronRight size={13} />
             </button>
           </div>
         </div>

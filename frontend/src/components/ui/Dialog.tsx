@@ -17,14 +17,21 @@ export const Dialog = ({ open, onClose, title, children }: DialogProps) => {
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-bg-secondary border border-gray-700 rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
-          <h2 className="text-base font-semibold text-white">{title}</h2>
+      <div
+        className="relative bg-bg-secondary border border-border2 shadow-2xl w-full max-w-md"
+        style={{ boxShadow: '0 0 40px rgba(56,189,248,0.08)' }}
+      >
+        {/* corner brackets */}
+        <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-accent-blue/60 pointer-events-none" />
+        <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-accent-blue/60 pointer-events-none" />
+
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border2">
+          <h2 className="font-pixel text-[11px] text-accent-blue tracking-wider">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white transition-colors"
+            className="text-gray-600 hover:text-white transition-colors"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
         <div className="p-5">{children}</div>

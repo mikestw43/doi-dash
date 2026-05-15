@@ -74,22 +74,22 @@ export const PerformanceCards = ({ accountId }: Props) => {
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       {cards.map(c => (
         <div key={c.label} className="card text-center">
-          <c.icon size={18} className={`${c.color} mx-auto mb-1.5`} />
-          <div className={`text-lg font-bold font-mono ${c.color}`}>{c.value}</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">{c.label}</div>
+          <c.icon size={14} className={`${c.color} mx-auto mb-2 opacity-70`} />
+          <div className={`font-display text-3xl leading-none ${c.color}`}>{c.value}</div>
+          <div className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase mt-1.5">{c.label}</div>
         </div>
       ))}
       {/* Extra row: Gross Profit / Gross Loss */}
       <div className="col-span-2 sm:col-span-3 lg:col-span-6 flex gap-3">
         <div className="card flex-1 flex items-center justify-between">
-          <span className="text-xs text-gray-400">Gross Profit</span>
-          <span className="font-mono text-sm font-semibold text-success">
+          <span className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase">Gross Profit</span>
+          <span className="font-display text-2xl text-success">
             +${metrics.grossProfit.toFixed(2)}
           </span>
         </div>
         <div className="card flex-1 flex items-center justify-between">
-          <span className="text-xs text-gray-400">Gross Loss</span>
-          <span className="font-mono text-sm font-semibold text-danger">
+          <span className="font-pixel text-[8px] text-gray-600 tracking-widest uppercase">Gross Loss</span>
+          <span className="font-display text-2xl text-danger">
             -${metrics.grossLoss.toFixed(2)}
           </span>
         </div>

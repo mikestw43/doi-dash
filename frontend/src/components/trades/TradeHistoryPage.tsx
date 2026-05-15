@@ -98,18 +98,18 @@ export const TradeHistoryPage = () => {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <History size={20} className="text-accent-blue" />
-          <h2 className="text-lg font-semibold text-white">Trade History</h2>
-          <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">{total}</span>
+        <div className="flex items-center gap-3">
+          <History size={16} className="text-accent-blue" />
+          <h2 className="font-pixel text-[11px] text-accent-blue tracking-wider">Trade History</h2>
+          <span className="font-tech text-xs bg-bg-secondary border border-border2 text-gray-500 px-2 py-0.5">{total}</span>
         </div>
         <button
           onClick={handleExport}
           disabled={trades.length === 0}
           className="btn-ghost text-xs flex items-center gap-1.5"
         >
-          <Download size={14} />
-          Export CSV
+          <Download size={13} />
+          EXPORT CSV
         </button>
       </div>
 
@@ -118,7 +118,7 @@ export const TradeHistoryPage = () => {
         <select
           value={accountId}
           onChange={e => { setAccountId(e.target.value); setPage(1); }}
-          className="bg-bg-secondary border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-accent-blue"
+          className="bg-bg-secondary border border-border2 px-3 py-1.5 font-tech text-sm text-gray-300 focus:outline-none focus:border-accent-blue"
         >
           <option value="">All Accounts</option>
           {accounts.map(a => (
@@ -128,16 +128,16 @@ export const TradeHistoryPage = () => {
 
         <input
           type="text"
-          placeholder="Symbol filter..."
+          placeholder="Symbol..."
           value={symbol}
           onChange={e => { setSymbol(e.target.value); setPage(1); }}
-          className="bg-bg-secondary border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-accent-blue w-32"
+          className="bg-bg-secondary border border-border2 px-3 py-1.5 font-tech text-sm text-gray-300 placeholder-gray-700 focus:outline-none focus:border-accent-blue w-28"
         />
 
         <select
           value={type}
           onChange={e => { setType(e.target.value); setPage(1); }}
-          className="bg-bg-secondary border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:border-accent-blue"
+          className="bg-bg-secondary border border-border2 px-3 py-1.5 font-tech text-sm text-gray-300 focus:outline-none focus:border-accent-blue"
         >
           <option value="">All Types</option>
           <option value="BUY">BUY</option>
@@ -149,51 +149,51 @@ export const TradeHistoryPage = () => {
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="text-gray-500 border-b border-gray-800">
-              <th className="text-left py-2 px-2 cursor-pointer hover:text-white" onClick={() => handleSort('ticket')}>
+            <tr className="border-b border-border2">
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('ticket')}>
                 Ticket{sortIcon('ticket')}
               </th>
-              <th className="text-left py-2 px-2 cursor-pointer hover:text-white" onClick={() => handleSort('symbol')}>
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('symbol')}>
                 Symbol{sortIcon('symbol')}
               </th>
-              <th className="text-left py-2 px-2">Type</th>
-              <th className="text-right py-2 px-2">Lots</th>
-              <th className="text-right py-2 px-2">Open</th>
-              <th className="text-right py-2 px-2">Close</th>
-              <th className="text-right py-2 px-2 cursor-pointer hover:text-white" onClick={() => handleSort('profit')}>
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2">Type</th>
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2">Lots</th>
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2">Open</th>
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2">Close</th>
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-right py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('profit')}>
                 Profit{sortIcon('profit')}
               </th>
-              <th className="text-left py-2 px-2 cursor-pointer hover:text-white" onClick={() => handleSort('closeTime')}>
-                Close Time{sortIcon('closeTime')}
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2 cursor-pointer hover:text-accent-blue transition-colors" onClick={() => handleSort('closeTime')}>
+                Close{sortIcon('closeTime')}
               </th>
-              <th className="text-left py-2 px-2">Account</th>
+              <th className="font-pixel text-[8px] text-gray-600 tracking-wider text-left py-2.5 px-2">Account</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={9} className="text-center py-8 text-gray-500">Loading...</td></tr>
+              <tr><td colSpan={9} className="text-center py-8 font-tech text-gray-600">Loading...</td></tr>
             ) : trades.length === 0 ? (
-              <tr><td colSpan={9} className="text-center py-8 text-gray-500">No closed trades found.</td></tr>
+              <tr><td colSpan={9} className="text-center py-8 font-tech text-gray-600">No closed trades found.</td></tr>
             ) : (
               trades.map(t => (
-                <tr key={t.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                  <td className="py-2 px-2 font-mono text-gray-400">#{t.ticket}</td>
-                  <td className="py-2 px-2 font-semibold text-white">{t.symbol}</td>
+                <tr key={t.id} className="border-b border-gray-800/40 hover:bg-gray-800/20 transition-colors">
+                  <td className="py-2 px-2 font-tech text-gray-600">#{t.ticket}</td>
+                  <td className="py-2 px-2 font-tech font-bold text-white">{t.symbol}</td>
                   <td className="py-2 px-2">
-                    <span className={`font-medium ${t.type === 'BUY' ? 'text-success' : 'text-danger'}`}>
+                    <span className={`font-pixel text-[8px] tracking-wider ${t.type === 'BUY' ? 'text-success' : 'text-danger'}`}>
                       {t.type}
                     </span>
                   </td>
-                  <td className="py-2 px-2 text-right font-mono text-gray-300">{t.lots.toFixed(2)}</td>
-                  <td className="py-2 px-2 text-right font-mono text-gray-400">{t.openPrice.toFixed(5)}</td>
-                  <td className="py-2 px-2 text-right font-mono text-gray-400">{t.closePrice.toFixed(5)}</td>
-                  <td className={`py-2 px-2 text-right font-mono font-medium ${t.profit >= 0 ? 'text-success' : 'text-danger'}`}>
+                  <td className="py-2 px-2 text-right font-tech text-gray-400">{t.lots.toFixed(2)}</td>
+                  <td className="py-2 px-2 text-right font-tech text-gray-500">{t.openPrice.toFixed(5)}</td>
+                  <td className="py-2 px-2 text-right font-tech text-gray-500">{t.closePrice.toFixed(5)}</td>
+                  <td className={`py-2 px-2 text-right font-display text-xl leading-none ${t.profit >= 0 ? 'text-success' : 'text-danger'}`}>
                     {t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}
                   </td>
-                  <td className="py-2 px-2 text-gray-400">
+                  <td className="py-2 px-2 font-tech text-gray-500">
                     {new Date(t.closeTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </td>
-                  <td className="py-2 px-2 text-gray-500">{t.account?.name || '—'}</td>
+                  <td className="py-2 px-2 font-tech text-gray-600">{t.account?.name || '—'}</td>
                 </tr>
               ))
             )}
@@ -204,7 +204,7 @@ export const TradeHistoryPage = () => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">
+          <span className="font-tech text-xs text-gray-600">
             Page {page} of {totalPages} ({total} trades)
           </span>
           <div className="flex gap-1">
@@ -213,14 +213,14 @@ export const TradeHistoryPage = () => {
               disabled={page <= 1}
               className="btn-ghost p-1.5 disabled:opacity-30"
             >
-              <ChevronLeft size={14} />
+              <ChevronLeft size={13} />
             </button>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
               className="btn-ghost p-1.5 disabled:opacity-30"
             >
-              <ChevronRight size={14} />
+              <ChevronRight size={13} />
             </button>
           </div>
         </div>
