@@ -134,6 +134,40 @@ const DeleteDialog = ({ account, onClose }: { account: Account; onClose: () => v
   );
 };
 
+// ─── NumField (module-level to avoid focus loss on re-render) ─────────────────
+
+const NumField = ({
+  label, value, onChange, onClear, placeholder, unit,
+}: {
+  label: string;
+  value: number | null;
+  onChange: (v: number | null) => void;
+  onClear: () => void;
+  placeholder: string;
+  unit: string;
+}) => (
+  <div>
+    <label style={lbl}>{label}</label>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <input
+        type="number" min="0" step="0.1"
+        value={value ?? ''}
+        onChange={e => onChange(e.target.value === '' ? null : parseFloat(e.target.value))}
+        placeholder={placeholder}
+        style={{ ...inp, width: 'auto', flex: 1 }}
+      />
+      <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', width: '20px', letterSpacing: '.5px' }}>{unit}</span>
+      {value !== null && (
+        <button type="button" onClick={onClear}
+          style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}>✕</button>
+      )}
+    </div>
+    <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)', marginTop: '3px' }}>
+      {value === null ? 'Disabled' : 'Enabled'}
+    </div>
+  </div>
+);
+
 // ─── AlertThresholdsDialog ────────────────────────────────────────────────────
 
 const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose: () => void }) => {
@@ -159,29 +193,6 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
     onError: () => { addToast({ type: 'error', title: 'Failed to save alert thresholds' }); },
   });
 
-  const NumField = ({ label, fieldKey, placeholder, unit }: { label: string; fieldKey: 'alertDrawdown' | 'alertEquityBelow' | 'alertMarginLevel'; placeholder: string; unit: string }) => (
-    <div>
-      <label style={lbl}>{label}</label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <input
-          type="number" min="0" step="0.1"
-          value={form[fieldKey] ?? ''}
-          onChange={e => setForm(p => ({ ...p, [fieldKey]: e.target.value === '' ? null : parseFloat(e.target.value) }))}
-          placeholder={placeholder}
-          style={{ ...inp, width: 'auto', flex: 1 }}
-        />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', width: '20px', letterSpacing: '.5px' }}>{unit}</span>
-        {form[fieldKey] !== null && (
-          <button type="button" onClick={() => setForm(p => ({ ...p, [fieldKey]: null }))}
-            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}>✕</button>
-        )}
-      </div>
-      <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)', marginTop: '3px' }}>
-        {form[fieldKey] === null ? 'Disabled' : 'Enabled'}
-      </div>
-    </div>
-  );
-
   return (
     <Dialog open onClose={onClose} title={`ALERT THRESHOLDS — ${account.name}`}>
       {isLoading ? (
@@ -192,9 +203,9 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
             Leave a field blank to disable that alert. Requires Telegram in Profile Settings.
           </p>
 
-          <NumField label="DRAWDOWN ALERT (fire when DD ≥)" fieldKey="alertDrawdown" placeholder="e.g. 10" unit="%" />
-          <NumField label="EQUITY ALERT (fire when equity drops below)" fieldKey="alertEquityBelow" placeholder="e.g. 4500" unit="$" />
-          <NumField label="MARGIN LEVEL ALERT (fire when margin level ≤)" fieldKey="alertMarginLevel" placeholder="e.g. 200" unit="%" />
+          <NumField label="DRAWDOWN ALERT (fire when DD ≥)" value={form.alertDrawdown} onChange={v => setForm(p => ({ ...p, alertDrawdown: v }))} onClear={() => setForm(p => ({ ...p, alertDrawdown: null }))} placeholder="e.g. 10" unit="%" />
+          <NumField label="EQUITY ALERT (fire when equity drops below)" value={form.alertEquityBelow} onChange={v => setForm(p => ({ ...p, alertEquityBelow: v }))} onClear={() => setForm(p => ({ ...p, alertEquityBelow: null }))} placeholder="e.g. 4500" unit="$" />
+          <NumField label="MARGIN LEVEL ALERT (fire when margin level ≤)" value={form.alertMarginLevel} onChange={v => setForm(p => ({ ...p, alertMarginLevel: v }))} onClear={() => setForm(p => ({ ...p, alertMarginLevel: null }))} placeholder="e.g. 200" unit="%" />
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
             <input
@@ -300,18 +311,19 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
     }
   };
 
-  const Field = ({ fieldKey, label, placeholder = '', type = 'text' }: { fieldKey: keyof typeof form; label: string; placeholder?: string; type?: string }) => (
-    <div>
-      <label style={lbl}>{label}</label>
-      <input type={type} value={form[fieldKey]} onChange={e => setForm(p => ({ ...p, [fieldKey]: e.target.value }))} placeholder={placeholder} style={inp} />
-    </div>
-  );
-
   return (
     <Dialog open onClose={onClose} title="ADD NEW ACCOUNT">
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <Field fieldKey="name" label="BOT NAME *" placeholder="Gold Scalper Bot" />
-        <Field fieldKey="accountNumber" label="ACCOUNT NUMBER *" placeholder="123456" />
+        {/* BOT NAME */}
+        <div>
+          <label style={lbl}>BOT NAME *</label>
+          <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Gold Scalper Bot" style={inp} />
+        </div>
+        {/* ACCOUNT NUMBER */}
+        <div>
+          <label style={lbl}>ACCOUNT NUMBER *</label>
+          <input type="text" value={form.accountNumber} onChange={e => setForm(p => ({ ...p, accountNumber: e.target.value }))} placeholder="123456" style={inp} />
+        </div>
         <div>
           <label style={lbl}>API KEY *</label>
           <div style={{ display: 'flex', gap: '6px' }}>
