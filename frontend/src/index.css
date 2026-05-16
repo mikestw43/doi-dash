@@ -547,4 +547,13 @@
   .auth-box {
     padding: 20px 16px !important;
   }
+
+  /* Prevent iOS Safari from auto-zooming when tapping input fields.
+     iOS zooms in whenever an input has font-size < 16px.
+     Excludes checkbox/radio/range which have no visible text. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
