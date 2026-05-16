@@ -180,12 +180,12 @@ export const UserManagement = () => {
         {activeTab === 'users' && (
           <>
             {/* Toolbar */}
-            <div style={{
+            <div className="um-toolbar" style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '10px 14px', borderBottom: '1px solid var(--border2)',
               flexWrap: 'wrap', gap: '8px',
             }}>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <select
                   value={roleFilter}
                   onChange={e => setRoleFilter(e.target.value)}
@@ -278,15 +278,15 @@ export const UserManagement = () => {
               {isLoading ? (
                 <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Loading...</div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '780px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
                   <thead>
                     <tr style={{ background: 'var(--bg-card2)' }}>
                       <th style={thStyle}>USER</th>
-                      <th style={thStyle}>EMAIL</th>
-                      <th style={thStyle}>MOBILE</th>
+                      <th style={thStyle} className="um-col-email">EMAIL</th>
+                      <th style={thStyle} className="um-col-mobile">MOBILE</th>
                       <th style={thStyle}>ROLE</th>
-                      <th style={{ ...thStyle, textAlign: 'center' }}>ACCOUNTS</th>
-                      <th style={thStyle}>CREATED</th>
+                      <th style={{ ...thStyle, textAlign: 'center' }} className="um-col-accounts">ACCTS</th>
+                      <th style={thStyle} className="um-col-created">CREATED</th>
                       <th style={thStyle}>STATUS</th>
                       <th style={{ ...thStyle, textAlign: 'right' }}>ACTIONS</th>
                     </tr>
@@ -319,9 +319,9 @@ export const UserManagement = () => {
                             </div>
                           </td>
                           {/* EMAIL */}
-                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>{user.email}</td>
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }} className="um-col-email">{user.email}</td>
                           {/* MOBILE */}
-                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }} className="um-col-mobile">
                             {user.mobile
                               ? `${user.phoneCountry || ''} ${user.mobile}`.trim()
                               : <span style={{ opacity: .4 }}>—</span>
@@ -342,11 +342,11 @@ export const UserManagement = () => {
                             </button>
                           </td>
                           {/* ACCOUNTS */}
-                          <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--accent-blue)' }}>
+                          <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--accent-blue)' }} className="um-col-accounts">
                             {user._count.accounts}
                           </td>
                           {/* CREATED */}
-                          <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }}>
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }} className="um-col-created">
                             {new Date(user.createdAt).toLocaleDateString()}
                           </td>
                           {/* STATUS — actual value from DB */}
@@ -479,6 +479,32 @@ export const UserManagement = () => {
           </div>
         </div>
       </Dialog>
+
+      <style>{`
+        /* ── UserManagement responsive ── */
+        @media (max-width: 860px) {
+          .um-col-mobile  { display: none !important; }
+          .um-col-created { display: none !important; }
+        }
+        @media (max-width: 640px) {
+          .um-col-email    { display: none !important; }
+          .um-col-accounts { display: none !important; }
+        }
+        /* Toolbar stacks on very small screens */
+        @media (max-width: 520px) {
+          .um-toolbar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .um-toolbar select {
+            width: 100% !important;
+          }
+          .um-toolbar-create {
+            width: 100% !important;
+            text-align: center !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

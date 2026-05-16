@@ -113,16 +113,16 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
       <div style={{ marginBottom: '8px', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
         {rows.length} symbols · {allTrades.length} total trades
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '380px' }}>
         <thead>
           <tr style={{ background: 'var(--bg-card2)' }}>
             <th style={thB} onClick={() => handleSort('symbol')}>SYMBOL{si('symbol')}</th>
-            <th style={thR} onClick={() => handleSort('trades')}>TRADES{si('trades')}</th>
-            <th style={thR} onClick={() => handleSort('winRate')}>WIN RATE{si('winRate')}</th>
-            <th style={thR} onClick={() => handleSort('totalProfit')}>TOTAL P/L{si('totalProfit')}</th>
-            <th style={thR} onClick={() => handleSort('avgProfit')}>AVG P/L{si('avgProfit')}</th>
-            <th style={thR} onClick={() => handleSort('bestTrade')}>BEST{si('bestTrade')}</th>
-            <th style={thR} onClick={() => handleSort('worstTrade')}>WORST{si('worstTrade')}</th>
+            <th style={thR} onClick={() => handleSort('trades')} className="an-col-trades">TRADES{si('trades')}</th>
+            <th style={thR} onClick={() => handleSort('winRate')}>WIN%{si('winRate')}</th>
+            <th style={thR} onClick={() => handleSort('totalProfit')}>P/L{si('totalProfit')}</th>
+            <th style={thR} onClick={() => handleSort('avgProfit')} className="an-col-avg">AVG{si('avgProfit')}</th>
+            <th style={thR} onClick={() => handleSort('bestTrade')} className="an-col-best">BEST{si('bestTrade')}</th>
+            <th style={thR} onClick={() => handleSort('worstTrade')} className="an-col-best">WORST{si('worstTrade')}</th>
           </tr>
         </thead>
         <tbody>
@@ -135,7 +135,7 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
               <td style={{ ...td, fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px', color: 'var(--text-primary)' }}>
                 {r.symbol}
               </td>
-              <td style={{ ...tdR, color: 'var(--text-dim)' }}>{r.trades}</td>
+              <td style={{ ...tdR, color: 'var(--text-dim)' }} className="an-col-trades">{r.trades}</td>
               <td style={{ ...tdR, fontFamily: "'VT323'", fontSize: '18px', lineHeight: 1,
                 color: r.winRate >= 60 ? 'var(--success)' : r.winRate >= 45 ? 'var(--warning)' : 'var(--danger)',
               }}>
@@ -146,11 +146,11 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
               }}>
                 {fmt(r.totalProfit)}
               </td>
-              <td style={{ ...tdR, color: r.avgProfit >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+              <td style={{ ...tdR, color: r.avgProfit >= 0 ? 'var(--success)' : 'var(--danger)' }} className="an-col-avg">
                 {fmt(r.avgProfit)}
               </td>
-              <td style={{ ...tdR, color: 'var(--success)' }}>+{r.bestTrade.toFixed(2)}</td>
-              <td style={{ ...tdR, color: 'var(--danger)' }}>{r.worstTrade.toFixed(2)}</td>
+              <td style={{ ...tdR, color: 'var(--success)' }} className="an-col-best">+{r.bestTrade.toFixed(2)}</td>
+              <td style={{ ...tdR, color: 'var(--danger)' }} className="an-col-best">{r.worstTrade.toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
@@ -193,14 +193,16 @@ export const AnalyticsPage = () => {
       </div>
 
       {/* ── Toolbar: tabs + account selector ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-        {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={tabStyle(tab === t.key)}>
-            {t.label}
-          </button>
-        ))}
+      <div className="an-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+        <div className="an-tabs" style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)} style={tabStyle(tab === t.key)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-        <div style={{ marginLeft: 'auto' }}>
+        <div className="an-account-sel" style={{ marginLeft: 'auto' }}>
           <select
             value={selectedAccount}
             onChange={e => setSelectedAccount(e.target.value)}
@@ -208,6 +210,7 @@ export const AnalyticsPage = () => {
               background: 'var(--bg-input)', border: '1px solid var(--border2)',
               color: 'var(--text-primary)', fontFamily: "'Share Tech Mono'", fontSize: '11px',
               padding: '6px 10px', outline: 'none', cursor: 'pointer',
+              width: '100%',
             }}
           >
             <option value="">All Accounts</option>
@@ -247,6 +250,23 @@ export const AnalyticsPage = () => {
           <BySymbolTab accountId={selectedAccount || undefined} />
         )}
       </div>
+
+      <style>{`
+        /* ── Analytics responsive ── */
+        @media (max-width: 600px) {
+          .an-toolbar { flex-direction: column !important; align-items: stretch !important; }
+          .an-tabs    { width: 100% !important; }
+          .an-tabs button { flex: 1 !important; text-align: center !important; padding: 7px 4px !important; }
+          .an-account-sel { margin-left: 0 !important; width: 100% !important; }
+        }
+        @media (max-width: 560px) {
+          .an-col-avg  { display: none !important; }
+          .an-col-best { display: none !important; }
+        }
+        @media (max-width: 420px) {
+          .an-col-trades { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 };

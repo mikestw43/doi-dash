@@ -51,7 +51,7 @@ export const PerformanceCards = ({ accountId }: Props) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }} className="perf-grid">
         {cards.map(c => (
           <div key={c.label} style={metricCard}>
             <div style={{ fontSize: '14px', color: c.color, opacity: .7, marginBottom: '6px' }}>{c.symbol}</div>
@@ -72,6 +72,10 @@ export const PerformanceCards = ({ accountId }: Props) => {
           <span style={{ fontFamily: "'VT323'", fontSize: '26px', color: 'var(--danger)' }}>-${metrics.grossLoss.toFixed(2)}</span>
         </div>
       </div>
+    <style>{`
+      @media (max-width: 560px) { .perf-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+      @media (max-width: 380px) { .perf-grid { grid-template-columns: 1fr !important; } }
+    `}</style>
     </div>
   );
 };

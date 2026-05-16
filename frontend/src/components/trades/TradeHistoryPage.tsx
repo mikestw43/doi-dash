@@ -249,21 +249,20 @@ export const TradeHistoryPage = () => {
       </div>
 
       {/* ── Filters + Export ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-        {/* Account */}
+      <div className="th-filter-bar" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+        {/* Row 1: Account + Symbol + Type + Export */}
         <select value={accountId} onChange={e => { setAccountId(e.target.value); setPage(1); }} style={selStyle}>
           <option value="">All Accounts</option>
           {accounts.filter(a => !a.isDemo).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
 
-        {/* Symbol */}
         <input
           type="text" placeholder="Symbol..." value={symbol}
           onChange={e => { setSymbol(e.target.value.toUpperCase()); setPage(1); }}
           style={{ ...selStyle, cursor: 'text', width: '90px' }}
+          className="th-symbol-input"
         />
 
-        {/* Type */}
         <select value={type} onChange={e => { setType(e.target.value); setPage(1); }} style={selStyle}>
           <option value="">All Types</option>
           <option value="BUY">BUY</option>
@@ -271,44 +270,26 @@ export const TradeHistoryPage = () => {
         </select>
 
         {/* Date range */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
           <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>FROM</span>
-          <input
-            type="date" value={dateFrom}
-            onChange={e => { setDateFrom(e.target.value); setPage(1); }}
-            style={dateInputStyle}
-          />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} style={dateInputStyle} />
           <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>TO</span>
-          <input
-            type="date" value={dateTo}
-            onChange={e => { setDateTo(e.target.value); setPage(1); }}
-            style={dateInputStyle}
-          />
+          <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} style={dateInputStyle} />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 8px', transition: 'all .15s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}
+            >✕</button>
+          )}
         </div>
 
-        {/* Clear dates */}
-        {(dateFrom || dateTo) && (
-          <button
-            onClick={() => { setDateFrom(''); setDateTo(''); }}
-            style={{
-              fontFamily: "'Press Start 2P'", fontSize: '6px',
-              background: 'none', border: '1px solid var(--border2)',
-              color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 8px',
-              transition: 'all .15s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}
-          >
-            ✕ CLEAR DATES
-          </button>
-        )}
-
-        {/* Export */}
+        {/* Export — right-aligned on desktop, full-width on mobile */}
         <button
           onClick={handleExport}
           disabled={!trades.length}
+          className="th-export-btn"
           style={{
             marginLeft: 'auto',
             fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
@@ -322,7 +303,7 @@ export const TradeHistoryPage = () => {
           onMouseEnter={e => { if (trades.length) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; } }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
         >
-          ↓ EXPORT CSV
+          ↓ CSV
         </button>
       </div>
 
@@ -331,15 +312,15 @@ export const TradeHistoryPage = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
-              <th style={thL(true)} onClick={() => handleSort('ticket')}>TICKET{sortIcon('ticket')}</th>
+              <th style={thL(true)} className="th-col-ticket" onClick={() => handleSort('ticket')}>TICKET{sortIcon('ticket')}</th>
               <th style={thL(true)} onClick={() => handleSort('symbol')}>SYMBOL{sortIcon('symbol')}</th>
               <th style={thL()}>TYPE</th>
-              <th style={thR()}>LOTS</th>
-              <th style={thR()}>OPEN</th>
-              <th style={thR()}>CLOSE</th>
+              <th style={thR()} className="th-col-lots">LOTS</th>
+              <th style={thR()} className="th-col-price">OPEN</th>
+              <th style={thR()} className="th-col-price">CLOSE</th>
               <th style={thR(true)} onClick={() => handleSort('profit')}>PROFIT{sortIcon('profit')}</th>
               <th style={thL(true)} onClick={() => handleSort('closeTime')}>CLOSE TIME{sortIcon('closeTime')}</th>
-              <th style={thL()}>ACCOUNT</th>
+              <th style={thL()} className="th-col-account">ACCOUNT</th>
             </tr>
           </thead>
           <tbody>
@@ -363,7 +344,7 @@ export const TradeHistoryPage = () => {
                   onMouseEnter={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'rgba(45,64,96,.25)')}
                   onMouseLeave={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'transparent')}
                 >
-                  <td style={{ ...tdBase, color: 'var(--text-dim)' }}>#{t.ticket}</td>
+                  <td style={{ ...tdBase, color: 'var(--text-dim)' }} className="th-col-ticket">#{t.ticket}</td>
                   <td style={{ ...tdBase, fontWeight: 700, letterSpacing: '.5px' }}>{t.symbol}</td>
                   <td style={tdBase}>
                     <span style={{
@@ -376,9 +357,9 @@ export const TradeHistoryPage = () => {
                       {t.type}
                     </span>
                   </td>
-                  <td style={{ ...tdR, color: 'var(--text-dim)' }}>{t.lots.toFixed(2)}</td>
-                  <td style={{ ...tdR, color: 'var(--text-dim)' }}>{t.openPrice.toFixed(5)}</td>
-                  <td style={{ ...tdR, color: 'var(--text-dim)' }}>{t.closePrice.toFixed(5)}</td>
+                  <td style={{ ...tdR, color: 'var(--text-dim)' }} className="th-col-lots">{t.lots.toFixed(2)}</td>
+                  <td style={{ ...tdR, color: 'var(--text-dim)' }} className="th-col-price">{t.openPrice.toFixed(5)}</td>
+                  <td style={{ ...tdR, color: 'var(--text-dim)' }} className="th-col-price">{t.closePrice.toFixed(5)}</td>
                   <td style={{
                     ...tdR,
                     fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1,
@@ -389,7 +370,7 @@ export const TradeHistoryPage = () => {
                   <td style={{ ...tdBase, color: 'var(--text-dim)', fontSize: '10px' }}>
                     {new Date(t.closeTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </td>
-                  <td style={{ ...tdBase, color: 'var(--text-dim)' }}>{t.account?.name || '—'}</td>
+                  <td style={{ ...tdBase, color: 'var(--text-dim)' }} className="th-col-account">{t.account?.name || '—'}</td>
                 </tr>
               ))
             )}
@@ -432,8 +413,32 @@ export const TradeHistoryPage = () => {
       )}
 
       <style>{`
+        /* Summary grid */
         @media (max-width: 900px) { .th-summary-grid { grid-template-columns: repeat(2, 1fr) !important; } }
         @media (max-width: 560px) { .th-summary-grid { grid-template-columns: 1fr !important; } }
+
+        /* Table columns — hide on small screens */
+        @media (max-width: 760px) {
+          .th-col-price   { display: none !important; }
+          .th-col-account { display: none !important; }
+        }
+        @media (max-width: 540px) {
+          .th-col-ticket { display: none !important; }
+          .th-col-lots   { display: none !important; }
+        }
+
+        /* Filter bar */
+        @media (max-width: 600px) {
+          .th-filter-bar { flex-direction: column !important; align-items: stretch !important; }
+          .th-filter-bar select,
+          .th-filter-bar input { width: 100% !important; box-sizing: border-box !important; }
+          .th-symbol-input { width: 100% !important; }
+          .th-date-row { flex-direction: column !important; align-items: stretch !important; }
+          .th-date-row input[type="date"] { width: 100% !important; box-sizing: border-box !important; }
+          .th-export-btn { margin-left: 0 !important; width: 100% !important; text-align: center !important; }
+        }
+
+        /* Dark calendar icon */
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(3) hue-rotate(180deg); opacity: .5; cursor: pointer; }
       `}</style>
     </div>

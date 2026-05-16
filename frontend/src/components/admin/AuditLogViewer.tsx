@@ -109,13 +109,13 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
 
       {/* Table */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '380px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
-              <th style={thStyle}>USER</th>
+              <th style={thStyle} className="al-col-user">USER</th>
               <th style={thStyle}>ACTION</th>
-              <th style={thStyle}>RESOURCE</th>
-              <th style={thStyle}>DETAILS</th>
+              <th style={thStyle} className="al-col-resource">RESOURCE</th>
+              <th style={thStyle} className="al-col-details">DETAILS</th>
               <th style={thStyle}>TIME</th>
             </tr>
           </thead>
@@ -130,16 +130,16 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
                   onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <td style={{ ...tdStyle, color: 'var(--cyan)' }}>
+                  <td style={{ ...tdStyle, color: 'var(--cyan)' }} className="al-col-user">
                     {log.user?.email || log.userId.slice(0, 8)}
                   </td>
                   <td style={tdStyle}>
                     <span style={{ color: ACTION_COLORS[log.action] || 'var(--text-dim)' }}>{log.action}</span>
                   </td>
-                  <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }}>
+                  <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }} className="al-col-resource">
                     {log.resourceType || '—'}
                   </td>
-                  <td style={{ ...tdStyle, color: 'var(--text-dim)', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={log.details || ''}>
+                  <td style={{ ...tdStyle, color: 'var(--text-dim)', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="al-col-details" title={log.details || ''}>
                     {log.details ? log.details.slice(0, 60) : '—'}
                   </td>
                   <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px', whiteSpace: 'nowrap' }}>
@@ -151,6 +151,12 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
           </tbody>
         </table>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) { .al-col-details  { display: none !important; } }
+        @media (max-width: 480px) { .al-col-resource { display: none !important; } }
+        @media (max-width: 380px) { .al-col-user     { display: none !important; } }
+      `}</style>
 
       {/* Pagination */}
       {totalPages > 1 && (
