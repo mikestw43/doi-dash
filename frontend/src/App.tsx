@@ -42,11 +42,18 @@ const Dashboard = () => {
   return (
     <Layout>
       {currentPage === 'dashboard' && (
-        <>
-          <OverviewTabs />
-          <TradingViewChart />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* ── Portfolio Box ── */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px 16px' }}>
+            <OverviewTabs />
+          </div>
+          {/* ── Chart Box ── */}
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px 16px' }}>
+            <TradingViewChart />
+          </div>
+          {/* ── Accounts Boxes (MY ACCOUNTS + DEMO) ── */}
           <BotList />
-        </>
+        </div>
       )}
       {currentPage === 'analytics' && <AnalyticsPage />}
       {currentPage === 'trade-history' && <TradeHistoryPage />}

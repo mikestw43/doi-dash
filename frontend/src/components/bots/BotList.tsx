@@ -121,133 +121,132 @@ export const BotList = () => {
   } as React.CSSProperties);
 
   return (
-    <div>
-      {/* Section header */}
-      <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${liveAccounts.length}`} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-      {/* Toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', position: 'relative' }} ref={filterRef}>
-        {/* ⚙ FILTER */}
-        <button
-          onClick={() => setShowFilter(f => !f)}
-          style={ftabStyle(showFilter)}
-        >
-          ⚙ FILTER
-        </button>
+      {/* ── MY ACCOUNTS BOX ─────────────────────────────────────────────── */}
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px 16px' }}>
+        <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${liveAccounts.length}`} />
 
-        {/* Filter popup */}
-        {showFilter && (
-          <div style={{
-            position: 'absolute', top: 'calc(100% + 4px)', left: 0,
-            zIndex: 500,
-            background: 'var(--bg-card)',
-            border: '2px solid var(--border2)',
-            padding: '12px 14px',
-            minWidth: '220px',
-            boxShadow: '4px 4px 0 rgba(56,189,248,.2)',
-          }}>
-            {/* Search */}
-            <div style={{ marginBottom: '10px' }}>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SEARCH</div>
-              <input
-                type="text"
-                placeholder="name, broker, account #"
-                value={botFilter.search}
-                onChange={e => setBotFilter({ search: e.target.value })}
-                style={{
-                  width: '100%', background: 'var(--bg-input)',
-                  border: '1px solid var(--border2)', color: 'var(--text-primary)',
-                  padding: '7px 9px', fontFamily: "'Share Tech Mono'", fontSize: '11px',
-                  outline: 'none',
-                }}
-              />
-            </div>
+        {/* Toolbar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', position: 'relative' }} ref={filterRef}>
+          {/* ⚙ FILTER */}
+          <button
+            onClick={() => setShowFilter(f => !f)}
+            style={ftabStyle(showFilter)}
+          >
+            ⚙ FILTER
+          </button>
 
-            {/* Broker */}
-            <div style={{ marginBottom: '10px' }}>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>BROKER</div>
-              <select
-                value={botFilter.broker}
-                onChange={e => setBotFilter({ broker: e.target.value })}
-                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
-              >
-                {brokers.map(b => <option key={b} value={b}>{b === 'all' ? 'All brokers' : b}</option>)}
-              </select>
-            </div>
-
-            {/* Group */}
-            {groups.length > 0 && (
+          {/* Filter popup */}
+          {showFilter && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 4px)', left: 0,
+              zIndex: 500,
+              background: 'var(--bg-card)',
+              border: '2px solid var(--border2)',
+              padding: '12px 14px',
+              minWidth: '220px',
+              boxShadow: '4px 4px 0 rgba(56,189,248,.2)',
+            }}>
+              {/* Search */}
               <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>GROUP</div>
+                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SEARCH</div>
+                <input
+                  type="text"
+                  placeholder="name, broker, account #"
+                  value={botFilter.search}
+                  onChange={e => setBotFilter({ search: e.target.value })}
+                  style={{
+                    width: '100%', background: 'var(--bg-input)',
+                    border: '1px solid var(--border2)', color: 'var(--text-primary)',
+                    padding: '7px 9px', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              {/* Broker */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>BROKER</div>
                 <select
-                  value={botFilter.group}
-                  onChange={e => setBotFilter({ group: e.target.value })}
+                  value={botFilter.broker}
+                  onChange={e => setBotFilter({ broker: e.target.value })}
                   style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
                 >
-                  <option value="all">All</option>
-                  <option value="ungrouped">Ungrouped</option>
-                  {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                  {brokers.map(b => <option key={b} value={b}>{b === 'all' ? 'All brokers' : b}</option>)}
                 </select>
               </div>
-            )}
 
-            {/* Sort */}
-            <div style={{ marginBottom: '10px' }}>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SORT BY</div>
-              <select
-                value={botFilter.sort}
-                onChange={e => setBotFilter({ sort: e.target.value })}
-                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+              {/* Group */}
+              {groups.length > 0 && (
+                <div style={{ marginBottom: '10px' }}>
+                  <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>GROUP</div>
+                  <select
+                    value={botFilter.group}
+                    onChange={e => setBotFilter({ group: e.target.value })}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                  >
+                    <option value="all">All</option>
+                    <option value="ungrouped">Ungrouped</option>
+                    {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                  </select>
+                </div>
+              )}
+
+              {/* Sort */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SORT BY</div>
+                <select
+                  value={botFilter.sort}
+                  onChange={e => setBotFilter({ sort: e.target.value })}
+                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                >
+                  {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+
+              <button
+                onClick={() => { clearFilters(); setShowFilter(false); }}
+                style={{
+                  width: '100%', padding: '7px',
+                  fontFamily: "'Press Start 2P'", fontSize: '7px',
+                  border: '1px solid var(--border2)', color: 'var(--text-muted)',
+                  background: 'none', cursor: 'pointer',
+                }}
               >
-                {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
+                CLEAR ALL
+              </button>
             </div>
+          )}
+        </div>
 
-            <button
-              onClick={() => { clearFilters(); setShowFilter(false); }}
-              style={{
-                width: '100%', padding: '7px',
-                fontFamily: "'Press Start 2P'", fontSize: '7px',
-                border: '1px solid var(--border2)', color: 'var(--text-muted)',
-                background: 'none', cursor: 'pointer',
-              }}
-            >
-              CLEAR ALL
-            </button>
+        {/* Bot grid — 3 columns matching mockup */}
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontFamily: "'Share Tech Mono'", fontSize: '12px' }}>
+            No bots match your filters
+            {botFilter.status !== 'all' || botFilter.broker !== 'all' || botFilter.search ? (
+              <div style={{ marginTop: '8px' }}>
+                <button onClick={clearFilters} style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--accent-blue)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  CLEAR FILTERS
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '10px' }}
+            className="bot-grid-responsive"
+          >
+            {filtered.map((account: Account) => (
+              <BotCard key={account.id} account={account} todayPnl={todayPnlData?.[account.id] ?? 0} />
+            ))}
           </div>
         )}
       </div>
 
-      {/* Bot grid — 3 columns matching mockup */}
-      {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontFamily: "'Share Tech Mono'", fontSize: '12px' }}>
-          No bots match your filters
-          {botFilter.status !== 'all' || botFilter.broker !== 'all' || botFilter.search ? (
-            <div style={{ marginTop: '8px' }}>
-              <button onClick={clearFilters} style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--accent-blue)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                CLEAR FILTERS
-              </button>
-            </div>
-          ) : null}
-        </div>
-      ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '10px',
-          marginTop: '10px',
-        }}
-          className="bot-grid-responsive"
-        >
-          {filtered.map((account: Account) => (
-            <BotCard key={account.id} account={account} todayPnl={todayPnlData?.[account.id] ?? 0} />
-          ))}
-        </div>
-      )}
-
-      {/* ── DEMO ACCOUNTS section ── */}
+      {/* ── DEMO ACCOUNTS BOX ───────────────────────────────────────────── */}
       {demoAccounts.length > 0 && (
-        <div style={{ marginTop: '24px' }}>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px 16px' }}>
           {/* Demo section header — yellow dot + SANDBOX badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <div style={{ width: '7px', height: '7px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)', flexShrink: 0 }} />
