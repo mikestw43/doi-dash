@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
+import { NotificationBell } from './NotificationBell';
 
 // ── Clock + session logic ───────────────────────────────────────────────────
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -185,6 +186,9 @@ export const Header = () => {
               </div>
             </div>
           </div>
+
+          {/* Notifications bell */}
+          <NotificationBell />
 
           {/* Profile button */}
           <div style={{ position: 'relative' }} ref={menuRef}>
