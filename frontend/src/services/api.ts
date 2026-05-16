@@ -367,6 +367,19 @@ export const savePreferences = async (data: Partial<UserPreferences>): Promise<U
 
 // --- PDPA ---
 
+// ── Market quotes (ticker bar) ────────────────────────────────────────────────
+export interface MarketQuote {
+  sym: string;
+  price: number;
+  chgPct: number | null;
+  up: boolean | null;
+}
+
+export const fetchMarketQuotes = async (): Promise<MarketQuote[]> => {
+  const res = await api.get<MarketQuote[]>('/market/quotes');
+  return res.data;
+};
+
 export const exportMyData = async () => {
   const res = await api.get('/auth/my-data');
   return res.data;

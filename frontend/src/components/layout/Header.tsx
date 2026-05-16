@@ -3,6 +3,8 @@ import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { NotificationBell } from './NotificationBell';
+import { fetchMarketQuotes } from '../../services/api';
+import type { MarketQuote } from '../../services/api';
 
 // ── Clock + session logic ───────────────────────────────────────────────────
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -29,24 +31,45 @@ const getActiveSessions = (): Set<string> => {
   return active;
 };
 
-// ── Ticker data ─────────────────────────────────────────────────────────────
-const TICKER_ITEMS = [
-  { sym: 'EURUSD', price: '1.0872',    chg: '0.12', up: false },
-  { sym: 'OXY',    price: '104.32',    chg: '0.09', up: true  },
-  { sym: 'GBPUSD', price: '1.2913',    chg: '0.88', up: true  },
-  { sym: 'USDJPY', price: '148.23',    chg: '0.21', up: false },
-  { sym: 'BTCUSD', price: '82,441',    chg: '1.54', up: true  },
-  { sym: 'SP500',  price: '5,628.35',  chg: '0.43', up: true  },
-  { sym: 'NASDAQ', price: '17,849.4',  chg: '0.61', up: true  },
-  { sym: 'XAUUSD', price: '3,154.82',  chg: '0.34', up: true  },
+// ── Ticker helpers ───────────────────────────────────────────────────────────
+interface TickerItem {
+  sym: string;
+  price: string;
+  chgPct: number | null;
+  up: boolean | null;
+}
+
+const formatTickerPrice = (price: number): string => {
+  if (price >= 10000) return price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (price >= 100)   return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (price >= 10)    return price.toFixed(3);
+  return price.toFixed(5);
+};
+
+const quotesToTicker = (quotes: MarketQuote[]): TickerItem[] =>
+  quotes.map(q => ({
+    sym: q.sym,
+    price: formatTickerPrice(q.price),
+    chgPct: q.chgPct,
+    up: q.up,
+  }));
+
+// Static fallback shown until first fetch completes
+const TICKER_FALLBACK: TickerItem[] = [
+  { sym: 'EURUSD', price: '—',      chgPct: null, up: null },
+  { sym: 'GBPUSD', price: '—',      chgPct: null, up: null },
+  { sym: 'USDJPY', price: '—',      chgPct: null, up: null },
+  { sym: 'BTCUSD', price: '—',      chgPct: null, up: null },
+  { sym: 'ETHUSD', price: '—',      chgPct: null, up: null },
+  { sym: 'XAUUSD', price: '—',      chgPct: null, up: null },
 ];
-const TICKER_DOUBLED = [...TICKER_ITEMS, ...TICKER_ITEMS];
 
 // ── Header ──────────────────────────────────────────────────────────────────
 export const Header = () => {
   const [time, setTime] = useState(getLocalTime);
   const [activeSessions, setActiveSessions] = useState(getActiveSessions);
   const [showMenu, setShowMenu] = useState(false);
+  const [tickerItems, setTickerItems] = useState<TickerItem[]>(TICKER_FALLBACK);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const wsConnected = useAccountStore(s => s.wsConnected);
@@ -60,6 +83,18 @@ export const Header = () => {
       setTime(getLocalTime());
       setActiveSessions(getActiveSessions());
     }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // live market quotes — fetch on mount then every 30 s
+  useEffect(() => {
+    const load = () => {
+      fetchMarketQuotes()
+        .then(quotes => { if (quotes.length) setTickerItems(quotesToTicker(quotes)); })
+        .catch(() => { /* keep current items on error */ });
+    };
+    load();
+    const id = setInterval(load, 30_000);
     return () => clearInterval(id);
   }, []);
 
@@ -404,7 +439,7 @@ export const Header = () => {
           onMouseEnter={e => ((e.currentTarget as HTMLDivElement).style.animationPlayState = 'paused')}
           onMouseLeave={e => ((e.currentTarget as HTMLDivElement).style.animationPlayState = 'running')}
         >
-          {TICKER_DOUBLED.map((item, i) => (
+          {[...tickerItems, ...tickerItems].map((item, i) => (
             <div key={i} style={{
               display: 'flex', alignItems: 'center', gap: '5px',
               padding: '0 16px',
@@ -416,9 +451,15 @@ export const Header = () => {
               <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>
                 {item.price}
               </span>
-              <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: item.up ? 'var(--success)' : 'var(--danger)' }}>
-                {item.up ? '▲' : '▼'}{item.chg}%
-              </span>
+              {item.chgPct !== null ? (
+                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: (item.up ?? true) ? 'var(--success)' : 'var(--danger)' }}>
+                  {(item.up ?? true) ? '▲' : '▼'}{Math.abs(item.chgPct).toFixed(2)}%
+                </span>
+              ) : (
+                item.price !== '—' && (
+                  <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>—</span>
+                )
+              )}
             </div>
           ))}
         </div>

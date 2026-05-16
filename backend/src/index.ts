@@ -13,6 +13,7 @@ import notificationsRouter from './routes/notifications';
 import groupsRouter from './routes/groups';
 import settingsRouter from './routes/settings';
 import auditRouter from './routes/audit';
+import marketRouter from './routes/market';
 import { initWebSocket } from './websocket/broadcaster';
 import { runtimeStore } from './services/runtimeStore';
 import { cleanOldSnapshots } from './services/equityService';
@@ -44,6 +45,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/admin/audit', auditRouter);
+app.use('/api/market', marketRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

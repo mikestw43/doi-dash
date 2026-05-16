@@ -236,7 +236,7 @@
     border: 2px solid var(--accent-blue);
     box-shadow: 4px 4px 0 rgba(56,189,248,.3);
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* allow group picker dropdown & position panel to escape */
     display: flex;
     flex-direction: column;
     transition: transform .15s, box-shadow .15s;
@@ -333,6 +333,12 @@
   /* ── DD badge blink ── */
   @keyframes blink-border { 50% { border-color: transparent; } }
   .dd-badge-blink { animation: blink-border .8s step-end infinite; }
+
+  /* ── Ticker scroll animation ── */
+  @keyframes ticker {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
 
   .btn-primary {
     @apply font-pixel text-xs px-4 py-2 transition-all duration-150;

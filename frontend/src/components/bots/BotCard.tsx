@@ -415,9 +415,9 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           )}
         </div>
 
-        {/* ── Positions panel (inline expandable) ── */}
+        {/* ── Positions panel (inline — expands card downward) ── */}
         {showPositions && (
-          <div style={{ borderTop: '1px solid var(--border2)' }}>
+          <div style={{ borderTop: '2px solid var(--border2)' }}>
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '6px 12px',

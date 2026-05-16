@@ -144,7 +144,7 @@ export const UserManagement = () => {
   } as React.CSSProperties);
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%', overflowX: 'hidden' }}>
       {/* Back */}
       <button
         onClick={() => setCurrentPage('dashboard')}
@@ -161,16 +161,18 @@ export const UserManagement = () => {
       </div>
 
       {/* Tabs row */}
-      <div style={{
+      <div className="um-tab-bar" style={{
         display: 'flex', alignItems: 'center',
         background: 'var(--bg-card)', border: '1px solid var(--border2)',
-        borderBottom: 'none', marginBottom: 0,
+        borderBottom: 'none', marginBottom: 0, overflowX: 'auto',
       }}>
-        <button style={tabBtn(activeTab === 'users')} onClick={() => setActiveTab('users')}>
-          USER MANAGEMENT
+        <button className="um-tab-btn" style={tabBtn(activeTab === 'users')} onClick={() => setActiveTab('users')}>
+          <span className="um-tab-long">USER MANAGEMENT</span>
+          <span className="um-tab-short">USERS</span>
         </button>
-        <button style={tabBtn(activeTab === 'audit')} onClick={() => setActiveTab('audit')}>
-          AUDIT LOG
+        <button className="um-tab-btn" style={tabBtn(activeTab === 'audit')} onClick={() => setActiveTab('audit')}>
+          <span className="um-tab-long">AUDIT LOG</span>
+          <span className="um-tab-short">AUDIT</span>
         </button>
       </div>
 
@@ -482,6 +484,10 @@ export const UserManagement = () => {
 
       <style>{`
         /* ── UserManagement responsive ── */
+
+        /* Short labels hidden by default */
+        .um-tab-short { display: none; }
+
         @media (max-width: 860px) {
           .um-col-mobile  { display: none !important; }
           .um-col-created { display: none !important; }
@@ -490,19 +496,20 @@ export const UserManagement = () => {
           .um-col-email    { display: none !important; }
           .um-col-accounts { display: none !important; }
         }
+
         /* Toolbar stacks on very small screens */
         @media (max-width: 520px) {
-          .um-toolbar {
-            flex-direction: column !important;
-            align-items: stretch !important;
-          }
-          .um-toolbar select {
-            width: 100% !important;
-          }
-          .um-toolbar-create {
-            width: 100% !important;
-            text-align: center !important;
-          }
+          .um-toolbar { flex-direction: column !important; align-items: stretch !important; }
+          .um-toolbar select { width: 100% !important; }
+          .um-toolbar button { width: 100% !important; text-align: center !important; }
+        }
+
+        /* Tab bar — switch to short labels on narrow screens */
+        @media (max-width: 500px) {
+          .um-tab-long  { display: none; }
+          .um-tab-short { display: inline; }
+          .um-tab-btn   { flex: 1; text-align: center; padding: 9px 6px !important; }
+          .um-tab-bar   { overflow-x: visible !important; }
         }
       `}</style>
     </div>
