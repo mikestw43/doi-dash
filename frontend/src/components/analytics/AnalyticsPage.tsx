@@ -1,49 +1,201 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAccountStore } from '../../stores/accountStore';
+import { fetchTradeHistory } from '../../services/api';
 import { EquityChart } from './EquityChart';
 import { PnLChart } from './PnLChart';
 import { PerformanceCards } from './PerformanceCards';
+import type { ClosedTrade } from '../../types';
 
-type Tab = 'performance' | 'equity' | 'pnl';
+type Tab = 'performance' | 'equity' | 'stats' | 'symbol';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'performance', label: 'PERFORMANCE' },
   { key: 'equity',      label: 'EQUITY CURVE' },
-  { key: 'pnl',        label: 'DAILY P&L' },
+  { key: 'stats',       label: 'STATS' },
+  { key: 'symbol',      label: 'BY SYMBOL' },
 ];
+
+// ── By-Symbol breakdown ─────────────────────────────────────────────────────
+
+interface SymbolRow {
+  symbol: string;
+  trades: number;
+  wins: number;
+  winRate: number;
+  totalProfit: number;
+  avgProfit: number;
+  bestTrade: number;
+  worstTrade: number;
+}
+
+const BySymbolTab = ({ accountId }: { accountId?: string }) => {
+  const [allTrades, setAllTrades] = useState<ClosedTrade[]>([]);
+  const [loading, setLoading]     = useState(false);
+  const [sortCol, setSortCol]     = useState('totalProfit');
+  const [sortDir, setSortDir]     = useState<'asc' | 'desc'>('desc');
+
+  useEffect(() => {
+    setLoading(true);
+    fetchTradeHistory({ accountId: accountId || undefined, limit: 9999, sortBy: 'closeTime', sortDir: 'asc' })
+      .then(res => setAllTrades(res.trades))
+      .catch(() => setAllTrades([]))
+      .finally(() => setLoading(false));
+  }, [accountId]);
+
+  const rows = useMemo((): SymbolRow[] => {
+    const map = new Map<string, ClosedTrade[]>();
+    for (const t of allTrades) {
+      if (!map.has(t.symbol)) map.set(t.symbol, []);
+      map.get(t.symbol)!.push(t);
+    }
+    const result: SymbolRow[] = [];
+    for (const [symbol, trades] of map.entries()) {
+      const wins = trades.filter(t => t.profit > 0).length;
+      const totalProfit = trades.reduce((s, t) => s + t.profit, 0);
+      const profits = trades.map(t => t.profit);
+      result.push({
+        symbol,
+        trades: trades.length,
+        wins,
+        winRate: (wins / trades.length) * 100,
+        totalProfit,
+        avgProfit: totalProfit / trades.length,
+        bestTrade: Math.max(...profits),
+        worstTrade: Math.min(...profits),
+      });
+    }
+    return result.sort((a, b) => {
+      if (sortCol === 'symbol') {
+        return sortDir === 'desc'
+          ? b.symbol.localeCompare(a.symbol)
+          : a.symbol.localeCompare(b.symbol);
+      }
+      const av = (a as unknown as Record<string, number>)[sortCol] ?? 0;
+      const bv = (b as unknown as Record<string, number>)[sortCol] ?? 0;
+      return sortDir === 'desc' ? bv - av : av - bv;
+    });
+  }, [allTrades, sortCol, sortDir]);
+
+  const handleSort = (col: string) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(col); setSortDir('desc'); }
+  };
+  const si = (col: string) => sortCol !== col ? '' : sortDir === 'asc' ? ' ↑' : ' ↓';
+
+  const thB: React.CSSProperties = {
+    fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+    letterSpacing: '.5px', padding: '9px 10px', borderBottom: '2px solid var(--border2)',
+    fontWeight: 400, cursor: 'pointer', whiteSpace: 'nowrap',
+  };
+  const thR: React.CSSProperties = { ...thB, textAlign: 'right' };
+  const td: React.CSSProperties = {
+    padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
+    fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', whiteSpace: 'nowrap',
+  };
+  const tdR: React.CSSProperties = { ...td, textAlign: 'right' };
+
+  const fmt = (n: number) => (n >= 0 ? '+' : '') + n.toFixed(2);
+
+  if (loading) return (
+    <div style={{ textAlign: 'center', padding: '40px', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+      Loading symbol data...
+    </div>
+  );
+
+  if (!rows.length) return (
+    <div style={{ textAlign: 'center', padding: '40px', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+      No closed trades found
+    </div>
+  );
+
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <div style={{ marginBottom: '8px', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+        {rows.length} symbols · {allTrades.length} total trades
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+        <thead>
+          <tr style={{ background: 'var(--bg-card2)' }}>
+            <th style={thB} onClick={() => handleSort('symbol')}>SYMBOL{si('symbol')}</th>
+            <th style={thR} onClick={() => handleSort('trades')}>TRADES{si('trades')}</th>
+            <th style={thR} onClick={() => handleSort('winRate')}>WIN RATE{si('winRate')}</th>
+            <th style={thR} onClick={() => handleSort('totalProfit')}>TOTAL P/L{si('totalProfit')}</th>
+            <th style={thR} onClick={() => handleSort('avgProfit')}>AVG P/L{si('avgProfit')}</th>
+            <th style={thR} onClick={() => handleSort('bestTrade')}>BEST{si('bestTrade')}</th>
+            <th style={thR} onClick={() => handleSort('worstTrade')}>WORST{si('worstTrade')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr
+              key={r.symbol}
+              onMouseEnter={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'rgba(45,64,96,.25)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'transparent')}
+            >
+              <td style={{ ...td, fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px', color: 'var(--text-primary)' }}>
+                {r.symbol}
+              </td>
+              <td style={{ ...tdR, color: 'var(--text-dim)' }}>{r.trades}</td>
+              <td style={{ ...tdR, fontFamily: "'VT323'", fontSize: '18px', lineHeight: 1,
+                color: r.winRate >= 60 ? 'var(--success)' : r.winRate >= 45 ? 'var(--warning)' : 'var(--danger)',
+              }}>
+                {r.winRate.toFixed(1)}%
+              </td>
+              <td style={{ ...tdR, fontFamily: "'VT323'", fontSize: '18px', lineHeight: 1,
+                color: r.totalProfit >= 0 ? 'var(--success)' : 'var(--danger)',
+              }}>
+                {fmt(r.totalProfit)}
+              </td>
+              <td style={{ ...tdR, color: r.avgProfit >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                {fmt(r.avgProfit)}
+              </td>
+              <td style={{ ...tdR, color: 'var(--success)' }}>+{r.bestTrade.toFixed(2)}</td>
+              <td style={{ ...tdR, color: 'var(--danger)' }}>{r.worstTrade.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// ── Main Component ───────────────────────────────────────────────────────────
 
 export const AnalyticsPage = () => {
   const accounts = useAccountStore(s => s.accounts);
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [tab, setTab] = useState<Tab>('performance');
 
-  const anTabStyle = (active: boolean): React.CSSProperties => ({
+  const tabStyle = (active: boolean): React.CSSProperties => ({
     padding: '5px 11px',
     fontFamily: "'Press Start 2P'",
     fontSize: '7px',
     letterSpacing: '.5px',
-    border: active ? '1px solid var(--cyan)' : '1px solid var(--border2)',
-    color: active ? 'var(--cyan)' : 'var(--text-dim)',
+    border: active ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
+    color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
     background: active ? 'rgba(56,189,248,.08)' : 'none',
     cursor: 'pointer',
     transition: 'all .15s',
   });
 
+  // Only live accounts for analytics
+  const liveAccounts = accounts.filter(a => !a.isDemo);
+
   return (
     <div>
-      {/* Section header */}
+      {/* ── Section header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text)', letterSpacing: '2px' }}>
+        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '2px' }}>
           ANALYTICS
         </span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
 
-      {/* Toolbar: tabs + account selector */}
+      {/* ── Toolbar: tabs + account selector ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
         {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={anTabStyle(tab === t.key)}>
+          <button key={t.key} onClick={() => setTab(t.key)} style={tabStyle(tab === t.key)}>
             {t.label}
           </button>
         ))}
@@ -54,34 +206,45 @@ export const AnalyticsPage = () => {
             onChange={e => setSelectedAccount(e.target.value)}
             style={{
               background: 'var(--bg-input)', border: '1px solid var(--border2)',
-              color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+              color: 'var(--text-primary)', fontFamily: "'Share Tech Mono'", fontSize: '11px',
               padding: '6px 10px', outline: 'none', cursor: 'pointer',
             }}
           >
             <option value="">All Accounts</option>
-            {accounts.map(a => (
+            {liveAccounts.map(a => (
               <option key={a.id} value={a.id}>{a.name}</option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Content */}
+      {/* ── Content ── */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px' }}>
         {tab === 'performance' && (
-          <PerformanceCards accountId={selectedAccount || undefined} />
+          <PnLChart accountId={selectedAccount || undefined} />
         )}
+
         {tab === 'equity' && (
           selectedAccount ? (
             <EquityChart accountId={selectedAccount} />
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>
-              Select an account to view equity history
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '.5px' }}>
+                SELECT AN ACCOUNT
+              </div>
+              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+                Choose an account above to view its equity curve
+              </div>
             </div>
           )
         )}
-        {tab === 'pnl' && (
-          <PnLChart accountId={selectedAccount || undefined} />
+
+        {tab === 'stats' && (
+          <PerformanceCards accountId={selectedAccount || undefined} />
+        )}
+
+        {tab === 'symbol' && (
+          <BySymbolTab accountId={selectedAccount || undefined} />
         )}
       </div>
     </div>

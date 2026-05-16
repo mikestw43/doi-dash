@@ -36,12 +36,12 @@ export const PerformanceCards = ({ accountId }: Props) => {
 
   interface Card { label: string; symbol: string; value: string; color: string }
   const cards: Card[] = [
-    { symbol: '▦', label: 'Total Trades', value: metrics.totalTrades.toString(), color: 'var(--cyan)' },
-    { symbol: '◎', label: 'Win Rate',     value: `${metrics.winRate}%`,          color: metrics.winRate >= 50 ? 'var(--green)' : 'var(--red)' },
-    { symbol: '≈',  label: 'Profit Factor', value: metrics.profitFactor >= 999 ? '∞' : metrics.profitFactor.toFixed(2), color: metrics.profitFactor >= 1 ? 'var(--green)' : 'var(--red)' },
-    { symbol: '↑',  label: 'Avg Profit',  value: `$${metrics.avgProfit.toFixed(2)}`,  color: 'var(--green)' },
-    { symbol: '↓',  label: 'Avg Loss',    value: `-$${metrics.avgLoss.toFixed(2)}`,   color: 'var(--red)' },
-    { symbol: '⛉',  label: 'Max Drawdown', value: `${metrics.maxDrawdown.toFixed(2)}%`, color: metrics.maxDrawdown > 20 ? 'var(--red)' : 'var(--yellow)' },
+    { symbol: '▦', label: 'Total Trades', value: metrics.totalTrades.toString(), color: 'var(--accent-blue)' },
+    { symbol: '◎', label: 'Win Rate',     value: `${metrics.winRate}%`,          color: metrics.winRate >= 50 ? 'var(--success)' : 'var(--danger)' },
+    { symbol: '≈',  label: 'Profit Factor', value: metrics.profitFactor >= 999 ? '∞' : metrics.profitFactor.toFixed(2), color: metrics.profitFactor >= 1 ? 'var(--success)' : 'var(--danger)' },
+    { symbol: '↑',  label: 'Avg Profit',  value: `$${metrics.avgProfit.toFixed(2)}`,  color: 'var(--success)' },
+    { symbol: '↓',  label: 'Avg Loss',    value: `-$${metrics.avgLoss.toFixed(2)}`,   color: 'var(--danger)' },
+    { symbol: '⛉',  label: 'Max Drawdown', value: `${metrics.maxDrawdown.toFixed(2)}%`, color: metrics.maxDrawdown > 20 ? 'var(--danger)' : 'var(--warning)' },
   ];
 
   const metricCard: React.CSSProperties = {
@@ -65,11 +65,11 @@ export const PerformanceCards = ({ accountId }: Props) => {
       <div style={{ display: 'flex', gap: '8px' }}>
         <div style={{ ...metricCard, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left' }}>
           <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>GROSS PROFIT</span>
-          <span style={{ fontFamily: "'VT323'", fontSize: '26px', color: 'var(--green)' }}>+${metrics.grossProfit.toFixed(2)}</span>
+          <span style={{ fontFamily: "'VT323'", fontSize: '26px', color: 'var(--success)' }}>+${metrics.grossProfit.toFixed(2)}</span>
         </div>
         <div style={{ ...metricCard, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left' }}>
           <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>GROSS LOSS</span>
-          <span style={{ fontFamily: "'VT323'", fontSize: '26px', color: 'var(--red)' }}>-${metrics.grossLoss.toFixed(2)}</span>
+          <span style={{ fontFamily: "'VT323'", fontSize: '26px', color: 'var(--danger)' }}>-${metrics.grossLoss.toFixed(2)}</span>
         </div>
       </div>
     </div>
