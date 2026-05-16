@@ -65,10 +65,16 @@ export const BotList = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, [showFilter]);
 
+  // Split live / demo — MUST be declared before `filtered` useMemo
+  const liveAccounts = accounts.filter(a => !a.isDemo);
+  const demoAccounts = accounts.filter(a => a.isDemo);
+  const onlineCount = liveAccounts.filter(a => a.status === 'online').length;
+  const demoOnlineCount = demoAccounts.filter(a => a.status === 'online').length;
+
   const brokers = useMemo(() => {
-    const b = new Set(accounts.map(a => a.broker));
+    const b = new Set(liveAccounts.map(a => a.broker));
     return ['all', ...Array.from(b)];
-  }, [accounts]);
+  }, [liveAccounts]);
 
   const filtered = useMemo(() => {
     let result = [...liveAccounts];
@@ -96,17 +102,11 @@ export const BotList = () => {
       }
     });
     return result;
-  }, [accounts, botFilter]);
+  }, [liveAccounts, botFilter]);
 
   const clearFilters = () => {
     setBotFilter({ status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' });
   };
-
-  // Split live / demo
-  const liveAccounts = accounts.filter(a => !a.isDemo);
-  const demoAccounts = accounts.filter(a => a.isDemo);
-  const onlineCount = liveAccounts.filter(a => a.status === 'online').length;
-  const demoOnlineCount = demoAccounts.filter(a => a.status === 'online').length;
 
   // button style factory
   const ftabStyle = (active: boolean) => ({
