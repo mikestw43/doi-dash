@@ -29,7 +29,6 @@ export const OverviewTabs = () => {
       border: '1px solid var(--border2)',
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'hidden',
     }}>
       {/* Section header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px 0', }}>

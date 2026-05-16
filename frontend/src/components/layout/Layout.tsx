@@ -140,6 +140,9 @@ export const Layout = ({ children }: LayoutProps) => {
 
       {/* ── Bottom nav (mobile, ≤900px) ── */}
       <style>{`
+        /* Prevent flex-shrink from clipping children — main scrolls instead */
+        .main-content > * { flex-shrink: 0; }
+
         @media (max-width: 900px) {
           .sidebar-nav {
             position: fixed !important;
