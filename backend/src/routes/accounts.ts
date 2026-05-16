@@ -24,22 +24,38 @@ router.get('/', (req: AuthRequest, res: Response) => {
 });
 
 router.post('/', async (req: AuthRequest, res: Response) => {
-  const { name, broker, accountNumber, apiKey, server, currency, leverage, groupId, isDemo } = req.body as {
-    name: string; broker: string; accountNumber: string;
-    apiKey: string; server: string; currency: string; leverage: number; groupId?: string; isDemo?: boolean;
-  };
+  try {
+    const { name, broker, accountNumber, apiKey, server, currency, leverage, groupId, isDemo } = req.body as {
+      name: string; broker: string; accountNumber: string;
+      apiKey: string; server: string; currency: string; leverage: number; groupId?: string; isDemo?: boolean;
+    };
 
-  const newAccount = await runtimeStore.addAccount(req.user!.id, {
-    name, broker, accountNumber, apiKey,
-    server: server || 'Unknown', currency: currency || 'USD', leverage: leverage || 100,
-    groupId: groupId || undefined,
-    isDemo: isDemo ?? false,
-  });
-  logAudit(req.user!.id, 'create_account', 'account', newAccount.id,
-    JSON.stringify({ name, broker, accountNumber }));
+    if (!name || !accountNumber || !apiKey) {
+      res.status(400).json({ error: 'name, accountNumber and apiKey are required' });
+      return;
+    }
 
-  // Return full API key on creation (only chance to see it — will be masked after this)
-  res.status(201).json(newAccount);
+    const newAccount = await runtimeStore.addAccount(req.user!.id, {
+      name,
+      broker: broker || '',
+      accountNumber,
+      apiKey,
+      server: server || 'Unknown',
+      currency: currency || 'USD',
+      leverage: leverage || 100,
+      groupId: groupId || undefined,
+      isDemo: isDemo ?? false,
+    });
+    logAudit(req.user!.id, 'create_account', 'account', newAccount.id,
+      JSON.stringify({ name, broker, accountNumber }));
+
+    // Return full API key on creation (only chance to see it — will be masked after this)
+    res.status(201).json(newAccount);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[accounts] POST / failed:', message);
+    res.status(500).json({ error: `Failed to create account: ${message}` });
+  }
 });
 
 router.delete('/:id', async (req: AuthRequest, res: Response) => {

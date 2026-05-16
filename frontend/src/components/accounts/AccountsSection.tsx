@@ -305,8 +305,9 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
       await createAccount({ ...form, leverage: parseInt(form.leverage), isDemo: form.isDemo });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       onCreated(form.apiKey, form.name);
-    } catch {
-      addToast({ type: 'error', title: 'Failed to add account' });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to add account';
+      addToast({ type: 'error', title: msg });
       setLoading(false);
     }
   };
@@ -318,6 +319,11 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
         <div>
           <label style={lbl}>BOT NAME *</label>
           <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Gold Scalper Bot" style={inp} />
+        </div>
+        {/* BROKER */}
+        <div>
+          <label style={lbl}>BROKER</label>
+          <input type="text" value={form.broker} onChange={e => setForm(p => ({ ...p, broker: e.target.value }))} placeholder="e.g. Exness, ICMarkets" style={inp} />
         </div>
         {/* ACCOUNT NUMBER */}
         <div>
