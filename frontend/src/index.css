@@ -534,13 +534,33 @@
     padding: 10px !important;
   }
 
-  /* KPI cards: smaller shadow so it doesn't clip */
+  /* ── KPI cards: compact for mobile ── */
   .kpi-card {
-    box-shadow: 2px 2px 0 rgba(56,189,248,.3) !important;
+    box-shadow: none !important;
     padding: 10px 12px !important;
+    border-width: 1px !important;
   }
-  .kpi-card.kpi-red  { box-shadow: 2px 2px 0 rgba(239,68,68,.3) !important; }
-  .kpi-card.kpi-yellow { box-shadow: 2px 2px 0 rgba(250,204,21,.3) !important; }
+  /* Hide pixel-art corner brackets on mobile */
+  .kpi-card::before, .kpi-card::after { display: none !important; }
+
+  /* Label: switch to Share Tech Mono, bigger and readable */
+  .kpi-label {
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 9px !important;
+    letter-spacing: 0.5px !important;
+  }
+  /* Icon: hide on mobile to save space */
+  .kpi-icon { display: none !important; }
+
+  /* Value: reduce from 38px → 28px, fits 2-col without overflow */
+  .kpi-value { font-size: 28px !important; }
+
+  /* Sub text: slightly smaller */
+  .kpi-sub { font-size: 9px !important; margin-top: 3px !important; }
+
+  /* Colored border variants still visible */
+  .kpi-card.kpi-red  { border-color: var(--danger) !important; }
+  .kpi-card.kpi-yellow { border-color: var(--warning) !important; }
 
   /* Bot cards: smaller shadow */
   .bot-card {

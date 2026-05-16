@@ -19,30 +19,30 @@ interface KpiCardProps {
 const KpiCard = ({ label, icon, value, sub, barWidth = 0, barColor = 'var(--accent-blue)', variant = 'default' }: KpiCardProps) => (
   <div className={`kpi-card${variant === 'red' ? ' kpi-red' : variant === 'yellow' ? ' kpi-yellow' : ''}`}>
     {/* Header */}
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-      <span style={{
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+      <span className="kpi-label" style={{
         fontFamily: "'Press Start 2P'", fontSize: '7px',
         color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px',
       }}>{label}</span>
       {icon && (
-        <span style={{ fontSize: '13px', color: 'var(--text-muted)', opacity: .5 }}>{icon}</span>
+        <span className="kpi-icon" style={{ fontSize: '13px', color: 'var(--text-muted)', opacity: .5 }}>{icon}</span>
       )}
     </div>
 
     {/* Value */}
-    <div style={{ fontFamily: "'VT323'", fontSize: '38px', fontWeight: 400, lineHeight: 1 }}>
+    <div className="kpi-value" style={{ fontFamily: "'VT323'", fontSize: '38px', fontWeight: 400, lineHeight: 1 }}>
       {value}
     </div>
 
     {/* Sub */}
     {sub && (
-      <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px', letterSpacing: '.5px' }}>
+      <div className="kpi-sub" style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)', marginTop: '5px', letterSpacing: '.5px' }}>
         {sub}
       </div>
     )}
 
     {/* Progress bar */}
-    <div style={{ height: '2px', background: 'var(--border-color)', marginTop: '10px' }}>
+    <div style={{ height: '2px', background: 'var(--border-color)', marginTop: '8px' }}>
       <div style={{
         height: '100%', width: `${barWidth}%`,
         background: barColor,
