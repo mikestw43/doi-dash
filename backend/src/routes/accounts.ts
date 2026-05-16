@@ -24,15 +24,16 @@ router.get('/', (req: AuthRequest, res: Response) => {
 });
 
 router.post('/', async (req: AuthRequest, res: Response) => {
-  const { name, broker, accountNumber, apiKey, server, currency, leverage, groupId } = req.body as {
+  const { name, broker, accountNumber, apiKey, server, currency, leverage, groupId, isDemo } = req.body as {
     name: string; broker: string; accountNumber: string;
-    apiKey: string; server: string; currency: string; leverage: number; groupId?: string;
+    apiKey: string; server: string; currency: string; leverage: number; groupId?: string; isDemo?: boolean;
   };
 
   const newAccount = await runtimeStore.addAccount(req.user!.id, {
     name, broker, accountNumber, apiKey,
     server: server || 'Unknown', currency: currency || 'USD', leverage: leverage || 100,
     groupId: groupId || undefined,
+    isDemo: isDemo ?? false,
   });
   logAudit(req.user!.id, 'create_account', 'account', newAccount.id,
     JSON.stringify({ name, broker, accountNumber }));

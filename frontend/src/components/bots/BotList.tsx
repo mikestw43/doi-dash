@@ -71,7 +71,7 @@ export const BotList = () => {
   }, [accounts]);
 
   const filtered = useMemo(() => {
-    let result = [...accounts];
+    let result = [...liveAccounts];
     if (botFilter.status !== 'all') result = result.filter(a => a.status === botFilter.status);
     if (botFilter.broker !== 'all') result = result.filter(a => a.broker === botFilter.broker);
     if (botFilter.group !== 'all') {
@@ -102,7 +102,11 @@ export const BotList = () => {
     setBotFilter({ status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' });
   };
 
-  const onlineCount = accounts.filter(a => a.status === 'online').length;
+  // Split live / demo
+  const liveAccounts = accounts.filter(a => !a.isDemo);
+  const demoAccounts = accounts.filter(a => a.isDemo);
+  const onlineCount = liveAccounts.filter(a => a.status === 'online').length;
+  const demoOnlineCount = demoAccounts.filter(a => a.status === 'online').length;
 
   // button style factory
   const ftabStyle = (active: boolean) => ({
@@ -119,7 +123,7 @@ export const BotList = () => {
   return (
     <div>
       {/* Section header */}
-      <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${accounts.length}`} />
+      <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${liveAccounts.length}`} />
 
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', position: 'relative' }} ref={filterRef}>
@@ -238,6 +242,47 @@ export const BotList = () => {
           {filtered.map((account: Account) => (
             <BotCard key={account.id} account={account} todayPnl={todayPnlData?.[account.id] ?? 0} />
           ))}
+        </div>
+      )}
+
+      {/* ── DEMO ACCOUNTS section ── */}
+      {demoAccounts.length > 0 && (
+        <div style={{ marginTop: '24px' }}>
+          {/* Demo section header — yellow dot + SANDBOX badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <div style={{ width: '7px', height: '7px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', letterSpacing: '2px' }}>
+              DEMO ACCOUNTS
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(250,204,21,.3), transparent)' }} />
+            <span style={{
+              fontFamily: "'Press Start 2P'", fontSize: '6px',
+              color: 'var(--warning)',
+              padding: '3px 8px',
+              border: '1px solid rgba(250,204,21,.4)',
+              background: 'rgba(250,204,21,.06)',
+              letterSpacing: '.5px',
+            }}>SANDBOX</span>
+            <span style={{
+              fontFamily: "'Press Start 2P'", fontSize: '7px',
+              color: 'var(--text-muted)',
+              padding: '4px 10px',
+              border: '1px solid var(--border2)',
+            }}>{demoOnlineCount} / {demoAccounts.length}</span>
+          </div>
+
+          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '.3px' }}>
+            ⚠ Demo accounts are excluded from KPI stats and performance reports
+          </div>
+
+          <div
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}
+            className="bot-grid-responsive"
+          >
+            {demoAccounts.map((account: Account) => (
+              <BotCard key={account.id} account={account} todayPnl={todayPnlData?.[account.id] ?? 0} />
+            ))}
+          </div>
         </div>
       )}
 

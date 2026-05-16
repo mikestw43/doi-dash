@@ -14,7 +14,9 @@ const toUsd = (value: number, currency: string): number => {
 };
 
 router.get('/overview', (req: AuthRequest, res: Response) => {
-  const accounts = runtimeStore.getAccountsByUser(req.user!.id);
+  const allAccounts = runtimeStore.getAccountsByUser(req.user!.id);
+  // Exclude demo/sandbox accounts from KPI summary
+  const accounts = allAccounts.filter(a => !a.isDemo);
   const online = accounts.filter(a => a.status === 'online');
   const offline = accounts.filter(a => a.status === 'offline');
 

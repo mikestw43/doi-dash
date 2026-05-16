@@ -63,6 +63,8 @@ model Account {
   alertEquityBelow Float?
   alertMarginLevel Float?
   alertOffline     Boolean  @default(false)
+  // Demo / sandbox flag
+  isDemo             Boolean  @default(false)
   // Drawdown Protection
   protectionEnabled  Boolean  @default(false)
   protectionDrawdown Float?

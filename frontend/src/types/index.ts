@@ -62,6 +62,7 @@ export interface Account {
   groupId?: string | null;
   groupName?: string;
   groupColor?: string;
+  isDemo?: boolean;
   protectionEnabled?: boolean;
   protectionDrawdown?: number | null;
   brokerTimeOffset?: number | null;

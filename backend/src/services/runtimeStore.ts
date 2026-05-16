@@ -98,6 +98,7 @@ class RuntimeAccountStore {
         groupId: dbAcc.groupId ?? null,
         groupName: dbAcc.group?.name,
         groupColor: dbAcc.group?.color,
+        isDemo: dbAcc.isDemo,
         // If demo account, use mock data; otherwise start with defaults
         status: demo?.status ?? 'offline',
         balance: demo?.balance ?? 1000,
@@ -135,6 +136,7 @@ class RuntimeAccountStore {
   async addAccount(userId: string, accountData: {
     name: string; broker: string; accountNumber: string; apiKey: string;
     server: string; currency: string; leverage: number; groupId?: string;
+    isDemo?: boolean;
   }): Promise<Account> {
     const dbAcc = await prisma.account.create({
       data: { ...accountData, userId },
@@ -149,6 +151,7 @@ class RuntimeAccountStore {
       server: dbAcc.server,
       currency: dbAcc.currency,
       leverage: dbAcc.leverage,
+      isDemo: dbAcc.isDemo,
       status: 'offline',
       balance: 1000, equity: 1000, margin: 0, freeMargin: 1000,
       marginLevel: 9999, drawdown: 0, profit: 0,

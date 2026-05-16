@@ -60,6 +60,7 @@ export const fetchAccounts = async () => {
 export const createAccount = async (data: {
   name: string; broker: string; accountNumber: string;
   apiKey: string; server: string; currency: string; leverage: number;
+  isDemo?: boolean;
 }) => {
   const res = await api.post('/accounts', data);
   return res.data;

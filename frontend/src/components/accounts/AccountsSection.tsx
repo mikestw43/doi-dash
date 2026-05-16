@@ -282,7 +282,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
   const addToast = useUIStore(s => s.addToast);
   const [form, setForm] = useState({
     name: '', broker: '', accountNumber: '', apiKey: generateApiKey(),
-    server: '', currency: 'USD', leverage: '100',
+    server: '', currency: 'USD', leverage: '100', isDemo: false,
   });
   const [loading, setLoading] = useState(false);
 
@@ -291,7 +291,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
     if (!form.name || !form.accountNumber || !form.apiKey) { addToast({ type: 'warning', title: 'Fill in all required fields' }); return; }
     setLoading(true);
     try {
-      await createAccount({ ...form, leverage: parseInt(form.leverage) });
+      await createAccount({ ...form, leverage: parseInt(form.leverage), isDemo: form.isDemo });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       onCreated(form.apiKey, form.name);
     } catch {
@@ -334,6 +334,31 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
             <option value="JPY">JPY</option>
           </select>
         </div>
+
+        {/* Demo toggle */}
+        <label style={{
+          display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
+          padding: '8px 10px',
+          border: form.isDemo ? '1px solid rgba(250,204,21,.4)' : '1px solid var(--border2)',
+          background: form.isDemo ? 'rgba(250,204,21,.06)' : 'none',
+          transition: 'all .15s',
+        }}>
+          <input
+            type="checkbox"
+            checked={form.isDemo}
+            onChange={e => setForm(p => ({ ...p, isDemo: e.target.checked }))}
+            style={{ width: '13px', height: '13px', accentColor: 'var(--warning)', cursor: 'pointer' }}
+          />
+          <div>
+            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: form.isDemo ? 'var(--warning)' : 'var(--text-muted)', letterSpacing: '.5px' }}>
+              DEMO / SANDBOX
+            </div>
+            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', marginTop: '3px' }}>
+              Excluded from KPI stats &amp; performance reports
+            </div>
+          </div>
+        </label>
+
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
           <button type="button" onClick={onClose}
             style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>

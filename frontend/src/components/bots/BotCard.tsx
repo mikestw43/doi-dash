@@ -85,6 +85,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
   };
 
   const isOnline = account.status === 'online';
+  const isDemo = account.isDemo ?? false;
   const orderCount = typeof account.orders === 'number' ? account.orders : account.orders.length;
   const ordersArray: Order[] = Array.isArray(account.orders) ? account.orders : [];
   const rawCur = account.currency || 'USD';
@@ -100,7 +101,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
 
   return (
     <>
-      <div className={`bot-card${!isOnline ? ' bc-offline' : ''}`}>
+      <div className={`bot-card${isDemo ? ' bc-demo' : !isOnline ? ' bc-offline' : ''}`}>
 
         {/* ── bc-top ── */}
         <div style={{
@@ -114,11 +115,24 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
             <div className={isOnline ? 'sdot-on' : 'sdot-off'} />
 
             <div>
-              <div style={{
-                fontFamily: "'Press Start 2P'", fontSize: '8px', fontWeight: 400,
-                color: isOnline ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}>
-                {account.name}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{
+                  fontFamily: "'Press Start 2P'", fontSize: '8px', fontWeight: 400,
+                  color: isOnline ? 'var(--text-primary)' : 'var(--text-muted)',
+                }}>
+                  {account.name}
+                </span>
+                {isDemo && (
+                  <span style={{
+                    fontFamily: "'Press Start 2P'", fontSize: '5px',
+                    padding: '2px 5px',
+                    border: '1px solid rgba(250,204,21,.4)',
+                    color: 'var(--warning)',
+                    background: 'rgba(250,204,21,.08)',
+                    letterSpacing: '.3px',
+                    flexShrink: 0,
+                  }}>DEMO</span>
+                )}
               </div>
               <div style={{
                 fontFamily: "'Press Start 2P'", fontSize: '6px',
