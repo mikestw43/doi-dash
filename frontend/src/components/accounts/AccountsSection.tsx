@@ -241,44 +241,90 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
   const copyKey = () => {
     navigator.clipboard.writeText(apiKey);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 3000);
   };
 
   return (
-    <Dialog open onClose={onClose} title="ACCOUNT CREATED">
+    <Dialog open onClose={() => {}} title="ACCOUNT CREATED — SAVE YOUR API KEY">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ padding: '10px 12px', background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.3)', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--yellow)', lineHeight: 1.6 }}>
-          ⚠ Copy your API Key now! This is the ONLY time it will be shown in full.
+
+        {/* Warning banner */}
+        <div style={{
+          padding: '12px 14px',
+          background: 'rgba(250,204,21,.08)', border: '2px solid rgba(250,204,21,.5)',
+          fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', lineHeight: 1.8, letterSpacing: '.5px',
+          textAlign: 'center',
+        }}>
+          ⚠ THIS IS THE ONLY TIME YOUR API KEY WILL BE SHOWN.<br />
+          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', letterSpacing: 0 }}>
+            Copy it now and paste it into your MT5 EA settings.
+          </span>
         </div>
 
+        {/* Account name */}
         <div>
           <label style={lbl}>ACCOUNT</label>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text)' }}>{accountName}</div>
+          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '13px', color: 'var(--text)' }}>{accountName}</div>
         </div>
 
+        {/* API Key with large copy button */}
         <div>
-          <label style={lbl}>API KEY</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-input)', border: '1px solid var(--border2)', padding: '8px 10px' }}>
-            <code style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--cyan)', flex: 1, wordBreak: 'break-all', userSelect: 'all' }}>{apiKey}</code>
-            <button onClick={copyKey}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--green)' : 'var(--text-dim)', fontSize: '16px', lineHeight: 1, flexShrink: 0 }}>
-              {copied ? '✓' : '⎘'}
+          <label style={lbl}>API KEY — COPY AND PASTE INTO EA</label>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            background: 'var(--bg-input)', border: '2px solid var(--accent-blue)', padding: '10px 12px',
+          }}>
+            <code style={{
+              fontFamily: "'Share Tech Mono'", fontSize: '12px',
+              color: 'var(--accent-blue)', flex: 1,
+              wordBreak: 'break-all', userSelect: 'all', letterSpacing: '.5px',
+            }}>
+              {apiKey}
+            </code>
+            <button
+              onClick={copyKey}
+              style={{
+                flexShrink: 0,
+                fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 12px',
+                background: copied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.12)',
+                border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`,
+                color: copied ? 'var(--success)' : 'var(--accent-blue)',
+                cursor: 'pointer', letterSpacing: '.5px',
+                transition: 'all .2s',
+              }}
+            >
+              {copied ? '✓ COPIED' : '⎘ COPY'}
             </button>
           </div>
         </div>
 
+        {/* EA Setup instructions */}
         <div>
-          <label style={lbl}>EA SETTINGS</label>
-          <div style={{ background: 'var(--bg-input)', border: '1px solid var(--border2)', padding: '8px 10px', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', lineHeight: 1.8 }}>
-            <div>ApiKey = <span style={{ color: 'var(--cyan)' }}>{apiKey}</span></div>
-            <div>ServerURL = <span style={{ color: 'var(--text-dim)' }}>https://doi-dash-production.up.railway.app</span></div>
+          <label style={lbl}>MT5 EA SETUP</label>
+          <div style={{
+            background: 'var(--bg-input)', border: '1px solid var(--border2)',
+            padding: '10px 12px', fontFamily: "'Share Tech Mono'", fontSize: '10px',
+            color: 'var(--text-dim)', lineHeight: 2,
+          }}>
+            <div>① Attach EA to any chart in MT5</div>
+            <div>② Set <span style={{ color: 'var(--accent-blue)' }}>ApiKey</span> = <span style={{ color: 'var(--warning)' }}>{apiKey}</span></div>
+            <div>③ Set <span style={{ color: 'var(--accent-blue)' }}>ServerURL</span> = <span style={{ color: 'var(--text-dim)' }}>https://doi-dash-production.up.railway.app</span></div>
+            <div>④ Broker, account number &amp; currency will fill in automatically on first push</div>
           </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer', letterSpacing: '.5px' }}>
-            {copied ? 'DONE ✓' : 'COPIED THE KEY'}
+          <button
+            onClick={onClose}
+            style={{
+              fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px 18px',
+              background: copied ? 'var(--success)' : 'var(--accent-blue)',
+              color: '#0c1422',
+              border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`,
+              cursor: 'pointer', letterSpacing: '.5px',
+            }}
+          >
+            {copied ? 'DONE ✓' : 'I HAVE COPIED THE KEY'}
           </button>
         </div>
       </div>
@@ -287,24 +333,25 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
 };
 
 // ─── AddAccountDialog ─────────────────────────────────────────────────────────
+// Simplified: user only enters account name + demo toggle.
+// API key is auto-generated. MT5 EA fills in broker/accountNumber/server/currency/leverage on first connect.
 
 const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreated: (apiKey: string, name: string) => void }) => {
   const queryClient = useQueryClient();
   const addToast = useUIStore(s => s.addToast);
-  const [form, setForm] = useState({
-    name: '', broker: '', accountNumber: '', apiKey: generateApiKey(),
-    server: '', currency: 'USD', leverage: '100', isDemo: false,
-  });
+  const [name, setName] = useState('');
+  const [isDemo, setIsDemo] = useState(false);
+  const [apiKey] = useState(generateApiKey);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.accountNumber || !form.apiKey) { addToast({ type: 'warning', title: 'Fill in all required fields' }); return; }
+    if (!name.trim()) { addToast({ type: 'warning', title: 'Enter an account name' }); return; }
     setLoading(true);
     try {
-      await createAccount({ ...form, leverage: parseInt(form.leverage), isDemo: form.isDemo });
+      await createAccount({ name: name.trim(), apiKey, isDemo });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      onCreated(form.apiKey, form.name);
+      onCreated(apiKey, name.trim());
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to add account';
       addToast({ type: 'error', title: msg });
@@ -314,65 +361,48 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
 
   return (
     <Dialog open onClose={onClose} title="ADD NEW ACCOUNT">
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* BOT NAME */}
-        <div>
-          <label style={lbl}>BOT NAME *</label>
-          <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Gold Scalper Bot" style={inp} />
-        </div>
-        {/* BROKER */}
-        <div>
-          <label style={lbl}>BROKER</label>
-          <input type="text" value={form.broker} onChange={e => setForm(p => ({ ...p, broker: e.target.value }))} placeholder="e.g. Exness, ICMarkets" style={inp} />
-        </div>
-        {/* ACCOUNT NUMBER */}
-        <div>
-          <label style={lbl}>ACCOUNT NUMBER *</label>
-          <input type="text" value={form.accountNumber} onChange={e => setForm(p => ({ ...p, accountNumber: e.target.value }))} placeholder="123456" style={inp} />
-        </div>
-        <div>
-          <label style={lbl}>API KEY *</label>
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <input type="text" value={form.apiKey} onChange={e => setForm(p => ({ ...p, apiKey: e.target.value }))}
-              placeholder="snl_xxxxxxxx_xxxx_xxxx_xxxxxxxxxxxx" style={{ ...inp, flex: 1, width: 'auto' }} />
-            <button type="button" onClick={() => setForm(p => ({ ...p, apiKey: generateApiKey() }))}
-              style={{ fontFamily: "'Share Tech Mono'", fontSize: '14px', padding: '7px 10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
-              ↻
-            </button>
-          </div>
-        </div>
-        <div>
-          <label style={lbl}>CURRENCY</label>
-          <select value={form.currency} onChange={e => setForm(p => ({ ...p, currency: e.target.value }))}
-            style={{ ...inp, cursor: 'pointer' }}>
-            <option value="USD">USD</option>
-            <option value="USDC">USDC (Cent)</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-            <option value="JPY">JPY</option>
-          </select>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+        {/* Info banner */}
+        <div style={{ padding: '8px 10px', background: 'rgba(56,189,248,.06)', border: '1px solid rgba(56,189,248,.2)', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+          ℹ Broker, account number, server &amp; currency will be filled automatically when your MT5 EA connects.
         </div>
 
-        {/* Demo toggle */}
+        {/* Account Name */}
+        <div>
+          <label style={lbl}>ACCOUNT NAME *</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="e.g. Gold Scalper Bot"
+            style={inp}
+            autoFocus
+          />
+        </div>
+
+        {/* Demo / Live toggle */}
         <label style={{
           display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-          padding: '8px 10px',
-          border: form.isDemo ? '1px solid rgba(250,204,21,.4)' : '1px solid var(--border2)',
-          background: form.isDemo ? 'rgba(250,204,21,.06)' : 'none',
+          padding: '10px 12px',
+          border: isDemo ? '1px solid rgba(250,204,21,.4)' : '1px solid var(--border2)',
+          background: isDemo ? 'rgba(250,204,21,.06)' : 'rgba(34,197,94,.04)',
           transition: 'all .15s',
         }}>
           <input
             type="checkbox"
-            checked={form.isDemo}
-            onChange={e => setForm(p => ({ ...p, isDemo: e.target.checked }))}
-            style={{ width: '13px', height: '13px', accentColor: 'var(--warning)', cursor: 'pointer' }}
+            checked={isDemo}
+            onChange={e => setIsDemo(e.target.checked)}
+            style={{ width: '14px', height: '14px', accentColor: 'var(--warning)', cursor: 'pointer', flexShrink: 0 }}
           />
           <div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: form.isDemo ? 'var(--warning)' : 'var(--text-muted)', letterSpacing: '.5px' }}>
-              DEMO / SANDBOX
+            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: isDemo ? 'var(--warning)' : 'var(--success)', letterSpacing: '.5px' }}>
+              {isDemo ? '⬛ DEMO / SANDBOX' : '▶ LIVE ACCOUNT'}
             </div>
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', marginTop: '3px' }}>
-              Excluded from KPI stats &amp; performance reports
+            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              {isDemo
+                ? 'Excluded from KPI stats & performance reports'
+                : 'Included in all statistics and reports'}
             </div>
           </div>
         </label>
@@ -382,8 +412,8 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
             style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
             CANCEL
           </button>
-          <button type="submit" disabled={loading}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: loading ? .6 : 1 }}>
+          <button type="submit" disabled={loading || !name.trim()}
+            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
             {loading ? 'ADDING...' : 'ADD ACCOUNT'}
           </button>
         </div>

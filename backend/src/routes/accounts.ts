@@ -30,15 +30,15 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       apiKey: string; server: string; currency: string; leverage: number; groupId?: string; isDemo?: boolean;
     };
 
-    if (!name || !accountNumber || !apiKey) {
-      res.status(400).json({ error: 'name, accountNumber and apiKey are required' });
+    if (!name || !apiKey) {
+      res.status(400).json({ error: 'name and apiKey are required' });
       return;
     }
 
     const newAccount = await runtimeStore.addAccount(req.user!.id, {
       name,
       broker: broker || '',
-      accountNumber,
+      accountNumber: accountNumber || '',
       apiKey,
       server: server || 'Unknown',
       currency: currency || 'USD',

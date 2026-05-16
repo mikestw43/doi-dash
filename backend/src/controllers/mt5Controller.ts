@@ -7,6 +7,7 @@ import { sendCloseAllNotification } from '../services/commandNotifier';
 import { detectClosedTrades, recordClosedDeals } from '../services/tradeHistoryService';
 import { recordSnapshot } from '../services/equityService';
 import { markAsReal, unmarkAsReal } from '../mock/simulator';
+import prisma from '../lib/prisma';
 import type { Account, Order, PendingOrder } from '../mock/data';
 
 interface MT5PushPayload {
@@ -143,11 +144,35 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     pendingOrders: pending.length,
     orders,
     pending,
+    // Update runtime fields from MT5 push (always take latest from EA)
     ...(payload.broker && { broker: payload.broker }),
     ...(payload.server && { server: payload.server }),
     ...(payload.leverage && { leverage: payload.leverage }),
+    ...(payload.currency && { currency: payload.currency }),
+    ...(payload.accountNumber && { accountNumber: payload.accountNumber }),
     ...(payload.brokerTimeOffset != null && { brokerTimeOffset: payload.brokerTimeOffset }),
   };
+
+  // Persist MT5 account details to DB if they were empty (first-time connection)
+  const needsDbUpdate =
+    (payload.accountNumber && (!account.accountNumber || account.accountNumber === '')) ||
+    (payload.broker        && (!account.broker        || account.broker        === '')) ||
+    (payload.currency      && (!account.currency      || account.currency      === 'USD')) ||
+    (payload.server        && (!account.server        || account.server        === 'Unknown')) ||
+    (payload.leverage      && (!account.leverage      || account.leverage      === 100));
+
+  if (needsDbUpdate) {
+    prisma.account.update({
+      where: { id: account.id },
+      data: {
+        ...(payload.accountNumber && { accountNumber: payload.accountNumber }),
+        ...(payload.broker        && { broker: payload.broker }),
+        ...(payload.currency      && { currency: payload.currency }),
+        ...(payload.server        && { server: payload.server }),
+        ...(payload.leverage      && { leverage: payload.leverage }),
+      },
+    }).catch(err => console.error('[MT5] Failed to persist account details:', err.message));
+  }
 
   // Record closed trades: prefer EA-reported deals (exact P/L), fallback to position diff
   if (payload.closedDeals && payload.closedDeals.length > 0) {

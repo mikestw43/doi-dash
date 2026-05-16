@@ -13,7 +13,8 @@ router.use(adminMiddleware);
 router.get('/users', async (_req: AuthRequest, res: Response) => {
   const users = await prisma.user.findMany({
     select: {
-      id: true, email: true, name: true, role: true, status: true, createdAt: true,
+      id: true, email: true, name: true, mobile: true, phoneCountry: true,
+      role: true, status: true, createdAt: true,
       _count: { select: { accounts: true } },
     },
     orderBy: { createdAt: 'asc' },
@@ -104,8 +105,8 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
 // PATCH /api/admin/users/:id/status
 router.patch('/users/:id/status', async (req: AuthRequest, res: Response) => {
   const { status } = req.body as { status: string };
-  if (!status || !['active', 'pending', 'rejected'].includes(status)) {
-    res.status(400).json({ error: 'Status must be active, pending, or rejected' });
+  if (!status || !['active', 'pending', 'rejected', 'suspended'].includes(status)) {
+    res.status(400).json({ error: 'Status must be active, pending, rejected, or suspended' });
     return;
   }
   const paramId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;

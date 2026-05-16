@@ -12,8 +12,10 @@ model User {
   email            String    @unique
   password         String
   name             String?
+  mobile           String?
+  phoneCountry     String?
   role             String    @default("user")
-  status           String    @default("active") // 'active' | 'pending' | 'rejected'
+  status           String    @default("active") // 'active' | 'pending' | 'rejected' | 'suspended'
   telegramBotToken String?
   telegramChatId   String?
   // Scheduled Reports

@@ -31,7 +31,10 @@ export const login = async (email: string, password: string) => {
   return res.data as { token: string; user: { id: string; email: string; role: string; name: string | null } };
 };
 
-export const register = async (data: { email: string; password: string; name?: string }) => {
+export const register = async (data: {
+  email: string; password: string; name?: string;
+  mobile?: string; phoneCountry?: string;
+}) => {
   const res = await api.post('/auth/register', data);
   return res.data as { message: string };
 };
@@ -58,9 +61,8 @@ export const fetchAccounts = async () => {
 };
 
 export const createAccount = async (data: {
-  name: string; broker: string; accountNumber: string;
-  apiKey: string; server: string; currency: string; leverage: number;
-  isDemo?: boolean;
+  name: string; apiKey: string; isDemo?: boolean;
+  broker?: string; accountNumber?: string; server?: string; currency?: string; leverage?: number;
 }) => {
   const res = await api.post('/accounts', data);
   return res.data;
@@ -164,7 +166,7 @@ export const changeUserRole = async (id: string, role: string) => {
   return res.data;
 };
 
-export const changeUserStatus = async (id: string, status: 'active' | 'pending' | 'rejected') => {
+export const changeUserStatus = async (id: string, status: 'active' | 'pending' | 'rejected' | 'suspended') => {
   const res = await api.patch(`/admin/users/${id}/status`, { status });
   return res.data;
 };

@@ -8,9 +8,16 @@ import { AuditLogViewer } from './AuditLogViewer';
 import type { UserInfo } from '../../types';
 
 const ROLE_COLOR: Record<string, { border: string; color: string; bg: string }> = {
-  admin: { border: 'rgba(56,189,248,.4)',  color: 'var(--cyan)',   bg: 'rgba(56,189,248,.08)' },
-  vip:   { border: 'rgba(250,204,21,.4)',  color: 'var(--yellow)', bg: 'rgba(250,204,21,.07)' },
-  user:  { border: 'var(--border2)',       color: 'var(--text-dim)', bg: 'none' },
+  admin: { border: 'rgba(56,189,248,.4)',  color: 'var(--accent-blue)', bg: 'rgba(56,189,248,.08)' },
+  vip:   { border: 'rgba(250,204,21,.4)',  color: 'var(--warning)',     bg: 'rgba(250,204,21,.07)' },
+  user:  { border: 'var(--border2)',       color: 'var(--text-dim)',    bg: 'none' },
+};
+
+const STATUS_META: Record<string, { color: string; dot: string; label: string }> = {
+  active:    { color: 'var(--success)', dot: 'var(--success)', label: 'ACTIVE' },
+  pending:   { color: 'var(--warning)', dot: 'var(--warning)', label: 'PENDING' },
+  rejected:  { color: 'var(--danger)',  dot: 'var(--danger)',  label: 'REJECTED' },
+  suspended: { color: 'var(--warning)', dot: 'var(--warning)', label: 'SUSPENDED' },
 };
 
 const roleBadge = (role: string) => {
@@ -18,6 +25,16 @@ const roleBadge = (role: string) => {
   return (
     <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '3px 8px', border: `1px solid ${r.border}`, color: r.color, background: r.bg }}>
       {role.toUpperCase()}
+    </span>
+  );
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const m = STATUS_META[status] || STATUS_META.active;
+  return (
+    <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: m.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.dot, display: 'inline-block', flexShrink: 0 }} />
+      {m.label}
     </span>
   );
 };
@@ -33,6 +50,7 @@ export const UserManagement = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [suspendId, setSuspendId] = useState<string | null>(null);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
@@ -82,20 +100,29 @@ export const UserManagement = () => {
   });
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'active' | 'pending' | 'rejected' }) => changeUserStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: 'active' | 'pending' | 'rejected' | 'suspended' }) =>
+      changeUserStatus(id, status),
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      addToast({ type: 'success', title: vars.status === 'active' ? 'User approved' : 'User rejected' });
+      setSuspendId(null);
+      const label =
+        vars.status === 'active' ? 'User approved / activated' :
+        vars.status === 'rejected' ? 'User rejected' :
+        vars.status === 'suspended' ? 'User suspended' : 'Status updated';
+      addToast({ type: 'success', title: label });
     },
     onError: () => { addToast({ type: 'error', title: 'Failed to update status' }); },
   });
 
-  const deleteTarget = users.find(u => u.id === deleteId);
+  const deleteTarget  = users.find(u => u.id === deleteId);
+  const suspendTarget = users.find(u => u.id === suspendId);
 
   const pendingUsers = users.filter(u => u.status === 'pending');
+
   const filteredUsers = users.filter(u => {
-    if (u.status === 'pending') return false; // pending shown separately
+    if (u.status === 'pending') return false; // shown in separate section
     if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+    if (statusFilter !== 'all' && u.status !== statusFilter) return false;
     return true;
   });
 
@@ -111,24 +138,24 @@ export const UserManagement = () => {
   const tabBtn = (active: boolean) => ({
     padding: '9px 20px',
     fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
-    color: active ? 'var(--cyan)' : 'var(--text-dim)',
-    background: 'none', border: 'none', borderBottom: `2px solid ${active ? 'var(--cyan)' : 'transparent'}`,
+    color: active ? 'var(--accent-blue)' : 'var(--text-dim)',
+    background: 'none', border: 'none', borderBottom: `2px solid ${active ? 'var(--accent-blue)' : 'transparent'}`,
     cursor: 'pointer', transition: 'all .15s',
   } as React.CSSProperties);
 
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
       {/* Back */}
       <button
         onClick={() => setCurrentPage('dashboard')}
-        style={{ background: 'none', border: 'none', color: 'var(--cyan)', fontFamily: "'Press Start 2P'", fontSize: '7px', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
+        style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontFamily: "'Press Start 2P'", fontSize: '7px', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
       >
         ← BACK
       </button>
 
       {/* Section title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
+        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
         <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>ADMIN</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
@@ -158,12 +185,11 @@ export const UserManagement = () => {
               padding: '10px 14px', borderBottom: '1px solid var(--border2)',
               flexWrap: 'wrap', gap: '8px',
             }}>
-              {/* Filters */}
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <select
                   value={roleFilter}
                   onChange={e => setRoleFilter(e.target.value)}
-                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 28px 6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
                 >
                   <option value="all">All Roles</option>
                   <option value="admin">Admin</option>
@@ -173,17 +199,17 @@ export const UserManagement = () => {
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 28px 6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
                   <option value="suspended">Suspended</option>
+                  <option value="rejected">Rejected</option>
                 </select>
               </div>
-              {/* + CREATE USER */}
               <button
                 onClick={() => setShowAddDialog(true)}
-                style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--cyan)', border: '1px solid var(--cyan)', cursor: 'pointer' }}
+                style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
               >
                 + CREATE USER
               </button>
@@ -193,11 +219,11 @@ export const UserManagement = () => {
             {pendingUsers.length > 0 && (
               <div style={{ borderBottom: '1px solid var(--border2)', padding: '12px 14px', background: 'rgba(250,204,21,.04)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                  <div style={{ width: '6px', height: '6px', background: 'var(--yellow)', boxShadow: '0 0 6px var(--yellow)' }} />
-                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--yellow)', letterSpacing: '1px' }}>
+                  <div style={{ width: '6px', height: '6px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)' }} />
+                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', letterSpacing: '1px' }}>
                     PENDING APPROVAL
                   </span>
-                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--yellow)', padding: '3px 8px', border: '1px solid rgba(250,204,21,.4)' }}>
+                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', padding: '3px 8px', border: '1px solid rgba(250,204,21,.4)' }}>
                     {pendingUsers.length}
                   </span>
                 </div>
@@ -216,6 +242,11 @@ export const UserManagement = () => {
                         <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
                           {u.email}
                         </span>
+                        {u.mobile && (
+                          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
+                            📱 {u.phoneCountry} {u.mobile}
+                          </span>
+                        )}
                         <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
                           Registered: {new Date(u.createdAt).toLocaleDateString()}
                         </span>
@@ -247,7 +278,7 @@ export const UserManagement = () => {
               {isLoading ? (
                 <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Loading...</div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '780px' }}>
                   <thead>
                     <tr style={{ background: 'var(--bg-card2)' }}>
                       <th style={thStyle}>USER</th>
@@ -261,10 +292,18 @@ export const UserManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
+                    {filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan={8} style={{ ...tdStyle, textAlign: 'center', padding: '24px', color: 'var(--text-dim)' }}>
+                          No users match the current filter
+                        </td>
+                      </tr>
+                    )}
                     {filteredUsers.map(user => {
                       const initials = (user.name || user.email).slice(0, 2).toUpperCase();
                       const rc = ROLE_COLOR[user.role] || ROLE_COLOR.user;
                       const isSelf = user.id === currentUserId;
+                      const isSuspended = user.status === 'suspended';
                       return (
                         <tr key={user.id}
                           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
@@ -282,7 +321,12 @@ export const UserManagement = () => {
                           {/* EMAIL */}
                           <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>{user.email}</td>
                           {/* MOBILE */}
-                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>—</td>
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)' }}>
+                            {user.mobile
+                              ? `${user.phoneCountry || ''} ${user.mobile}`.trim()
+                              : <span style={{ opacity: .4 }}>—</span>
+                            }
+                          </td>
                           {/* ROLE */}
                           <td style={tdStyle}>
                             <button
@@ -298,36 +342,47 @@ export const UserManagement = () => {
                             </button>
                           </td>
                           {/* ACCOUNTS */}
-                          <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--cyan)' }}>
+                          <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--accent-blue)' }}>
                             {user._count.accounts}
                           </td>
                           {/* CREATED */}
                           <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }}>
                             {new Date(user.createdAt).toLocaleDateString()}
                           </td>
-                          {/* STATUS */}
+                          {/* STATUS — actual value from DB */}
                           <td style={tdStyle}>
-                            <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--green)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--green)', display: 'inline-block', flexShrink: 0 }} />
-                              ACTIVE
-                            </span>
+                            <StatusBadge status={user.status} />
                           </td>
                           {/* ACTIONS */}
                           <td style={{ ...tdStyle, textAlign: 'right' }}>
                             <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                              <button
-                                onClick={() => { /* edit placeholder */ }}
-                                style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid var(--border2)', color: 'var(--text-dim)', background: 'none', cursor: 'pointer', letterSpacing: '.5px' }}
-                              >
-                                EDIT
-                              </button>
                               {!isSelf && (
-                                <button
-                                  onClick={() => setDeleteId(user.id)}
-                                  style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid rgba(250,204,21,.4)', color: 'var(--yellow)', background: 'rgba(250,204,21,.06)', cursor: 'pointer', letterSpacing: '.5px' }}
-                                >
-                                  SUSPEND
-                                </button>
+                                <>
+                                  {isSuspended ? (
+                                    /* Re-activate suspended user */
+                                    <button
+                                      onClick={() => statusMutation.mutate({ id: user.id, status: 'active' })}
+                                      disabled={statusMutation.isPending}
+                                      style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(34,197,94,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
+                                    >
+                                      ACTIVATE
+                                    </button>
+                                  ) : (
+                                    /* Suspend active user */
+                                    <button
+                                      onClick={() => setSuspendId(user.id)}
+                                      style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid rgba(250,204,21,.4)', color: 'var(--warning)', background: 'rgba(250,204,21,.06)', cursor: 'pointer', letterSpacing: '.5px' }}
+                                    >
+                                      SUSPEND
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setDeleteId(user.id)}
+                                    style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--danger)', background: 'rgba(239,68,68,.06)', cursor: 'pointer', letterSpacing: '.5px' }}
+                                  >
+                                    DELETE
+                                  </button>
+                                </>
                               )}
                             </div>
                           </td>
@@ -370,9 +425,32 @@ export const UserManagement = () => {
             <button
               onClick={() => createMutation.mutate({ email: newEmail, password: newPassword, name: newName || undefined, role: newRole })}
               disabled={!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
             >
               {createMutation.isPending ? '...' : 'CREATE'}
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* Suspend Confirm Dialog */}
+      <Dialog open={!!suspendId} onClose={() => setSuspendId(null)} title="SUSPEND USER">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', lineHeight: 1.6 }}>
+            Suspend <span style={{ color: 'var(--warning)' }}>{suspendTarget?.email}</span>?<br />
+            They will not be able to log in until reactivated.
+          </p>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={() => setSuspendId(null)}
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              CANCEL
+            </button>
+            <button
+              onClick={() => suspendId && statusMutation.mutate({ id: suspendId, status: 'suspended' })}
+              disabled={statusMutation.isPending}
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'rgba(250,204,21,.15)', color: 'var(--warning)', border: '1px solid rgba(250,204,21,.5)', cursor: 'pointer', opacity: statusMutation.isPending ? .5 : 1 }}
+            >
+              {statusMutation.isPending ? '...' : 'SUSPEND'}
             </button>
           </div>
         </div>
@@ -382,8 +460,9 @@ export const UserManagement = () => {
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} title="DELETE USER">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', lineHeight: 1.6 }}>
-            Delete <span style={{ color: 'var(--cyan)' }}>{deleteTarget?.email}</span>?
+            Permanently delete <span style={{ color: 'var(--danger)' }}>{deleteTarget?.email}</span>?
             <br />This will also remove {deleteTarget?._count.accounts || 0} account{deleteTarget?._count.accounts !== 1 ? 's' : ''}.
+            <br /><span style={{ color: 'var(--danger)', fontSize: '10px' }}>⚠ This action cannot be undone.</span>
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setDeleteId(null)}
@@ -393,7 +472,7 @@ export const UserManagement = () => {
             <button
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               disabled={deleteMutation.isPending}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: 'pointer', opacity: deleteMutation.isPending ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--danger)', color: '#fff', border: '1px solid var(--danger)', cursor: 'pointer', opacity: deleteMutation.isPending ? .5 : 1 }}
             >
               {deleteMutation.isPending ? '...' : 'DELETE'}
             </button>

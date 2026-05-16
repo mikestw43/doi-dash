@@ -141,8 +141,10 @@ export interface UserInfo {
   id: string;
   email: string;
   name: string | null;
+  mobile: string | null;
+  phoneCountry: string | null;
   role: string;
-  status: string;   // 'active' | 'pending' | 'rejected'
+  status: string;   // 'active' | 'pending' | 'rejected' | 'suspended'
   createdAt: string;
   _count: { accounts: number };
 }

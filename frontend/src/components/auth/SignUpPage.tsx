@@ -1,28 +1,61 @@
 import { useState, type FormEvent } from 'react';
 import { register } from '../../services/api';
 
+// Common country codes
+const COUNTRY_CODES = [
+  { code: '+66', flag: '🇹🇭', name: 'Thailand' },
+  { code: '+1',  flag: '🇺🇸', name: 'USA / Canada' },
+  { code: '+44', flag: '🇬🇧', name: 'UK' },
+  { code: '+61', flag: '🇦🇺', name: 'Australia' },
+  { code: '+65', flag: '🇸🇬', name: 'Singapore' },
+  { code: '+60', flag: '🇲🇾', name: 'Malaysia' },
+  { code: '+62', flag: '🇮🇩', name: 'Indonesia' },
+  { code: '+63', flag: '🇵🇭', name: 'Philippines' },
+  { code: '+84', flag: '🇻🇳', name: 'Vietnam' },
+  { code: '+86', flag: '🇨🇳', name: 'China' },
+  { code: '+81', flag: '🇯🇵', name: 'Japan' },
+  { code: '+82', flag: '🇰🇷', name: 'South Korea' },
+  { code: '+91', flag: '🇮🇳', name: 'India' },
+  { code: '+971', flag: '🇦🇪', name: 'UAE' },
+  { code: '+7',  flag: '🇷🇺', name: 'Russia' },
+  { code: '+49', flag: '🇩🇪', name: 'Germany' },
+  { code: '+33', flag: '🇫🇷', name: 'France' },
+  { code: '+55', flag: '🇧🇷', name: 'Brazil' },
+];
+
 interface Props {
   onBack: () => void;
 }
 
 export const SignUpPage = ({ onBack }: Props) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [done, setDone] = useState(false);
+  const [name, setName]               = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail]             = useState('');
+  const [phoneCountry, setPhoneCountry] = useState('+66');
+  const [mobile, setMobile]           = useState('');
+  const [password, setPassword]       = useState('');
+  const [confirm, setConfirm]         = useState('');
+  const [agreed, setAgreed]           = useState(false);
+  const [showPw, setShowPw]           = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
+  const [done, setDone]               = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     if (password !== confirm) { setError('Passwords do not match'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (!agreed) { setError('Please agree to the Terms & Conditions'); return; }
     setLoading(true);
     try {
-      await register({ email, password, name: name || undefined });
+      await register({
+        email,
+        password,
+        name: name || displayName || undefined,
+        mobile: mobile ? mobile : undefined,
+        phoneCountry: mobile ? phoneCountry : undefined,
+      });
       setDone(true);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Registration failed';
@@ -49,6 +82,8 @@ export const SignUpPage = ({ onBack }: Props) => {
     color: 'var(--text-muted)', display: 'block',
     marginBottom: '4px', letterSpacing: '1px',
   };
+  const focusOn  = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.target.style.borderColor = 'var(--accent-blue)');
+  const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => (e.target.style.borderColor = 'var(--border2)');
 
   return (
     <div
@@ -124,17 +159,33 @@ export const SignUpPage = ({ onBack }: Props) => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} autoComplete="off">
-            {/* Name */}
+
+            {/* Full Name */}
             <div style={{ marginBottom: '11px' }}>
-              <label style={lbl}>NAME (OPTIONAL)</label>
+              <label style={lbl}>FULL NAME *</label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                placeholder="Your name"
+                placeholder="Your full name"
+                required
                 style={inp}
-                onFocus={e => (e.target.style.borderColor = 'var(--accent-blue)')}
-                onBlur={e => (e.target.style.borderColor = 'var(--border2)')}
+                onFocus={focusOn}
+                onBlur={focusOff}
+              />
+            </div>
+
+            {/* Display Name */}
+            <div style={{ marginBottom: '11px' }}>
+              <label style={lbl}>DISPLAY NAME <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', opacity: .6 }}>(optional)</span></label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder="Nickname / alias"
+                style={inp}
+                onFocus={focusOn}
+                onBlur={focusOff}
               />
             </div>
 
@@ -148,9 +199,43 @@ export const SignUpPage = ({ onBack }: Props) => {
                 placeholder="trader@example.com"
                 required
                 style={inp}
-                onFocus={e => (e.target.style.borderColor = 'var(--accent-blue)')}
-                onBlur={e => (e.target.style.borderColor = 'var(--border2)')}
+                onFocus={focusOn}
+                onBlur={focusOff}
               />
+            </div>
+
+            {/* Mobile */}
+            <div style={{ marginBottom: '11px' }}>
+              <label style={lbl}>MOBILE <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', opacity: .6 }}>(optional)</span></label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <select
+                  value={phoneCountry}
+                  onChange={e => setPhoneCountry(e.target.value)}
+                  style={{
+                    ...inp,
+                    width: 'auto', flexShrink: 0,
+                    padding: '9px 8px',
+                    cursor: 'pointer',
+                  }}
+                  onFocus={focusOn}
+                  onBlur={focusOff}
+                >
+                  {COUNTRY_CODES.map(c => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  value={mobile}
+                  onChange={e => setMobile(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="0812345678"
+                  style={{ ...inp, flex: 1 }}
+                  onFocus={focusOn}
+                  onBlur={focusOff}
+                />
+              </div>
             </div>
 
             {/* Password */}
@@ -164,8 +249,8 @@ export const SignUpPage = ({ onBack }: Props) => {
                   placeholder="Min 6 characters"
                   required
                   style={{ ...inp, paddingRight: '36px' }}
-                  onFocus={e => (e.target.style.borderColor = 'var(--accent-blue)')}
-                  onBlur={e => (e.target.style.borderColor = 'var(--border2)')}
+                  onFocus={focusOn}
+                  onBlur={focusOff}
                 />
                 <button
                   type="button"
@@ -191,9 +276,40 @@ export const SignUpPage = ({ onBack }: Props) => {
                 placeholder="Re-enter password"
                 required
                 style={inp}
-                onFocus={e => (e.target.style.borderColor = 'var(--accent-blue)')}
-                onBlur={e => (e.target.style.borderColor = 'var(--border2)')}
+                onFocus={focusOn}
+                onBlur={focusOff}
               />
+            </div>
+
+            {/* Terms & Conditions */}
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{
+                display: 'flex', alignItems: 'flex-start', gap: '10px',
+                cursor: 'pointer',
+              }}>
+                <div
+                  onClick={() => setAgreed(a => !a)}
+                  style={{
+                    width: '16px', height: '16px', flexShrink: 0, marginTop: '1px',
+                    border: `2px solid ${agreed ? 'var(--accent-blue)' : 'var(--border2)'}`,
+                    background: agreed ? 'var(--accent-blue)' : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'all .15s',
+                  }}
+                >
+                  {agreed && <span style={{ color: '#0c1422', fontSize: '11px', fontWeight: 'bold', lineHeight: 1 }}>✓</span>}
+                </div>
+                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                  I agree to the{' '}
+                  <span style={{ color: 'var(--accent-blue)', textDecoration: 'underline', cursor: 'pointer' }}>
+                    Terms &amp; Conditions
+                  </span>
+                  {' '}and{' '}
+                  <span style={{ color: 'var(--accent-blue)', textDecoration: 'underline', cursor: 'pointer' }}>
+                    Privacy Policy
+                  </span>
+                </span>
+              </label>
             </div>
 
             {/* Error */}
@@ -223,16 +339,16 @@ export const SignUpPage = ({ onBack }: Props) => {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !agreed}
               style={{
                 width: '100%', padding: '11px',
-                background: loading ? 'rgba(56,189,248,.5)' : 'var(--accent-blue)',
+                background: (loading || !agreed) ? 'rgba(56,189,248,.4)' : 'var(--accent-blue)',
                 color: '#050d18',
                 fontFamily: "'Press Start 2P'", fontSize: '8px',
                 letterSpacing: '1px', border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: 'var(--glow-cyan)',
-                transition: 'opacity .15s',
+                cursor: (loading || !agreed) ? 'not-allowed' : 'pointer',
+                boxShadow: agreed ? 'var(--glow-cyan)' : 'none',
+                transition: 'all .15s',
                 marginBottom: '10px',
               }}
             >

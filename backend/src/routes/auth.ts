@@ -30,6 +30,10 @@ router.post('/login', async (req: Request, res: Response) => {
     res.status(403).json({ error: 'Your account registration was rejected.' });
     return;
   }
+  if (user.status === 'suspended') {
+    res.status(403).json({ error: 'Your account has been suspended. Please contact an administrator.' });
+    return;
+  }
 
   const token = generateToken({ id: user.id, email: user.email, role: user.role });
   logAudit(user.id, 'login', 'user', user.id);
@@ -38,7 +42,9 @@ router.post('/login', async (req: Request, res: Response) => {
 
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
-  const { email, password, name } = req.body as { email: string; password: string; name?: string };
+  const { email, password, name, mobile, phoneCountry } = req.body as {
+    email: string; password: string; name?: string; mobile?: string; phoneCountry?: string;
+  };
   if (!email || !password) {
     res.status(400).json({ error: 'Email and password are required' });
     return;
@@ -54,7 +60,11 @@ router.post('/register', async (req: Request, res: Response) => {
   }
   const hash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { email, password: hash, name: name || null, role: 'user', status: 'pending' },
+    data: {
+      email, password: hash, name: name || null,
+      mobile: mobile || null, phoneCountry: phoneCountry || null,
+      role: 'user', status: 'pending',
+    },
   });
   res.status(201).json({ message: 'Registration submitted. Please wait for admin approval.' });
 });
