@@ -235,6 +235,8 @@ export const fetchTradeHistory = async (params: {
   type?: string;
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
+  dateFrom?: string;
+  dateTo?: string;
 }): Promise<TradeHistoryResponse> => {
   const res = await api.get('/analytics/trades', { params });
   return res.data;

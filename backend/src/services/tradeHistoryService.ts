@@ -157,6 +157,8 @@ interface TradeQueryParams {
   type?: string;
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 /**
@@ -167,7 +169,7 @@ export const getTradeHistory = async (
   accountId?: string,
   params: TradeQueryParams = {},
 ) => {
-  const { page = 1, limit = 25, symbol, type, sortBy = 'closeTime', sortDir = 'desc' } = params;
+  const { page = 1, limit = 25, symbol, type, sortBy = 'closeTime', sortDir = 'desc', dateFrom, dateTo } = params;
 
   const where: Record<string, unknown> = {
     account: { userId },
@@ -175,6 +177,12 @@ export const getTradeHistory = async (
   if (accountId) where.accountId = accountId;
   if (symbol) where.symbol = { contains: symbol };
   if (type) where.type = type;
+  if (dateFrom || dateTo) {
+    where.closeTime = {
+      ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+      ...(dateTo   ? { lte: new Date(dateTo + 'T23:59:59.999Z') } : {}),
+    };
+  }
 
   const [trades, total] = await Promise.all([
     prisma.closedTrade.findMany({

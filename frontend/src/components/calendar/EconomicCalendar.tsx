@@ -230,10 +230,11 @@ export const EconomicCalendar = () => {
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px',
-    padding: '6px 12px', cursor: 'pointer', border: 'none',
-    background: active ? 'var(--cyan)' : 'none',
-    color: active ? '#0c1422' : 'var(--text-dim)',
-    transition: 'background .15s, color .15s',
+    padding: '6px 12px', cursor: 'pointer',
+    border: active ? '1px solid var(--success)' : '1px solid transparent',
+    background: active ? 'rgba(34,197,94,.08)' : 'none',
+    color: active ? 'var(--success)' : 'var(--text-dim)',
+    transition: 'all .15s',
   });
 
   const impactBtn = (active: boolean): React.CSSProperties => ({

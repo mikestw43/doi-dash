@@ -27,9 +27,9 @@ router.get('/equity/:accountId', async (req: AuthRequest, res: Response) => {
   res.json(snapshots);
 });
 
-// GET /api/analytics/trades?accountId=&page=&limit=&symbol=&type=&sortBy=&sortDir=
+// GET /api/analytics/trades?accountId=&page=&limit=&symbol=&type=&sortBy=&sortDir=&dateFrom=&dateTo=
 router.get('/trades', async (req: AuthRequest, res: Response) => {
-  const { accountId, page, limit, symbol, type, sortBy, sortDir } = req.query as Record<string, string>;
+  const { accountId, page, limit, symbol, type, sortBy, sortDir, dateFrom, dateTo } = req.query as Record<string, string>;
 
   const result = await getTradeHistory(req.user!.id, accountId || undefined, {
     page: page ? parseInt(page) : undefined,
@@ -38,6 +38,8 @@ router.get('/trades', async (req: AuthRequest, res: Response) => {
     type: type || undefined,
     sortBy: sortBy || undefined,
     sortDir: (sortDir as 'asc' | 'desc') || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
   });
 
   res.json(result);
