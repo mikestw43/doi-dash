@@ -221,8 +221,8 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {[
               { label: 'Balance', value: fmtPrice(account.balance), color: 'var(--text-primary)' },
-              { label: 'Equity',  value: fmtPrice(account.equity),  color: 'var(--warning)' },
-              { label: 'Orders',  value: `${orderCount} open`,      color: 'var(--accent-blue)' },
+              { label: 'Equity',  value: fmtPrice(account.equity),  color: account.equity >= account.balance ? 'var(--warning)' : 'var(--danger)' },
+              { label: 'Orders',  value: `${orderCount} open`,      color: orderCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
                 <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
@@ -254,7 +254,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 fontFamily: "'VT323'", fontSize: '28px', fontWeight: 400, lineHeight: 1.1,
                 color: todayPnl > 0 ? 'var(--success)' : todayPnl < 0 ? 'var(--danger)' : 'var(--text-muted)',
               }}>
-                {todayPnl >= 0 ? '+' : '-'}{fmtNum(todayPnl)}
+                {todayPnl > 0 ? '+' : todayPnl < 0 ? '-' : ''}{fmtNum(Math.abs(todayPnl))}
               </div>
             </div>
             {/* Floating P/L */}
@@ -296,19 +296,20 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
         }}>
           {isOnline ? (
             <>
-              {/* DETAILS — toggle positions */}
+              {/* DETAILS — primary cyan fill, toggles positions panel */}
               <button
                 onClick={() => setShowPositions(p => !p)}
                 style={{
                   flex: 1, padding: '7px 4px',
                   fontFamily: "'Share Tech Mono'", fontSize: '9px',
                   border: '1px solid var(--accent-blue)',
-                  color: showPositions ? '#0c1422' : 'var(--accent-blue)',
-                  background: showPositions ? 'var(--accent-blue)' : 'rgba(56,189,248,.08)',
+                  color: '#0c1422',
+                  background: 'var(--accent-blue)',
                   cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
                   transition: 'all .15s',
-                  boxShadow: showPositions ? 'none' : '0 0 6px rgba(56,189,248,.2)',
                 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#7dd3fc'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#7dd3fc'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; }}
               >
                 {showPositions ? '▾ DETAILS' : 'DETAILS'}
               </button>
@@ -325,8 +326,8 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                   cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
                   transition: 'all .15s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(56,189,248,.08)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
               >
                 ORDERS
               </button>
