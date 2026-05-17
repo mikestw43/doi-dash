@@ -26,25 +26,30 @@ api.interceptors.response.use(
 );
 
 // Auth
+import type { AuthUser } from '../types';
+
 export const login = async (email: string, password: string) => {
   const res = await api.post('/auth/login', { email, password });
-  return res.data as { token: string; user: { id: string; email: string; role: string; name: string | null } };
+  return res.data as { token: string; user: AuthUser };
 };
 
 export const register = async (data: {
-  email: string; password: string; name?: string;
+  email: string; password: string; name?: string; displayName?: string;
   mobile?: string; phoneCountry?: string;
 }) => {
   const res = await api.post('/auth/register', data);
   return res.data as { message: string };
 };
 
-export const getProfile = async () => {
+export const getProfile = async (): Promise<AuthUser> => {
   const res = await api.get('/auth/me');
   return res.data;
 };
 
-export const updateProfile = async (data: { name?: string; email?: string }) => {
+export const updateProfile = async (data: {
+  name?: string; displayName?: string; email?: string;
+  mobile?: string; phoneCountry?: string; timezone?: string;
+}): Promise<AuthUser> => {
   const res = await api.patch('/auth/profile', data);
   return res.data;
 };

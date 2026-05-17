@@ -1,0 +1,2878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DOI DASH — MT5 Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07101c;
+  --bg-nav:#050d18;
+  --bg-card:#0c1a2b;
+  --bg-card2:#091523;
+  --bg-input:#0a1624;
+  --cyan:#00d4ff;
+  --cyan-dim:rgba(0,212,255,.5);
+  --cyan-bg:rgba(0,212,255,.07);
+  --cyan-glow:0 0 10px rgba(0,212,255,.35),0 0 24px rgba(0,212,255,.12);
+  --green:#00e676;
+  --green-dim:rgba(0,230,118,.5);
+  --green-bg:rgba(0,230,118,.08);
+  --green-glow:0 0 8px rgba(0,230,118,.4);
+  --red:#ff3355;
+  --red-dim:rgba(255,51,85,.5);
+  --red-bg:rgba(255,51,85,.08);
+  --red-glow:0 0 10px rgba(255,51,85,.45),0 0 24px rgba(255,51,85,.15);
+  --yellow:#ffd600;
+  --yellow-dim:rgba(255,214,0,.5);
+  --yellow-bg:rgba(255,214,0,.07);
+  --yellow-glow:0 0 10px rgba(255,214,0,.35),0 0 24px rgba(255,214,0,.1);
+  --orange:#ff8c00;
+  --text:#8fb8d0;
+  --text-bright:#ddeef8;
+  --text-dim:#2e4a60;
+  --border:#0d1f30;
+  --border2:#152d45;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* ══ HEADER ══ */
+.topnav{
+  background:var(--bg-nav);border-bottom:1px solid var(--border2);
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;padding:0 16px;height:54px;flex-shrink:0;
+  position:sticky;top:0;z-index:100;
+}
+.logo-wrap{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--cyan);display:flex;align-items:center;justify-content:center;box-shadow:var(--cyan-glow);flex-shrink:0}
+.logo-icon span{font-family:'Press Start 2P';font-size:13px;color:var(--bg-nav)}
+.logo-text .logo-main{font-family:'Press Start 2P';font-size:9px;color:var(--text-bright);letter-spacing:2px}
+.logo-text .logo-sub{font-size:9px;color:var(--text);margin-top:2px}
+.header-center{display:flex;flex-direction:column;align-items:center;gap:2px}
+.sys-badge{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--green);letter-spacing:1px;border:1px solid var(--green-dim);padding:2px 8px;background:var(--green-bg)}
+.sys-dot{width:6px;height:6px;background:var(--green);box-shadow:var(--green-glow);animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{50%{opacity:.4}}
+.main-clock{font-family:'JetBrains Mono';font-size:22px;font-weight:700;color:var(--text-bright);letter-spacing:3px;line-height:1}
+.session-row{display:flex;align-items:center;gap:8px;margin-top:3px}
+.sess-chip{display:flex;align-items:center;gap:4px;font-family:'Press Start 2P';font-size:5px;letter-spacing:.4px;color:var(--text-dim);transition:color .4s}
+.sess-chip.active{color:var(--green)}
+.sess-d{width:5px;height:5px;border-radius:50%;background:currentColor;transition:box-shadow .4s}
+.sess-chip.active .sess-d{box-shadow:0 0 6px var(--green)}
+.sess-sep{color:var(--text-dim);font-size:9px;opacity:.35}
+.wifi-widget{display:flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid var(--border2);background:var(--bg-card2);color:var(--green);cursor:default}
+.wifi-bars2{display:flex;align-items:flex-end;gap:2px;height:16px}
+.w-b{width:4px;border-radius:1px 1px 0 0;background:currentColor}
+.w-b1{height:5px}.w-b2{height:8px}.w-b3{height:12px}.w-b4{height:16px}
+.wifi-info2{display:flex;flex-direction:column;gap:1px}
+.wifi-status-lbl{font-family:'Press Start 2P';font-size:5px;letter-spacing:.5px;line-height:1;color:var(--green)}
+.wifi-ms{font-family:'Share Tech Mono';font-size:9px;color:var(--text-dim);line-height:1.4}
+.header-right{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.hdr-btn{width:30px;height:30px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:13px;cursor:pointer;transition:all .15s}
+.hdr-btn:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:var(--cyan-glow)}
+
+/* ══ TICKER ══ */
+.ticker-bar{background:#040c16;border-bottom:1px solid var(--border);height:28px;overflow:hidden;display:flex;align-items:center;flex-shrink:0}
+.ticker-track{display:flex;animation:ticker 32s linear infinite;white-space:nowrap}
+.ticker-track:hover{animation-play-state:paused}
+.ticker-item{display:flex;align-items:center;gap:5px;padding:0 16px;border-right:1px solid var(--border)}
+.ticker-sym{font-size:10px;color:var(--text-dim);letter-spacing:.5px}
+.ticker-price{font-size:12px;color:var(--text-bright);font-weight:600}
+.ticker-chg{font-size:10px}
+.up{color:var(--green)}.dn{color:var(--red)}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ══ LAYOUT ══ */
+.layout{display:flex;flex:1;height:calc(100vh - 54px - 28px);overflow:hidden}
+.sidebar{width:48px;background:var(--bg-nav);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:4px;flex-shrink:0}
+.sb-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--text-dim);cursor:pointer;border:1px solid transparent;transition:all .15s;position:relative}
+.sb-btn:hover{color:var(--text)}
+.sb-btn.active{color:var(--cyan);border-color:var(--border2);background:var(--cyan-bg)}
+.sb-btn.active::before{content:'';position:absolute;left:-1px;top:20%;height:60%;width:2px;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.page-content{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+
+/* ══ SECTION HEADER ══ */
+.sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sec-dot{width:7px;height:7px;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.sec-title{font-family:'Press Start 2P';font-size:7px;color:var(--text-bright);letter-spacing:2px}
+.sec-sub{font-size:10px;color:var(--text-dim)}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+
+/* ══ KPI CARDS ══ */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi-card{
+  background:var(--bg-card);border:1px solid var(--cyan);
+  box-shadow:var(--cyan-glow);
+  padding:14px 16px;position:relative;overflow:hidden;
+  transition:box-shadow .2s;
+}
+.kpi-card:hover{box-shadow:0 0 16px rgba(0,212,255,.5),0 0 32px rgba(0,212,255,.2)}
+.kpi-card.kpi-red{border-color:var(--red);box-shadow:var(--red-glow)}
+.kpi-card.kpi-red:hover{box-shadow:0 0 16px rgba(255,51,85,.6),0 0 32px rgba(255,51,85,.25)}
+.kpi-card.kpi-yellow{border-color:var(--yellow);box-shadow:var(--yellow-glow)}
+.kpi-card.kpi-yellow:hover{box-shadow:0 0 16px rgba(255,214,0,.5)}
+.kpi-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.kpi-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px}
+.kpi-icon{font-size:13px;color:var(--text-dim);opacity:.5}
+.kpi-val{font-size:30px;font-weight:700;line-height:1;color:var(--text-bright)}
+.kpi-val.vc{color:var(--cyan)}.kpi-val.vg{color:var(--green)}.kpi-val.vr{color:var(--red)}.kpi-val.vy{color:var(--yellow)}
+.kpi-val sup{font-size:16px;font-weight:400;color:var(--text-dim);vertical-align:super}
+.kpi-sub{font-size:10px;color:var(--text-dim);margin-top:6px}
+.kpi-sub .up{color:var(--green)}.kpi-sub .dn{color:var(--red)}
+.kpi-bar{height:2px;background:var(--border);margin-top:10px}
+.kpi-fill{height:100%}
+.fc{background:var(--cyan);box-shadow:0 0 4px var(--cyan)}
+.fg{background:var(--green)}.fr{background:var(--red)}.fy{background:var(--yellow)}
+
+/* ══ CHART + HEATMAP ══ */
+.chart-hm-row{display:grid;grid-template-columns:1fr 340px;gap:10px}
+.chart-panel{background:var(--bg-card);border:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden}
+.chart-toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border)}
+.chart-sym{font-family:'Press Start 2P';font-size:7px;color:var(--cyan);letter-spacing:1px}
+.chart-price-disp{font-size:18px;font-weight:700;color:var(--yellow);margin-left:8px}
+.chart-chg-disp{font-size:11px}
+.chart-tfs{display:flex;gap:3px;margin-left:auto}
+.ctf{padding:3px 7px;font-size:10px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;transition:all .15s;background:none}
+.ctf.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.chart-toggle{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;font-size:11px;transition:all .2s;background:none;margin-left:6px}
+.chart-toggle:hover{border-color:var(--cyan);color:var(--cyan)}
+.chart-body{flex:1;background:var(--bg);position:relative;overflow:hidden;min-height:220px;transition:min-height .3s,max-height .3s,opacity .3s}
+.chart-body.collapsed{min-height:0;max-height:0;opacity:0;pointer-events:none}
+.chart-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:45px 35px;opacity:.5}
+.chart-candles{position:absolute;inset:0;display:flex;align-items:flex-end;gap:2px;padding:16px 8px 8px}
+.c{display:flex;flex-direction:column;align-items:center;flex:1;max-width:11px}
+.cw{width:1px;background:currentColor}.cb{width:100%;min-height:3px}
+.bull{color:var(--green)}.bull .cb{background:var(--green)}
+.bear{color:var(--red)}.bear .cb{background:var(--red)}
+.chart-overlay{position:absolute;right:10px;top:12px;text-align:right}
+.chart-last{font-size:12px;font-weight:700;color:var(--yellow)}
+.chart-spread{font-size:10px;color:var(--green)}
+
+/* ══ HEATMAP ══ */
+.hm-panel{background:var(--bg-card);border:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden}
+.hm-tabs{display:flex;border-bottom:1px solid var(--border)}
+.hm-tab{flex:1;padding:8px 4px;font-size:9px;color:var(--text-dim);cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.5px}
+.hm-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.hm-body{padding:8px;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.hm-block{padding:8px;border:1px solid;min-height:64px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:filter .15s}
+.hm-block:hover{filter:brightness(1.3)}
+.hm-block-name{font-size:9px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-block-val{font-size:20px;font-weight:700;line-height:1}
+.hm-block-sub{font-size:9px;opacity:.6}
+.hm-safe{border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.06);color:var(--green)}
+.hm-warn{border-color:rgba(255,214,0,.3);background:rgba(255,214,0,.06);color:var(--yellow)}
+.hm-bad{border-color:rgba(255,51,85,.3);background:rgba(255,51,85,.06);color:var(--red);animation:hm-pulse 2s ease-in-out infinite}
+/* ══ DD HEATMAP TILES ══ */
+.dd-tile{border:1px solid;padding:7px 8px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:filter .15s}
+.dd-tile:hover{filter:brightness(1.35)}
+.dd-tile-name{font-family:'Share Tech Mono';font-size:9px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.dd-tile-val{font-family:'VT323';font-size:22px;line-height:1;letter-spacing:.5px}
+@keyframes hm-pulse{50%{background:rgba(255,51,85,.12)}}
+
+/* ══ ACCOUNTS TOOLBAR ══ */
+.accts-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.filter-tabs{display:flex;gap:3px}
+.ftab{padding:5px 10px;font-size:10px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;transition:all .15s}
+.ftab:hover{border-color:var(--cyan-dim);color:var(--text)}
+.ftab.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.ftab-count{font-size:9px;padding:1px 4px;margin-left:3px;background:var(--border2)}
+.ftab.active .ftab-count{background:var(--cyan-bg);color:var(--cyan)}
+.sort-wrap{display:flex;align-items:center;gap:6px;margin-left:6px}
+.sort-lbl{font-size:10px;color:var(--text-dim)}
+.sort-sel{background:var(--bg-card2);border:1px solid var(--border2);color:var(--text);padding:5px 8px;font-size:10px;cursor:pointer;outline:none;appearance:none;padding-right:18px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%232e4a60'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center}
+.view-toggle{margin-left:auto;display:flex;margin-right:2px}
+.vtog{padding:5px 10px;font-size:10px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;transition:all .15s;display:flex;align-items:center;gap:4px}
+.vtog:first-child:not(:last-child){border-right:none}
+.vtog.active{color:var(--cyan);background:var(--cyan-bg);border-color:var(--cyan)}
+.acct-count-badge{font-size:10px;color:var(--text-dim);margin-left:auto;padding:4px 10px;border:1px solid var(--border2)}
+
+/* ══ BOT CARDS ══ */
+.bot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.bot-card{
+  background:var(--bg-card);border:1px solid var(--cyan);
+  box-shadow:var(--cyan-glow);overflow:hidden;
+  display:flex;flex-direction:column;transition:box-shadow .2s;
+}
+.bot-card:hover{box-shadow:0 0 14px rgba(0,212,255,.5),0 0 30px rgba(0,212,255,.18)}
+.bot-card.bc-offline{border-color:var(--red);box-shadow:var(--red-glow)}
+.bot-card.bc-offline:hover{box-shadow:0 0 14px rgba(255,51,85,.6),0 0 30px rgba(255,51,85,.2)}
+.bc-top{padding:10px 12px 8px;background:var(--bg-card2);border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between}
+.bc-top-l{display:flex;align-items:center;gap:7px}
+.sdot{width:9px;height:9px;flex-shrink:0;margin-top:2px}
+.sdot-on{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse-dot 2s ease-in-out infinite}
+.sdot-off{background:var(--red);box-shadow:0 0 4px var(--red)}
+.bc-name{font-size:14px;font-weight:700;color:var(--text-bright)}
+.bc-acct{font-size:10px;color:var(--text-dim);margin-top:1px;display:flex;align-items:center;gap:4px}
+.acct-tag{border:1px solid var(--border2);padding:1px 4px;font-size:8px;color:var(--text-dim)}
+.dd-badge{font-size:10px;padding:3px 8px;border:1px solid;font-weight:600}
+.dd-low{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.dd-med{border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg)}
+.dd-high{border-color:var(--red-dim);color:var(--red);background:var(--red-bg);animation:blink-b 1.2s step-end infinite}
+.dd-off{border-color:var(--red-dim);color:var(--red);background:var(--red-bg)}
+@keyframes blink-b{50%{border-color:transparent}}
+.prog-bar{height:3px}
+.prog-fill{height:100%;transition:width .4s}
+.prog-on{background:linear-gradient(90deg,var(--green),var(--cyan))}
+.prog-warn{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.prog-off{background:linear-gradient(90deg,var(--red),var(--orange));width:100%!important}
+.bc-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.bc-data-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.bc-item-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.bc-item-val{font-size:14px;font-weight:600}
+.bc-pnl{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bc-pnl>div{background:var(--bg);border:1px solid var(--border);padding:7px 10px}
+.pnl-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:2px}
+.pnl-val{font-size:18px;font-weight:700;line-height:1}
+.lot-row{display:flex;align-items:center;gap:6px}
+.lot-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px}
+.lot-b{padding:3px 8px;font-size:11px;font-weight:700;background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid rgba(0,212,255,.3)}
+.lot-s{padding:3px 8px;font-size:11px;font-weight:700;background:rgba(255,51,85,.12);color:var(--red);border:1px solid rgba(255,51,85,.3)}
+.broker-row{font-size:10px;color:var(--text-dim);display:flex;align-items:center;gap:4px}
+.broker-dot{width:5px;height:5px;background:var(--text-dim);border-radius:50%}
+.bc-footer{padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:5px;background:var(--bg-card2)}
+.bc-btn{flex:1;padding:5px 4px;font-size:9px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;transition:all .15s;letter-spacing:.5px;text-align:center}
+.bc-btn:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.bc-btn-red{border-color:var(--red-dim);color:var(--red)}
+.bc-btn-red:hover{border-color:var(--red);background:var(--red-bg)}
+.bc-btn-danger{flex:0 0 28px;padding:5px 4px;font-size:12px;border:1px solid var(--red-dim);color:var(--red);cursor:pointer;background:none;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.bc-btn-danger:hover{background:var(--red-bg);border-color:var(--red)}
+.offline-banner{background:rgba(255,51,85,.1);border:1px solid var(--red-dim);padding:5px 8px;font-size:10px;color:var(--red);display:flex;align-items:center;gap:5px;letter-spacing:.5px}
+
+/* ══ VALUE COLORS ══ */
+.vc{color:var(--cyan)}.vg{color:var(--green)}.vr{color:var(--red)}.vy{color:var(--yellow)}.vb{color:var(--text-bright)}.vd{color:var(--text-dim)}
+
+/* ══ TABLE VIEW ══ */
+.desktop-tbl{display:block}.mobile-compact{display:none}
+.tbl-wrap{overflow-x:auto}
+.data-table{width:100%;border-collapse:collapse;min-width:820px}
+.data-table th{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border2);background:var(--bg-card2);white-space:nowrap}
+.data-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:hover td{background:var(--cyan-bg)}
+.data-table tr.row-off td{opacity:.6}
+.dd-mini{width:55px;height:3px;background:var(--border);display:inline-block;vertical-align:middle;margin-right:5px}
+.dd-mini-fill{height:100%}
+.close-btn-sm{padding:3px 9px;font-size:9px;border:1px solid var(--red-dim);color:var(--red);cursor:pointer;background:none;font-family:inherit;white-space:nowrap;transition:all .15s}
+.close-btn-sm:hover{background:var(--red-bg)}
+.close-btn-sm:disabled{opacity:.3;cursor:not-allowed}
+
+/* ══ MOBILE COMPACT ══ */
+.mc-row{background:var(--bg-card);border:1px solid var(--cyan);box-shadow:0 0 6px rgba(0,212,255,.15);padding:9px 11px;margin-bottom:6px;transition:all .2s}
+.mc-row.mc-off{border-color:var(--red);box-shadow:0 0 6px rgba(255,51,85,.2)}
+.mc-line{display:grid;grid-template-columns:1.4fr 1fr 1fr;align-items:center;gap:4px}
+.mc-line+.mc-line{margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+.mc-name{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--text-bright)}
+.mc-cell{text-align:right}.mc-cell.left{text-align:left}
+.mc-lbl{font-size:9px;color:var(--text-dim);display:block;margin-bottom:1px;letter-spacing:.3px}
+.mc-num{font-size:12px;font-weight:600;line-height:1;display:block}
+
+/* ══ UTILS ══ */
+.hidden{display:none!important}
+.page-section{display:none}
+.page-section.active-page{display:flex;flex-direction:column;gap:12px}
+
+/* ══ OTHER PAGE COMPONENTS ══ */
+.th-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.th-filters input,.th-filters select{background:var(--bg-input);border:1px solid var(--border2);color:var(--text);padding:6px 10px;font-size:11px;outline:none}
+.th-filters input:focus,.th-filters select:focus{border-color:var(--cyan)}
+.export-btn{padding:6px 14px;font-size:10px;border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;background:none;margin-left:auto;transition:all .15s}
+.export-btn:hover{background:var(--cyan-bg)}
+.th-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.th-sum-card{background:var(--bg-card);border:1px solid var(--border2);padding:10px 12px}
+.th-sum-lbl{font-size:9px;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px}
+.th-sum-val{font-size:18px;font-weight:700}
+.pagination{display:flex;align-items:center;justify-content:flex-end;gap:4px;padding-top:8px}
+.pg-btn{padding:4px 10px;font-size:10px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;transition:all .15s}
+.pg-btn:hover,.pg-btn.active{border-color:var(--cyan);color:var(--cyan)}
+.pg-info{font-size:10px;color:var(--text-dim);padding:0 8px}
+.cal-filters{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cal-tab{padding:5px 12px;font-size:10px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;transition:all .15s}
+.cal-tab.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.cal-date-hdr{font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);letter-spacing:1px;padding:8px 0;display:flex;align-items:center;gap:8px}
+.cal-date-hdr::after{content:'';flex:1;height:1px;background:var(--border)}
+.cal-toolbar{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.cal-period-btn{padding:5px 12px;font-size:9px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;font-family:'Press Start 2P';transition:all .15s}
+.cal-period-btn.active{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.cal-refresh-btn{padding:5px 10px;font-size:13px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;transition:transform .5s,color .15s,border-color .15s;line-height:1}
+.cal-refresh-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.cal-ccy-row{display:flex;gap:4px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.cal-ccy-btn{padding:3px 8px;font-size:10px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;font-family:'Share Tech Mono';transition:all .15s}
+.cal-ccy-btn.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.cal-past td{color:var(--text-dim)!important;opacity:.38}
+.cal-date-sep td{padding:5px 8px!important;font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:1px;background:var(--bg-card2)!important;border-bottom:1px solid var(--border)!important;pointer-events:none}
+.impact-h{color:var(--red);font-size:10px;padding:2px 6px;border:1px solid var(--red-dim);background:var(--red-bg)}
+.impact-m{color:var(--orange);font-size:10px;padding:2px 6px;border:1px solid rgba(255,140,0,.4);background:rgba(255,140,0,.08)}
+.impact-l{color:var(--yellow);font-size:10px;padding:2px 6px;border:1px solid rgba(255,214,0,.4);background:var(--yellow-bg)}
+.settings-layout{display:grid;grid-template-columns:170px 1fr;gap:16px}
+.settings-nav{display:flex;flex-direction:column;gap:3px}
+.s-nav-btn{padding:8px 12px;font-size:11px;color:var(--text-dim);cursor:pointer;border:1px solid transparent;text-align:left;background:none;transition:all .15s}
+.s-nav-btn:hover{color:var(--text)}.s-nav-btn.active{color:var(--cyan);border-color:var(--border2);background:var(--cyan-bg)}
+.settings-body{display:flex;flex-direction:column;gap:12px}
+.s-card{background:var(--bg-card);border:1px solid var(--border2);padding:16px 18px}
+.s-card-title{font-family:'Press Start 2P';font-size:7px;color:var(--cyan);letter-spacing:1px;margin-bottom:14px}
+.s-form-row{display:grid;grid-template-columns:160px 1fr;align-items:center;gap:10px;margin-bottom:10px}
+.s-label{font-size:11px;color:var(--text-dim)}
+.s-input{background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:7px 10px;font-size:12px;width:100%;outline:none;font-family:inherit}
+.s-input:focus{border-color:var(--cyan)}
+.s-select{background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:7px 10px;font-size:12px;outline:none;font-family:inherit;width:100%}
+.s-toggle{display:flex;align-items:center;gap:10px}
+.toggle-track{width:36px;height:18px;background:var(--border2);position:relative;cursor:pointer;transition:background .2s}
+.toggle-track.on{background:var(--cyan)}
+.toggle-thumb{position:absolute;top:2px;width:14px;height:14px;background:#fff;transition:left .2s}
+.toggle-track.on .toggle-thumb{left:20px}.toggle-track:not(.on) .toggle-thumb{left:2px}
+.s-btn{padding:7px 16px;font-size:11px;border:1px solid var(--cyan);color:var(--cyan);cursor:pointer;background:none;transition:all .15s;font-family:inherit}
+.s-btn:hover{background:var(--cyan-bg)}
+.s-btn-danger{border-color:var(--red-dim);color:var(--red)}.s-btn-danger:hover{background:var(--red-bg)}
+.s-save-row{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;padding-top:12px;border-top:1px solid var(--border)}
+.admin-tabs{display:flex;border-bottom:1px solid var(--border2);margin-bottom:14px}
+.admin-tab{padding:8px 16px;font-size:11px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.admin-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.role-badge{font-size:9px;padding:2px 7px;border:1px solid}
+.role-admin{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.role-user{border-color:var(--border2);color:var(--text-dim)}
+.role-vip{border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg)}
+.action-btn{padding:3px 8px;font-size:9px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;margin-right:4px;transition:all .15s}
+.action-btn:hover{border-color:var(--cyan-dim);color:var(--cyan)}
+.action-btn.del:hover{border-color:var(--red-dim);color:var(--red)}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:1280px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.bot-grid{grid-template-columns:repeat(2,1fr)}.chart-hm-row{grid-template-columns:1fr}}
+/* ── sb-label: hidden on desktop, shown on mobile bottom nav ── */
+.sb-label{display:none;font-family:'Press Start 2P';font-size:5px;letter-spacing:.3px;line-height:1;color:currentColor}
+@media(max-width:900px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .bot-grid{grid-template-columns:1fr}
+  .topnav{grid-template-columns:auto 1fr auto}
+  .header-center{flex-direction:row;gap:10px}
+  .page-content{padding:10px;padding-bottom:72px}
+  .desktop-tbl{display:none}
+  .mobile-compact{display:block}
+  .chart-hm-row{grid-template-columns:1fr}
+  .settings-layout{grid-template-columns:1fr}
+  .settings-nav{flex-direction:row;flex-wrap:wrap}
+  .th-summary{grid-template-columns:1fr 1fr}
+  /* ── bottom nav ── */
+  .sidebar{
+    position:fixed;bottom:0;left:0;right:0;
+    width:100%;height:56px;
+    flex-direction:row;align-items:stretch;
+    border-right:none;border-top:1px solid var(--border2);
+    padding:0;gap:0;z-index:200;
+    background:var(--bg-nav);
+  }
+  .sb-btn{
+    flex:1;height:100%;width:auto;
+    flex-direction:column;justify-content:center;gap:4px;
+    border:none;border-radius:0;
+  }
+  .sb-btn.active::before{
+    top:-1px;left:20%;
+    width:60%;height:2px;
+    bottom:auto;
+  }
+  .sb-label{display:block}
+}
+@media(max-width:580px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .th-summary{grid-template-columns:1fr 1fr}
+  #at-accounts>div:last-child{grid-template-columns:repeat(2,1fr)!important}
+  /* Header — hide heavy elements */
+  .session-row{display:none!important}
+  .logo-text .logo-sub{display:none}
+  .logo-text .logo-main{font-size:7px;letter-spacing:1px;white-space:nowrap}
+  .logo-icon{width:28px;height:28px;flex-shrink:0}
+  .logo-icon span{font-size:10px}
+  .logo-wrap{gap:6px}
+  /* Clock smaller */
+  .main-clock{font-size:16px;letter-spacing:1px}
+  /* WiFi — compact: bars only, hide text label */
+  .wifi-widget{display:flex!important;padding:4px 6px;gap:4px}
+  .wifi-info2{display:none}
+  /* header-right: hide profile name, keep avatar + bell */
+  .prof-name,.prof-chevron{display:none}
+  .prof-btn{padding:2px 4px}
+  .sys-badge{display:none}
+  /* Card toggle — same height as ftab Filter button */
+  #viewTogBtn{margin-right:10px}
+  /* Chart toggle visible */
+  .chart-tog{display:flex!important;min-width:28px}
+  /* KPI cards — compact on mobile, hide overlapping brackets */
+  .kpi-card{padding:8px 10px}
+  .kpi-card-header{margin-bottom:6px}
+  .kpi-val{font-size:28px}
+  .kpi-bar{margin-top:4px}
+  .kpi-card::before,.kpi-card::after{display:none}
+  /* Performance calendar — fit to mobile screen */
+  .pcal{min-width:0!important;table-layout:fixed}
+  .pcal th{padding:4px 2px!important;font-size:5px!important;letter-spacing:0}
+  .pcal td{padding:3px 4px!important;height:48px!important;font-size:8px}
+  .pcal-pnl{font-size:14px!important}
+  .pcal-dn{font-size:7px!important;margin-bottom:3px}
+  td.pcal-wk-sum{min-width:44px!important;padding:2px 3px!important}
+  .pcal-wk td{height:28px!important;padding:3px 4px!important}
+}
+
+/* ══ DESIGN BRIEF — FULL OVERRIDE ══ */
+:root{
+  --bg:#0f172a;--bg-nav:#0c1422;--bg-card:#1e293b;--bg-card2:#162032;--bg-input:#162032;
+  --cyan:#38bdf8;--cyan-dim:rgba(56,189,248,.5);--cyan-bg:rgba(56,189,248,.08);
+  --cyan-glow:0 0 10px rgba(56,189,248,.6);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.5);--green-bg:rgba(34,197,94,.08);
+  --green-glow:0 0 8px rgba(34,197,94,.8);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.5);--red-bg:rgba(239,68,68,.08);
+  --red-glow:0 0 10px rgba(239,68,68,.6);
+  --yellow:#facc15;--yellow-dim:rgba(250,204,21,.5);--yellow-bg:rgba(250,204,21,.07);
+  --yellow-glow:0 0 10px rgba(250,204,21,.5);
+  --orange:#f97316;--text:#e5e7eb;--text-bright:#e5e7eb;--text-dim:#64748b;
+  --border:#162032;--border2:#2d4060;
+}
+/* ── Scanline + grid background ── */
+html,body{font-family:'Share Tech Mono',monospace}
+html::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9997;
+  background-image:linear-gradient(rgba(56,189,248,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.04) 1px,transparent 1px);
+  background-size:40px 40px}
+html::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.07) 2px 4px)}
+/* ── Press Start 2P: headings, bot names, section labels ── */
+.logo-sub,.sys-badge,
+.kpi-lbl,
+.bc-name,.bc-acct,.acct-tag,.dd-badge,
+.hm-tab,
+.data-table th,
+.mc-name,
+.chart-sym,
+.admin-tab,.cal-date-hdr,
+.ftab,.ftab-count,.sort-lbl,.vtog,.acct-count-badge{font-family:'Press Start 2P'}
+/* ── VT323: all large numbers ── */
+.kpi-val,.pnl-val,.bc-item-val,.hm-block-val,.th-sum-val,.mc-num{font-family:'VT323'}
+/* ── Share Tech Mono: labels & buttons ── */
+.kpi-sub,
+.bc-item-lbl,.pnl-lbl,.lot-lbl,.lot-b,.lot-s,.broker-row,
+.bc-btn,.bc-btn-red,.bc-btn-danger,.offline-banner,
+.close-btn-sm,.export-btn,.action-btn,.role-badge,
+.ticker-sym,.ticker-price,.ticker-chg,
+.data-table td,.mc-lbl,
+.ctf,.chart-toggle,
+.s-nav-btn,.s-label,.s-btn,.s-input,.s-select,.sort-sel,
+.cal-tab,.impact-h,.impact-m,.impact-l,
+.th-sum-lbl,.pg-btn,.pg-info,
+.hm-block-name,.hm-block-sub{font-family:'Share Tech Mono'}
+/* ── Clock → VT323 yellow ── */
+.main-clock{font-family:'VT323';font-size:34px;font-weight:400;color:var(--yellow);letter-spacing:2px}
+/* ── Logo title glow ── */
+.logo-text .logo-main{text-shadow:0 0 12px rgba(56,189,248,.8)}
+/* ── Press Start 2P sizes ── */
+.logo-sub{font-family:'Press Start 2P'!important;font-size:5px;letter-spacing:.5px;opacity:.5;margin-top:3px}.sys-badge{font-size:7px;letter-spacing:1px}.kpi-lbl{font-size:7px}
+.bc-name{font-size:8px;font-weight:400}.bc-acct{font-size:6px;margin-top:4px}
+.acct-tag{font-size:5px;padding:2px 4px}.dd-badge{font-size:7px;font-weight:400}
+.hm-tab{font-size:7px}.data-table th{font-size:7px;letter-spacing:.5px}.mc-name{font-size:9px}
+.chart-sym{font-size:8px}.ftab{font-size:7px}.ftab-count{font-size:6px}
+.sort-lbl{font-size:7px}.vtog{font-size:7px}.acct-count-badge{font-size:7px}
+/* ── VT323 sizes ── */
+.kpi-val{font-size:38px;font-weight:400;line-height:1}
+.kpi-val sup{font-family:'VT323';font-size:22px;font-weight:400;vertical-align:super}
+.pnl-val{font-size:28px;font-weight:400;line-height:1.1}
+.bc-item-val{font-size:22px;font-weight:400;line-height:1.1}
+.hm-block-val{font-size:26px;font-weight:400;line-height:1}
+.th-sum-val{font-size:28px}.mc-num{font-size:20px;line-height:1.1}
+/* ── Share Tech Mono sizes ── */
+.kpi-sub{font-size:10px;letter-spacing:.5px}
+.bc-item-lbl{font-size:9px;letter-spacing:.5px}.pnl-lbl{font-size:9px;letter-spacing:.5px;margin-bottom:3px}
+.lot-lbl{font-size:9px;letter-spacing:.5px}.lot-b,.lot-s{font-size:10px;padding:3px 7px}
+.broker-row{font-size:9px;letter-spacing:.5px}.bc-btn{font-size:9px;padding:7px 4px;letter-spacing:.5px}
+.bc-btn-red{font-size:9px;padding:7px 4px}.offline-banner{font-size:9px;padding:8px 10px;line-height:1.6}
+.hm-block-name{font-size:9px}.hm-block-sub{font-size:9px}.mc-lbl{font-size:8px;letter-spacing:.3px}
+.ticker-sym{font-size:10px;letter-spacing:.5px}.ticker-price{font-size:11px}.ticker-chg{font-size:10px}
+.ctf{font-size:9px}.close-btn-sm{font-size:9px}.export-btn{font-size:9px}
+.s-nav-btn{font-size:10px}.s-label{font-size:10px}.s-btn{font-size:10px}
+.cal-tab{font-size:9px}.pg-btn{font-size:9px}.pg-info{font-size:9px}
+.th-sum-lbl{font-size:9px}.data-table td{font-size:11px}
+/* ── Card shadow: 4px offset no-blur (pixel-art) ── */
+.bot-card{border-width:2px;box-shadow:4px 4px 0 rgba(56,189,248,.3);transition:transform .15s,box-shadow .15s}
+.bot-card:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 rgba(56,189,248,.35)}
+.bot-card.bc-offline{box-shadow:4px 4px 0 rgba(239,68,68,.3)}
+.bot-card.bc-offline:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 rgba(239,68,68,.35)}
+.kpi-card{border-width:2px;box-shadow:4px 4px 0 rgba(56,189,248,.3);transition:transform .15s,box-shadow .15s}
+.kpi-card:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 rgba(56,189,248,.35)}
+.kpi-card.kpi-red{box-shadow:4px 4px 0 rgba(239,68,68,.3)}
+.kpi-card.kpi-red:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 rgba(239,68,68,.35)}
+.kpi-card.kpi-yellow{box-shadow:4px 4px 0 rgba(250,204,21,.3)}
+.kpi-card.kpi-yellow:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 rgba(250,204,21,.35)}
+/* ── DETAILS button → primary cyan fill ── */
+.bc-footer .bc-btn:first-of-type:not(.bc-btn-red){background:var(--cyan);color:#0c1422;border-color:var(--cyan)}
+.bc-footer .bc-btn:first-of-type:not(.bc-btn-red):hover{background:#7dd3fc;border-color:#7dd3fc;color:#0c1422}
+/* ── Portfolio page-level tabs ── */
+.ptab-bar{display:flex;gap:0;border-bottom:2px solid var(--border2)}
+.ptab{padding:9px 16px;font-family:'Press Start 2P';font-size:7px;letter-spacing:.5px;color:var(--text-dim);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.ptab:hover{color:var(--text)}.ptab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.pv-tab-content{display:flex;flex-direction:column;gap:12px}
+/* ── Corner brackets on cards ── */
+.bot-card{position:relative}.kpi-card{overflow:visible}
+.bot-card::before,.bot-card::after,
+.kpi-card::before,.kpi-card::after{content:'';position:absolute;width:13px;height:13px;pointer-events:none;z-index:2}
+.bot-card::before,.kpi-card::before{top:5px;left:5px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.bot-card::after,.kpi-card::after{bottom:5px;right:5px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.bot-card.bc-offline::before,.bot-card.bc-offline::after{border-color:var(--red)}
+.kpi-card.kpi-red::before,.kpi-card.kpi-red::after{border-color:var(--red)}
+.kpi-card.kpi-yellow::before,.kpi-card.kpi-yellow::after{border-color:var(--yellow)}
+/* ── DD badge: safe=green, warn=yellow, danger=red ── */
+.dd-low{border-color:var(--green-dim)!important;color:var(--green)!important;background:var(--green-bg)!important}
+/* ── Mobile compact: label inline with number ── */
+.mc-lbl{display:inline!important;margin-right:4px!important;margin-bottom:0!important}
+.mc-num{display:inline!important;vertical-align:middle}
+/* ── Heatmap block colors (updated palette) ── */
+.hm-safe{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06)}
+.hm-warn{border-color:rgba(250,204,21,.3);background:rgba(250,204,21,.06)}
+.hm-bad{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)}
+@keyframes hm-pulse{50%{background:rgba(239,68,68,.12)}}
+/* ── Filter popup ── */
+.accts-bar{position:relative}
+.filter-menu{position:absolute;top:calc(100% + 4px);left:0;z-index:500;background:var(--bg-card);border:2px solid var(--border2);padding:12px 14px;min-width:210px;box-shadow:4px 4px 0 rgba(56,189,248,.2)}
+.filter-menu-section{margin-bottom:10px}
+.filter-menu-section:last-child{margin-bottom:0}
+.filter-menu-title{font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.5px;margin-bottom:6px}
+.filter-chips{display:flex;gap:4px;flex-wrap:wrap}
+.fchip{padding:4px 8px;font-family:'Share Tech Mono';font-size:9px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;background:none;transition:all .15s}
+.fchip:hover{border-color:var(--cyan-dim);color:var(--text)}
+.fchip.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+/* ── Desktop table: bigger font ── */
+.data-table td{font-size:12px!important}
+.data-table td div{font-size:12px}
+/* ── Mobile compact: lighter weight, tighter rows ── */
+.mc-num{font-size:15px!important;font-weight:400!important}
+.mc-name{font-family:'Share Tech Mono'!important;font-size:11px!important;font-weight:400!important}
+.mc-line+.mc-line{margin-top:2px!important;padding-top:2px!important;border-top:none!important}
+.mc-row{padding:7px 10px!important}
+/* ══ ANALYTICS ══ */
+.an-tabs{display:flex;gap:3px;margin-bottom:12px;flex-wrap:wrap}
+.an-tab{padding:5px 11px;font-size:9px;border:1px solid var(--border2);color:var(--text-dim);cursor:pointer;font-family:'Press Start 2P';transition:all .15s;letter-spacing:.5px}
+.an-tab:hover{border-color:var(--cyan-dim);color:var(--text)}
+.an-tab.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.perf-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap}
+.perf-nav{display:flex;align-items:center;gap:8px}
+.perf-nav-btn{width:26px;height:26px;border:1px solid var(--border2);color:var(--text);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:border-color .15s;background:none}
+.perf-nav-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.perf-month{font-family:'Press Start 2P';font-size:8px;color:var(--text-bright);letter-spacing:1px;min-width:88px;text-align:center}
+.perf-total-wrap{font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';display:flex;align-items:center;gap:6px}
+.perf-total{font-family:'VT323';font-size:24px;line-height:1}
+.pcal-wrap{overflow-x:auto}
+.pcal{width:100%;border-collapse:collapse;min-width:480px;table-layout:fixed}
+.pcal thead tr{background:var(--bg-card2)}
+.pcal th{font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);padding:9px 4px;text-align:center;border-bottom:2px solid var(--border2);letter-spacing:.5px}
+.pcal th.pcal-wk{color:var(--cyan);border-left:1px solid var(--border2);min-width:60px}
+.pcal td{padding:5px 7px;text-align:left;border:1px solid var(--border);vertical-align:top;height:70px;position:relative}
+.pcal td.pcal-empty{border-color:transparent;background:transparent}
+.pcal td.pcal-today{border-color:var(--cyan)!important;border-width:2px!important;box-shadow:inset 0 0 16px rgba(0,212,255,.18);background:rgba(0,212,255,.07)!important}
+.pcal td.pcal-wk-sum{background:var(--bg-card2);border-left:2px solid var(--border2);text-align:center;vertical-align:middle;padding:0 6px;min-width:62px}
+.pcal-dn{display:block;font-family:'Share Tech Mono';font-size:9px;color:var(--text-dim);line-height:1;margin-bottom:6px}
+.pcal-pnl{display:block;font-family:'VT323';font-size:22px;line-height:1}
+.pcal-wk-lbl{display:block;font-family:'Press Start 2P';font-size:5px;color:var(--cyan-dim);letter-spacing:.3px;margin-bottom:4px}
+.pcal-profit{color:var(--green)}
+.pcal-loss{color:var(--red)}
+.pcal-zero{color:var(--text-dim)}
+.pcal-p1{background:rgba(0,230,118,.05)}
+.pcal-p2{background:rgba(0,230,118,.12)}
+.pcal-p3{background:rgba(0,230,118,.22);border-color:rgba(0,230,118,.18)!important}
+.pcal-l1{background:rgba(255,51,85,.05)}
+.pcal-l2{background:rgba(255,51,85,.12)}
+.pcal-l3{background:rgba(255,51,85,.22);border-color:rgba(255,51,85,.18)!important}
+.perf-stats-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.pstat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 10px;border:1px solid var(--border2);background:var(--bg-card2)}
+.pstat-lbl{font-family:'Press Start 2P';font-size:5px;color:var(--text-dim);letter-spacing:.3px}
+.pstat-val{font-family:'VT323';font-size:22px;line-height:1.1}
+.pcal-legend{display:flex;gap:14px;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap}
+.pcal-leg-item{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim)}
+.pcal-leg-sw{width:11px;height:11px;border:1px solid rgba(255,255,255,.08)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border2);padding:12px 14px}
+.stat-lbl{font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);margin-bottom:7px;letter-spacing:.5px}
+.stat-val{font-family:'VT323';font-size:30px;line-height:1}
+.eq-chart-wrap{background:var(--bg-card);border:1px solid var(--border2);padding:10px;overflow:hidden}
+.eq-legend{display:flex;gap:14px;margin-bottom:8px;font-size:10px;font-family:'Share Tech Mono'}
+.eq-leg-item{display:flex;align-items:center;gap:5px}
+.eq-leg-line{width:18px;height:2px;display:inline-block}
+@media(max-width:768px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.an-tab{font-size:7px;padding:4px 8px}}
+/* ══ PROFILE BUTTON ══ */
+.prof-btn-wrap{position:relative}
+.prof-btn{display:flex;align-items:center;gap:7px;padding:3px 8px 3px 4px;border:1px solid var(--border2);cursor:pointer;transition:border-color .15s;height:30px;background:none}
+.prof-btn:hover{border-color:var(--cyan)}
+.prof-avatar-sm{width:22px;height:22px;background:var(--cyan-bg);border:1px solid var(--cyan-dim);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:6px;color:var(--cyan);flex-shrink:0;letter-spacing:0}
+.prof-name{font-family:'Share Tech Mono';font-size:11px;color:var(--text-bright);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prof-chevron{font-size:9px;color:var(--text-dim);transition:transform .2s;line-height:1}
+.prof-chevron.open{transform:rotate(180deg)}
+/* ══ PROFILE DROPDOWN ══ */
+.pm-panel{position:absolute;top:calc(100% + 6px);right:0;z-index:600;background:var(--bg-card);border:1px solid var(--border2);min-width:220px;box-shadow:4px 4px 0 rgba(0,0,0,.5)}
+.pm-user{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.pm-avatar-lg{width:38px;height:38px;background:var(--cyan-bg);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:9px;color:var(--cyan);flex-shrink:0}
+.pm-uname{font-family:'Share Tech Mono';font-size:13px;color:var(--text-bright);font-weight:600;line-height:1.2}
+.pm-uemail{font-size:10px;color:var(--text-dim);margin-top:2px}
+.pm-badge{font-family:'Press Start 2P';font-size:6px;padding:2px 5px;display:inline-block;margin-top:5px;border:1px solid}
+.pm-badge.ba{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.pm-badge.bv{border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg)}
+.pm-badge.bu{border-color:var(--border2);color:var(--text-dim)}
+.pm-sep{height:1px;background:var(--border);margin:4px 0}
+.pm-sec-lbl{padding:5px 14px 2px;font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:1px}
+.pm-item{display:flex;align-items:center;gap:9px;padding:8px 14px;font-family:'Share Tech Mono';font-size:12px;color:var(--text);cursor:pointer;transition:background .1s}
+.pm-item:hover{background:rgba(255,255,255,.04);color:var(--text-bright)}
+.pm-item.danger{color:var(--red)}
+.pm-item.danger:hover{background:var(--red-bg)}
+/* ══ PROFILE SLIDE PANEL ══ */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:699;display:none}
+.panel-overlay.show{display:block}
+.pp-panel{position:fixed;top:0;right:-420px;width:400px;height:100vh;background:var(--bg-card);border-left:1px solid var(--border2);z-index:700;display:flex;flex-direction:column;transition:right .25s ease}
+.pp-panel.open{right:0}
+.pp-hdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.pp-title{font-family:'Press Start 2P';font-size:8px;color:var(--cyan);letter-spacing:2px}
+.pp-close{cursor:pointer;color:var(--text-dim);font-size:18px;transition:color .15s;background:none;border:none;line-height:1}
+.pp-close:hover{color:var(--text)}
+.pp-body{flex:1;overflow-y:auto;padding:16px}
+.pp-section{margin-bottom:18px}
+.pp-sec-title{font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);letter-spacing:1px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.pp-field{margin-bottom:10px}
+.pp-lbl{font-size:9px;color:var(--text-dim);display:block;margin-bottom:4px;font-family:'Press Start 2P';letter-spacing:.5px}
+.pp-input{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:9px 11px;font-size:13px;font-family:'Share Tech Mono';outline:none;transition:border-color .15s}
+.pp-input:focus{border-color:var(--cyan)}
+.pp-input::placeholder{color:var(--text-dim)}
+.pp-select{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:9px 8px;font-size:12px;font-family:'Share Tech Mono';outline:none;cursor:pointer}
+.pp-select:focus{border-color:var(--cyan)}
+.pp-phone-row{display:grid;grid-template-columns:110px 1fr;gap:6px}
+.pp-pw-wrap{position:relative}
+.pp-pw-wrap .pp-input{padding-right:36px}
+.pp-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:13px;padding:0;line-height:1}
+.pp-eye:hover{color:var(--text)}
+.pp-err{font-size:10px;color:var(--red);margin-top:-7px;margin-bottom:8px;display:none}
+.pp-err.show{display:block}
+.pp-footer{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.pp-btn-save{flex:1;padding:10px;background:var(--cyan);color:#050d18;font-family:'Press Start 2P';font-size:7px;border:none;cursor:pointer;letter-spacing:1px}
+.pp-btn-cancel{padding:10px 14px;border:1px solid var(--border2);color:var(--text-dim);font-family:'Press Start 2P';font-size:7px;background:none;cursor:pointer}
+.pp-btn-cancel:hover{border-color:var(--text-dim);color:var(--text)}
+/* ══ AUTH SCREENS ══ */
+.auth-screen{position:fixed;inset:0;z-index:9999;background:var(--bg);overflow-y:auto;display:flex;flex-direction:column;padding:16px}
+.auth-box{width:100%;max-width:400px;margin:auto;background:var(--bg-card);border:1px solid var(--cyan);box-shadow:var(--cyan-glow);padding:28px 24px;position:relative}
+.auth-box::before{content:'';position:absolute;top:6px;left:6px;width:13px;height:13px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.auth-box::after{content:'';position:absolute;bottom:6px;right:6px;width:13px;height:13px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.auth-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:20px}
+.auth-logo-icon{width:38px;height:38px;background:var(--cyan);display:flex;align-items:center;justify-content:center;box-shadow:var(--cyan-glow);flex-shrink:0}
+.auth-logo-icon span{font-family:'Press Start 2P';font-size:13px;color:#050d18}
+.auth-logo-name{font-family:'Press Start 2P';font-size:9px;color:var(--text-bright);letter-spacing:2px}
+.auth-title{font-family:'Press Start 2P';font-size:8px;color:var(--cyan);letter-spacing:3px;text-align:center;margin-bottom:18px}
+.auth-field{margin-bottom:11px}
+.auth-lbl{font-size:9px;color:var(--text-dim);display:block;margin-bottom:4px;letter-spacing:1px;font-family:'Press Start 2P'}
+.auth-input{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:9px 11px;font-size:13px;font-family:'Share Tech Mono';outline:none;transition:border-color .15s}
+.auth-input:focus{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(0,212,255,.2)}
+.auth-input::placeholder{color:var(--text-dim)}
+.auth-pw-wrap{position:relative}
+.auth-pw-wrap .auth-input{padding-right:36px}
+.auth-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:13px;padding:0;line-height:1}
+.auth-eye:hover{color:var(--text)}
+.auth-phone-row{display:grid;grid-template-columns:108px 1fr;gap:6px}
+.auth-select{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:9px 8px;font-size:12px;font-family:'Share Tech Mono';outline:none;cursor:pointer}
+.auth-select:focus{border-color:var(--cyan)}
+.auth-err{font-size:10px;color:var(--red);margin-top:-7px;margin-bottom:9px;display:none}
+.auth-err.show{display:block}
+.auth-btn-primary{width:100%;padding:11px;background:var(--cyan);color:#050d18;font-family:'Press Start 2P';font-size:8px;letter-spacing:1px;border:none;cursor:pointer;margin-top:6px;box-shadow:var(--cyan-glow);transition:opacity .15s}
+.auth-btn-primary:hover{opacity:.82}
+.auth-btn-google{width:100%;padding:10px;background:transparent;border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono';font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:border-color .15s}
+.auth-btn-google:hover{border-color:var(--text-bright)}
+.auth-g-icon{font-size:16px;font-weight:700;background:linear-gradient(135deg,#4285F4 25%,#EA4335 50%,#FBBC05 75%,#34A853 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.auth-divider{display:flex;align-items:center;gap:8px;margin:12px 0;color:var(--text-dim);font-size:10px;font-family:'Share Tech Mono'}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.auth-check-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;cursor:pointer;color:var(--text);font-size:11px;font-family:'Share Tech Mono';line-height:1.5}
+.auth-check-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--cyan);flex-shrink:0;margin-top:2px;cursor:pointer}
+.auth-check-row a{color:var(--cyan);text-decoration:underline;cursor:pointer}
+.auth-footer{text-align:center;font-size:11px;color:var(--text-dim);margin-top:14px;font-family:'Share Tech Mono'}
+.auth-footer a{color:var(--cyan);cursor:pointer;text-decoration:none}
+.auth-footer a:hover{text-decoration:underline}
+.auth-forgot{text-align:right;margin:-4px 0 10px;font-size:10px;font-family:'Share Tech Mono';color:var(--text-dim)}
+.auth-forgot a{color:var(--cyan-dim);cursor:pointer}.auth-forgot a:hover{color:var(--cyan)}
+/* ══ NOTIFICATIONS ══ */
+.noti-wrap{position:relative}
+.noti-badge{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;background:var(--red);display:none;align-items:center;justify-content:center;font-family:'Share Tech Mono';font-size:9px;color:#fff;padding:0 3px;z-index:1}
+.noti-badge.show{display:flex}
+.noti-panel{position:absolute;top:calc(100% + 6px);right:0;z-index:600;background:var(--bg-card);border:1px solid var(--border2);width:290px;box-shadow:4px 4px 0 rgba(0,0,0,.5);max-height:360px;display:flex;flex-direction:column}
+.noti-hdr{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.noti-title{font-family:'Press Start 2P';font-size:7px;color:var(--text-bright);letter-spacing:1px}
+.noti-clear{font-size:10px;color:var(--text-dim);cursor:pointer;font-family:'Share Tech Mono';background:none;border:none;padding:0}
+.noti-clear:hover{color:var(--red)}
+.noti-list{flex:1;overflow-y:auto}
+.noti-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.noti-item:hover{background:rgba(255,255,255,.03)}
+.noti-item.unread{border-left:2px solid var(--cyan)}
+.noti-item-title{font-family:'Share Tech Mono';font-size:11px;color:var(--text-bright);margin-bottom:2px}
+.noti-item-body{font-size:10px;color:var(--text-dim);line-height:1.4}
+.noti-item-time{font-size:9px;color:var(--text-dim);margin-top:3px}
+.noti-empty{padding:24px;text-align:center;font-size:11px;color:var(--text-dim);font-family:'Share Tech Mono'}
+/* ══ MODALS ══ */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-ov.show{display:flex}
+.modal-box{background:var(--bg-card);border:1px solid var(--border2);box-shadow:4px 4px 0 rgba(0,0,0,.5);padding:24px;width:100%;max-width:380px;position:relative}
+.modal-box::before{content:'';position:absolute;top:6px;left:6px;width:12px;height:12px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.modal-box::after{content:'';position:absolute;bottom:6px;right:6px;width:12px;height:12px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.modal-title{font-family:'Press Start 2P';font-size:8px;color:var(--cyan);letter-spacing:2px;margin-bottom:16px}
+.modal-lbl{font-size:9px;color:var(--text-dim);display:block;margin-bottom:4px;font-family:'Press Start 2P';letter-spacing:.5px}
+.modal-input{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:9px 11px;font-size:13px;font-family:'Share Tech Mono';outline:none;transition:border-color .15s;margin-bottom:10px}
+.modal-input:focus{border-color:var(--cyan)}
+.modal-textarea{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:9px 11px;font-size:12px;font-family:'Share Tech Mono';outline:none;resize:vertical;min-height:80px;transition:border-color .15s;margin-bottom:10px}
+.modal-textarea:focus{border-color:var(--cyan)}
+.modal-btn-row{display:flex;gap:8px;margin-top:6px}
+.modal-btn-p{flex:1;padding:10px;background:var(--cyan);color:#050d18;font-family:'Press Start 2P';font-size:7px;border:none;cursor:pointer;letter-spacing:1px}
+.modal-btn-c{padding:10px 14px;border:1px solid var(--border2);color:var(--text-dim);font-family:'Press Start 2P';font-size:7px;background:none;cursor:pointer}
+.modal-btn-c:hover{color:var(--text);border-color:var(--text)}
+.mt-toggle{display:flex;gap:6px;margin-bottom:12px}
+.mt-btn{flex:1;padding:9px;border:1px solid var(--border2);color:var(--text-dim);font-family:'Press Start 2P';font-size:7px;cursor:pointer;background:none;transition:all .15s}
+.mt-btn.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-bg)}
+.apikey-box{background:var(--bg-input);border:1px solid var(--cyan-dim);padding:10px 12px;font-family:'Share Tech Mono';font-size:11px;color:var(--cyan);word-break:break-all;margin-bottom:8px;line-height:1.5}
+.apikey-copy{width:100%;padding:8px;border:1px solid var(--cyan-dim);color:var(--cyan);font-family:'Share Tech Mono';font-size:12px;cursor:pointer;background:var(--cyan-bg);transition:opacity .15s}
+.apikey-copy:hover{opacity:.8}
+.modal-note{font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';line-height:1.5;margin-top:10px}
+/* ══ CONNECTED ACCOUNTS LIST ══ */
+.acct-list-divider{border-top:1px solid var(--border);margin:16px -18px 14px}
+.acct-list-empty{font-size:11px;color:var(--text-dim);font-family:'Share Tech Mono';padding:14px 0;text-align:center}
+.acct-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border)}
+.acct-item:last-child{border-bottom:none}
+.acct-item-name{font-family:'Share Tech Mono';font-size:13px;color:var(--text-bright);font-weight:600;margin-bottom:4px}
+.acct-item-meta{font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);margin-bottom:6px;line-height:1.6}
+.acct-item-key{font-family:'Share Tech Mono';font-size:10px;color:var(--cyan-dim);filter:blur(5px);user-select:none;transition:filter .25s;cursor:default;word-break:break-all}
+.acct-item-key:hover{filter:blur(0);color:var(--cyan)}
+.acct-item-badges{display:flex;gap:5px;margin-bottom:5px}
+.acct-badge{font-family:'Press Start 2P';font-size:5px;padding:2px 6px;border:1px solid;letter-spacing:.3px}
+.acct-badge-real{border-color:var(--cyan-dim);color:var(--cyan);background:var(--cyan-bg)}
+.acct-badge-demo{border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg)}
+.acct-badge-mt{border-color:var(--border2);color:var(--text-dim)}
+.acct-item-actions{display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0}
+.acct-copy-btn{padding:4px 9px;font-size:9px;border:1px solid var(--cyan-dim);color:var(--cyan);background:none;cursor:pointer;font-family:'Share Tech Mono';transition:opacity .15s;white-space:nowrap}
+.acct-copy-btn:hover{opacity:.75}
+.acct-del-btn{padding:4px 9px;font-size:9px;border:1px solid var(--red-dim);color:var(--red);background:none;cursor:pointer;font-family:'Share Tech Mono';transition:opacity .15s;white-space:nowrap}
+.acct-del-btn:hover{background:var(--red-bg)}
+.acct-locked-note{font-size:9px;color:var(--text-dim);font-family:'Share Tech Mono';margin-top:-6px;margin-bottom:10px;line-height:1.5}
+/* ══ DEMO ACCOUNT CARDS ══ */
+.demo-section-lbl{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;font-family:'Press Start 2P';font-size:6px;color:var(--yellow);border:1px solid var(--yellow-dim);background:var(--yellow-bg);letter-spacing:.5px}
+.bot-card.bc-demo{border-color:var(--yellow);box-shadow:4px 4px 0 rgba(250,204,21,.25)}
+.bot-card.bc-demo:hover{transform:translate(-3px,-3px);box-shadow:6px 6px 0 rgba(250,204,21,.35)}
+.bot-card.bc-demo::before,.bot-card.bc-demo::after{border-color:var(--yellow)}
+.demo-tag{font-family:'Press Start 2P';font-size:5px;padding:2px 5px;border:1px solid var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg);margin-left:4px;vertical-align:middle}
+/* ══ PROFILE PAGE ══ */
+.pf-back{display:flex;align-items:center;gap:6px;padding:5px 10px;font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);border:1px solid var(--border2);cursor:pointer;background:none;transition:all .15s;letter-spacing:.5px}
+.pf-back:hover{border-color:var(--cyan-dim);color:var(--cyan)}
+.pf-hdr-card{background:var(--bg-card);border:1px solid var(--border2);padding:18px;display:flex;align-items:center;gap:16px}
+.pf-avatar-xl{width:56px;height:56px;background:var(--cyan-bg);border:2px solid var(--cyan);box-shadow:var(--cyan-glow);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:16px;color:var(--cyan);flex-shrink:0}
+.pf-displayname{font-family:'Share Tech Mono';font-size:18px;color:var(--text-bright);font-weight:600}
+.pf-meta{font-size:10px;color:var(--text-dim);margin-top:5px;font-family:'Share Tech Mono';line-height:1.6}
+.pf-card{background:var(--bg-card);border:1px solid var(--border2);padding:16px}
+.pf-card-title{font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);letter-spacing:1.5px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.pf-row{display:grid;grid-template-columns:140px 1fr;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.pf-row:last-child{border-bottom:none}
+.pf-lbl{font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.5px;line-height:1.6}
+.pf-val{font-family:'Share Tech Mono';font-size:13px;color:var(--text-bright)}
+.pf-val.dim{color:var(--text-dim);font-size:11px}
+.pf-readonly{font-family:'Share Tech Mono';font-size:12px;color:var(--text-dim)}
+.pf-inp{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:7px 10px;font-size:13px;font-family:'Share Tech Mono';outline:none;transition:border-color .15s}
+.pf-inp:focus{border-color:var(--cyan)}
+.pf-sel{width:100%;background:var(--bg-input);border:1px solid var(--border2);color:var(--text-bright);padding:7px 8px;font-size:12px;font-family:'Share Tech Mono';outline:none;cursor:pointer}
+.pf-sel:focus{border-color:var(--cyan)}
+/* edit-mode toggling — wrap both view+edit inside .pf-cell */
+.pf-cell{display:contents}
+.pf-pe{display:none}
+.pf-editing .pf-pv{display:none!important}
+.pf-editing .pf-pe{display:block!important}
+.pf-editing .pf-pe.flex{display:flex!important}
+.pf-action-bar{display:flex;justify-content:flex-end;gap:8px;padding:6px 0}
+.pf-editing-actions{display:none}
+.pf-editing .pf-editing-actions{display:flex;gap:8px}
+</style>
+</head>
+<body style="display:flex;flex-direction:column;height:100vh;overflow:hidden">
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="screen-login" class="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><span>D</span></div>
+      <div class="auth-logo-name">DOI DASH</div>
+    </div>
+    <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);text-align:center;letter-spacing:1px;margin:-12px 0 16px">Run fast, Climb high, Hold tight</div>
+    <div class="auth-title">LOGIN</div>
+    <div class="auth-field">
+      <label class="auth-lbl">EMAIL</label>
+      <input class="auth-input" type="email" id="li-email" placeholder="trader@example.com"/>
+    </div>
+    <div class="auth-field">
+      <label class="auth-lbl">PASSWORD</label>
+      <div class="auth-pw-wrap">
+        <input class="auth-input" type="password" id="li-pw" placeholder="••••••••"/>
+        <button class="auth-eye" onclick="togglePw('li-pw',this)" tabindex="-1">●</button>
+      </div>
+    </div>
+    <div class="auth-forgot"><a onclick="showForgotPw()">Forgot password?</a></div>
+    <button class="auth-btn-primary" onclick="doLogin()">LOGIN</button>
+    <div class="auth-divider">OR</div>
+    <button class="auth-btn-google" onclick="doLogin()">
+      <span class="auth-g-icon">G</span> CONTINUE WITH GOOGLE
+    </button>
+    <div class="auth-footer">No account? <a onclick="showSignup()">SIGN UP</a></div>
+  </div>
+</div>
+
+<!-- ══ SIGNUP SCREEN ══ -->
+<div id="screen-signup" class="auth-screen" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><span>D</span></div>
+      <div class="auth-logo-name">DOI DASH</div>
+    </div>
+    <div class="auth-title">CREATE ACCOUNT</div>
+    <div class="auth-field">
+      <label class="auth-lbl">FULL NAME</label>
+      <input class="auth-input" type="text" id="su-name" placeholder="John Doe"/>
+    </div>
+    <div class="auth-field">
+      <label class="auth-lbl">DISPLAY NAME</label>
+      <input class="auth-input" type="text" id="su-dispname" placeholder="e.g. JohnT, Keng"/>
+      <div style="font-size:9px;color:var(--text-dim);margin-top:4px;font-family:'Share Tech Mono'">Shown in top menu · short name or nickname</div>
+    </div>
+    <div class="auth-field">
+      <label class="auth-lbl">EMAIL</label>
+      <input class="auth-input" type="email" id="su-email" placeholder="trader@example.com"/>
+    </div>
+    <div class="auth-field">
+      <label class="auth-lbl">MOBILE</label>
+      <div class="auth-phone-row">
+        <select class="auth-select" id="su-country">
+          <option value="+66">TH +66</option>
+          <option value="+1">US +1</option>
+          <option value="+44">GB +44</option>
+          <option value="+65">SG +65</option>
+          <option value="+60">MY +60</option>
+          <option value="+62">ID +62</option>
+          <option value="+63">PH +63</option>
+          <option value="+84">VN +84</option>
+          <option value="+86">CN +86</option>
+          <option value="+852">HK +852</option>
+          <option value="+886">TW +886</option>
+          <option value="+81">JP +81</option>
+          <option value="+82">KR +82</option>
+          <option value="+91">IN +91</option>
+          <option value="+971">AE +971</option>
+          <option value="+61">AU +61</option>
+          <option value="+64">NZ +64</option>
+          <option value="+49">DE +49</option>
+          <option value="+33">FR +33</option>
+          <option value="+1-CA">CA +1</option>
+        </select>
+        <input class="auth-input" type="tel" id="su-mobile" placeholder="812345678"/>
+      </div>
+    </div>
+    <div class="auth-field">
+      <label class="auth-lbl">PASSWORD</label>
+      <div class="auth-pw-wrap">
+        <input class="auth-input" type="password" id="su-pw1" placeholder="min 8 characters"/>
+        <button class="auth-eye" onclick="togglePw('su-pw1',this)" tabindex="-1">●</button>
+      </div>
+    </div>
+    <div class="auth-field">
+      <label class="auth-lbl">RE-ENTER PASSWORD</label>
+      <div class="auth-pw-wrap">
+        <input class="auth-input" type="password" id="su-pw2" placeholder="••••••••"/>
+        <button class="auth-eye" onclick="togglePw('su-pw2',this)" tabindex="-1">●</button>
+      </div>
+    </div>
+    <div id="su-pw-err" class="auth-err">⚠ Passwords do not match</div>
+    <label class="auth-check-row">
+      <input type="checkbox" id="su-terms"/>
+      <span>I agree to the <a onclick="event.preventDefault();event.stopPropagation()">Terms &amp; Conditions</a></span>
+    </label>
+    <div id="su-terms-err" class="auth-err">⚠ Please accept Terms &amp; Conditions</div>
+    <button class="auth-btn-primary" onclick="doSignup()">CREATE ACCOUNT</button>
+    <div class="auth-divider">OR</div>
+    <button class="auth-btn-google" onclick="doLogin()">
+      <span class="auth-g-icon">G</span> SIGN UP WITH GOOGLE
+    </button>
+    <div class="auth-footer">Already have account? <a onclick="showLogin()">LOGIN</a></div>
+  </div>
+</div>
+
+<!-- ══ FORGOT PASSWORD SCREEN ══ -->
+<div id="screen-forgot" class="auth-screen" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon"><span>D</span></div>
+      <div class="auth-logo-name">DOI DASH</div>
+    </div>
+    <div class="auth-title">RESET PASSWORD</div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:16px;font-family:'Share Tech Mono';text-align:center;line-height:1.6">Enter your registered email to receive a reset link.</p>
+    <div class="auth-field">
+      <label class="auth-lbl">EMAIL</label>
+      <input class="auth-input" type="email" id="fp-email" placeholder="trader@example.com"/>
+    </div>
+    <div id="fp-success" style="display:none;font-size:11px;color:var(--green);margin-bottom:12px;font-family:'Share Tech Mono';padding:8px 10px;background:var(--green-bg);border:1px solid var(--green-dim)">✓ Reset link sent. Please check your email.</div>
+    <button class="auth-btn-primary" onclick="doForgotPw()">SEND RESET LINK</button>
+    <div class="auth-footer" style="margin-top:16px"><a onclick="showLogin()">← BACK TO LOGIN</a></div>
+  </div>
+</div>
+
+<!-- ══ PANEL OVERLAY ══ -->
+<div id="panelOverlay" class="panel-overlay" onclick="closeProfilePanel()"></div>
+
+<!-- ══ PROFILE SETTINGS PANEL ══ -->
+<div id="profilePanel" class="pp-panel">
+  <div class="pp-hdr">
+    <div class="pp-title">EDIT PROFILE</div>
+    <button class="pp-close" onclick="closeProfilePanel()">✕</button>
+  </div>
+  <div class="pp-body">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="width:58px;height:58px;background:var(--cyan-bg);border:2px solid var(--cyan);box-shadow:var(--cyan-glow);display:inline-flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:16px;color:var(--cyan)">JD</div>
+    </div>
+    <div class="pp-section">
+      <div class="pp-sec-title">PERSONAL INFO</div>
+      <div class="pp-field"><label class="pp-lbl">FULL NAME</label><input class="pp-input" type="text" value="John Doe"/></div>
+      <div class="pp-field"><label class="pp-lbl">EMAIL</label><input class="pp-input" type="email" value="john@sentinel.com"/></div>
+      <div class="pp-field">
+        <label class="pp-lbl">MOBILE</label>
+        <div class="pp-phone-row">
+          <select class="pp-select"><option>TH +66</option><option>US +1</option><option>SG +65</option><option>GB +44</option><option>JP +81</option><option>AU +61</option></select>
+          <input class="pp-input" type="tel" value="812345678"/>
+        </div>
+      </div>
+    </div>
+    <div class="pp-section">
+      <div class="pp-sec-title">CHANGE PASSWORD</div>
+      <div class="pp-field"><label class="pp-lbl">CURRENT PASSWORD</label><div class="pp-pw-wrap"><input class="pp-input" type="password" id="pp-pw0" placeholder="••••••••"/><button class="pp-eye" onclick="togglePw('pp-pw0',this)">●</button></div></div>
+      <div class="pp-field"><label class="pp-lbl">NEW PASSWORD</label><div class="pp-pw-wrap"><input class="pp-input" type="password" id="pp-pw1" placeholder="min 8 characters"/><button class="pp-eye" onclick="togglePw('pp-pw1',this)">●</button></div></div>
+      <div class="pp-field"><label class="pp-lbl">CONFIRM PASSWORD</label><div class="pp-pw-wrap"><input class="pp-input" type="password" id="pp-pw2" placeholder="••••••••"/><button class="pp-eye" onclick="togglePw('pp-pw2',this)">●</button></div></div>
+      <div id="pp-pw-err" class="pp-err">⚠ Passwords do not match</div>
+    </div>
+    <div class="pp-section">
+      <div class="pp-sec-title">PREFERENCES</div>
+      <div class="pp-field"><label class="pp-lbl">LANGUAGE</label><select class="pp-select"><option>English (EN)</option><option>ภาษาไทย (TH)</option></select></div>
+      <div class="pp-field"><label class="pp-lbl">TIMEZONE</label><select class="pp-select"><option>Asia/Bangkok (UTC+7)</option><option>Asia/Singapore (UTC+8)</option><option>Asia/Tokyo (UTC+9)</option><option>Europe/London (UTC+0)</option><option>America/New_York (UTC-5)</option></select></div>
+    </div>
+  </div>
+  <div class="pp-footer">
+    <button class="pp-btn-cancel" onclick="closeProfilePanel()">CANCEL</button>
+    <button class="pp-btn-save" onclick="saveProfile()">SAVE CHANGES</button>
+  </div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<nav class="topnav">
+  <div class="logo-wrap">
+    <div class="logo-icon"><span>D</span></div>
+    <div class="logo-text">
+      <div class="logo-main">DOI DASH</div>
+      <div class="logo-sub">Run fast, Climb high, Hold tight</div>
+    </div>
+  </div>
+  <div class="header-center">
+    <div class="main-clock" id="mainClock">00:00:00</div>
+    <div class="session-row">
+      <div class="sess-chip" id="sess-tokyo"><div class="sess-d"></div>TOKYO</div>
+      <span class="sess-sep">·</span>
+      <div class="sess-chip" id="sess-london"><div class="sess-d"></div>LONDON</div>
+      <span class="sess-sep">·</span>
+      <div class="sess-chip" id="sess-ny"><div class="sess-d"></div>NEW YORK</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="wifi-widget" id="wifiWidget">
+      <div class="wifi-bars2">
+        <div class="w-b w-b1"></div>
+        <div class="w-b w-b2"></div>
+        <div class="w-b w-b3"></div>
+        <div class="w-b w-b4"></div>
+      </div>
+      <div class="wifi-info2">
+        <div class="wifi-status-lbl">LIVE</div>
+        <div class="wifi-ms" id="wifiMs">12ms</div>
+      </div>
+    </div>
+    <div class="noti-wrap">
+      <div class="hdr-btn" title="Notifications" onclick="toggleNoti(event)">
+        <svg width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M7 1a1 1 0 0 0-1 1v.5A5 5 0 0 0 2 7.5V11l-1.5 1.5v.5h13V12.5L12 11V7.5A5 5 0 0 0 8 2.5V2a1 1 0 0 0-1-1z"/><path d="M5.5 13a1.5 1.5 0 0 0 3 0"/></svg>
+      </div>
+      <div class="noti-badge" id="notiBadge">0</div>
+      <div class="noti-panel" id="notiPanel" style="display:none">
+        <div class="noti-hdr">
+          <span class="noti-title">NOTIFICATIONS</span>
+          <button class="noti-clear" onclick="clearNoti()">CLEAR ALL</button>
+        </div>
+        <div class="noti-list" id="notiList">
+          <div class="noti-empty" id="notiEmpty">No notifications</div>
+        </div>
+      </div>
+    </div>
+    <div class="prof-btn-wrap">
+      <div class="prof-btn" onclick="toggleProfileMenu(event)">
+        <div class="prof-avatar-sm" id="hdr-avatar">JD</div>
+        <span class="prof-name" id="hdr-disp-name">JohnD</span>
+        <span class="prof-chevron" id="profChevron">▾</span>
+      </div>
+      <div class="pm-panel" id="profileMenu" style="display:none">
+        <div class="pm-user">
+          <div class="pm-avatar-lg">JD</div>
+          <div>
+            <div class="pm-uname">John Doe</div>
+            <div class="pm-uemail">john@sentinel.com</div>
+            <span class="pm-badge ba">ADMIN</span>
+          </div>
+        </div>
+        <div class="pm-sep"></div>
+        <div class="pm-item" onclick="goPage('profile',null,null);closeProfileMenu()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="5" r="3"/><path d="M1 13c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+          Profile
+        </div>
+        <div class="pm-item" onclick="goPage('settings',null,null);closeProfileMenu()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="2"/><line x1="7" y1="1" x2="7" y2="3.5"/><line x1="7" y1="10.5" x2="7" y2="13"/><line x1="1" y1="7" x2="3.5" y2="7"/><line x1="10.5" y1="7" x2="13" y2="7"/><line x1="2.9" y1="2.9" x2="4.5" y2="4.5"/><line x1="9.5" y1="9.5" x2="11.1" y2="11.1"/><line x1="2.9" y1="11.1" x2="4.5" y2="9.5"/><line x1="9.5" y1="4.5" x2="11.1" y2="2.9"/></svg>
+          Settings
+        </div>
+        <div class="pm-item" onclick="openDownload();closeProfileMenu()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1v8M4 6l3 4 3-4"/><line x1="1" y1="13" x2="13" y2="13"/></svg>
+          Download EA
+        </div>
+        <div class="pm-sep"></div>
+        <div class="pm-sec-lbl">ADMIN</div>
+        <div class="pm-item" onclick="goPage('admin',null,null);closeProfileMenu()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="4" r="2.5"/><path d="M0 12c0-2.8 2.2-5 5-5"/><circle cx="10.5" cy="8" r="2"/><line x1="10.5" y1="3" x2="10.5" y2="5"/><line x1="10.5" y1="11" x2="10.5" y2="13"/><line x1="7.5" y1="8" x2="9" y2="8"/><line x1="12" y1="8" x2="13.5" y2="8"/></svg>
+          User Management
+        </div>
+        <div class="pm-item" onclick="goPage('earep',null,null);closeProfileMenu()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="10" height="12" rx="1"/><line x1="5" y1="5" x2="9" y2="5"/><line x1="5" y1="8" x2="9" y2="8"/><line x1="5" y1="11" x2="7" y2="11"/></svg>
+          EA Repository
+        </div>
+        <div class="pm-item" onclick="openAnnounce()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 5h8l3-3v9l-3-3H1V5z"/><line x1="5" y1="9" x2="5" y2="13"/></svg>
+          Announce
+        </div>
+        <div class="pm-sep"></div>
+        <div class="pm-item danger" onclick="doLogout()">
+          <svg width="13" height="13" viewBox="0 0 14 13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 1H2v11h3"/><line x1="8" y1="6.5" x2="14" y2="6.5"/><polyline points="11,3.5 14,6.5 11,9.5"/></svg>
+          Logout
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ TICKER ══ -->
+<div class="ticker-bar">
+  <div class="ticker-track">
+    <div class="ticker-item"><span class="ticker-sym">GBPUSD</span><span class="ticker-price">1.2913</span><span class="ticker-chg up">▲0.08%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">USDJPY</span><span class="ticker-price">148.23</span><span class="ticker-chg dn">▼0.21%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">BTCUSD</span><span class="ticker-price">82,441</span><span class="ticker-chg up">▲1.54%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">SP500</span><span class="ticker-price">5,628.35</span><span class="ticker-chg dn">▼0.43%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">NASDAQ</span><span class="ticker-price">17,849.4</span><span class="ticker-chg up">▲0.61%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">XAUUSD</span><span class="ticker-price">3,154.82</span><span class="ticker-chg up">▲0.34%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">EURUSD</span><span class="ticker-price">1.0872</span><span class="ticker-chg dn">▼0.12%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">DXY</span><span class="ticker-price">104.32</span><span class="ticker-chg up">▲0.09%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">GBPUSD</span><span class="ticker-price">1.2913</span><span class="ticker-chg up">▲0.08%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">USDJPY</span><span class="ticker-price">148.23</span><span class="ticker-chg dn">▼0.21%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">BTCUSD</span><span class="ticker-price">82,441</span><span class="ticker-chg up">▲1.54%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">SP500</span><span class="ticker-price">5,628.35</span><span class="ticker-chg dn">▼0.43%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">NASDAQ</span><span class="ticker-price">17,849.4</span><span class="ticker-chg up">▲0.61%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">XAUUSD</span><span class="ticker-price">3,154.82</span><span class="ticker-chg up">▲0.34%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">EURUSD</span><span class="ticker-price">1.0872</span><span class="ticker-chg dn">▼0.12%</span></div>
+    <div class="ticker-item"><span class="ticker-sym">DXY</span><span class="ticker-price">104.32</span><span class="ticker-chg up">▲0.09%</span></div>
+  </div>
+</div>
+
+<!-- ══ LAYOUT ══ -->
+<div class="layout">
+<aside class="sidebar">
+  <div class="sb-btn active" title="PORTFOLIO" onclick="goPage('portfolio',null,this)">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6.5" height="6.5"/><rect x="10.5" y="1" width="6.5" height="6.5"/><rect x="1" y="10.5" width="6.5" height="6.5"/><rect x="10.5" y="10.5" width="6.5" height="6.5"/></svg>
+    <span class="sb-label">HOME</span>
+  </div>
+  <div class="sb-btn" title="TRADE HISTORY" onclick="goPage('trades',null,this)">
+    <svg width="17" height="13" viewBox="0 0 17 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><line x1="0" y1="1" x2="17" y2="1"/><line x1="0" y1="6.5" x2="17" y2="6.5"/><line x1="0" y1="12" x2="17" y2="12"/></svg>
+    <span class="sb-label">TRADES</span>
+  </div>
+  <div class="sb-btn" title="CALENDAR" onclick="goPage('calendar',null,this)">
+    <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="15" height="13"/><line x1="1" y1="7" x2="16" y2="7"/><line x1="5" y1="1" x2="5" y2="5"/><line x1="12" y1="1" x2="12" y2="5"/></svg>
+    <span class="sb-label">CALENDAR</span>
+  </div>
+  <div class="sb-btn" title="ANALYTICS" onclick="goPage('analytics',null,this)">
+    <svg width="17" height="15" viewBox="0 0 17 15" fill="currentColor"><rect x="0" y="9" width="4" height="6"/><rect x="6.5" y="4" width="4" height="11"/><rect x="13" y="0" width="4" height="15"/></svg>
+    <span class="sb-label">STATS</span>
+  </div>
+</aside>
+
+<main class="page-content">
+
+<!-- ════ PAGE: PORTFOLIO ════ -->
+<div id="page-portfolio" class="page-section active-page">
+
+
+    <!-- PORTFOLIO — 4 tabs -->
+    <div>
+      <div class="sec-hdr"><div class="sec-dot"></div><div class="sec-title">PORTFOLIO</div><div class="sec-line"></div></div>
+      <div class="hm-panel">
+        <div class="hm-tabs">
+          <div class="hm-tab active" onclick="acctTab(this,'at-overview')">OVERVIEW</div>
+          <div class="hm-tab" onclick="acctTab(this,'at-accounts')">HEALTH</div>
+          <div class="hm-tab" onclick="acctTab(this,'at-orders')">ORDERS</div>
+          <div class="hm-tab" onclick="acctTab(this,'at-pending')">PENDING</div>
+        </div>
+        <!-- TAB: OVERVIEW -->
+        <div id="at-overview" style="padding:10px">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-card-header"><span class="kpi-lbl">ACCOUNTS</span><span class="kpi-icon">◇</span></div>
+              <div class="kpi-val vc">12 <span style="font-size:16px;color:var(--text-dim);font-weight:400">/ 13</span></div>
+              <div class="kpi-sub dn">■ 1 offline</div>
+              <div class="kpi-bar"><div class="kpi-fill fc" style="width:92%"></div></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-header"><span class="kpi-lbl">TOTAL BALANCE</span><span class="kpi-icon">$</span></div>
+              <div class="kpi-val vb" style="font-size:24px">$21,138<sup>.65</sup></div>
+              <div class="kpi-sub vd">USD · InterStellar</div>
+              <div class="kpi-bar"><div class="kpi-fill fc" style="width:65%"></div></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-header"><span class="kpi-lbl">TOTAL EQUITY</span><span class="kpi-icon">○</span></div>
+              <div class="kpi-val vg" style="font-size:24px">$25,238<sup>.97</sup></div>
+              <div class="kpi-sub"><span class="up">▲ +19.48% vs balance</span></div>
+              <div class="kpi-bar"><div class="kpi-fill fg" style="width:82%"></div></div>
+            </div>
+            <div class="kpi-card kpi-red">
+              <div class="kpi-card-header"><span class="kpi-lbl">TOTAL P/L</span><span class="kpi-icon" style="color:var(--red);opacity:.7">P/L</span></div>
+              <div class="kpi-val vr">-$70<sup>.11</sup></div>
+              <div class="kpi-sub vd">Floating unrealized</div>
+              <div class="kpi-bar"><div class="kpi-fill fr" style="width:12%"></div></div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-header"><span class="kpi-lbl">OPEN LOTS</span><span class="kpi-icon">◇</span></div>
+              <div class="kpi-val vc">3.90</div>
+              <div class="kpi-sub vd">B:3.44 / S:0.46</div>
+              <div class="kpi-bar"><div class="kpi-fill fc" style="width:40%"></div></div>
+            </div>
+            <div class="kpi-card kpi-yellow">
+              <div class="kpi-card-header"><span class="kpi-lbl">PENDING ORDERS</span><span class="kpi-icon" style="color:var(--yellow);opacity:.7">□</span></div>
+              <div class="kpi-val vy" style="font-size:36px">7</div>
+              <div class="kpi-sub vd">total pending</div>
+              <div class="kpi-bar"><div class="kpi-fill fy" style="width:30%"></div></div>
+            </div>
+          </div>
+        </div>
+        <!-- TAB: ACCOUNTS (HEALTH HEATMAP) -->
+        <div id="at-accounts" style="display:none;padding:8px">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+            <span style="font-family:'Press Start 2P';font-size:5px;color:var(--text-dim);letter-spacing:.5px">DD:</span>
+            <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--green)">● &lt;10%</span>
+            <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--yellow)">● 10–30%</span>
+            <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--red)">● &gt;30%</span>
+            <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim)">● OFFLINE</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">Thunder</div><div class="dd-tile-val">3.04%</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">NiyomBot DCZ</div><div class="dd-tile-val">0.64%</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">NiyomBot DEV</div><div class="dd-tile-val">0.63%</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">AlphaGrid X1</div><div class="dd-tile-val">1.22%</div></div>
+            <div class="dd-tile hm-bad"><div class="dd-tile-name">ZetaScalp Pro</div><div class="dd-tile-val">OFFLINE</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">OmegaHedge</div><div class="dd-tile-val">0.41%</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">GridMaster A</div><div class="dd-tile-val">2.18%</div></div>
+            <div class="dd-tile hm-warn"><div class="dd-tile-name">ScalpBot EU</div><div class="dd-tile-val">14.30%</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">NightOwl v2</div><div class="dd-tile-val">0.89%</div></div>
+            <div class="dd-tile hm-warn"><div class="dd-tile-name">HedgeX Pro</div><div class="dd-tile-val">22.50%</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">TrendRider</div><div class="dd-tile-val">5.77%</div></div>
+            <div class="dd-tile hm-bad"><div class="dd-tile-name">BreakoutBot</div><div class="dd-tile-val">38.90%</div></div>
+            <div class="dd-tile hm-safe"><div class="dd-tile-name">ArbitrageX</div><div class="dd-tile-val">1.05%</div></div>
+          </div>
+        </div>
+        <!-- TAB: ORDERS -->
+        <div id="at-orders" class="hm-body" style="grid-template-columns:repeat(3,1fr);display:none">
+          <div class="hm-block hm-safe" style="min-height:80px"><div class="hm-block-name">XAUUSD BUY ×5</div><div class="hm-block-val">+$959</div><div class="hm-block-sub">2.78 lots · Thunder</div></div>
+          <div class="hm-block hm-bad"><div class="hm-block-name">XAUUSD SELL ×3</div><div class="hm-block-val">-$783</div><div class="hm-block-sub">0.90 lots · NiyomBot DCZ</div></div>
+          <div class="hm-block hm-safe"><div class="hm-block-name">EURUSD BUY ×2</div><div class="hm-block-val">+$178</div><div class="hm-block-sub">0.35 lots · NiyomBot DEV</div></div>
+          <div class="hm-block hm-warn"><div class="hm-block-name">GBPUSD SELL ×2</div><div class="hm-block-val">-$120</div><div class="hm-block-sub">0.10 lots · AlphaGrid X1</div></div>
+        </div>
+        <!-- TAB: PENDING -->
+        <div id="at-pending" class="hm-body" style="grid-template-columns:repeat(3,1fr);display:none">
+          <div class="hm-block" style="border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.06);color:var(--cyan);min-height:80px"><div class="hm-block-name">BUY LIMIT XAUUSD</div><div class="hm-block-val">×3</div><div class="hm-block-sub">@ 3,100.00 · Thunder</div></div>
+          <div class="hm-block" style="border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.06);color:var(--orange)"><div class="hm-block-name">SELL STOP EURUSD</div><div class="hm-block-val">×2</div><div class="hm-block-sub">@ 1.0820 · NiyomBot DCZ</div></div>
+          <div class="hm-block" style="border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.06);color:var(--cyan)"><div class="hm-block-name">BUY STOP GBPUSD</div><div class="hm-block-val">×2</div><div class="hm-block-sub">@ 1.2950 · OmegaHedge</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART (full width) -->
+    <div class="chart-panel">
+      <div class="chart-toolbar">
+        <span class="chart-sym">XAUUSD</span>
+        <span class="chart-price-disp">3,154.82</span>
+        <span class="chart-chg-disp up">▲ +10.64 (0.34%)</span>
+        <div class="chart-tfs">
+          <div class="ctf">5M</div><div class="ctf active">15M</div>
+          <div class="ctf">1H</div><div class="ctf">4H</div><div class="ctf">1D</div>
+        </div>
+        <button class="chart-toggle" id="chartToggle" onclick="toggleChart()">▲</button>
+      </div>
+      <div class="chart-body" id="chartBody">
+        <div class="chart-grid"></div>
+        <div class="chart-candles" id="chartCandles"></div>
+        <div class="chart-overlay"><div class="chart-last">3,154.82</div><div class="chart-spread up">▲ +10.64</div></div>
+      </div>
+    </div>
+
+    <!-- BOT ACCOUNTS -->
+    <div>
+      <div class="sec-hdr">
+        <div class="sec-dot"></div><div class="sec-title">MY ACCOUNTS</div>
+        <div class="sec-line"></div>
+        <div class="acct-count-badge">13 / 13</div>
+      </div>
+      <div class="accts-bar">
+        <button class="ftab" id="filterBtn" onclick="toggleFilterMenu(event)">⚙ FILTER</button>
+        <div id="filterMenu" class="filter-menu hidden">
+          <div class="filter-menu-section">
+            <div class="filter-menu-title">STATUS</div>
+            <div class="filter-chips">
+              <button class="fchip active" onclick="setFilter('status','all',this)">ALL</button>
+              <button class="fchip" onclick="setFilter('status','online',this)">ONLINE</button>
+              <button class="fchip" onclick="setFilter('status','offline',this)">OFFLINE</button>
+            </div>
+          </div>
+          <div class="filter-menu-section">
+            <div class="filter-menu-title">P/L</div>
+            <div class="filter-chips">
+              <button class="fchip active" onclick="setFilter('pnl','all',this)">ALL</button>
+              <button class="fchip" onclick="setFilter('pnl','profit',this)">PROFIT</button>
+              <button class="fchip" onclick="setFilter('pnl','loss',this)">LOSS</button>
+            </div>
+          </div>
+          <div class="filter-menu-section">
+            <div class="filter-menu-title">SORT BY</div>
+            <select class="sort-sel" style="width:100%" onchange="sortBots(this.value)">
+              <option value="bal-desc">Balance ↓</option>
+              <option value="bal-asc">Balance ↑</option>
+              <option value="eq-desc">Equity ↓</option>
+              <option value="dd-desc">DD% ↓</option>
+              <option value="pnl-desc">Today P&L ↓</option>
+              <option value="name">Name A-Z</option>
+            </select>
+          </div>
+        </div>
+        <button class="ftab active" id="viewTogBtn" onclick="toggleView()" style="margin-left:auto">⊞</button>
+      </div>
+
+      <!-- CARD VIEW -->
+      <div id="cardView" class="bot-grid">
+
+        <div class="bot-card" data-status="online" data-pnl="profit" data-bal="142303" data-eq="138050" data-dd="3.04" data-today="959">
+          <div class="bc-top"><div class="bc-top-l"><div class="sdot sdot-on"></div><div><div class="bc-name">Thunder</div><div class="bc-acct">#96997544 <span class="acct-tag">USC</span></div></div></div><div class="dd-badge dd-med">DD 3.04%</div></div>
+          <div class="prog-bar"><div class="prog-fill prog-on" style="width:30%"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">142,303</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vy">138,050</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vc">5 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vc">5,208</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vg">2,651%</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vg">+959.00</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-4,333.20</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:2.78</span><span class="lot-s">S:0.00</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>InterStellar Financial Group Limited</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn">DETAILS</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn">+ TRADE</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+        <div class="bot-card" data-status="online" data-pnl="profit" data-bal="122630" data-eq="121047" data-dd="0.64" data-today="186">
+          <div class="bc-top"><div class="bc-top-l"><div class="sdot sdot-on"></div><div><div class="bc-name">NiyomBot DCZ</div><div class="bc-acct">#96958694 <span class="acct-tag">USC</span></div></div></div><div class="dd-badge dd-low">DD 0.64%</div></div>
+          <div class="prog-bar"><div class="prog-fill prog-on" style="width:6%"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">122,630</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vy">121,047</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vc">1 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vc">1,400</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vg">8,646%</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vg">+186.60</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-783.40</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:0.28</span><span class="lot-s">S:0.90</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>InterStellar Financial Group Limited</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn">DETAILS</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn">+ TRADE</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+        <div class="bot-card" data-status="online" data-pnl="profit" data-bal="227375" data-eq="225946" data-dd="0.63" data-today="178">
+          <div class="bc-top"><div class="bc-top-l"><div class="sdot sdot-on"></div><div><div class="bc-name">NiyomBot DEV</div><div class="bc-acct">#96997799 <span class="acct-tag">USC</span></div></div></div><div class="dd-badge dd-low">DD 0.63%</div></div>
+          <div class="prog-bar"><div class="prog-fill prog-on" style="width:6%"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">227,375</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vy">225,946</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vc">2 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vc">2,195</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vg">10,294%</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vg">+178.74</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-1,428.84</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:0.35</span><span class="lot-s">S:0.03</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>InterStellar Financial Group Limited</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn">DETAILS</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn">+ TRADE</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+        <div class="bot-card" data-status="online" data-pnl="profit" data-bal="88200" data-eq="87124" data-dd="1.22" data-today="421">
+          <div class="bc-top"><div class="bc-top-l"><div class="sdot sdot-on"></div><div><div class="bc-name">AlphaGrid X1</div><div class="bc-acct">#96995501 <span class="acct-tag">USC</span></div></div></div><div class="dd-badge dd-med">DD 1.22%</div></div>
+          <div class="prog-bar"><div class="prog-fill prog-on" style="width:12%"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">88,200</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vy">87,124</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vc">3 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vc">3,796</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vg">2,295%</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vg">+421.50</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-1,076.00</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:0.60</span><span class="lot-s">S:0.10</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>InterStellar Financial Group Limited</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn">DETAILS</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn">+ TRADE</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+        <!-- OFFLINE CARD -->
+        <div class="bot-card bc-offline" data-status="offline" data-pnl="loss" data-bal="54000" data-eq="49780" data-dd="0" data-today="-88">
+          <div class="bc-top"><div class="bc-top-l"><div class="sdot sdot-off"></div><div><div class="bc-name" style="color:var(--text-dim)">ZetaScalp Pro</div><div class="bc-acct">#96993388 <span class="acct-tag">USC</span></div></div></div><div class="dd-badge dd-off" style="animation:blink-b .8s step-end infinite">OFFLINE</div></div>
+          <div class="prog-bar"><div class="prog-fill prog-off"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">54,000</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vr">49,780</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vd">0 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vd">—</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vd">—</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vr">-88.00</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-4,220.00</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:0.00</span><span class="lot-s">S:0.00</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>InterStellar Financial Group Limited</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn bc-btn-red" style="flex:2">RECONNECT</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+        <div class="bot-card" data-status="online" data-pnl="profit" data-bal="310500" data-eq="309224" data-dd="0.41" data-today="1204">
+          <div class="bc-top"><div class="bc-top-l"><div class="sdot sdot-on"></div><div><div class="bc-name">OmegaHedge</div><div class="bc-acct">#96991122 <span class="acct-tag">USC</span></div></div></div><div class="dd-badge dd-low">DD 0.41%</div></div>
+          <div class="prog-bar"><div class="prog-fill prog-on" style="width:4%"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">310,500</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vy">309,224</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vc">4 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vc">8,598</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vg">3,596%</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vg">+1,204.00</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-1,276.00</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:1.20</span><span class="lot-s">S:0.33</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>InterStellar Financial Group Limited</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn">DETAILS</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn">+ TRADE</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+      </div><!-- /cardView -->
+
+      <!-- TABLE VIEW -->
+      <div id="tableView" class="hidden" style="margin-top:10px">
+        <div class="mobile-compact">
+          <div class="mc-row" data-status="online" data-pnl="profit"><div class="mc-line"><div class="mc-name"><span class="sdot sdot-on"></span>Thunder</div><div class="mc-cell"><span class="mc-lbl">Today</span><span class="mc-num vg">+959.00</span></div><div class="mc-cell"><span class="mc-lbl">UPnL</span><span class="mc-num vr">-4,333.20</span></div></div><div class="mc-line"><div class="mc-cell left"><span class="mc-lbl">Bal</span><span class="mc-num vb">142,303</span></div><div class="mc-cell"><span class="mc-lbl">Eq</span><span class="mc-num vy">138,050</span></div><div class="mc-cell"><span class="mc-lbl">DD</span><span class="mc-num vy">3.04%</span></div></div></div>
+          <div class="mc-row" data-status="online" data-pnl="profit"><div class="mc-line"><div class="mc-name"><span class="sdot sdot-on"></span>NiyomBot DCZ</div><div class="mc-cell"><span class="mc-lbl">Today</span><span class="mc-num vg">+186.60</span></div><div class="mc-cell"><span class="mc-lbl">UPnL</span><span class="mc-num vr">-783.40</span></div></div><div class="mc-line"><div class="mc-cell left"><span class="mc-lbl">Bal</span><span class="mc-num vb">122,630</span></div><div class="mc-cell"><span class="mc-lbl">Eq</span><span class="mc-num vy">121,047</span></div><div class="mc-cell"><span class="mc-lbl">DD</span><span class="mc-num vg">0.64%</span></div></div></div>
+          <div class="mc-row" data-status="online" data-pnl="profit"><div class="mc-line"><div class="mc-name"><span class="sdot sdot-on"></span>NiyomBot DEV</div><div class="mc-cell"><span class="mc-lbl">Today</span><span class="mc-num vg">+178.74</span></div><div class="mc-cell"><span class="mc-lbl">UPnL</span><span class="mc-num vr">-1,428.84</span></div></div><div class="mc-line"><div class="mc-cell left"><span class="mc-lbl">Bal</span><span class="mc-num vb">227,375</span></div><div class="mc-cell"><span class="mc-lbl">Eq</span><span class="mc-num vy">225,946</span></div><div class="mc-cell"><span class="mc-lbl">DD</span><span class="mc-num vg">0.63%</span></div></div></div>
+          <div class="mc-row mc-off" data-status="offline" data-pnl="loss"><div class="mc-line"><div class="mc-name"><span class="sdot sdot-off"></span><span class="vd">ZetaScalp Pro</span></div><div class="mc-cell"><span class="mc-lbl">Today</span><span class="mc-num vr">-88.00</span></div><div class="mc-cell"><span class="mc-lbl">UPnL</span><span class="mc-num vr">-4,220.00</span></div></div><div class="mc-line"><div class="mc-cell left"><span class="mc-lbl">Bal</span><span class="mc-num vd">54,000</span></div><div class="mc-cell"><span class="mc-lbl">Eq</span><span class="mc-num vr">49,780</span></div><div class="mc-cell"><span class="mc-lbl">DD</span><span class="mc-num vd">—</span></div></div></div>
+          <div class="mc-row" data-status="online" data-pnl="profit"><div class="mc-line"><div class="mc-name"><span class="sdot sdot-on"></span>OmegaHedge</div><div class="mc-cell"><span class="mc-lbl">Today</span><span class="mc-num vg">+1,204.00</span></div><div class="mc-cell"><span class="mc-lbl">UPnL</span><span class="mc-num vr">-1,276.00</span></div></div><div class="mc-line"><div class="mc-cell left"><span class="mc-lbl">Bal</span><span class="mc-num vb">310,500</span></div><div class="mc-cell"><span class="mc-lbl">Eq</span><span class="mc-num vy">309,224</span></div><div class="mc-cell"><span class="mc-lbl">DD</span><span class="mc-num vg">0.41%</span></div></div></div>
+        </div>
+        <div class="desktop-tbl tbl-wrap">
+          <table class="data-table">
+            <thead><tr><th>STATUS</th><th>ACCOUNT</th><th>BALANCE</th><th>EQUITY</th><th>TODAY P&L</th><th>UPnL</th><th>DD%</th><th>ORDERS</th><th>LOT B/S</th><th>ACTION</th></tr></thead>
+            <tbody>
+              <tr data-status="online" data-pnl="profit"><td><span class="vg" style="font-size:10px">● LIVE</span></td><td><div class="vb" style="font-weight:600">Thunder</div><div style="font-size:10px" class="vd">#96997544 · InterStellar</div></td><td class="vb">142,303</td><td class="vy">138,050</td><td class="vg">+959.00</td><td class="vr">-4,333.20</td><td><div class="dd-mini"><div class="dd-mini-fill fy" style="width:30%"></div></div><span class="vy" style="font-size:10px">3.04%</span></td><td class="vc">5</td><td><span class="lot-b" style="font-size:10px;padding:2px 5px">B:2.78</span> <span class="lot-s" style="font-size:10px;padding:2px 5px">S:0</span></td><td><button class="close-btn-sm">CLOSE ALL</button></td></tr>
+              <tr data-status="online" data-pnl="profit"><td><span class="vg" style="font-size:10px">● LIVE</span></td><td><div class="vb" style="font-weight:600">NiyomBot DCZ</div><div style="font-size:10px" class="vd">#96958694 · InterStellar</div></td><td class="vb">122,630</td><td class="vy">121,047</td><td class="vg">+186.60</td><td class="vr">-783.40</td><td><div class="dd-mini"><div class="dd-mini-fill fg" style="width:6%"></div></div><span class="vg" style="font-size:10px">0.64%</span></td><td class="vc">1</td><td><span class="lot-b" style="font-size:10px;padding:2px 5px">B:0.28</span> <span class="lot-s" style="font-size:10px;padding:2px 5px">S:0.9</span></td><td><button class="close-btn-sm">CLOSE ALL</button></td></tr>
+              <tr data-status="online" data-pnl="profit"><td><span class="vg" style="font-size:10px">● LIVE</span></td><td><div class="vb" style="font-weight:600">OmegaHedge</div><div style="font-size:10px" class="vd">#96991122 · InterStellar</div></td><td class="vb">310,500</td><td class="vy">309,224</td><td class="vg">+1,204.00</td><td class="vr">-1,276.00</td><td><div class="dd-mini"><div class="dd-mini-fill fg" style="width:4%"></div></div><span class="vg" style="font-size:10px">0.41%</span></td><td class="vc">4</td><td><span class="lot-b" style="font-size:10px;padding:2px 5px">B:1.2</span> <span class="lot-s" style="font-size:10px;padding:2px 5px">S:0.33</span></td><td><button class="close-btn-sm">CLOSE ALL</button></td></tr>
+              <tr class="row-off" data-status="offline" data-pnl="loss"><td><span class="vr" style="font-size:10px">● OFFLINE</span></td><td><div class="vd" style="font-weight:600">ZetaScalp Pro</div><div style="font-size:10px" class="vd">#96993388 · InterStellar</div></td><td class="vd">54,000</td><td class="vr">49,780</td><td class="vr">-88.00</td><td class="vr">-4,220.00</td><td><span class="vd" style="font-size:10px">N/A</span></td><td class="vd">0</td><td>—</td><td><button class="close-btn-sm" style="border-color:var(--cyan);color:var(--cyan)">RECONNECT</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEMO ACCOUNTS -->
+    <div>
+      <div class="sec-hdr">
+        <div class="sec-dot" style="background:var(--yellow);box-shadow:0 0 6px var(--yellow)"></div>
+        <div class="sec-title">DEMO ACCOUNTS</div>
+        <span class="demo-section-lbl">SANDBOX</span>
+        <div class="sec-line"></div>
+        <div class="acct-count-badge">2 / 2</div>
+      </div>
+      <!-- DEMO CARD VIEW -->
+      <div id="demoCardView" class="bot-grid" style="margin-top:10px">
+
+        <div class="bot-card bc-demo" data-status="online">
+          <div class="bc-top">
+            <div class="bc-top-l"><div class="sdot sdot-on"></div><div><div class="bc-name">TestBot Alpha <span class="demo-tag">DEMO</span></div><div class="bc-acct">#10000001 <span class="acct-tag">USC</span></div></div></div>
+            <div class="dd-badge" style="border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg)">DD 1.80%</div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:18%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">50,000</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vy">49,100</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vc">3 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vc">1,200</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vg">4,091%</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vg">+320.00</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-900.00</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:0.60</span><span class="lot-s">S:0.20</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>MetaQuotes Demo Server</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn">DETAILS</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn">+ TRADE</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+        <div class="bot-card bc-demo" data-status="online">
+          <div class="bc-top">
+            <div class="bc-top-l"><div class="sdot sdot-on"></div><div><div class="bc-name">TestBot Beta <span class="demo-tag">DEMO</span></div><div class="bc-acct">#10000002 <span class="acct-tag">USC</span></div></div></div>
+            <div class="dd-badge" style="border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg)">DD 0.50%</div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:5%;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div>
+          <div class="bc-body">
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Balance</div><div class="bc-item-val vb">100,000</div></div>
+              <div><div class="bc-item-lbl">Equity</div><div class="bc-item-val vy">99,500</div></div>
+              <div><div class="bc-item-lbl">Orders</div><div class="bc-item-val vc">1 open</div></div>
+            </div>
+            <div class="bc-data-row">
+              <div><div class="bc-item-lbl">Margin</div><div class="bc-item-val vc">800</div></div>
+              <div><div class="bc-item-lbl">Margin Level</div><div class="bc-item-val vg">12,437%</div></div>
+              <div></div>
+            </div>
+            <div class="bc-pnl">
+              <div><div class="pnl-lbl">TODAY</div><div class="pnl-val vg">+150.00</div></div>
+              <div><div class="pnl-lbl">FLOATING P/L</div><div class="pnl-val vr">-500.00</div></div>
+            </div>
+            <div class="lot-row"><span class="lot-lbl">Lot Exposure</span><span class="lot-b">B:0.30</span><span class="lot-s">S:0.00</span></div>
+            <div class="broker-row"><div class="broker-dot"></div>MetaQuotes Demo Server</div>
+          </div>
+          <div class="bc-footer">
+            <button class="bc-btn">DETAILS</button>
+            <button class="bc-btn">ORDERS</button>
+            <button class="bc-btn">+ TRADE</button>
+            <button class="bc-btn-danger">✕</button>
+          </div>
+        </div>
+
+      </div><!-- /demoCardView -->
+
+      <!-- DEMO TABLE VIEW -->
+      <div id="demoTableView" class="hidden" style="margin-top:10px">
+        <div class="mobile-compact">
+          <div class="mc-row" style="border-color:var(--yellow);box-shadow:0 0 6px rgba(250,204,21,.15)"><div class="mc-line"><div class="mc-name"><span class="sdot sdot-on" style="background:var(--yellow);box-shadow:0 0 6px var(--yellow);animation:none"></span>TestBot Alpha</div><div class="mc-cell"><span class="mc-lbl">Today</span><span class="mc-num vg">+320.00</span></div><div class="mc-cell"><span class="mc-lbl">UPnL</span><span class="mc-num vr">-900.00</span></div></div><div class="mc-line"><div class="mc-cell left"><span class="mc-lbl">Bal</span><span class="mc-num vb">50,000</span></div><div class="mc-cell"><span class="mc-lbl">Eq</span><span class="mc-num vy">49,100</span></div><div class="mc-cell"><span class="mc-lbl">DD</span><span class="mc-num vy">1.80%</span></div></div></div>
+          <div class="mc-row" style="border-color:var(--yellow);box-shadow:0 0 6px rgba(250,204,21,.15)"><div class="mc-line"><div class="mc-name"><span class="sdot sdot-on" style="background:var(--yellow);box-shadow:0 0 6px var(--yellow);animation:none"></span>TestBot Beta</div><div class="mc-cell"><span class="mc-lbl">Today</span><span class="mc-num vg">+150.00</span></div><div class="mc-cell"><span class="mc-lbl">UPnL</span><span class="mc-num vr">-500.00</span></div></div><div class="mc-line"><div class="mc-cell left"><span class="mc-lbl">Bal</span><span class="mc-num vb">100,000</span></div><div class="mc-cell"><span class="mc-lbl">Eq</span><span class="mc-num vy">99,500</span></div><div class="mc-cell"><span class="mc-lbl">DD</span><span class="mc-num vg">0.50%</span></div></div></div>
+        </div>
+        <div class="desktop-tbl tbl-wrap">
+          <table class="data-table">
+            <thead><tr><th>STATUS</th><th>ACCOUNT</th><th>BALANCE</th><th>EQUITY</th><th>TODAY P&L</th><th>UPnL</th><th>DD%</th><th>ORDERS</th><th>LOT B/S</th><th>ACTION</th></tr></thead>
+            <tbody>
+              <tr><td><span class="vy" style="font-size:10px">● DEMO</span></td><td><div class="vb" style="font-weight:600">TestBot Alpha</div><div style="font-size:10px" class="vd">#10000001 · MetaQuotes Demo</div></td><td class="vb">50,000</td><td class="vy">49,100</td><td class="vg">+320.00</td><td class="vr">-900.00</td><td><div class="dd-mini"><div class="dd-mini-fill fy" style="width:18%"></div></div><span class="vy" style="font-size:10px">1.80%</span></td><td class="vc">3</td><td><span class="lot-b" style="font-size:10px;padding:2px 5px">B:0.6</span> <span class="lot-s" style="font-size:10px;padding:2px 5px">S:0.2</span></td><td><button class="close-btn-sm">CLOSE ALL</button></td></tr>
+              <tr><td><span class="vy" style="font-size:10px">● DEMO</span></td><td><div class="vb" style="font-weight:600">TestBot Beta</div><div style="font-size:10px" class="vd">#10000002 · MetaQuotes Demo</div></td><td class="vb">100,000</td><td class="vy">99,500</td><td class="vg">+150.00</td><td class="vr">-500.00</td><td><div class="dd-mini"><div class="dd-mini-fill fg" style="width:5%"></div></div><span class="vg" style="font-size:10px">0.50%</span></td><td class="vc">1</td><td><span class="lot-b" style="font-size:10px;padding:2px 5px">B:0.3</span> <span class="lot-s" style="font-size:10px;padding:2px 5px">S:0</span></td><td><button class="close-btn-sm">CLOSE ALL</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+</div><!-- /page-portfolio -->
+
+
+<!-- ════ PAGE: TRADE HISTORY ════ -->
+<div id="page-trades" class="page-section">
+  <div class="sec-hdr"><div class="sec-dot"></div><div class="sec-title">TRADE HISTORY</div><div class="sec-line"></div></div>
+  <div class="th-filters">
+    <select class="sort-sel" style="width:130px"><option>All Accounts</option><option>Thunder</option><option>NiyomBot DCZ</option><option>OmegaHedge</option></select>
+    <select class="sort-sel" style="width:110px"><option>All Symbols</option><option>XAUUSD</option><option>EURUSD</option><option>GBPUSD</option></select>
+    <select class="sort-sel" style="width:100px"><option>All Types</option><option>BUY</option><option>SELL</option></select>
+    <input type="date" class="sort-sel" value="2026-05-01" style="width:130px"/>
+    <input type="date" class="sort-sel" value="2026-05-14" style="width:130px"/>
+    <button class="export-btn">⬇ EXPORT CSV</button>
+  </div>
+  <div class="th-summary">
+    <div class="th-sum-card"><div class="th-sum-lbl">Total Trades</div><div class="th-sum-val vb">247</div></div>
+    <div class="th-sum-card"><div class="th-sum-lbl">Win Rate</div><div class="th-sum-val vg">68.4%</div></div>
+    <div class="th-sum-card"><div class="th-sum-lbl">Total Profit</div><div class="th-sum-val vg">+$74,839.22</div></div>
+    <div class="th-sum-card"><div class="th-sum-lbl">Max DD</div><div class="th-sum-val vr">-8.34%</div></div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="data-table">
+      <thead><tr><th>TICKET</th><th>ACCOUNT</th><th>SYMBOL</th><th>TYPE</th><th>LOTS</th><th>OPEN PRICE</th><th>CLOSE PRICE</th><th>PROFIT</th><th>OPEN TIME</th><th>CLOSE TIME</th></tr></thead>
+      <tbody>
+        <tr><td class="vd">#1048291</td><td>Thunder</td><td class="vc">XAUUSD</td><td><span class="vg" style="font-size:10px;border:1px solid var(--green-dim);padding:2px 6px">BUY</span></td><td>2.00</td><td>3,100.50</td><td>3,154.82</td><td class="vg">+1,086.40</td><td class="vd" style="font-size:10px">2026-05-14 08:30</td><td class="vd" style="font-size:10px">2026-05-14 14:22</td></tr>
+        <tr><td class="vd">#1048290</td><td>OmegaHedge</td><td class="vc">XAUUSD</td><td><span class="vr" style="font-size:10px;border:1px solid var(--red-dim);padding:2px 6px">SELL</span></td><td>1.50</td><td>3,180.00</td><td>3,154.82</td><td class="vg">+378.00</td><td class="vd" style="font-size:10px">2026-05-14 06:15</td><td class="vd" style="font-size:10px">2026-05-14 09:48</td></tr>
+        <tr><td class="vd">#1048288</td><td>NiyomBot DCZ</td><td class="vc">EURUSD</td><td><span class="vg" style="font-size:10px;border:1px solid var(--green-dim);padding:2px 6px">BUY</span></td><td>0.50</td><td>1.0820</td><td>1.0872</td><td class="vg">+260.00</td><td class="vd" style="font-size:10px">2026-05-13 22:00</td><td class="vd" style="font-size:10px">2026-05-14 07:30</td></tr>
+        <tr><td class="vd">#1048285</td><td>Thunder</td><td class="vc">XAUUSD</td><td><span class="vg" style="font-size:10px;border:1px solid var(--green-dim);padding:2px 6px">BUY</span></td><td>5.00</td><td>3,200.00</td><td>3,160.00</td><td class="vr">-2,000.00</td><td class="vd" style="font-size:10px">2026-05-13 14:00</td><td class="vd" style="font-size:10px">2026-05-13 20:15</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination"><span class="pg-info">Showing 1–4 of 247</span><button class="pg-btn active">1</button><button class="pg-btn">2</button><button class="pg-btn">3</button><button class="pg-btn">...</button><button class="pg-btn">42</button></div>
+</div>
+
+
+<!-- ════ PAGE: CALENDAR ════ -->
+<div id="page-calendar" class="page-section">
+  <div class="sec-hdr"><div class="sec-dot"></div><div class="sec-title">ECONOMIC CALENDAR</div><div class="sec-line"></div></div>
+
+  <!-- Toolbar: period + refresh -->
+  <div class="cal-toolbar">
+    <button class="cal-period-btn active" onclick="setCalPeriod('today',this)">TODAY</button>
+    <button class="cal-period-btn" onclick="setCalPeriod('week',this)">THIS WEEK</button>
+    <button class="cal-refresh-btn" id="cal-refresh-btn" onclick="refreshCalendar()" title="Refresh">↺</button>
+  </div>
+
+  <!-- Impact filter -->
+  <div class="cal-filters">
+    <span style="font-size:9px;font-family:'Press Start 2P'" class="vd">IMPACT:</span>
+    <button class="cal-tab active" onclick="setCalImpact('all',this)">All</button>
+    <button class="cal-tab" style="color:var(--red)" onclick="setCalImpact('high',this)">🔴 High</button>
+    <button class="cal-tab" style="color:var(--orange)" onclick="setCalImpact('medium',this)">🟠 Medium</button>
+    <button class="cal-tab" style="color:var(--yellow)" onclick="setCalImpact('low',this)">🟡 Low</button>
+  </div>
+
+  <!-- Currency filter -->
+  <div class="cal-ccy-row">
+    <span style="font-size:9px;font-family:'Press Start 2P'" class="vd">CCY:</span>
+    <button class="cal-ccy-btn active" onclick="setCalCcy('all',this)">ALL</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('USD',this)">USD</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('EUR',this)">EUR</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('GBP',this)">GBP</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('JPY',this)">JPY</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('AUD',this)">AUD</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('CAD',this)">CAD</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('CHF',this)">CHF</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('NZD',this)">NZD</button>
+    <button class="cal-ccy-btn" onclick="setCalCcy('XAU',this)">XAU</button>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="data-table">
+      <thead><tr><th>TIME (BKK)</th><th>CCY</th><th>EVENT</th><th>IMPACT</th><th>ACTUAL</th><th>FORECAST</th><th>PREVIOUS</th></tr></thead>
+      <tbody id="cal-tbody">
+        <!-- ── WED 14 MAY 2026 ── -->
+        <tr class="cal-date-sep" data-date="2026-05-14"><td colspan="7">WED · 14 MAY 2026</td></tr>
+        <tr class="cal-past" data-date="2026-05-14" data-impact="high" data-ccy="USD"><td class="vd">09:30</td><td class="vc">USD</td><td>Core CPI m/m</td><td><span class="impact-h">HIGH</span></td><td class="vg">0.4%</td><td>0.3%</td><td class="vd">0.3%</td></tr>
+        <tr class="cal-past" data-date="2026-05-14" data-impact="high" data-ccy="USD"><td class="vd">09:30</td><td class="vc">USD</td><td>CPI y/y</td><td><span class="impact-h">HIGH</span></td><td class="vg">3.5%</td><td>3.4%</td><td class="vd">3.2%</td></tr>
+        <tr class="cal-past" data-date="2026-05-14" data-impact="medium" data-ccy="EUR"><td class="vd">14:00</td><td class="vy">EUR</td><td>ECB Meeting Minutes</td><td><span class="impact-m">MED</span></td><td class="vd">Hawkish</td><td class="vd">—</td><td class="vd">—</td></tr>
+        <tr class="cal-past" data-date="2026-05-14" data-impact="high" data-ccy="USD"><td class="vd">15:30</td><td class="vc">USD</td><td>Retail Sales m/m</td><td><span class="impact-h">HIGH</span></td><td class="vg">+0.6%</td><td>0.4%</td><td class="vd">0.7%</td></tr>
+        <tr class="cal-past" data-date="2026-05-14" data-impact="low" data-ccy="GBP"><td class="vd">21:30</td><td style="color:var(--orange)">GBP</td><td>BOE Gov Bailey Speech</td><td><span class="impact-l">LOW</span></td><td class="vd">—</td><td class="vd">—</td><td class="vd">—</td></tr>
+        <!-- ── THU 15 MAY 2026 (TODAY) ── -->
+        <tr class="cal-date-sep" data-date="2026-05-15"><td colspan="7">THU · 15 MAY 2026 <span style="color:var(--green);margin-left:6px">▸ TODAY</span></td></tr>
+        <tr class="cal-past" data-date="2026-05-15" data-impact="high" data-ccy="USD"><td class="vd">09:30</td><td class="vc">USD</td><td>Initial Jobless Claims</td><td><span class="impact-h">HIGH</span></td><td class="vg">224K</td><td>220K</td><td class="vd">228K</td></tr>
+        <tr class="cal-past" data-date="2026-05-15" data-impact="medium" data-ccy="AUD"><td class="vd">12:30</td><td class="vg">AUD</td><td>Employment Change</td><td><span class="impact-m">MED</span></td><td class="vg">+38.5K</td><td>25.0K</td><td class="vd">32.2K</td></tr>
+        <tr data-date="2026-05-15" data-impact="medium" data-ccy="USD"><td class="vd">16:30</td><td class="vc">USD</td><td>Empire State Mfg Index</td><td><span class="impact-m">MED</span></td><td style="color:var(--yellow)">Pending</td><td>-8.0</td><td class="vd">-20.0</td></tr>
+        <tr data-date="2026-05-15" data-impact="low" data-ccy="JPY"><td class="vd">20:00</td><td class="vd">JPY</td><td>BOJ Summary of Opinions</td><td><span class="impact-l">LOW</span></td><td class="vd">—</td><td class="vd">—</td><td class="vd">—</td></tr>
+        <tr data-date="2026-05-15" data-impact="high" data-ccy="USD"><td class="vd">23:00</td><td class="vc">USD</td><td>Federal Budget Balance</td><td><span class="impact-h">HIGH</span></td><td class="vd">—</td><td>-$210B</td><td class="vd">-$161B</td></tr>
+        <!-- ── FRI 16 MAY 2026 ── -->
+        <tr class="cal-date-sep" data-date="2026-05-16"><td colspan="7">FRI · 16 MAY 2026</td></tr>
+        <tr data-date="2026-05-16" data-impact="medium" data-ccy="USD"><td class="vd">09:30</td><td class="vc">USD</td><td>Building Permits</td><td><span class="impact-m">MED</span></td><td class="vd">—</td><td>1.46M</td><td class="vd">1.48M</td></tr>
+        <tr data-date="2026-05-16" data-impact="high" data-ccy="CAD"><td class="vd">14:30</td><td class="vr">CAD</td><td>Retail Sales m/m</td><td><span class="impact-h">HIGH</span></td><td class="vd">—</td><td>0.3%</td><td class="vd">0.4%</td></tr>
+        <tr data-date="2026-05-16" data-impact="medium" data-ccy="USD"><td class="vd">15:30</td><td class="vc">USD</td><td>Michigan Consumer Sentiment</td><td><span class="impact-m">MED</span></td><td class="vd">—</td><td>53.4</td><td class="vd">52.2</td></tr>
+        <tr data-date="2026-05-16" data-impact="low" data-ccy="EUR"><td class="vd">21:00</td><td class="vy">EUR</td><td>ECB President Lagarde Speech</td><td><span class="impact-l">LOW</span></td><td class="vd">—</td><td class="vd">—</td><td class="vd">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ════ PAGE: ANALYTICS ════ -->
+<div id="page-analytics" class="page-section">
+  <div class="sec-hdr"><div class="sec-dot"></div><div class="sec-title">ANALYTICS</div><div class="sec-line"></div></div>
+  <div class="an-tabs">
+    <div class="an-tab active" onclick="anTab(this,'an-performance')">PERFORMANCE</div>
+    <div class="an-tab" onclick="anTab(this,'an-equity')">EQUITY CURVE</div>
+    <div class="an-tab" onclick="anTab(this,'an-stats')">STATS</div>
+    <div class="an-tab" onclick="anTab(this,'an-symbol')">BY SYMBOL</div>
+  </div>
+
+  <!-- TAB: PERFORMANCE -->
+  <div id="an-performance">
+    <div class="perf-hdr">
+      <div class="perf-nav">
+        <button class="perf-nav-btn" onclick="changeMonth(-1)">◁</button>
+        <div class="perf-month" id="perf-month-lbl">MAY 2026</div>
+        <button class="perf-nav-btn" onclick="changeMonth(1)">▷</button>
+      </div>
+      <div class="perf-stats-row" id="perf-stats-row"></div>
+      <div class="perf-total-wrap">
+        <span>MONTHLY P&amp;L</span>
+        <span class="perf-total vg" id="perf-total">—</span>
+      </div>
+    </div>
+    <div class="pcal-wrap"><table class="pcal" id="pcal"></table></div>
+    <div class="pcal-legend">
+      <span style="font-family:'Press Start 2P';font-size:5px;color:var(--text-dim);letter-spacing:.5px">HEAT:</span>
+      <div class="pcal-leg-item"><span class="pcal-leg-sw" style="background:rgba(0,230,118,.22)"></span>Strong profit</div>
+      <div class="pcal-leg-item"><span class="pcal-leg-sw" style="background:rgba(0,230,118,.12)"></span>Profit</div>
+      <div class="pcal-leg-item"><span class="pcal-leg-sw" style="background:rgba(0,230,118,.05)"></span>Small profit</div>
+      <div class="pcal-leg-item"><span class="pcal-leg-sw" style="background:rgba(255,51,85,.05)"></span>Small loss</div>
+      <div class="pcal-leg-item"><span class="pcal-leg-sw" style="background:rgba(255,51,85,.12)"></span>Loss</div>
+      <div class="pcal-leg-item"><span class="pcal-leg-sw" style="background:rgba(255,51,85,.22)"></span>Strong loss</div>
+      <div class="pcal-leg-item" style="margin-left:8px"><span class="pcal-leg-sw" style="border-color:var(--cyan);background:rgba(0,212,255,.07)"></span>Today</div>
+    </div>
+  </div>
+
+  <!-- TAB: EQUITY CURVE -->
+  <div id="an-equity" style="display:none">
+    <div class="eq-legend">
+      <div class="eq-leg-item"><span class="eq-leg-line" style="background:var(--cyan)"></span>BALANCE</div>
+      <div class="eq-leg-item"><span class="eq-leg-line" style="background:var(--green);height:1px;border-top:1px dashed var(--green)"></span>EQUITY</div>
+    </div>
+    <div class="eq-chart-wrap">
+      <svg id="eq-svg" style="width:100%;height:180px;display:block" viewBox="0 0 800 180" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+
+  <!-- TAB: STATS -->
+  <div id="an-stats" style="display:none">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-lbl">TOTAL TRADES</div><div class="stat-val vb">247</div></div>
+      <div class="stat-card"><div class="stat-lbl">WIN RATE</div><div class="stat-val vg">68.4%</div></div>
+      <div class="stat-card"><div class="stat-lbl">PROFIT FACTOR</div><div class="stat-val vg">2.31</div></div>
+      <div class="stat-card"><div class="stat-lbl">TOTAL PROFIT</div><div class="stat-val vg">+$74.8K</div></div>
+      <div class="stat-card"><div class="stat-lbl">MAX DRAWDOWN</div><div class="stat-val vr">-8.34%</div></div>
+      <div class="stat-card"><div class="stat-lbl">AVG WIN</div><div class="stat-val vg">+$420</div></div>
+      <div class="stat-card"><div class="stat-lbl">AVG LOSS</div><div class="stat-val vr">-$182</div></div>
+      <div class="stat-card"><div class="stat-lbl">SHARPE RATIO</div><div class="stat-val vc">1.84</div></div>
+    </div>
+  </div>
+
+  <!-- TAB: BY SYMBOL -->
+  <div id="an-symbol" style="display:none">
+    <div class="hm-body" style="grid-template-columns:repeat(3,1fr)">
+      <div class="hm-block hm-safe"><div class="hm-block-name">XAUUSD</div><div class="hm-block-val">+$42.1K</div><div class="hm-block-sub">147 trades · 72% win</div></div>
+      <div class="hm-block hm-warn"><div class="hm-block-name">EURUSD</div><div class="hm-block-val">+$18.3K</div><div class="hm-block-sub">54 trades · 61% win</div></div>
+      <div class="hm-block hm-safe"><div class="hm-block-name">GBPUSD</div><div class="hm-block-val">+$9.8K</div><div class="hm-block-sub">31 trades · 65% win</div></div>
+      <div class="hm-block hm-bad"><div class="hm-block-name">USDJPY</div><div class="hm-block-val">-$3.2K</div><div class="hm-block-sub">8 trades · 38% win</div></div>
+      <div class="hm-block hm-warn"><div class="hm-block-name">USDCHF</div><div class="hm-block-val">+$4.7K</div><div class="hm-block-sub">5 trades · 60% win</div></div>
+      <div class="hm-block hm-safe"><div class="hm-block-name">BTCUSD</div><div class="hm-block-val">+$3.1K</div><div class="hm-block-sub">2 trades · 100% win</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════ PAGE: SETTINGS ════ -->
+<div id="page-settings" class="page-section">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">
+    <button class="pf-back" onclick="goPage(settingsPrevPage,null,null)">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7,1 3,5 7,9"/></svg>
+      BACK
+    </button>
+    <div class="sec-dot"></div>
+    <div class="sec-title">SETTINGS</div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="settings-layout">
+    <div class="settings-nav">
+      <button class="s-nav-btn active" onclick="sTab(this,'s-addaccount')">◈ Account</button>
+      <button class="s-nav-btn" onclick="sTab(this,'s-telegram')">✈ Telegram</button>
+      <button class="s-nav-btn" onclick="sTab(this,'s-reports')">📊 Reports</button>
+    </div>
+    <div class="settings-body">
+      <div id="s-addaccount" class="s-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="s-card-title" style="margin-bottom:0">CONNECTED ACCOUNTS</div>
+          <button class="s-btn" onclick="openAddAccount()">＋ ADD ACCOUNT</button>
+        </div>
+        <p class="acct-locked-note">⚠ Fields are locked after creation. To change details, delete and re-add the account.</p>
+        <div id="acct-list">
+          <div class="acct-item" id="acct-96997544">
+            <div>
+              <div class="acct-item-badges">
+                <span class="acct-badge acct-badge-real">REAL</span>
+                <span class="acct-badge acct-badge-mt">MT5</span>
+              </div>
+              <div class="acct-item-name">Thunder</div>
+              <div class="acct-item-meta">Account #96997544 &nbsp;·&nbsp; Added 2026-01-15</div>
+              <div class="acct-item-key" title="Hover to reveal">SNT-A3F2-B8C1-D4E7-F9G0</div>
+            </div>
+            <div class="acct-item-actions">
+              <button class="acct-copy-btn" onclick="copyAcctKey('SNT-A3F2-B8C1-D4E7-F9G0',this)">📋 COPY KEY</button>
+              <button class="acct-del-btn" onclick="deleteAccount('acct-96997544')">✕ DELETE</button>
+            </div>
+          </div>
+          <div class="acct-item" id="acct-96958694">
+            <div>
+              <div class="acct-item-badges">
+                <span class="acct-badge acct-badge-real">REAL</span>
+                <span class="acct-badge acct-badge-mt">MT5</span>
+              </div>
+              <div class="acct-item-name">NiyomBot DCZ</div>
+              <div class="acct-item-meta">Account #96958694 &nbsp;·&nbsp; Added 2026-01-20</div>
+              <div class="acct-item-key" title="Hover to reveal">SNT-C1D4-E7F2-A9B3-G6H1</div>
+            </div>
+            <div class="acct-item-actions">
+              <button class="acct-copy-btn" onclick="copyAcctKey('SNT-C1D4-E7F2-A9B3-G6H1',this)">📋 COPY KEY</button>
+              <button class="acct-del-btn" onclick="deleteAccount('acct-96958694')">✕ DELETE</button>
+            </div>
+          </div>
+          <div class="acct-item" id="acct-10000001">
+            <div>
+              <div class="acct-item-badges">
+                <span class="acct-badge acct-badge-demo">DEMO</span>
+                <span class="acct-badge acct-badge-mt">MT5</span>
+              </div>
+              <div class="acct-item-name">TestBot Alpha</div>
+              <div class="acct-item-meta">Account #10000001 &nbsp;·&nbsp; Added 2026-03-05</div>
+              <div class="acct-item-key" title="Hover to reveal">SNT-D2E5-F8G3-H1A6-B4C9</div>
+            </div>
+            <div class="acct-item-actions">
+              <button class="acct-copy-btn" onclick="copyAcctKey('SNT-D2E5-F8G3-H1A6-B4C9',this)">📋 COPY KEY</button>
+              <button class="acct-del-btn" onclick="deleteAccount('acct-10000001')">✕ DELETE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="s-telegram" class="s-card hidden">
+        <div class="s-card-title">TELEGRAM ALERTS</div>
+        <div class="s-form-row"><span class="s-label">Bot Token</span><input class="s-input" value="7123456789:AAE_abc..."/></div>
+        <div class="s-form-row"><span class="s-label">Chat ID</span><input class="s-input" value="-1001234567890"/></div>
+        <div class="s-form-row"><span class="s-label">Test</span><button class="s-btn">SEND TEST MESSAGE</button></div>
+        <div class="s-save-row"><button class="s-btn">SAVE</button></div>
+      </div>
+      <div id="s-reports" class="s-card hidden">
+        <div class="s-card-title">SCHEDULED REPORTS</div>
+        <div class="s-form-row"><span class="s-label">Daily Report</span><div class="s-toggle"><div class="toggle-track on" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div></div></div>
+        <div class="s-form-row"><span class="s-label">Weekly Report</span><div class="s-toggle"><div class="toggle-track" onclick="this.classList.toggle('on')"><div class="toggle-thumb"></div></div></div></div>
+        <div class="s-form-row"><span class="s-label">Send Time</span><select class="s-select"><option>08:00 BKK</option><option>09:00 BKK</option><option>20:00 BKK</option></select></div>
+        <div class="s-save-row"><button class="s-btn">SAVE</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════ PAGE: PROFILE ════ -->
+<div id="page-profile" class="page-section">
+  <!-- Back bar -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">
+    <button class="pf-back" onclick="goPage(pfPrevPage,null,null)">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7,1 3,5 7,9"/></svg>
+      BACK
+    </button>
+    <div class="sec-dot"></div>
+    <div class="sec-title">PROFILE</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div id="pf-wrap">
+    <!-- Header card -->
+    <div class="pf-hdr-card">
+      <div class="pf-avatar-xl">JD</div>
+      <div style="flex:1;min-width:0">
+        <div class="pf-displayname" id="pf-disp-name">John Doe</div>
+        <div class="pf-meta">
+          <span class="role-badge role-admin" style="vertical-align:middle">ADMIN</span>
+          &nbsp; john@sentinel.com<br>
+          Member since 2026-01-15 &nbsp;·&nbsp; Last login 2026-05-15 08:42
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        <button class="s-btn" id="pf-edit-btn" onclick="toggleProfileEdit()">EDIT PROFILE</button>
+      </div>
+    </div>
+
+    <!-- Personal Info -->
+    <div class="pf-card">
+      <div class="pf-card-title">PERSONAL INFO</div>
+      <div class="pf-row">
+        <span class="pf-lbl">FULL NAME</span>
+        <div>
+          <span class="pf-val pf-pv" id="pf-v-name">John Doe</span>
+          <input class="pf-inp pf-pe" id="pf-e-name" value="John Doe"/>
+        </div>
+      </div>
+      <div class="pf-row">
+        <span class="pf-lbl">DISPLAY NAME</span>
+        <div>
+          <span class="pf-val pf-pv" id="pf-v-dispname">JohnD</span>
+          <div class="pf-pe">
+            <input class="pf-inp" id="pf-e-dispname" value="JohnD"/>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:4px;font-family:'Share Tech Mono'">Shown in top menu · short name or nickname</div>
+          </div>
+        </div>
+      </div>
+      <div class="pf-row">
+        <span class="pf-lbl">EMAIL</span>
+        <div>
+          <span class="pf-val">john@sentinel.com</span>
+        </div>
+      </div>
+      <div class="pf-row">
+        <span class="pf-lbl">MOBILE</span>
+        <div>
+          <span class="pf-val pf-pv" id="pf-v-mobile">+66 812-345-678</span>
+          <div class="pf-pe">
+            <div style="display:grid;grid-template-columns:110px 1fr;gap:6px">
+              <select class="pf-sel"><option>TH +66</option><option>US +1</option><option>SG +65</option><option>GB +44</option><option>JP +81</option><option>AU +61</option></select>
+              <input class="pf-inp" id="pf-e-mobile" value="812345678"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pf-row">
+        <span class="pf-lbl">ROLE</span>
+        <div><span class="role-badge role-admin">ADMIN</span></div>
+      </div>
+      <div class="pf-row">
+        <span class="pf-lbl">MEMBER SINCE</span>
+        <div><span class="pf-readonly">2026-01-15</span></div>
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="pf-card">
+      <div class="pf-card-title">PREFERENCES</div>
+      <div class="pf-row">
+        <span class="pf-lbl">LANGUAGE</span>
+        <div>
+          <span class="pf-val pf-pv">English (EN)</span>
+          <select class="pf-sel pf-pe"><option>English (EN)</option><option>ภาษาไทย (TH)</option></select>
+        </div>
+      </div>
+      <div class="pf-row">
+        <span class="pf-lbl">TIMEZONE</span>
+        <div>
+          <span class="pf-val pf-pv">Asia/Bangkok (UTC+7)</span>
+          <select class="pf-sel pf-pe"><option>Asia/Bangkok (UTC+7)</option><option>Asia/Singapore (UTC+8)</option><option>Asia/Tokyo (UTC+9)</option><option>Europe/London (UTC+0)</option><option>America/New_York (UTC-5)</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="pf-card">
+      <div class="pf-card-title">SECURITY</div>
+      <div class="pf-row">
+        <span class="pf-lbl">PASSWORD</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span class="pf-readonly">••••••••••••</span>
+          <button class="s-btn" onclick="openChangePw()">CHANGE PASSWORD</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit mode action bar -->
+    <div class="pf-editing-actions" style="justify-content:flex-end;padding:4px 0">
+      <button class="s-btn s-btn-danger" onclick="cancelProfileEdit()">CANCEL</button>
+      <button class="s-btn" onclick="saveProfilePage()">SAVE CHANGES</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PAGE: ADMIN ════ -->
+<div id="page-admin" class="page-section">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">
+    <button class="pf-back" onclick="goPage(adminPrevPage,null,null)">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7,1 3,5 7,9"/></svg>
+      BACK
+    </button>
+    <div class="sec-dot"></div>
+    <div class="sec-title">ADMIN</div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="admin-tabs">
+    <div class="admin-tab active" onclick="adminTab(this,'admin-users')">USER MANAGEMENT</div>
+    <div class="admin-tab" onclick="adminTab(this,'admin-audit')">AUDIT LOG</div>
+  </div>
+  <div id="admin-users">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+      <button class="export-btn" style="margin-left:0">+ CREATE USER</button>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <select class="sort-sel" style="width:110px"><option>All Roles</option><option>ADMIN</option><option>VIP</option><option>USER</option></select>
+        <select class="sort-sel" style="width:110px"><option>All Status</option><option>Active</option><option>Suspended</option></select>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="data-table">
+        <thead><tr><th>USER</th><th>EMAIL</th><th>MOBILE</th><th>ROLE</th><th>ACCOUNTS</th><th>CREATED</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;background:var(--cyan-bg);border:1px solid var(--cyan-dim);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:6px;color:var(--cyan);flex-shrink:0">JD</div><span class="vb" style="font-weight:600">John Doe</span></div></td>
+            <td class="vd">john@sentinel.com</td>
+            <td class="vd">+66 81-234-5678</td>
+            <td><span class="role-badge role-admin">ADMIN</span></td>
+            <td class="vc">13</td>
+            <td class="vd" style="font-size:10px">2026-01-15</td>
+            <td><span class="vg" style="font-size:10px">● ACTIVE</span></td>
+            <td><button class="action-btn">EDIT</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;background:var(--yellow-bg);border:1px solid var(--yellow-dim);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:6px;color:var(--yellow);flex-shrink:0">AK</div><span class="vb" style="font-weight:600">Anya Kim</span></div></td>
+            <td class="vd">anya@sentinel.com</td>
+            <td class="vd">+66 89-765-4321</td>
+            <td><span class="role-badge role-vip">VIP</span></td>
+            <td class="vc">5</td>
+            <td class="vd" style="font-size:10px">2026-02-03</td>
+            <td><span class="vg" style="font-size:10px">● ACTIVE</span></td>
+            <td><button class="action-btn">EDIT</button> <button class="action-btn" style="color:var(--yellow);border-color:var(--yellow-dim)">SUSPEND</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;background:var(--border);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);flex-shrink:0">NT</div><span class="vb" style="font-weight:600">Noom T.</span></div></td>
+            <td class="vd">noom@sentinel.com</td>
+            <td class="vd">+66 90-111-2233</td>
+            <td><span class="role-badge role-user">USER</span></td>
+            <td class="vc">3</td>
+            <td class="vd" style="font-size:10px">2026-03-20</td>
+            <td><span class="vr" style="font-size:10px">● SUSPENDED</span></td>
+            <td><button class="action-btn">EDIT</button> <button class="action-btn" style="color:var(--green);border-color:var(--green-dim)">ACTIVATE</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;background:var(--border);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);flex-shrink:0">TR</div><span class="vb" style="font-weight:600">trader_02</span></div></td>
+            <td class="vd">trader2@sentinel.com</td>
+            <td class="vd">+1 555-012-3456</td>
+            <td><span class="role-badge role-user">USER</span></td>
+            <td class="vc">1</td>
+            <td class="vd" style="font-size:10px">2026-04-11</td>
+            <td><span class="vg" style="font-size:10px">● ACTIVE</span></td>
+            <td><button class="action-btn">EDIT</button> <button class="action-btn" style="color:var(--yellow);border-color:var(--yellow-dim)">SUSPEND</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div id="admin-audit" class="hidden">
+    <div class="th-filters" style="margin-bottom:10px">
+      <select class="sort-sel"><option>All Users</option><option>NIKESTN43</option></select>
+      <select class="sort-sel"><option>All Actions</option><option>LOGIN</option><option>CLOSE_ALL</option></select>
+      <button class="export-btn">⬇ EXPORT CSV</button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="data-table">
+        <thead><tr><th>TIMESTAMP</th><th>USER</th><th>ACTION</th><th>RESOURCE</th><th>IP</th><th>DETAILS</th></tr></thead>
+        <tbody>
+          <tr><td class="vd" style="font-size:10px">2026-05-14 14:22:05</td><td>NIKESTN43</td><td style="color:var(--red)">CLOSE_ALL</td><td class="vc">Thunder #96997544</td><td class="vd" style="font-size:10px">203.xxx.xxx.10</td><td style="font-size:10px" class="vd">Closed 5 positions</td></tr>
+          <tr><td class="vd" style="font-size:10px">2026-05-14 09:15:32</td><td>NIKESTN43</td><td style="color:var(--cyan)">LOGIN</td><td class="vd">—</td><td class="vd" style="font-size:10px">203.xxx.xxx.10</td><td style="font-size:10px" class="vd">Login successful</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PAGE: EA REPOSITORY ════ -->
+<div id="page-earep" class="page-section">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">
+    <button class="pf-back" onclick="goPage(eaRepPrevPage,null,null)">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7,1 3,5 7,9"/></svg>
+      BACK
+    </button>
+    <div class="sec-dot"></div>
+    <div class="sec-title">EA REPOSITORY</div>
+    <span class="demo-section-lbl" style="border-color:var(--yellow-dim);color:var(--yellow);background:var(--yellow-bg)">ADMIN / VIP</span>
+    <div class="sec-line"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono'">Store and manage EA files for team distribution.</div>
+    <button class="export-btn" style="margin-left:auto">⬆ UPLOAD EA</button>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="pf-card" id="ea-file-1">
+      <div style="display:grid;grid-template-columns:1fr auto;align-items:start;gap:12px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-family:'Share Tech Mono';font-size:13px;color:var(--text-bright);font-weight:600">SENTINEL_Reporter_v1.61.ex5</span>
+            <span class="acct-badge acct-badge-real">LATEST</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';line-height:1.8">Platform: MT5 &nbsp;·&nbsp; v1.61 &nbsp;·&nbsp; 48 KB &nbsp;·&nbsp; Uploaded 2026-05-10 by John Doe &nbsp;·&nbsp; 24 downloads</div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';margin-top:4px">Fixed heartbeat timeout on VPS low-latency connections.</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="s-btn">⬇ DOWNLOAD</button>
+          <button class="acct-del-btn" onclick="this.closest('.pf-card').remove()">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="pf-card" id="ea-file-2">
+      <div style="display:grid;grid-template-columns:1fr auto;align-items:start;gap:12px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-family:'Share Tech Mono';font-size:13px;color:var(--text-bright);font-weight:600">SENTINEL_Reporter_v1.61.ex4</span>
+            <span class="acct-badge acct-badge-real">LATEST</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';line-height:1.8">Platform: MT4 &nbsp;·&nbsp; v1.61 &nbsp;·&nbsp; 42 KB &nbsp;·&nbsp; Uploaded 2026-05-10 by John Doe &nbsp;·&nbsp; 11 downloads</div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';margin-top:4px">Fixed heartbeat timeout on VPS low-latency connections.</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="s-btn">⬇ DOWNLOAD</button>
+          <button class="acct-del-btn" onclick="this.closest('.pf-card').remove()">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="pf-card">
+      <div style="display:grid;grid-template-columns:1fr auto;align-items:start;gap:12px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-family:'Share Tech Mono';font-size:13px;color:var(--text-dim);font-weight:600">SENTINEL_Reporter_v1.50.ex5</span>
+            <span class="acct-badge acct-badge-mt">ARCHIVED</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';line-height:1.8">Platform: MT5 &nbsp;·&nbsp; v1.50 &nbsp;·&nbsp; 44 KB &nbsp;·&nbsp; Uploaded 2026-03-01 by John Doe &nbsp;·&nbsp; 38 downloads</div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';margin-top:4px">Legacy version — upgrade to v1.61 recommended.</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="s-btn" style="opacity:.45;cursor:default">⬇ DOWNLOAD</button>
+          <button class="acct-del-btn" onclick="this.closest('.pf-card').remove()">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- ══ MODAL: ADD ACCOUNT ══ -->
+<div class="modal-ov" id="modal-addaccount">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-title">ADD NEW ACCOUNT</div>
+    <label class="modal-lbl">ACCOUNT NAME</label>
+    <input class="modal-input" id="aa-name" placeholder="e.g. Thunder Bot"/>
+    <label class="modal-lbl">ACCOUNT TYPE</label>
+    <div class="mt-toggle">
+      <button class="mt-btn active" id="aa-real" onclick="selectAcctType('REAL')">REAL</button>
+      <button class="mt-btn" id="aa-demo" onclick="selectAcctType('DEMO')" style="border-color:var(--yellow-dim);color:var(--yellow)">DEMO</button>
+    </div>
+    <label class="modal-lbl">PLATFORM</label>
+    <div class="mt-toggle">
+      <button class="mt-btn active" id="aa-mt4" onclick="selectMT('MT4')">MT4</button>
+      <button class="mt-btn" id="aa-mt5" onclick="selectMT('MT5')">MT5</button>
+    </div>
+    <label class="modal-lbl">ACCOUNT NUMBER</label>
+    <input class="modal-input" id="aa-number" placeholder="e.g. 1234567"/>
+    <div class="modal-btn-row">
+      <button class="modal-btn-c" onclick="document.getElementById('modal-addaccount').classList.remove('show')">CANCEL</button>
+      <button class="modal-btn-p" onclick="saveAddAccount()">GENERATE API KEY</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: API KEY ══ -->
+<div class="modal-ov" id="modal-apikey">
+  <div class="modal-box">
+    <div class="modal-title">API KEY GENERATED</div>
+    <p style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';margin-bottom:12px;line-height:1.6">Account linked successfully. Save this API key — it will not be shown again.</p>
+    <label class="modal-lbl">ACCOUNT</label>
+    <div style="font-family:'Share Tech Mono';font-size:13px;color:var(--text-bright);margin-bottom:12px" id="apikey-acctinfo">—</div>
+    <label class="modal-lbl">API KEY</label>
+    <div class="apikey-box" id="apikey-value">SNT-XXXX-XXXX-XXXX-XXXX</div>
+    <button class="apikey-copy" onclick="copyApiKey()">📋 COPY API KEY</button>
+    <div class="modal-note">Paste this key into your EA's input parameters under <span style="color:var(--cyan)">SentinelApiKey</span>.</div>
+    <div class="modal-btn-row" style="margin-top:14px">
+      <button class="modal-btn-p" onclick="document.getElementById('modal-apikey').classList.remove('show')">DONE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: DOWNLOAD EA ══ -->
+<div class="modal-ov" id="modal-download">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-title">DOWNLOAD EA CONNECTOR</div>
+    <p style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';line-height:1.7;margin-bottom:16px">Download the Sentinel Reporter EA and install it on your MT4/MT5 terminal. The EA will push live data to this dashboard using your account API key.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg-input);border:1px solid var(--border2)">
+        <div>
+          <div style="font-family:'Share Tech Mono';font-size:12px;color:var(--text-bright)">SENTINEL_Reporter_v1.61.ex5</div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';margin-top:2px">MT5 · v1.61 · 48 KB · 2026-05-10</div>
+        </div>
+        <button class="s-btn" style="flex-shrink:0;margin-left:12px">⬇ MT5</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg-input);border:1px solid var(--border2)">
+        <div>
+          <div style="font-family:'Share Tech Mono';font-size:12px;color:var(--text-bright)">SENTINEL_Reporter_v1.61.ex4</div>
+          <div style="font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono';margin-top:2px">MT4 · v1.61 · 42 KB · 2026-05-10</div>
+        </div>
+        <button class="s-btn" style="flex-shrink:0;margin-left:12px">⬇ MT4</button>
+      </div>
+    </div>
+    <div class="modal-note">After installing, paste your API key into the EA input parameter <span style="color:var(--cyan)">SentinelApiKey</span> and attach it to any chart.</div>
+    <div class="modal-btn-row" style="margin-top:14px">
+      <button class="modal-btn-p" onclick="document.getElementById('modal-download').classList.remove('show')">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ANNOUNCE ══ -->
+<div class="modal-ov" id="modal-announce">
+  <div class="modal-box">
+    <div class="modal-title">BROADCAST ANNOUNCE</div>
+    <label class="modal-lbl">TITLE</label>
+    <input class="modal-input" id="ann-title" placeholder="e.g. System Maintenance"/>
+    <label class="modal-lbl">MESSAGE</label>
+    <textarea class="modal-textarea" id="ann-body" placeholder="Write your announcement here..."></textarea>
+    <div class="modal-btn-row">
+      <button class="modal-btn-c" onclick="document.getElementById('modal-announce').classList.remove('show')">CANCEL</button>
+      <button class="modal-btn-p" onclick="sendAnnounce()">BROADCAST</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CHANGE PASSWORD ══ -->
+<div class="modal-ov" id="modal-changepw">
+  <div class="modal-box">
+    <div class="modal-title">CHANGE PASSWORD</div>
+    <label class="modal-lbl">CURRENT PASSWORD</label>
+    <div style="position:relative;margin-bottom:10px">
+      <input class="modal-input" type="password" id="cpw-0" placeholder="••••••••" style="margin-bottom:0"/>
+    </div>
+    <label class="modal-lbl">NEW PASSWORD</label>
+    <input class="modal-input" type="password" id="cpw-1" placeholder="min 8 characters"/>
+    <label class="modal-lbl">CONFIRM PASSWORD</label>
+    <input class="modal-input" type="password" id="cpw-2" placeholder="••••••••"/>
+    <div id="cpw-err" style="display:none;font-size:10px;color:var(--red);font-family:'Share Tech Mono';margin-bottom:8px">⚠ Passwords do not match</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn-c" onclick="document.getElementById('modal-changepw').classList.remove('show')">CANCEL</button>
+      <button class="modal-btn-p" onclick="saveChangePw()">UPDATE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CLOCK + SESSION ──
+function updateSessions(bkk){
+  const t=bkk.getHours()*60+bkk.getMinutes();
+  // BKK (UTC+7): TOKYO 07:00-16:00, LONDON 14:00-23:00, NY 19:00-04:00
+  document.getElementById('sess-tokyo').classList.toggle('active',t>=420&&t<960);
+  document.getElementById('sess-london').classList.toggle('active',t>=840&&t<1380);
+  document.getElementById('sess-ny').classList.toggle('active',t>=1140||t<240);
+}
+function updateClock(){
+  const now=new Date();
+  const bkk=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Bangkok'}));
+  const fmt=d=>d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('mainClock').textContent=fmt(bkk);
+  updateSessions(bkk);
+  // simulate ping
+  document.getElementById('wifiMs').textContent=Math.floor(8+Math.random()*20)+'ms';
+}
+updateClock(); setInterval(updateClock,1000);
+
+// ── CHART ──
+(function(){
+  const h=[22,30,18,35,20,28,24,40,30,18,34,22,16,42,36,24,50,38,26,44,32,28,46,34,20,38,30,52,40,28];
+  const b=[1,0,1,1,0,1,0,1,1,0,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,1,0,1];
+  const w=[8,12,6,14,10,8,16,12,8,10,14,8,10,12,18,6,10,14,8,12,14,10,16,8,10,12,6,14,10,0];
+  const wrap=document.getElementById('chartCandles');
+  h.forEach((ht,i)=>{
+    const c=document.createElement('div');
+    c.className='c '+(b[i]?'bull':'bear');
+    c.innerHTML=`<div class="cw" style="height:${w[i]}px"></div><div class="cb" style="height:${ht}px"></div><div class="cw" style="height:${Math.floor(w[i]/2)}px"></div>`;
+    wrap.appendChild(c);
+  });
+  const sp=document.createElement('div');sp.style.flex='1';wrap.appendChild(sp);
+})();
+
+// ── CHART COLLAPSE ──
+function toggleChart(){
+  const body=document.getElementById('chartBody');
+  const btn=document.getElementById('chartToggle');
+  const c=body.classList.toggle('collapsed');
+  btn.textContent=c?'▼':'▲';
+}
+
+// ── PAGES ──
+const navOrder=['portfolio','trades','calendar','analytics','settings','admin','profile','earep'];
+let _curPage='portfolio';
+let pfPrevPage='portfolio';
+let adminPrevPage='portfolio';
+let settingsPrevPage='portfolio';
+let eaRepPrevPage='portfolio';
+function goPage(id,navEl,sbEl){
+  if(id==='profile') pfPrevPage=_curPage;
+  if(id==='admin') adminPrevPage=_curPage;
+  if(id==='settings') settingsPrevPage=_curPage;
+  if(id==='earep') eaRepPrevPage=_curPage;
+  if(_curPage==='profile' && id!=='profile') cancelProfileEdit();
+  _curPage=id;
+  document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active-page'));
+  document.getElementById('page-'+id).classList.add('active-page');
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  const idx=navOrder.indexOf(id);
+  const navLinks=document.querySelectorAll('.nav-link');
+  const sbBtns=document.querySelectorAll('.sb-btn');
+  if(navEl){navEl.classList.add('active')}else if(navLinks[idx]){navLinks[idx].classList.add('active')}
+  if(sbEl){sbEl.classList.add('active')}else if(sbBtns[idx]){sbBtns[idx].classList.add('active')}
+}
+
+// ── VIEW TOGGLE (controls both real + demo sections) ──
+function toggleView(){
+  const cv=document.getElementById('cardView'),tv=document.getElementById('tableView');
+  const dcv=document.getElementById('demoCardView'),dtv=document.getElementById('demoTableView');
+  const btn=document.getElementById('viewTogBtn');
+  const isCard=!cv.classList.contains('hidden');
+  if(isCard){
+    cv.classList.add('hidden');tv.classList.remove('hidden');
+    dcv.classList.add('hidden');dtv.classList.remove('hidden');
+    btn.textContent='⊞';btn.classList.remove('active');
+  } else {
+    cv.classList.remove('hidden');tv.classList.add('hidden');
+    dcv.classList.remove('hidden');dtv.classList.add('hidden');
+    btn.textContent='☰';btn.classList.add('active');
+  }
+}
+
+// ── FILTER POPUP ──
+const filterState={status:'all',pnl:'all'};
+function toggleFilterMenu(e){
+  e.stopPropagation();
+  document.getElementById('filterMenu').classList.toggle('hidden');
+}
+function setFilter(dim,val,el){
+  filterState[dim]=val;
+  el.closest('.filter-chips').querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  applyFilter();
+}
+function applyFilter(){
+  document.querySelectorAll('.bot-card,.mc-row').forEach(card=>{
+    const s=card.dataset.status,p=card.dataset.pnl;
+    let show=true;
+    if(filterState.status!=='all') show=show&&(s===filterState.status);
+    if(filterState.pnl!=='all') show=show&&(p===filterState.pnl);
+    card.style.display=show?'':'none';
+  });
+  const active=filterState.status!=='all'||filterState.pnl!=='all';
+  document.getElementById('filterBtn').textContent=active?'⚙ FILTER ●':'⚙ FILTER';
+}
+document.addEventListener('click',function(e){
+  const menu=document.getElementById('filterMenu');
+  if(menu&&!menu.classList.contains('hidden')&&!menu.contains(e.target)&&e.target.id!=='filterBtn'){
+    menu.classList.add('hidden');
+  }
+});
+
+// ── SORT ──
+function sortBots(val){
+  const grid=document.getElementById('cardView');
+  const cards=[...grid.querySelectorAll('.bot-card')];
+  cards.sort((a,b)=>{
+    if(val==='name') return a.querySelector('.bc-name').textContent.localeCompare(b.querySelector('.bc-name').textContent);
+    const key={['bal-desc']:'bal',['bal-asc']:'bal',['eq-desc']:'eq',['dd-desc']:'dd',['pnl-desc']:'today'}[val];
+    const av=parseFloat(a.dataset[key])||0,bv=parseFloat(b.dataset[key])||0;
+    return val==='bal-asc'?av-bv:bv-av;
+  });
+  cards.forEach(c=>grid.appendChild(c));
+}
+
+// ── ACCOUNT OVERVIEW TABS ──
+function acctTab(el,id){
+  el.closest('.hm-tabs').querySelectorAll('.hm-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['at-overview','at-accounts','at-orders','at-pending'].forEach(x=>{
+    const el2=document.getElementById(x);
+    if(el2) el2.style.display='none';
+  });
+  document.getElementById(id).style.display='';
+}
+
+// ── HEATMAP ──
+function hmTab(el,id){
+  document.querySelectorAll('.hm-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.hm-body').forEach(b=>b.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ── CHART TF ──
+document.querySelectorAll('.ctf').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.ctf').forEach(x=>x.classList.remove('active'));
+  this.classList.add('active');
+}));
+
+// ── SETTINGS TABS ──
+function sTab(el,id){
+  document.querySelectorAll('.s-nav-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.s-card').forEach(c=>c.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ── ADMIN TABS ──
+function adminTab(el,id){
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['admin-users','admin-audit'].forEach(x=>{
+    const el2=document.getElementById(x);
+    if(el2) el2.classList.toggle('hidden',x!==id);
+  });
+}
+
+// ── CALENDAR FILTER ──
+let _calPeriod='today', _calImpact='all', _calCcy='all';
+const _calToday='2026-05-15';
+const _calWeek=['2026-05-11','2026-05-12','2026-05-13','2026-05-14','2026-05-15','2026-05-16','2026-05-17'];
+
+function filterCalendar(){
+  const rows=document.querySelectorAll('#cal-tbody tr:not(.cal-date-sep)');
+  rows.forEach(r=>{
+    const d=r.dataset.date, imp=r.dataset.impact, ccy=r.dataset.ccy;
+    let show=true;
+    if(_calPeriod==='today' && d!==_calToday) show=false;
+    if(_calPeriod==='week' && !_calWeek.includes(d)) show=false;
+    if(_calImpact!=='all' && imp!==_calImpact) show=false;
+    if(_calCcy!=='all' && ccy!==_calCcy) show=false;
+    r.style.display=show?'':'none';
+  });
+  document.querySelectorAll('#cal-tbody .cal-date-sep').forEach(sep=>{
+    const d=sep.dataset.date;
+    const any=[...document.querySelectorAll(`#cal-tbody tr[data-date="${d}"]`)].some(r=>r.style.display!=='none');
+    sep.style.display=any?'':'none';
+  });
+}
+
+function setCalPeriod(p,btn){
+  _calPeriod=p;
+  document.querySelectorAll('.cal-period-btn').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  filterCalendar();
+}
+
+function setCalImpact(imp,btn){
+  _calImpact=imp;
+  document.querySelectorAll('.cal-tab').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  filterCalendar();
+}
+
+function setCalCcy(ccy,btn){
+  _calCcy=ccy;
+  document.querySelectorAll('.cal-ccy-btn').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  filterCalendar();
+}
+
+function setCalDate(val){
+  _calPeriod='date';
+  document.querySelectorAll('.cal-period-btn').forEach(x=>x.classList.remove('active'));
+  const rows=document.querySelectorAll('#cal-tbody tr:not(.cal-date-sep)');
+  rows.forEach(r=>{
+    const show=(r.dataset.date===val && (_calImpact==='all'||r.dataset.impact===_calImpact) && (_calCcy==='all'||r.dataset.ccy===_calCcy));
+    r.style.display=show?'':'none';
+  });
+  document.querySelectorAll('#cal-tbody .cal-date-sep').forEach(sep=>{
+    const d=sep.dataset.date;
+    const any=[...document.querySelectorAll(`#cal-tbody tr[data-date="${d}"]`)].some(r=>r.style.display!=='none');
+    sep.style.display=any?'':'none';
+  });
+}
+
+function refreshCalendar(){
+  const btn=document.getElementById('cal-refresh-btn');
+  btn.style.transition='transform .55s ease';
+  btn.style.transform='rotate(360deg)';
+  setTimeout(()=>{btn.style.transition='none';btn.style.transform='rotate(0deg)';},580);
+}
+
+filterCalendar();
+
+
+// ── DD BADGE COLOR LOGIC ──
+function applyDdColors(){
+  document.querySelectorAll('.bot-card[data-dd]').forEach(card=>{
+    if(card.dataset.status==='offline') return;
+    const dd=parseFloat(card.dataset.dd)||0;
+    const badge=card.querySelector('.dd-badge');
+    if(!badge) return;
+    badge.classList.remove('dd-low','dd-med','dd-high');
+    if(dd<1) badge.classList.add('dd-low');
+    else if(dd<=5) badge.classList.add('dd-med');
+    else badge.classList.add('dd-high');
+  });
+}
+applyDdColors();
+
+// ── ANALYTICS TABS ──
+function anTab(el,id){
+  el.closest('.an-tabs').querySelectorAll('.an-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['an-performance','an-equity','an-stats','an-symbol'].forEach(x=>{
+    const e=document.getElementById(x);if(e)e.style.display='none';
+  });
+  document.getElementById(id).style.display='';
+  if(id==='an-equity') renderEqChart();
+  if(id==='an-performance') renderProfitCal();
+}
+
+// ── PROFIT CALENDAR ──
+const perfMonths=[
+  {label:'MAR 2026',y:2026,m:2},
+  {label:'APR 2026',y:2026,m:3},
+  {label:'MAY 2026',y:2026,m:4},
+];
+let perfIdx=2;
+const perfData={
+  '2026-2':{3:1800,4:920,5:-310,6:1420,9:880,10:1200,11:-540,12:2100,13:760,16:1100,17:890,18:-220,19:1650,20:980,23:1340,24:-670,25:1800,26:1240,27:920,30:760,31:1120},
+  '2026-3':{1:920,2:-310,3:1420,6:880,7:1200,8:-540,9:2100,10:760,13:1100,14:890,15:-220,16:1650,17:980,20:1340,21:-670,22:1800,23:1240,24:920,27:760,28:1120,29:-380,30:1540},
+  '2026-4':{1:850,4:1200,5:-340,6:2100,7:890,8:1650,11:-820,12:1340,13:670,14:2200,15:1100,18:950,19:-450,20:1800,21:1250,22:760,25:1100,26:890,27:-230,28:1540,29:720},
+};
+function fmtK(v){return(v>=0?'+':'')+( v/1000).toFixed(2)+'K';}
+function fmtNum(v){return(v>=0?'+':'')+Math.abs(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function renderProfitCal(){
+  const m=perfMonths[perfIdx];
+  document.getElementById('perf-month-lbl').textContent=m.label;
+  const data=perfData[m.y+'-'+m.m]||{};
+  const vals=Object.values(data);
+  const total=vals.reduce((s,v)=>s+v,0);
+  const wins=vals.filter(v=>v>0).length;
+  const losses=vals.filter(v=>v<0).length;
+  const best=vals.length?Math.max(...vals):0;
+  const worst=vals.length?Math.min(...vals):0;
+
+  const tEl=document.getElementById('perf-total');
+  tEl.textContent=fmtNum(total);tEl.className='perf-total '+(total>=0?'vg':'vr');
+
+  const statsEl=document.getElementById('perf-stats-row');
+  if(statsEl) statsEl.innerHTML=`
+    <div class="pstat"><span class="pstat-lbl">WIN DAYS</span><span class="pstat-val vg">${wins}</span></div>
+    <div class="pstat"><span class="pstat-lbl">LOSS DAYS</span><span class="pstat-val vr">${losses}</span></div>
+    <div class="pstat"><span class="pstat-lbl">BEST DAY</span><span class="pstat-val vg">${fmtK(best)}</span></div>
+    <div class="pstat"><span class="pstat-lbl">WORST DAY</span><span class="pstat-val vr">${fmtK(worst)}</span></div>`;
+
+  const tod=new Date();
+  const todayKey=(tod.getFullYear()===m.y&&tod.getMonth()===m.m)?tod.getDate():-1;
+  const firstDow=new Date(m.y,m.m,1).getDay();
+  const startCol=(firstDow+6)%7;
+  const dim=new Date(m.y,m.m+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<startCol;i++)cells.push(null);
+  for(let d=1;d<=dim;d++)cells.push(d);
+  while(cells.length%7!==0)cells.push(null);
+
+  let html='<thead><tr><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th>SAT</th><th>SUN</th><th class="pcal-wk">WEEK</th></tr></thead><tbody>';
+  for(let r=0;r<cells.length/7;r++){
+    html+='<tr>';
+    let wk=0,hasDay=false;
+    for(let c=0;c<7;c++){
+      const day=cells[r*7+c];
+      if(day===null){html+='<td class="pcal-empty"></td>';continue;}
+      const pnl=data[day];
+      const isWe=c>=5;
+      if(pnl!==undefined){wk+=pnl;hasDay=true;}
+      const abs=pnl!==undefined?Math.abs(pnl):0;
+      let heat='';
+      if(pnl>0) heat=abs>1200?'pcal-p3':abs>500?'pcal-p2':'pcal-p1';
+      else if(pnl<0) heat=abs>1200?'pcal-l3':abs>500?'pcal-l2':'pcal-l1';
+      const cls=[heat,day===todayKey?'pcal-today':''].filter(Boolean).join(' ');
+      const pnlCls=pnl>0?'pcal-profit':pnl<0?'pcal-loss':'';
+      const pnlHtml=pnl!==undefined?`<span class="pcal-pnl ${pnlCls}">${fmtK(pnl)}</span>`:'';
+      html+=`<td${cls?' class="'+cls+'"':''}><span class="pcal-dn">${day}</span>${pnlHtml}</td>`;
+    }
+    const wCls=wk>0?'pcal-profit':wk<0?'pcal-loss':'pcal-zero';
+    html+=`<td class="pcal-wk-sum"><span class="pcal-pnl ${wCls}">${hasDay?fmtK(wk):'—'}</span></td></tr>`;
+  }
+  html+='</tbody>';
+  document.getElementById('pcal').innerHTML=html;
+}
+function changeMonth(dir){
+  perfIdx=Math.max(0,Math.min(perfMonths.length-1,perfIdx+dir));
+  renderProfitCal();
+}
+
+// ── EQUITY CHART ──
+const eqBal=[840,852,865,878,890,898,912,905,918,925,930,938,941,948,953];
+const eqEq= [845,858,860,884,895,904,918,910,922,932,937,944,948,954,960];
+function renderEqChart(){
+  const svg=document.getElementById('eq-svg');if(!svg)return;
+  const W=800,H=180,pL=8,pR=8,pT=8,pB=18;
+  const all=[...eqBal,...eqEq];
+  const lo=Math.min(...all)-3,hi=Math.max(...all)+3;
+  const tx=i=>pL+(i/(eqBal.length-1))*(W-pL-pR);
+  const ty=v=>H-pB-((v-lo)/(hi-lo))*(H-pT-pB);
+  const pts=arr=>arr.map((v,i)=>`${tx(i).toFixed(1)},${ty(v).toFixed(1)}`).join(' ');
+  const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC','JAN','FEB','MAR'];
+  let grid='';
+  for(let g=0;g<=3;g++){
+    const y=pT+g*(H-pT-pB)/3;
+    grid+=`<line x1="${pL}" y1="${y.toFixed(1)}" x2="${W-pR}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`;
+  }
+  let xlbls='';
+  [0,3,6,9,12,14].forEach(i=>{
+    if(i<eqBal.length) xlbls+=`<text x="${tx(i).toFixed(1)}" y="${H-3}" fill="rgba(139,184,208,.55)" font-size="9" text-anchor="middle" font-family="Share Tech Mono">${months[i]}</text>`;
+  });
+  svg.innerHTML=`${grid}${xlbls}
+    <polyline points="${pts(eqBal)}" fill="none" stroke="var(--cyan)" stroke-width="1.8"/>
+    <polyline points="${pts(eqEq)}" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="5,3"/>`;
+}
+
+renderProfitCal();
+
+// ── PROFILE DROPDOWN ──
+function toggleProfileMenu(e){
+  e.stopPropagation();
+  const menu=document.getElementById('profileMenu');
+  const chev=document.getElementById('profChevron');
+  const isOpen=menu.style.display!=='none';
+  menu.style.display=isOpen?'none':'block';
+  chev.classList.toggle('open',!isOpen);
+}
+function closeProfileMenu(){
+  const menu=document.getElementById('profileMenu');
+  if(menu) menu.style.display='none';
+  const chev=document.getElementById('profChevron');
+  if(chev) chev.classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.prof-btn-wrap')) closeProfileMenu();
+});
+
+// ── PROFILE PANEL ──
+function openProfilePanel(){
+  closeProfileMenu();
+  document.getElementById('profilePanel').classList.add('open');
+  document.getElementById('panelOverlay').classList.add('show');
+}
+function closeProfilePanel(){
+  document.getElementById('profilePanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('show');
+}
+function saveProfile(){
+  const pw1=document.getElementById('pp-pw1').value;
+  const pw2=document.getElementById('pp-pw2').value;
+  const err=document.getElementById('pp-pw-err');
+  err.classList.remove('show');
+  if(pw1&&pw1!==pw2){err.classList.add('show');return;}
+  closeProfilePanel();
+}
+
+// ── LOGOUT ──
+function doLogout(){
+  closeProfileMenu();
+  document.getElementById('screen-login').style.display='flex';
+}
+
+// ── AUTH ──
+function showSignup(){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-signup').style.display='flex';
+}
+function showLogin(){
+  document.getElementById('screen-forgot').style.display='none';
+  document.getElementById('screen-signup').style.display='none';
+  document.getElementById('screen-login').style.display='flex';
+}
+function showForgotPw(){
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('screen-forgot').style.display='flex';
+  document.getElementById('fp-success').style.display='none';
+  document.getElementById('fp-email').value='';
+}
+function doForgotPw(){
+  const email=document.getElementById('fp-email').value.trim();
+  if(!email)return;
+  document.getElementById('fp-success').style.display='block';
+}
+function doLogin(){
+  document.getElementById('screen-login').style.display='none';
+}
+function applyDisplayName(dn){
+  const initials=dn.substring(0,2).toUpperCase();
+  const hdName=document.getElementById('hdr-disp-name');
+  const hdAv=document.getElementById('hdr-avatar');
+  if(hdName) hdName.textContent=dn;
+  if(hdAv) hdAv.textContent=initials;
+}
+function doSignup(){
+  const pw1=document.getElementById('su-pw1').value;
+  const pw2=document.getElementById('su-pw2').value;
+  const terms=document.getElementById('su-terms').checked;
+  const pwErr=document.getElementById('su-pw-err');
+  const tErr=document.getElementById('su-terms-err');
+  pwErr.classList.remove('show');
+  tErr.classList.remove('show');
+  if(pw1!==pw2){pwErr.classList.add('show');return;}
+  if(!terms){tErr.classList.add('show');return;}
+  const dn=(document.getElementById('su-dispname').value.trim()||document.getElementById('su-name').value.trim());
+  if(dn) applyDisplayName(dn);
+  showLogin();
+}
+function togglePw(id,btn){
+  const inp=document.getElementById(id);
+  inp.type=inp.type==='password'?'text':'password';
+  btn.textContent=inp.type==='password'?'●':'○';
+}
+
+// ── PROFILE PAGE ──
+function toggleProfileEdit(){
+  const wrap=document.getElementById('pf-wrap');
+  const btn=document.getElementById('pf-edit-btn');
+  wrap.classList.add('pf-editing');
+  btn.style.display='none';
+}
+function cancelProfileEdit(){
+  const wrap=document.getElementById('pf-wrap');
+  const btn=document.getElementById('pf-edit-btn');
+  wrap.classList.remove('pf-editing');
+  btn.style.display='';
+}
+function saveProfilePage(){
+  const name=document.getElementById('pf-e-name').value.trim();
+  if(name){
+    document.getElementById('pf-v-name').textContent=name;
+    document.getElementById('pf-disp-name').textContent=name;
+  }
+  const dn=document.getElementById('pf-e-dispname').value.trim();
+  if(dn){
+    document.getElementById('pf-v-dispname').textContent=dn;
+    applyDisplayName(dn);
+  }
+  cancelProfileEdit();
+}
+function openChangePw(){
+  document.getElementById('cpw-0').value='';
+  document.getElementById('cpw-1').value='';
+  document.getElementById('cpw-2').value='';
+  document.getElementById('cpw-err').style.display='none';
+  document.getElementById('modal-changepw').classList.add('show');
+}
+function saveChangePw(){
+  const p1=document.getElementById('cpw-1').value;
+  const p2=document.getElementById('cpw-2').value;
+  const err=document.getElementById('cpw-err');
+  if(p1!==p2){err.style.display='block';return;}
+  document.getElementById('modal-changepw').classList.remove('show');
+}
+
+// ── ADD ACCOUNT ──
+let _selMT='MT4';
+let _selAcctType='REAL';
+function selectMT(type){
+  _selMT=type;
+  document.getElementById('aa-mt4').classList.toggle('active',type==='MT4');
+  document.getElementById('aa-mt5').classList.toggle('active',type==='MT5');
+}
+function selectAcctType(type){
+  _selAcctType=type;
+  const realBtn=document.getElementById('aa-real');
+  const demoBtn=document.getElementById('aa-demo');
+  realBtn.classList.toggle('active',type==='REAL');
+  demoBtn.classList.toggle('active',type==='DEMO');
+  if(type==='DEMO'){
+    demoBtn.style.borderColor='var(--yellow)';
+    demoBtn.style.color='var(--yellow)';
+    demoBtn.style.background='var(--yellow-bg)';
+  } else {
+    demoBtn.style.borderColor='var(--yellow-dim)';
+    demoBtn.style.color='var(--yellow)';
+    demoBtn.style.background='';
+  }
+}
+function saveAddAccount(){
+  const name=document.getElementById('aa-name').value.trim();
+  const num=document.getElementById('aa-number').value.trim();
+  if(!name||!num)return;
+  const key='SNT-'+Math.random().toString(36).substr(2,4).toUpperCase()+'-'+Math.random().toString(36).substr(2,4).toUpperCase()+'-'+Math.random().toString(36).substr(2,4).toUpperCase()+'-'+Math.random().toString(36).substr(2,4).toUpperCase();
+  document.getElementById('apikey-acctinfo').textContent=name+' · '+_selAcctType+' · '+_selMT+' · #'+num;
+  document.getElementById('apikey-value').textContent=key;
+  document.getElementById('modal-addaccount').classList.remove('show');
+  document.getElementById('modal-apikey').classList.add('show');
+  // add to connected list
+  const typeCls=_selAcctType==='DEMO'?'acct-badge-demo':'acct-badge-real';
+  const today=new Date().toISOString().slice(0,10);
+  const id='acct-'+num+'-'+Date.now();
+  const item=document.createElement('div');
+  item.className='acct-item';item.id=id;
+  item.innerHTML=`<div>
+    <div class="acct-item-badges">
+      <span class="acct-badge ${typeCls}">${_selAcctType}</span>
+      <span class="acct-badge acct-badge-mt">${_selMT}</span>
+    </div>
+    <div class="acct-item-name">${name}</div>
+    <div class="acct-item-meta">Account #${num} &nbsp;·&nbsp; Added ${today}</div>
+    <div class="acct-item-key" title="Hover to reveal">${key}</div>
+  </div>
+  <div class="acct-item-actions">
+    <button class="acct-copy-btn" onclick="copyAcctKey('${key}',this)">📋 COPY KEY</button>
+    <button class="acct-del-btn" onclick="deleteAccount('${id}')">✕ DELETE</button>
+  </div>`;
+  document.getElementById('acct-list').appendChild(item);
+  document.getElementById('aa-name').value='';
+  document.getElementById('aa-number').value='';
+}
+function copyAcctKey(key,btn){
+  navigator.clipboard.writeText(key).catch(()=>{});
+  const orig=btn.textContent;
+  btn.textContent='✓ COPIED!';
+  setTimeout(()=>btn.textContent=orig,1800);
+}
+function deleteAccount(id){
+  const el=document.getElementById(id);
+  if(el){el.style.opacity='0';el.style.transition='opacity .25s';setTimeout(()=>el.remove(),260);}
+}
+
+function copyApiKey(){
+  const val=document.getElementById('apikey-value').textContent;
+  navigator.clipboard.writeText(val).catch(()=>{});
+  const btn=document.querySelector('.apikey-copy');
+  const orig=btn.textContent;
+  btn.textContent='✓ COPIED!';
+  setTimeout(()=>btn.textContent=orig,1800);
+}
+
+// ── NOTIFICATIONS ──
+let _notiItems=[];
+function toggleNoti(e){
+  e.stopPropagation();
+  const panel=document.getElementById('notiPanel');
+  const isOpen=panel.style.display!=='none';
+  panel.style.display=isOpen?'none':'flex';
+  if(!isOpen){
+    // mark all read
+    _notiItems.forEach(n=>n.unread=false);
+    renderNotiList();
+    updateNotiBadge();
+  }
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.noti-wrap')) document.getElementById('notiPanel').style.display='none';
+});
+function addNotiItem(title,body){
+  _notiItems.unshift({title,body,time:'Just now',unread:true});
+  renderNotiList();
+  updateNotiBadge();
+}
+function renderNotiList(){
+  const list=document.getElementById('notiList');
+  const empty=document.getElementById('notiEmpty');
+  if(_notiItems.length===0){empty.style.display='block';return;}
+  empty.style.display='none';
+  const items=_notiItems.map(n=>`<div class="noti-item${n.unread?' unread':''}">
+    <div class="noti-item-title">${n.title}</div>
+    <div class="noti-item-body">${n.body}</div>
+    <div class="noti-item-time">${n.time}</div>
+  </div>`).join('');
+  list.innerHTML=items+`<div class="noti-empty" id="notiEmpty" style="display:none">No notifications</div>`;
+}
+function clearNoti(){
+  _notiItems=[];
+  renderNotiList();
+  updateNotiBadge();
+}
+function updateNotiBadge(){
+  const count=_notiItems.filter(n=>n.unread).length;
+  const badge=document.getElementById('notiBadge');
+  badge.textContent=count;
+  badge.classList.toggle('show',count>0);
+}
+
+// ── ADD ACCOUNT MODAL ──
+function openAddAccount(){
+  document.getElementById('aa-name').value='';
+  document.getElementById('aa-number').value='';
+  _selMT='MT4';_selAcctType='REAL';
+  document.getElementById('aa-mt4').classList.add('active');
+  document.getElementById('aa-mt5').classList.remove('active');
+  document.getElementById('aa-real').classList.add('active');
+  document.getElementById('aa-demo').classList.remove('active');
+  document.getElementById('modal-addaccount').classList.add('show');
+}
+
+// ── DOWNLOAD EA ──
+function openDownload(){
+  document.getElementById('modal-download').classList.add('show');
+}
+
+// ── ANNOUNCE ──
+function openAnnounce(){
+  closeProfileMenu();
+  document.getElementById('ann-title').value='';
+  document.getElementById('ann-body').value='';
+  document.getElementById('modal-announce').classList.add('show');
+}
+function sendAnnounce(){
+  const title=document.getElementById('ann-title').value.trim();
+  const body=document.getElementById('ann-body').value.trim();
+  if(!title||!body)return;
+  document.getElementById('modal-announce').classList.remove('show');
+  addNotiItem('📢 '+title,body);
+}
+
+// ── MODAL CLOSE ON OVERLAY CLICK ──
+document.querySelectorAll('.modal-ov').forEach(ov=>{
+  ov.addEventListener('click',function(e){
+    if(e.target===this) this.classList.remove('show');
+  });
+});
+</script>
+</body>
+</html>

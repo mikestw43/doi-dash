@@ -36,14 +36,33 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   const token = generateToken({ id: user.id, email: user.email, role: user.role });
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
   logAudit(user.id, 'login', 'user', user.id);
-  res.json({ token, user: { id: user.id, email: user.email, role: user.role, name: user.name } });
+  res.json({
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      displayName: user.displayName,
+      mobile: user.mobile,
+      phoneCountry: user.phoneCountry,
+      timezone: user.timezone,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt,
+    },
+  });
 });
 
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response) => {
-  const { email, password, name, mobile, phoneCountry } = req.body as {
-    email: string; password: string; name?: string; mobile?: string; phoneCountry?: string;
+  const { email, password, name, displayName, mobile, phoneCountry } = req.body as {
+    email: string; password: string; name?: string; displayName?: string;
+    mobile?: string; phoneCountry?: string;
   };
   if (!email || !password) {
     res.status(400).json({ error: 'Email and password are required' });
@@ -59,9 +78,10 @@ router.post('/register', async (req: Request, res: Response) => {
     return;
   }
   const hash = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email, password: hash, name: name || null,
+      displayName: displayName || null,
       mobile: mobile || null, phoneCountry: phoneCountry || null,
       role: 'user', status: 'pending',
     },
@@ -76,12 +96,26 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
     res.status(404).json({ error: 'User not found' });
     return;
   }
-  res.json({ id: user.id, email: user.email, role: user.role, name: user.name });
+  res.json({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    displayName: user.displayName,
+    mobile: user.mobile,
+    phoneCountry: user.phoneCountry,
+    timezone: user.timezone,
+    createdAt: user.createdAt,
+    lastLoginAt: user.lastLoginAt,
+  });
 });
 
 // PATCH /api/auth/profile
 router.patch('/profile', authMiddleware, async (req: AuthRequest, res: Response) => {
-  const { name, email } = req.body as { name?: string; email?: string };
+  const { name, displayName, email, mobile, phoneCountry, timezone } = req.body as {
+    name?: string; displayName?: string; email?: string;
+    mobile?: string; phoneCountry?: string; timezone?: string;
+  };
 
   if (email) {
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -95,12 +129,27 @@ router.patch('/profile', authMiddleware, async (req: AuthRequest, res: Response)
     where: { id: req.user!.id },
     data: {
       ...(name !== undefined && { name }),
+      ...(displayName !== undefined && { displayName: displayName || null }),
       ...(email !== undefined && { email }),
+      ...(mobile !== undefined && { mobile: mobile || null }),
+      ...(phoneCountry !== undefined && { phoneCountry: phoneCountry || null }),
+      ...(timezone !== undefined && { timezone }),
     },
   });
   logAudit(req.user!.id, 'update_profile', 'user', req.user!.id,
-    JSON.stringify({ name, email }));
-  res.json({ id: updated.id, email: updated.email, role: updated.role, name: updated.name });
+    JSON.stringify({ name, displayName, email, mobile, phoneCountry, timezone }));
+  res.json({
+    id: updated.id,
+    email: updated.email,
+    role: updated.role,
+    name: updated.name,
+    displayName: updated.displayName,
+    mobile: updated.mobile,
+    phoneCountry: updated.phoneCountry,
+    timezone: updated.timezone,
+    createdAt: updated.createdAt,
+    lastLoginAt: updated.lastLoginAt,
+  });
 });
 
 // POST /api/auth/change-password

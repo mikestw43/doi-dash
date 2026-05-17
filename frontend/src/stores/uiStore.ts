@@ -9,13 +9,13 @@ interface Toast {
 }
 
 type Language = 'en' | 'th';
-type Theme = 'dark' | 'light' | 'hud';
+type Theme = 'dark' | 'light';
 
 interface UIState {
   toasts: Toast[];
   botFilter: { status: string; broker: string; search: string; sort: string; group: string };
   activeTab: string;
-  currentPage: 'dashboard' | 'profile' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce';
+  currentPage: 'dashboard' | 'profile' | 'settings' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce';
   language: Language;
   theme: Theme;
   addToast: (toast: Omit<Toast, 'id'>) => void;
@@ -55,6 +55,12 @@ export const useUIStore = create<UIState>()(
         language: s.language,
         theme: s.theme,
       }),
+      // Normalize legacy 'hud' theme to 'dark' when rehydrating
+      merge: (persistedState, currentState) => {
+        const persisted = { ...(persistedState as Record<string, unknown> ?? {}) };
+        if (persisted.theme !== 'dark' && persisted.theme !== 'light') persisted.theme = 'dark';
+        return { ...currentState, ...persisted } as UIState;
+      },
     }
   )
 );

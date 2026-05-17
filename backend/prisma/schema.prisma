@@ -12,6 +12,7 @@ model User {
   email            String    @unique
   password         String
   name             String?
+  displayName      String?
   mobile           String?
   phoneCountry     String?
   role             String    @default("user")
@@ -26,8 +27,10 @@ model User {
   // Preferences
   language         String    @default("en")
   theme            String    @default("dark")
+  timezone         String    @default("Asia/Bangkok")
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  lastLoginAt      DateTime?
   accounts         Account[]
   accountGroups    AccountGroup[]
   notificationLogs NotificationLog[]

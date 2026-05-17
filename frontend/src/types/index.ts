@@ -135,6 +135,12 @@ export interface AuthUser {
   email: string;
   role: string;
   name?: string | null;
+  displayName?: string | null;
+  mobile?: string | null;
+  phoneCountry?: string | null;
+  timezone?: string | null;
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
 }
 
 export interface UserInfo {
@@ -280,6 +286,7 @@ export interface AuditLogResponse {
 export interface UserPreferences {
   language: string;
   theme: string;
+  timezone?: string;
 }
 
 // ─── Economic Calendar ───────────────────────────────────────────────────────

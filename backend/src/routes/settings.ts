@@ -72,22 +72,28 @@ router.post('/report/send-now', async (req: AuthRequest, res: Response) => {
 router.get('/preferences', async (req: AuthRequest, res: Response) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.id },
-    select: { language: true, theme: true },
+    select: { language: true, theme: true, timezone: true },
   });
   res.json(user);
 });
 
 // PATCH /api/settings/preferences
 router.patch('/preferences', async (req: AuthRequest, res: Response) => {
-  const { language, theme } = req.body as { language?: string; theme?: string };
+  const { language, theme, timezone } = req.body as {
+    language?: string; theme?: string; timezone?: string;
+  };
+
+  // Normalize legacy 'hud' theme to 'dark'
+  const normalizedTheme = theme === 'hud' ? 'dark' : theme;
 
   const updated = await prisma.user.update({
     where: { id: req.user!.id },
     data: {
       ...(language && { language }),
-      ...(theme && { theme }),
+      ...(normalizedTheme && { theme: normalizedTheme }),
+      ...(timezone && { timezone }),
     },
-    select: { language: true, theme: true },
+    select: { language: true, theme: true, timezone: true },
   });
 
   res.json(updated);

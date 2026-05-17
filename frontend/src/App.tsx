@@ -8,7 +8,8 @@ import { Layout } from './components/layout/Layout';
 
 import { OverviewTabs } from './components/overview/OverviewTabs';
 import { BotList } from './components/bots/BotList';
-import { ProfileSettings } from './components/settings/ProfileSettings';
+import { ProfilePage } from './components/profile/ProfilePage';
+import { SettingsPage } from './components/settings/SettingsPage';
 import { UserManagement } from './components/admin/UserManagement';
 import { AuditLogViewer } from './components/admin/AuditLogViewer';
 import { AnalyticsPage } from './components/analytics/AnalyticsPage';
@@ -28,7 +29,6 @@ const useThemeSync = () => {
     const root = document.documentElement;
     root.classList.remove('dark', 'light', 'hud');
     if (theme === 'light') root.classList.add('light');
-    else if (theme === 'hud') root.classList.add('dark', 'hud');
     else root.classList.add('dark');
   }, [theme]);
 };
@@ -57,7 +57,8 @@ const Dashboard = () => {
       )}
       {currentPage === 'analytics' && <AnalyticsPage />}
       {currentPage === 'trade-history' && <TradeHistoryPage />}
-      {currentPage === 'profile' && <ProfileSettings />}
+      {currentPage === 'profile' && <ProfilePage />}
+      {currentPage === 'settings' && <SettingsPage />}
       {currentPage === 'admin' && <UserManagement />}
       {currentPage === 'audit' && <AuditLogViewer />}
       {currentPage === 'privacy' && <PrivacyPolicy />}

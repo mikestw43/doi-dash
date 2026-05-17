@@ -303,7 +303,7 @@ export const Header = () => {
                 {/* User menu items */}
                 {([
                   { symbol: '◈', label: 'Profile', page: 'profile' as const },
-                  { symbol: '⚙', label: 'Settings', page: 'profile' as const },
+                  { symbol: '⚙', label: 'Settings', page: 'settings' as const },
                 ] as { symbol: string; label: string; page: ReturnType<typeof useUIStore.getState>['currentPage'] }[]).map(({ symbol, label, page }) => (
                   <button
                     key={label}
