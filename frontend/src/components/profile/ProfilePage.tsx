@@ -33,10 +33,11 @@ const cardTitle: React.CSSProperties = {
   marginBottom: '14px',
 };
 const rowStyle: React.CSSProperties = {
-  display: 'grid', gridTemplateColumns: '140px 1fr',
+  display: 'grid', gridTemplateColumns: '140px minmax(0, 1fr)',
   gap: '12px', alignItems: 'center',
   padding: '10px 0',
   borderBottom: '1px dashed var(--border)',
+  wordBreak: 'break-word',
 };
 const lblStyle: React.CSSProperties = {
   fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)',

@@ -108,6 +108,14 @@
     padding: 0;
   }
 
+  /* Prevent any element from causing whole-page horizontal scroll.
+     If a specific child needs internal scrolling, opt-in with its
+     own overflow rule. */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
   /* ── DOI DASH: strip all native form chrome ── */
   select {
     -webkit-appearance: none;
