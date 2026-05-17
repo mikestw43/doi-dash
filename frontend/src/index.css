@@ -70,14 +70,14 @@
          --fs-input stays 16px to prevent iOS auto-zoom on input focus. */
       --fs-title:    10px;
       --fs-section:  8px;
-      --fs-label:    14px;
-      --fs-micro:    12px;
-      --fs-body:     13px;
-      --fs-body-sm:  12px;
+      --fs-label:    18px;
+      --fs-micro:    14px;
+      --fs-body:     15px;
+      --fs-body-sm:  13px;
       --fs-input:    16px;
-      --fs-disp-sm:  18px;
-      --fs-disp-md:  26px;
-      --fs-disp-lg:  36px;
+      --fs-disp-sm:  20px;
+      --fs-disp-md:  28px;
+      --fs-disp-lg:  38px;
     }
   }
 
