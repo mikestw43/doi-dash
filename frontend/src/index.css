@@ -42,29 +42,42 @@
        scales coherently. Each tier has a fixed semantic meaning. */
     --fs-title:    10px; /* page titles: "PROFILE", "ANALYTICS" */
     --fs-section:  8px;  /* card section headings: "PERSONAL INFO" */
-    --fs-label:    7px;  /* form labels, table th, tab labels */
-    --fs-micro:    6px;  /* tiny badges, day numbers, weekday headers */
+    --fs-label:    12px; /* form labels, table th, tab labels — uses VT323 */
+    --fs-micro:    10px; /* tiny badges, day numbers, weekday headers — uses VT323 */
     --fs-body:     12px; /* body text, table td, values */
     --fs-body-sm:  10px; /* secondary body, meta lines, "Last login..." */
     --fs-input:    13px; /* form input fields (desktop) */
     --fs-disp-sm:  22px; /* small display numbers: per-day P&L, bot equity */
     --fs-disp-md:  34px; /* medium display numbers: KPI cards, clock */
     --fs-disp-lg:  42px; /* large display numbers: hero clock, big KPI */
+
+    /* ── Font-family tokens — pair with --fs-* tier above ──
+       The label/micro tiers use VT323 (CRT terminal) instead of
+       Press Start 2P because it stays legible at small sizes while
+       keeping the retro theme. */
+    --ff-title:    'Press Start 2P', monospace;
+    --ff-section:  'Press Start 2P', monospace;
+    --ff-label:    'VT323', monospace;
+    --ff-micro:    'VT323', monospace;
+    --ff-body:     'Share Tech Mono', monospace;
+    --ff-input:    'Share Tech Mono', monospace;
+    --ff-display:  'VT323', monospace;
   }
 
   @media (max-width: 768px) {
     :root {
-      /* Mobile overrides — slightly smaller except --fs-input (iOS no-zoom rule) */
-      --fs-title:    9px;
-      --fs-section:  7px;
-      --fs-label:    6px;
-      --fs-micro:    5px;
-      --fs-body:     11px;
-      --fs-body-sm:  9px;
-      --fs-input:    16px; /* ≥16px on mobile to prevent iOS auto-zoom on focus */
-      --fs-disp-sm:  14px;
-      --fs-disp-md:  22px;
-      --fs-disp-lg:  32px;
+      /* Mobile overrides — label/body bump UP for readability on small screens.
+         --fs-input stays 16px to prevent iOS auto-zoom on input focus. */
+      --fs-title:    10px;
+      --fs-section:  8px;
+      --fs-label:    14px;
+      --fs-micro:    12px;
+      --fs-body:     13px;
+      --fs-body-sm:  12px;
+      --fs-input:    16px;
+      --fs-disp-sm:  18px;
+      --fs-disp-md:  26px;
+      --fs-disp-lg:  36px;
     }
   }
 

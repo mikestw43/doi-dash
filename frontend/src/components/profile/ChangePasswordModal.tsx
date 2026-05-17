@@ -12,7 +12,7 @@ const inp: React.CSSProperties = {
   padding: '8px 10px', outline: 'none', boxSizing: 'border-box',
 };
 const lbl: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
+  fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
   letterSpacing: '.5px', display: 'block', marginBottom: '6px',
 };
 

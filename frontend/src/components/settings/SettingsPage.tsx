@@ -23,7 +23,7 @@ const cardTitle: React.CSSProperties = {
   marginBottom: '14px',
 };
 const lbl: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
+  fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
   letterSpacing: '.5px', display: 'block', marginBottom: '6px',
 };
 const inp: React.CSSProperties = {
@@ -63,7 +63,7 @@ export const SettingsPage = () => {
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             background: 'none', border: 'none', color: 'var(--cyan)',
-            fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)',
+            fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)',
             letterSpacing: '.5px', cursor: 'pointer',
           }}
         >
@@ -182,7 +182,7 @@ const TelegramTab = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div style={cardTitle}>TELEGRAM ALERTS</div>
         {tgData?.configured && (
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', padding: '3px 8px', border: '1px solid rgba(34,197,94,.4)', color: 'var(--green)' }}>✓ ACTIVE</span>
+          <span style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', padding: '3px 8px', border: '1px solid rgba(34,197,94,.4)', color: 'var(--green)' }}>✓ ACTIVE</span>
         )}
       </div>
       <p style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
@@ -248,7 +248,7 @@ const NotificationsTab = () => {
         <button
           onClick={handleExport}
           disabled={!logs.length}
-          style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: logs.length ? 'pointer' : 'not-allowed', opacity: logs.length ? 1 : .3, letterSpacing: '.5px' }}
+          style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: logs.length ? 'pointer' : 'not-allowed', opacity: logs.length ? 1 : .3, letterSpacing: '.5px' }}
         >
           ↓ EXPORT
         </button>
@@ -262,7 +262,7 @@ const NotificationsTab = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {logs.map(log => (
             <div key={log.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'var(--bg-card2)', border: '1px solid var(--border)', padding: '8px 10px' }}>
-              <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-micro)', letterSpacing: '.5px', color: TYPE_COLOR[log.type] || 'var(--text-dim)', flexShrink: 0, width: '52px', marginTop: '2px' }}>
+              <span style={{ fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px', color: TYPE_COLOR[log.type] || 'var(--text-dim)', flexShrink: 0, width: '52px', marginTop: '2px' }}>
                 {log.type.toUpperCase()}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -274,7 +274,7 @@ const NotificationsTab = () => {
                 </div>
               </div>
               <span style={{
-                fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-micro)', letterSpacing: '.5px', flexShrink: 0,
+                fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px', flexShrink: 0,
                 padding: '2px 6px',
                 border: `1px solid ${log.success ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.3)'}`,
                 color: log.success ? 'var(--green)' : 'var(--red)',

@@ -9,7 +9,7 @@ const selStyle: React.CSSProperties = {
   fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-input)', padding: '7px 10px', outline: 'none', cursor: 'pointer',
 };
 const lbl: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
+  fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
   letterSpacing: '.5px', display: 'block', marginBottom: '6px',
 };
 

@@ -39,7 +39,7 @@ const rowStyle: React.CSSProperties = {
   borderBottom: '1px dashed var(--border)',
 };
 const lblStyle: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-micro)',
+  fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)',
   color: 'var(--text-dim)', letterSpacing: '.5px',
 };
 const valStyle: React.CSSProperties = {
@@ -182,7 +182,7 @@ export const ProfilePage = () => {
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             background: 'none', border: 'none', color: 'var(--cyan)',
-            fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)',
+            fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)',
             letterSpacing: '.5px', cursor: 'pointer',
           }}
         >
@@ -217,7 +217,7 @@ export const ProfilePage = () => {
           </div>
           <div style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
             <span style={{
-              fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+              fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
               padding: '2px 6px', marginRight: '8px',
               border: `1px solid ${isAdmin ? 'rgba(56,189,248,.4)' : 'var(--border2)'}`,
               color: isAdmin ? 'var(--cyan)' : 'var(--text-dim)',
@@ -290,7 +290,7 @@ export const ProfilePage = () => {
         <div style={rowStyle}>
           <span style={lblStyle}>ROLE</span>
           <span style={{
-            fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', letterSpacing: '.5px',
+            fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', letterSpacing: '.5px',
             padding: '3px 8px', display: 'inline-block',
             border: `1px solid ${isAdmin ? 'rgba(56,189,248,.4)' : 'var(--border2)'}`,
             color: isAdmin ? 'var(--cyan)' : 'var(--text-dim)',
