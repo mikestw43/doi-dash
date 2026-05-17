@@ -13,8 +13,10 @@ router.use(adminMiddleware);
 router.get('/users', async (_req: AuthRequest, res: Response) => {
   const users = await prisma.user.findMany({
     select: {
-      id: true, email: true, name: true, mobile: true, phoneCountry: true,
-      role: true, status: true, createdAt: true,
+      id: true, email: true, name: true, displayName: true,
+      mobile: true, phoneCountry: true,
+      role: true, status: true,
+      createdAt: true, lastLoginAt: true,
       _count: { select: { accounts: true } },
     },
     orderBy: { createdAt: 'asc' },
@@ -22,10 +24,14 @@ router.get('/users', async (_req: AuthRequest, res: Response) => {
   res.json(users);
 });
 
+const ALLOWED_ROLES = ['user', 'vip', 'admin'] as const;
+
 // POST /api/admin/users
 router.post('/users', async (req: AuthRequest, res: Response) => {
-  const { email, password, name, role } = req.body as {
-    email: string; password: string; name?: string; role?: string;
+  const { email, password, name, displayName, mobile, phoneCountry, role } = req.body as {
+    email: string; password: string;
+    name?: string; displayName?: string;
+    mobile?: string; phoneCountry?: string; role?: string;
   };
   if (!email || !password) {
     res.status(400).json({ error: 'Email and password are required' });
@@ -33,6 +39,11 @@ router.post('/users', async (req: AuthRequest, res: Response) => {
   }
   if (password.length < 6) {
     res.status(400).json({ error: 'Password must be at least 6 characters' });
+    return;
+  }
+  const finalRole = role || 'user';
+  if (!ALLOWED_ROLES.includes(finalRole as typeof ALLOWED_ROLES[number])) {
+    res.status(400).json({ error: `Role must be one of: ${ALLOWED_ROLES.join(', ')}` });
     return;
   }
 
@@ -44,13 +55,46 @@ router.post('/users', async (req: AuthRequest, res: Response) => {
 
   const hash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { email, password: hash, name: name || null, role: role || 'user' },
+    data: {
+      email, password: hash,
+      name: name || null,
+      displayName: displayName || null,
+      mobile: mobile || null,
+      phoneCountry: phoneCountry || null,
+      role: finalRole,
+      status: 'active', // Admin-created users are active immediately
+    },
   });
 
   logAudit(req.user!.id, 'create_user', 'user', user.id,
-    JSON.stringify({ email, role: role || 'user' }));
+    JSON.stringify({ email, role: finalRole }));
 
   res.status(201).json({ id: user.id, email: user.email, name: user.name, role: user.role });
+});
+
+// POST /api/admin/users/:id/reset-password
+router.post('/users/:id/reset-password', async (req: AuthRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  // Generate a memorable but secure random password (12 chars, mixed)
+  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let newPassword = '';
+  for (let i = 0; i < 12; i++) {
+    newPassword += charset[Math.floor(Math.random() * charset.length)];
+  }
+
+  const hash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id }, data: { password: hash } });
+
+  logAudit(req.user!.id, 'reset_password', 'user', id,
+    JSON.stringify({ email: user.email }));
+
+  res.json({ newPassword, message: 'Password reset. Copy and share with user securely.' });
 });
 
 // DELETE /api/admin/users/:id
@@ -79,8 +123,8 @@ router.delete('/users/:id', async (req: AuthRequest, res: Response) => {
 // PATCH /api/admin/users/:id/role
 router.patch('/users/:id/role', async (req: AuthRequest, res: Response) => {
   const { role } = req.body as { role: string };
-  if (!role || !['admin', 'user'].includes(role)) {
-    res.status(400).json({ error: 'Role must be "admin" or "user"' });
+  if (!role || !ALLOWED_ROLES.includes(role as typeof ALLOWED_ROLES[number])) {
+    res.status(400).json({ error: `Role must be one of: ${ALLOWED_ROLES.join(', ')}` });
     return;
   }
 

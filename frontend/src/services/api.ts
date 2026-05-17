@@ -156,9 +156,19 @@ export const fetchUsers = async () => {
   return res.data;
 };
 
-export const createUser = async (data: { email: string; password: string; name?: string; role?: string }) => {
+export const createUser = async (data: {
+  email: string; password: string;
+  name?: string; displayName?: string;
+  mobile?: string; phoneCountry?: string;
+  role?: string;
+}) => {
   const res = await api.post('/admin/users', data);
   return res.data;
+};
+
+export const resetUserPassword = async (id: string) => {
+  const res = await api.post(`/admin/users/${id}/reset-password`);
+  return res.data as { newPassword: string; message: string };
 };
 
 export const deleteUser = async (id: string) => {

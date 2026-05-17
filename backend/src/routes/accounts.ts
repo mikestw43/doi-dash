@@ -23,6 +23,13 @@ router.get('/', (req: AuthRequest, res: Response) => {
   res.json(masked);
 });
 
+// Account limits by role
+const ACCOUNT_LIMITS: Record<string, number | null> = {
+  user: 1,        // Free tier: 1 account
+  vip: null,      // Unlimited
+  admin: null,    // Unlimited
+};
+
 router.post('/', async (req: AuthRequest, res: Response) => {
   try {
     const { name, broker, accountNumber, apiKey, server, currency, leverage, groupId, isDemo } = req.body as {
@@ -33,6 +40,19 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     if (!name || !apiKey) {
       res.status(400).json({ error: 'name and apiKey are required' });
       return;
+    }
+
+    // Enforce account limit by role
+    const role = req.user!.role || 'user';
+    const limit = ACCOUNT_LIMITS[role];
+    if (limit !== null && limit !== undefined) {
+      const existingCount = await prisma.account.count({ where: { userId: req.user!.id } });
+      if (existingCount >= limit) {
+        res.status(403).json({
+          error: `Account limit reached (${limit} for ${role.toUpperCase()} role). Upgrade to VIP for unlimited accounts.`,
+        });
+        return;
+      }
     }
 
     const newAccount = await runtimeStore.addAccount(req.user!.id, {

@@ -46,8 +46,8 @@ const btnGhost: React.CSSProperties = {
 const TABS: { key: Tab; symbol: string; label: string }[] = [
   { key: 'account',       symbol: '◈', label: 'Account' },
   { key: 'telegram',      symbol: '✈', label: 'Telegram' },
-  { key: 'reports',       symbol: '📊', label: 'Reports' },
-  { key: 'notifications', symbol: '🔔', label: 'Notifications' },
+  { key: 'reports',       symbol: '▤', label: 'Reports' },
+  { key: 'notifications', symbol: '◉', label: 'Notifications' },
 ];
 
 export const SettingsPage = () => {

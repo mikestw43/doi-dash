@@ -1,11 +1,28 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchUsers, createUser, deleteUser, changeUserRole, changeUserStatus } from '../../services/api';
+import { fetchUsers, createUser, deleteUser, changeUserStatus } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 import { useAuthStore } from '../../stores/authStore';
 import { Dialog } from '../ui/Dialog';
 import { AuditLogViewer } from './AuditLogViewer';
+import { UserDetailDialog } from './UserDetailDialog';
 import type { UserInfo } from '../../types';
+
+const COUNTRY_CODES = [
+  { code: '+66',  label: 'TH +66' },
+  { code: '+1',   label: 'US +1' },
+  { code: '+44',  label: 'UK +44' },
+  { code: '+61',  label: 'AU +61' },
+  { code: '+65',  label: 'SG +65' },
+  { code: '+60',  label: 'MY +60' },
+  { code: '+62',  label: 'ID +62' },
+  { code: '+63',  label: 'PH +63' },
+  { code: '+84',  label: 'VN +84' },
+  { code: '+86',  label: 'CN +86' },
+  { code: '+81',  label: 'JP +81' },
+  { code: '+82',  label: 'KR +82' },
+  { code: '+91',  label: 'IN +91' },
+];
 
 const ROLE_COLOR: Record<string, { border: string; color: string; bg: string }> = {
   admin: { border: 'rgba(56,189,248,.4)',  color: 'var(--accent-blue)', bg: 'rgba(56,189,248,.08)' },
@@ -51,9 +68,13 @@ export const UserManagement = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [suspendId, setSuspendId] = useState<string | null>(null);
+  const [viewId, setViewId] = useState<string | null>(null);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
+  const [newDisplayName, setNewDisplayName] = useState('');
+  const [newMobile, setNewMobile] = useState('');
+  const [newPhoneCountry, setNewPhoneCountry] = useState('+66');
   const [newRole, setNewRole] = useState('user');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -69,7 +90,8 @@ export const UserManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setShowAddDialog(false);
-      setNewEmail(''); setNewPassword(''); setNewName(''); setNewRole('user');
+      setNewEmail(''); setNewPassword(''); setNewName(''); setNewDisplayName('');
+      setNewMobile(''); setNewPhoneCountry('+66'); setNewRole('user');
       addToast({ type: 'success', title: 'User created' });
     },
     onError: (err: unknown) => {
@@ -88,14 +110,6 @@ export const UserManagement = () => {
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to delete';
       addToast({ type: 'error', title: msg });
-    },
-  });
-
-  const roleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: string }) => changeUserRole(id, role),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      addToast({ type: 'success', title: 'Role updated' });
     },
   });
 
@@ -302,14 +316,15 @@ export const UserManagement = () => {
                       </tr>
                     )}
                     {filteredUsers.map(user => {
-                      const initials = (user.name || user.email).slice(0, 2).toUpperCase();
+                      const initials = (user.displayName || user.name || user.email).slice(0, 2).toUpperCase();
                       const rc = ROLE_COLOR[user.role] || ROLE_COLOR.user;
-                      const isSelf = user.id === currentUserId;
-                      const isSuspended = user.status === 'suspended';
                       return (
                         <tr key={user.id}
+                          onClick={() => setViewId(user.id)}
                           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                          style={{ cursor: 'pointer' }}
+                          title="Click to view details and manage user"
                         >
                           {/* USER */}
                           <td style={tdStyle}>
@@ -317,7 +332,7 @@ export const UserManagement = () => {
                               <div style={{ width: '26px', height: '26px', flexShrink: 0, background: rc.bg, border: `1px solid ${rc.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Press Start 2P'", fontSize: '7px', color: rc.color }}>
                                 {initials}
                               </div>
-                              <span style={{ color: 'var(--text)', fontWeight: 700 }}>{user.name || '—'}</span>
+                              <span style={{ color: 'var(--text)', fontWeight: 700 }}>{user.displayName || user.name || '—'}</span>
                             </div>
                           </td>
                           {/* EMAIL */}
@@ -331,17 +346,7 @@ export const UserManagement = () => {
                           </td>
                           {/* ROLE */}
                           <td style={tdStyle}>
-                            <button
-                              onClick={() => {
-                                if (isSelf) return;
-                                roleMutation.mutate({ id: user.id, role: user.role === 'admin' ? 'user' : 'admin' });
-                              }}
-                              disabled={isSelf}
-                              title={isSelf ? 'Cannot change your own role' : 'Click to toggle role'}
-                              style={{ background: 'none', border: 'none', padding: 0, cursor: isSelf ? 'not-allowed' : 'pointer', opacity: isSelf ? .5 : 1 }}
-                            >
-                              {roleBadge(user.role)}
-                            </button>
+                            {roleBadge(user.role)}
                           </td>
                           {/* ACCOUNTS */}
                           <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--accent-blue)' }} className="um-col-accounts">
@@ -351,42 +356,15 @@ export const UserManagement = () => {
                           <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }} className="um-col-created">
                             {new Date(user.createdAt).toLocaleDateString()}
                           </td>
-                          {/* STATUS — actual value from DB */}
+                          {/* STATUS */}
                           <td style={tdStyle}>
                             <StatusBadge status={user.status} />
                           </td>
-                          {/* ACTIONS */}
-                          <td style={{ ...tdStyle, textAlign: 'right' }}>
-                            <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
-                              {!isSelf && (
-                                <>
-                                  {isSuspended ? (
-                                    /* Re-activate suspended user */
-                                    <button
-                                      onClick={() => statusMutation.mutate({ id: user.id, status: 'active' })}
-                                      disabled={statusMutation.isPending}
-                                      style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(34,197,94,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
-                                    >
-                                      ACTIVATE
-                                    </button>
-                                  ) : (
-                                    /* Suspend active user */
-                                    <button
-                                      onClick={() => setSuspendId(user.id)}
-                                      style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid rgba(250,204,21,.4)', color: 'var(--warning)', background: 'rgba(250,204,21,.06)', cursor: 'pointer', letterSpacing: '.5px' }}
-                                    >
-                                      SUSPEND
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => setDeleteId(user.id)}
-                                    style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '4px 10px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--danger)', background: 'rgba(239,68,68,.06)', cursor: 'pointer', letterSpacing: '.5px' }}
-                                  >
-                                    DELETE
-                                  </button>
-                                </>
-                              )}
-                            </div>
+                          {/* ACTIONS — open detail */}
+                          <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--accent-blue)' }}>
+                            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', letterSpacing: '.5px' }}>
+                              VIEW ›
+                            </span>
                           </td>
                         </tr>
                       );
@@ -407,16 +385,29 @@ export const UserManagement = () => {
 
       {/* Add User Dialog */}
       <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} title="CREATE NEW USER">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div><label style={lbl}>EMAIL *</label><input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="user@example.com" style={inp} /></div>
           <div><label style={lbl}>PASSWORD * (min 6)</label><input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={inp} /></div>
-          <div><label style={lbl}>NAME</label><input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Optional" style={inp} /></div>
+          <div><label style={lbl}>FULL NAME</label><input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="John Doe" style={inp} /></div>
+          <div>
+            <label style={lbl}>DISPLAY NAME</label>
+            <input type="text" value={newDisplayName} onChange={e => setNewDisplayName(e.target.value)} placeholder="Shown in top menu (e.g. JohnD)" style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>MOBILE</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '6px' }}>
+              <select value={newPhoneCountry} onChange={e => setNewPhoneCountry(e.target.value)} style={{ ...inp, cursor: 'pointer' }}>
+                {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
+              </select>
+              <input type="tel" value={newMobile} onChange={e => setNewMobile(e.target.value)} placeholder="812345678" style={inp} />
+            </div>
+          </div>
           <div>
             <label style={lbl}>ROLE</label>
-            <select value={newRole} onChange={e => setNewRole(e.target.value)} style={{ ...inp }}>
-              <option value="user">User</option>
-              <option value="vip">VIP</option>
-              <option value="admin">Admin</option>
+            <select value={newRole} onChange={e => setNewRole(e.target.value)} style={{ ...inp, cursor: 'pointer' }}>
+              <option value="user">User (limit: 1 account)</option>
+              <option value="vip">VIP (unlimited accounts)</option>
+              <option value="admin">Admin (full access)</option>
             </select>
           </div>
           <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
@@ -425,7 +416,15 @@ export const UserManagement = () => {
               CANCEL
             </button>
             <button
-              onClick={() => createMutation.mutate({ email: newEmail, password: newPassword, name: newName || undefined, role: newRole })}
+              onClick={() => createMutation.mutate({
+                email: newEmail,
+                password: newPassword,
+                name: newName || undefined,
+                displayName: newDisplayName || undefined,
+                mobile: newMobile || undefined,
+                phoneCountry: newMobile ? newPhoneCountry : undefined,
+                role: newRole,
+              })}
               disabled={!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending}
               style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
             >
@@ -434,6 +433,14 @@ export const UserManagement = () => {
           </div>
         </div>
       </Dialog>
+
+      {/* User Detail Dialog */}
+      <UserDetailDialog
+        user={users.find(u => u.id === viewId) || null}
+        currentUserId={currentUserId}
+        onClose={() => setViewId(null)}
+        onDelete={(id) => { setViewId(null); setDeleteId(id); }}
+      />
 
       {/* Suspend Confirm Dialog */}
       <Dialog open={!!suspendId} onClose={() => setSuspendId(null)} title="SUSPEND USER">

@@ -147,11 +147,13 @@ export interface UserInfo {
   id: string;
   email: string;
   name: string | null;
+  displayName: string | null;
   mobile: string | null;
   phoneCountry: string | null;
-  role: string;
+  role: string;     // 'user' | 'vip' | 'admin'
   status: string;   // 'active' | 'pending' | 'rejected' | 'suspended'
   createdAt: string;
+  lastLoginAt: string | null;
   _count: { accounts: number };
 }
 
