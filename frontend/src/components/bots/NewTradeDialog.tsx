@@ -12,11 +12,11 @@ interface Props {
 
 const inp: React.CSSProperties = {
   width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none', boxSizing: 'border-box',
 };
 const lbl: React.CSSProperties = {
-  display: 'block', fontFamily: "'Press Start 2P'", fontSize: '7px',
+  display: 'block', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
   color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '6px',
 };
 
@@ -65,7 +65,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
         {/* Warning */}
-        <div style={{ padding: '10px 12px', background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.3)', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+        <div style={{ padding: '10px 12px', background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
           ⚠ คำสั่งจะถูกส่งไปยัง EA และดำเนินการใน MT5 จริง ตรวจสอบพารามิเตอร์ก่อนกด Confirm
         </div>
 
@@ -80,11 +80,11 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
             <div style={{ display: 'flex', border: '1px solid var(--border2)' }}>
               <button
                 onClick={() => setAction('BUY')}
-                style={{ flex: 1, padding: '7px', fontFamily: "'Press Start 2P'", fontSize: '8px', cursor: 'pointer', background: action === 'BUY' ? 'var(--green)' : 'none', color: action === 'BUY' ? '#0c1422' : buyColor, border: 'none', letterSpacing: '.5px' }}
+                style={{ flex: 1, padding: '7px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', background: action === 'BUY' ? 'var(--green)' : 'none', color: action === 'BUY' ? '#0c1422' : buyColor, border: 'none', letterSpacing: '.5px' }}
               >BUY</button>
               <button
                 onClick={() => setAction('SELL')}
-                style={{ flex: 1, padding: '7px', fontFamily: "'Press Start 2P'", fontSize: '8px', cursor: 'pointer', background: action === 'SELL' ? 'var(--red)' : 'none', color: action === 'SELL' ? '#fff' : sellColor, border: 'none', borderLeft: '1px solid var(--border2)', letterSpacing: '.5px' }}
+                style={{ flex: 1, padding: '7px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', background: action === 'SELL' ? 'var(--red)' : 'none', color: action === 'SELL' ? '#fff' : sellColor, border: 'none', borderLeft: '1px solid var(--border2)', letterSpacing: '.5px' }}
               >SELL</button>
             </div>
           </div>
@@ -116,11 +116,11 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
         {/* SL + TP */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <div>
-            <label style={lbl}>STOP LOSS <span style={{ color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '9px' }}>(0=none)</span></label>
+            <label style={lbl}>STOP LOSS <span style={{ color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>(0=none)</span></label>
             <input type="number" step="0.00001" value={sl} onChange={e => setSl(e.target.value)} placeholder="0.00000" style={inp} />
           </div>
           <div>
-            <label style={lbl}>TAKE PROFIT <span style={{ color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '9px' }}>(0=none)</span></label>
+            <label style={lbl}>TAKE PROFIT <span style={{ color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>(0=none)</span></label>
             <input type="number" step="0.00001" value={tp} onChange={e => setTp(e.target.value)} placeholder="0.00000" style={inp} />
           </div>
         </div>
@@ -137,7 +137,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
             padding: '10px 12px',
             background: action === 'BUY' ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)',
             border: `1px solid ${action === 'BUY' ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.3)'}`,
-            fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)',
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)',
           }}>
             <span style={{ color: action === 'BUY' ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>{action}</span>
             {' '}{parseFloat(volume).toFixed(2)} lots{' '}
@@ -152,14 +152,14 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
           <button onClick={onClose} disabled={loading}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
             CANCEL
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading || !symbol || !parseFloat(volume)}
             style={{
-              fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '9px 16px', letterSpacing: '.5px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', letterSpacing: '.5px',
               background: action === 'BUY' ? 'var(--green)' : 'var(--red)',
               color: action === 'BUY' ? '#0c1422' : '#fff',
               border: `1px solid ${action === 'BUY' ? 'var(--green)' : 'var(--red)'}`,

@@ -67,15 +67,15 @@ export const TradingViewChart = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--accent-blue)', fontWeight: 700 }}>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--accent-blue)', fontWeight: 700 }}>
             XAUUSD
           </span>
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
             GOLD · TradingView
           </span>
         </div>
         <span style={{
-          fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-muted)',
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)',
           display: 'inline-block',
           transition: 'transform .25s',
           transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)',

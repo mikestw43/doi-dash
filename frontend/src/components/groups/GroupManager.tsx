@@ -17,7 +17,7 @@ interface Props {
 
 const inp: React.CSSProperties = {
   flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none',
 };
 
@@ -70,7 +70,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
   const startEdit = (g: AccountGroup) => { setEditId(g.id); setName(g.name); setColor(g.color); };
 
   const btnPrimary: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '8px 12px', background: 'var(--cyan)', color: '#0c1422',
     border: '1px solid var(--cyan)', cursor: name.trim() ? 'pointer' : 'not-allowed',
     opacity: name.trim() ? 1 : .4,
@@ -91,7 +91,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
             {editId ? 'UPDATE' : 'ADD'}
           </button>
           {editId && (
-            <button onClick={resetForm} style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+            <button onClick={resetForm} style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               ✕
             </button>
           )}
@@ -99,7 +99,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
 
         {/* Color picker */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>COLOR:</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>COLOR:</span>
           {PRESET_COLORS.map(c => (
             <button
               key={c}
@@ -115,9 +115,9 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
 
         {/* Groups list */}
         <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {loading && <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '10px' }}>Loading...</div>}
+          {loading && <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>Loading...</div>}
           {!loading && groups.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '10px' }}>No groups yet. Create one above.</div>
+            <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>No groups yet. Create one above.</div>
           )}
           {groups.map(g => (
             <div
@@ -126,20 +126,20 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '10px', height: '10px', background: g.color, flexShrink: 0 }} />
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text)' }}>{g.name}</span>
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)' }}>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>{g.name}</span>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
                   {g._count?.accounts ?? 0} accounts
                 </span>
               </div>
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button
                   onClick={() => startEdit(g)}
-                  style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}
+                  style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
                   title="Edit"
                 >✎</button>
                 <button
                   onClick={() => handleDelete(g.id)}
-                  style={{ background: 'none', border: '1px solid rgba(239,68,68,.3)', color: 'var(--red)', cursor: 'pointer', padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}
+                  style={{ background: 'none', border: '1px solid rgba(239,68,68,.3)', color: 'var(--red)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
                   title="Delete"
                 >✕</button>
               </div>

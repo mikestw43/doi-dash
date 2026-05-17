@@ -11,7 +11,7 @@ interface Props {
 
 const inp: React.CSSProperties = {
   width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none', boxSizing: 'border-box',
 };
 
@@ -68,10 +68,10 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
           <div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--yellow)', letterSpacing: '.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--yellow)', letterSpacing: '.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               ⛨ {t('protection.title') || 'DRAWDOWN PROTECTION'}
             </div>
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginTop: '4px' }}>{accountName}</div>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '4px' }}>{accountName}</div>
           </div>
           <button
             onClick={onClose}
@@ -83,13 +83,13 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
         <div style={{
           padding: '10px 12px', marginBottom: '14px',
           background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.3)',
-          fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', lineHeight: 1.6,
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6,
         }}>
           {t('protection.description') || '⚠ When drawdown exceeds the threshold, all positions will be closed automatically.'}
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>
+          <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
             Loading...
           </div>
         ) : (
@@ -102,14 +102,14 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
                 onChange={e => setEnabled(e.target.checked)}
                 style={{ width: '14px', height: '14px', accentColor: 'var(--yellow)', cursor: 'pointer' }}
               />
-              <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: enabled ? 'var(--yellow)' : 'var(--text-dim)' }}>
+              <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: enabled ? 'var(--yellow)' : 'var(--text-dim)' }}>
                 {t('protection.enabled') || 'Enable drawdown protection'}
               </span>
             </label>
 
             {enabled && (
               <div>
-                <label style={{ display: 'block', fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '6px' }}>
                   {t('protection.threshold') || 'THRESHOLD (%)'}
                 </label>
                 <input
@@ -120,7 +120,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
                   min={1} max={100} step={0.5}
                   style={inp}
                 />
-                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '4px' }}>
                   {threshold ? `Close all when drawdown ≥ ${threshold}%` : 'Enter threshold percentage'}
                 </div>
               </div>
@@ -132,7 +132,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
                 onClick={handleSave}
                 disabled={saving}
                 style={{
-                  fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                   padding: '9px 16px', background: 'var(--yellow)', color: '#0c1422',
                   border: '1px solid var(--yellow)', cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving ? .6 : 1,
@@ -143,7 +143,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
               <button
                 onClick={onClose}
                 style={{
-                  fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                   padding: '9px 14px', background: 'none',
                   border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer',
                 }}

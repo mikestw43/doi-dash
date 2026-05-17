@@ -34,7 +34,7 @@ export const AccountHeatmap = () => {
 
   if (accounts.length === 0) {
     return (
-      <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>
+      <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
         No accounts data
       </p>
     );
@@ -44,11 +44,11 @@ export const AccountHeatmap = () => {
     <div>
       {/* Legend */}
       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '5px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>DD:</span>
-        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--green)' }}>● &lt;10%</span>
-        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--yellow)' }}>● 10–30%</span>
-        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--red)' }}>● &gt;30%</span>
-        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>● OFFLINE</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>DD:</span>
+        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--green)' }}>● &lt;10%</span>
+        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--yellow)' }}>● 10–30%</span>
+        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--red)' }}>● &gt;30%</span>
+        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>● OFFLINE</span>
       </div>
 
       {/* Tiles */}
@@ -65,12 +65,12 @@ export const AccountHeatmap = () => {
               }}
             >
               <div style={{
-                fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text)',
+                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text)',
                 marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {acc.name}
               </div>
-              <div style={{ fontFamily: "'VT323'", fontSize: '18px', color: s.color, lineHeight: 1 }}>
+              <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: s.color, lineHeight: 1 }}>
                 {acc.status !== 'online' ? 'OFFLINE' : `${acc.drawdown.toFixed(2)}%`}
               </div>
             </div>

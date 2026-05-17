@@ -122,17 +122,17 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
     background: 'none', transition: 'border-color .15s',
   };
   const monthLbl: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '8px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
     color: 'var(--text-primary)', letterSpacing: '1px',
     minWidth: '88px', textAlign: 'center',
   };
   const pstatLbl: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '6px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
     color: 'var(--text-dim)', letterSpacing: '.5px',
     display: 'block', marginBottom: '3px',
   };
   const pstatVal: React.CSSProperties = {
-    fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1,
+    fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1,
     display: 'block',
   };
   const totalWrap: React.CSSProperties = {
@@ -141,7 +141,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
   };
 
   const thStyle: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '6px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
     color: 'var(--text-dim)', padding: '9px 4px',
     textAlign: 'center', borderBottom: '2px solid var(--border2)',
     letterSpacing: '.5px', fontWeight: 400,
@@ -206,7 +206,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
         <div style={totalWrap}>
           <span>MONTHLY P&amp;L</span>
           <span style={{
-            fontFamily: "'VT323'", fontSize: '24px', lineHeight: 1,
+            fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1,
             color: stats.total > 0 ? 'var(--success)' : stats.total < 0 ? 'var(--danger)' : 'var(--text-dim)',
           }}>
             {dayMap.size > 0 ? fmtFull(stats.total) : '—'}
@@ -312,7 +312,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
         marginTop: '10px', paddingTop: '8px',
         borderTop: '1px solid var(--border)', flexWrap: 'wrap',
       }}>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '5px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
           HEAT:
         </span>
         {[
@@ -323,19 +323,19 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           { bg: 'rgba(239,68,68,.12)', label: 'Loss' },
           { bg: 'rgba(239,68,68,.22)', label: 'Strong loss' },
         ].map(item => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
             <span style={{ width: '11px', height: '11px', background: item.bg, border: '1px solid rgba(255,255,255,.08)', flexShrink: 0 }} />
             {item.label}
           </div>
         ))}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginLeft: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '8px' }}>
           <span style={{ width: '11px', height: '11px', background: 'rgba(56,189,248,.07)', border: '1px solid var(--accent-blue)', flexShrink: 0 }} />
           Today
         </div>
       </div>
 
       {loading && data.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '12px', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+        <div style={{ textAlign: 'center', padding: '12px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
           Loading...
         </div>
       )}

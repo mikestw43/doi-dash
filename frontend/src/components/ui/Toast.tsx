@@ -33,13 +33,13 @@ export const ToastContainer = () => {
           >
             {/* corner bracket */}
             <div style={{ position: 'absolute', top: '4px', left: '4px', width: '8px', height: '8px', borderTop: `2px solid ${c}`, borderLeft: `2px solid ${c}`, pointerEvents: 'none' }} />
-            <span style={{ color: c, fontFamily: "'Share Tech Mono'", fontSize: '13px', flexShrink: 0, marginTop: '1px' }}>
+            <span style={{ color: c, fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)', flexShrink: 0, marginTop: '1px' }}>
               {ICONS[toast.type]}
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' }}>{toast.title}</div>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>{toast.title}</div>
               {toast.message && (
-                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginTop: '3px' }}>
+                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '3px' }}>
                   {toast.message}
                 </div>
               )}

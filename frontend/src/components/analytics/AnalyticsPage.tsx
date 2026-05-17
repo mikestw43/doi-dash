@@ -83,34 +83,34 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
   const si = (col: string) => sortCol !== col ? '' : sortDir === 'asc' ? ' ↑' : ' ↓';
 
   const thB: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
     letterSpacing: '.5px', padding: '9px 10px', borderBottom: '2px solid var(--border2)',
     fontWeight: 400, cursor: 'pointer', whiteSpace: 'nowrap',
   };
   const thR: React.CSSProperties = { ...thB, textAlign: 'right' };
   const td: React.CSSProperties = {
     padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
-    fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', whiteSpace: 'nowrap',
+    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', whiteSpace: 'nowrap',
   };
   const tdR: React.CSSProperties = { ...td, textAlign: 'right' };
 
   const fmt = (n: number) => (n >= 0 ? '+' : '') + n.toFixed(2);
 
   if (loading) return (
-    <div style={{ textAlign: 'center', padding: '40px', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+    <div style={{ textAlign: 'center', padding: '40px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
       Loading symbol data...
     </div>
   );
 
   if (!rows.length) return (
-    <div style={{ textAlign: 'center', padding: '40px', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+    <div style={{ textAlign: 'center', padding: '40px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
       No closed trades found
     </div>
   );
 
   return (
     <div style={{ overflowX: 'auto' }}>
-      <div style={{ marginBottom: '8px', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+      <div style={{ marginBottom: '8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
         {rows.length} symbols · {allTrades.length} total trades
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '380px' }}>
@@ -132,16 +132,16 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
               onMouseEnter={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'rgba(45,64,96,.25)')}
               onMouseLeave={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'transparent')}
             >
-              <td style={{ ...td, fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px', color: 'var(--text-primary)' }}>
+              <td style={{ ...td, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', color: 'var(--text-primary)' }}>
                 {r.symbol}
               </td>
               <td style={{ ...tdR, color: 'var(--text-dim)' }} className="an-col-trades">{r.trades}</td>
-              <td style={{ ...tdR, fontFamily: "'VT323'", fontSize: '18px', lineHeight: 1,
+              <td style={{ ...tdR, fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1,
                 color: r.winRate >= 60 ? 'var(--success)' : r.winRate >= 45 ? 'var(--warning)' : 'var(--danger)',
               }}>
                 {r.winRate.toFixed(1)}%
               </td>
-              <td style={{ ...tdR, fontFamily: "'VT323'", fontSize: '18px', lineHeight: 1,
+              <td style={{ ...tdR, fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1,
                 color: r.totalProfit >= 0 ? 'var(--success)' : 'var(--danger)',
               }}>
                 {fmt(r.totalProfit)}
@@ -186,7 +186,7 @@ export const AnalyticsPage = () => {
       {/* ── Section header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '2px' }}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
           ANALYTICS
         </span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
@@ -208,7 +208,7 @@ export const AnalyticsPage = () => {
             onChange={e => setSelectedAccount(e.target.value)}
             style={{
               background: 'var(--bg-input)', border: '1px solid var(--border2)',
-              color: 'var(--text-primary)', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+              color: 'var(--text-primary)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               padding: '6px 10px', outline: 'none', cursor: 'pointer',
               width: '100%',
             }}
@@ -232,10 +232,10 @@ export const AnalyticsPage = () => {
             <EquityChart accountId={selectedAccount} />
           ) : (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '.5px' }}>
+              <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', marginBottom: '8px', letterSpacing: '.5px' }}>
                 SELECT AN ACCOUNT
               </div>
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
                 Choose an account above to view its equity curve
               </div>
             </div>

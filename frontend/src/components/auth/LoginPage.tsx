@@ -17,10 +17,10 @@ const InfoModal = ({ title, message, onClose }: { title: string; message: string
       padding: '24px 28px',
       maxWidth: '340px', width: '100%',
     }} onClick={e => e.stopPropagation()}>
-      <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--accent-blue)', letterSpacing: '1px', marginBottom: '14px' }}>
+      <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--accent-blue)', letterSpacing: '1px', marginBottom: '14px' }}>
         {title}
       </div>
-      <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: '20px' }}>
+      <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: '20px' }}>
         {message}
       </div>
       <button onClick={onClose} style={{
@@ -87,14 +87,14 @@ export const LoginPage = () => {
           >
             <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#0c1422' }}>D</span>
           </div>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: '9px', color: 'var(--text-primary)', letterSpacing: '2px' }}>
+          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
           </div>
         </div>
 
         {/* Subtitle */}
         <div style={{
-          fontFamily: "'Share Tech Mono'", fontSize: '10px',
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
           color: 'var(--text-muted)', textAlign: 'center',
           letterSpacing: '1px', marginBottom: '16px',
           marginTop: '-12px',
@@ -104,7 +104,7 @@ export const LoginPage = () => {
 
         {/* Title */}
         <div style={{
-          fontFamily: "'Press Start 2P'", fontSize: '8px',
+          fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
           color: 'var(--accent-blue)', letterSpacing: '3px',
           textAlign: 'center', marginBottom: '18px',
         }}>
@@ -115,7 +115,7 @@ export const LoginPage = () => {
           {/* Email */}
           <div style={{ marginBottom: '11px' }}>
             <label style={{
-              fontFamily: "'Press Start 2P'", fontSize: '9px',
+              fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
               color: 'var(--text-muted)', display: 'block',
               marginBottom: '4px', letterSpacing: '1px',
             }}>EMAIL</label>
@@ -145,7 +145,7 @@ export const LoginPage = () => {
           {/* Password */}
           <div style={{ marginBottom: '11px' }}>
             <label style={{
-              fontFamily: "'Press Start 2P'", fontSize: '9px',
+              fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
               color: 'var(--text-muted)', display: 'block',
               marginBottom: '4px', letterSpacing: '1px',
             }}>PASSWORD</label>
@@ -188,7 +188,7 @@ export const LoginPage = () => {
           </div>
 
           {/* Forgot password */}
-          <div style={{ textAlign: 'right', margin: '-4px 0 10px', fontSize: '10px', fontFamily: "'Share Tech Mono'", color: 'var(--text-muted)' }}>
+          <div style={{ textAlign: 'right', margin: '-4px 0 10px', fontSize: 'var(--fs-body-sm)', fontFamily: 'var(--ff-body)', color: 'var(--text-muted)' }}>
             <span
               style={{ color: 'rgba(56,189,248,.5)', cursor: 'pointer' }}
               onClick={() => setModal({ title: 'FORGOT PASSWORD', message: 'Password reset is managed by your administrator. Please contact your admin to reset your password.' })}
@@ -216,7 +216,7 @@ export const LoginPage = () => {
               width: '100%', padding: '11px',
               background: loading ? 'rgba(56,189,248,.5)' : 'var(--accent-blue)',
               color: '#050d18',
-              fontFamily: "'Press Start 2P'", fontSize: '8px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               letterSpacing: '1px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
               marginTop: '6px',
               boxShadow: 'var(--glow-cyan)',
@@ -230,7 +230,7 @@ export const LoginPage = () => {
           <div style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             margin: '12px 0', color: 'var(--text-muted)',
-            fontSize: '10px', fontFamily: "'Share Tech Mono'",
+            fontSize: 'var(--fs-body-sm)', fontFamily: 'var(--ff-body)',
           }}>
             <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
             OR
@@ -245,7 +245,7 @@ export const LoginPage = () => {
               background: 'transparent',
               border: '1px solid var(--border2)',
               color: 'var(--text-primary)',
-              fontFamily: "'Share Tech Mono'", fontSize: '13px',
+              fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
               transition: 'border-color .15s',

@@ -84,10 +84,10 @@ export const EaRepository = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: '10px', color: 'var(--cyan)', letterSpacing: '1px' }}>
+          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '1px' }}>
             EA REPOSITORY
           </div>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '6px' }}>
             MetaTrader 5 Expert Advisor — DOI DASH Reporter
           </div>
         </div>
@@ -101,7 +101,7 @@ export const EaRepository = () => {
               background: 'rgba(56,189,248,.1)',
               border: '1px solid var(--cyan)',
               color: 'var(--cyan)',
-              fontFamily: "'Press Start 2P'", fontSize: '7px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               cursor: 'pointer',
               textDecoration: 'none',
               letterSpacing: '.5px',
@@ -119,7 +119,7 @@ export const EaRepository = () => {
                 background: 'rgba(56,189,248,.05)',
                 border: '1px solid var(--border2)',
                 color: 'var(--text-muted)',
-                fontFamily: "'Press Start 2P'", fontSize: '7px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 cursor: 'pointer',
                 textDecoration: 'none',
                 letterSpacing: '.5px',
@@ -133,7 +133,7 @@ export const EaRepository = () => {
 
       {/* EA Version list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-muted)', letterSpacing: '1px', padding: '0 4px' }}>
+        <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', padding: '0 4px' }}>
           VERSION HISTORY
         </div>
         {EA_VERSIONS.map((ea, idx) => {
@@ -153,22 +153,22 @@ export const EaRepository = () => {
                   cursor: 'pointer', background: 'none', border: 'none', textAlign: 'left',
                 }}
               >
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text)', flex: 1 }}>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', flex: 1 }}>
                   {ea.version}
                 </span>
                 {ea.tag && (
                   <span style={{
-                    fontFamily: "'Press Start 2P'", fontSize: '6px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                     padding: '3px 7px',
                     border: `1px solid ${ea.tagColor}`,
                     color: ea.tagColor,
                     background: `${ea.tagColor}15`,
                   }}>{ea.tag}</span>
                 )}
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)' }}>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                   {ea.date}
                 </span>
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)' }}>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                   {ea.size}
                 </span>
                 <span style={{ color: 'var(--text-muted)', fontSize: '10px', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
@@ -183,21 +183,21 @@ export const EaRepository = () => {
                 }}>
                   {/* Features */}
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '10px' }}>
+                    <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '10px' }}>
                       FEATURES
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {ea.features.map((f, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                           <span style={{ color: 'var(--green)', fontSize: '10px', flexShrink: 0, marginTop: '1px' }}>▸</span>
-                          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)' }}>{f}</span>
+                          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{f}</span>
                         </div>
                       ))}
                     </div>
                     <div style={{
                       marginTop: '12px', padding: '8px 12px',
                       background: 'rgba(56,189,248,.04)', border: '1px solid rgba(56,189,248,.15)',
-                      fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)',
+                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)',
                     }}>
                       {ea.changelog}
                     </div>
@@ -211,7 +211,7 @@ export const EaRepository = () => {
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
                         padding: '9px 14px',
                         background: 'rgba(56,189,248,.08)', border: '1px solid var(--cyan)',
-                        color: 'var(--cyan)', fontFamily: "'Press Start 2P'", fontSize: '6px',
+                        color: 'var(--cyan)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                         cursor: 'pointer', textDecoration: 'none', letterSpacing: '.5px',
                       }}
                     >
@@ -225,7 +225,7 @@ export const EaRepository = () => {
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
                           padding: '9px 14px',
                           background: 'none', border: '1px solid var(--border2)',
-                          color: 'var(--text-muted)', fontFamily: "'Press Start 2P'", fontSize: '6px',
+                          color: 'var(--text-muted)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                           cursor: 'pointer', textDecoration: 'none', letterSpacing: '.5px',
                         }}
                       >
@@ -246,17 +246,17 @@ export const EaRepository = () => {
         border: '1px solid var(--border2)',
         padding: '16px 20px',
       }}>
-        <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '14px' }}>
+        <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '14px' }}>
           INSTALLATION GUIDE
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {INSTALL_STEPS.map(({ step, text }) => (
             <div key={step} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
               <span style={{
-                fontFamily: "'Press Start 2P'", fontSize: '7px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 color: 'var(--cyan)', flexShrink: 0, marginTop: '2px',
               }}>{step}</span>
-              <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-muted)' }}>{text}</span>
+              <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{text}</span>
             </div>
           ))}
         </div>

@@ -31,7 +31,7 @@ export const PendingHeatmap = () => {
 
   if (pending.length === 0) {
     return (
-      <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>
+      <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
         No pending orders
       </p>
     );
@@ -46,13 +46,13 @@ export const PendingHeatmap = () => {
             key={order.ticket}
             style={{ border: `1px solid ${s.border}`, background: s.bg, padding: '8px 10px', minHeight: '80px', color: s.color }}
           >
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', marginBottom: '4px' }}>
               {order.type.replace(/_/g, ' ')} {order.symbol}
             </div>
-            <div style={{ fontFamily: "'VT323'", fontSize: '26px', lineHeight: 1 }}>
+            <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1 }}>
               ×{formatLots(order.lots)}
             </div>
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)', marginTop: '4px' }}>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '4px' }}>
               @ {order.openPrice} · {order.accountName}
             </div>
           </div>

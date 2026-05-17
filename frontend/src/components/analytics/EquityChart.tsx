@@ -34,7 +34,7 @@ export const EquityChart = ({ accountId }: Props) => {
   const TF_BUTTONS: Timeframe[] = ['1D', '1W', '1M', '3M'];
 
   const tfBtn = (active: boolean): React.CSSProperties => ({
-    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '5px 9px', cursor: 'pointer',
     border: active ? '1px solid var(--cyan)' : '1px solid var(--border2)',
     background: active ? 'rgba(56,189,248,.1)' : 'none',
@@ -44,7 +44,7 @@ export const EquityChart = ({ accountId }: Props) => {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '.5px' }}>EQUITY HISTORY</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '.5px' }}>EQUITY HISTORY</span>
         <div style={{ display: 'flex', gap: '4px' }}>
           {TF_BUTTONS.map(tf => (
             <button key={tf} onClick={() => setTimeframe(tf)} style={tfBtn(timeframe === tf)}>{tf}</button>
@@ -53,11 +53,11 @@ export const EquityChart = ({ accountId }: Props) => {
       </div>
 
       {loading ? (
-        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
           Loading...
         </div>
       ) : data.length === 0 ? (
-        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)', textAlign: 'center' }}>
+        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center' }}>
           No data yet. Snapshots are recorded every hour.
         </div>
       ) : (

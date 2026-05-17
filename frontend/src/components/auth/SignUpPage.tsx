@@ -78,7 +78,7 @@ export const SignUpPage = ({ onBack }: Props) => {
     transition: 'border-color .15s',
   };
   const lbl: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '9px',
+    fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
     color: 'var(--text-muted)', display: 'block',
     marginBottom: '4px', letterSpacing: '1px',
   };
@@ -107,14 +107,14 @@ export const SignUpPage = ({ onBack }: Props) => {
           }}>
             <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#0c1422' }}>D</span>
           </div>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: '9px', color: 'var(--text-primary)', letterSpacing: '2px' }}>
+          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
           </div>
         </div>
 
         {/* Subtitle */}
         <div style={{
-          fontFamily: "'Share Tech Mono'", fontSize: '10px',
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
           color: 'var(--text-muted)', textAlign: 'center',
           letterSpacing: '1px', marginBottom: '16px', marginTop: '-12px',
         }}>
@@ -123,7 +123,7 @@ export const SignUpPage = ({ onBack }: Props) => {
 
         {/* Title */}
         <div style={{
-          fontFamily: "'Press Start 2P'", fontSize: '8px',
+          fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
           color: 'var(--accent-blue)', letterSpacing: '3px',
           textAlign: 'center', marginBottom: '18px',
         }}>
@@ -135,11 +135,11 @@ export const SignUpPage = ({ onBack }: Props) => {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '14px' }}>✅</div>
             <div style={{
-              fontFamily: "'Press Start 2P'", fontSize: '7px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               color: 'var(--success)', letterSpacing: '1px', marginBottom: '12px',
             }}>REGISTRATION SUBMITTED</div>
             <div style={{
-              fontFamily: "'Share Tech Mono'", fontSize: '11px',
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: '20px',
             }}>
               Your account is pending admin approval.<br />
@@ -177,7 +177,7 @@ export const SignUpPage = ({ onBack }: Props) => {
 
             {/* Display Name */}
             <div style={{ marginBottom: '11px' }}>
-              <label style={lbl}>DISPLAY NAME <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', opacity: .6 }}>(optional)</span></label>
+              <label style={lbl}>DISPLAY NAME <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', opacity: .6 }}>(optional)</span></label>
               <input
                 type="text"
                 value={displayName}
@@ -206,7 +206,7 @@ export const SignUpPage = ({ onBack }: Props) => {
 
             {/* Mobile */}
             <div style={{ marginBottom: '11px' }}>
-              <label style={lbl}>MOBILE <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', opacity: .6 }}>(optional)</span></label>
+              <label style={lbl}>MOBILE <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', opacity: .6 }}>(optional)</span></label>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <select
                   value={phoneCountry}
@@ -299,7 +299,7 @@ export const SignUpPage = ({ onBack }: Props) => {
                 >
                   {agreed && <span style={{ color: '#0c1422', fontSize: '11px', fontWeight: 'bold', lineHeight: 1 }}>✓</span>}
                 </div>
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   I agree to the{' '}
                   <span style={{ color: 'var(--accent-blue)', textDecoration: 'underline', cursor: 'pointer' }}>
                     Terms &amp; Conditions
@@ -344,7 +344,7 @@ export const SignUpPage = ({ onBack }: Props) => {
                 width: '100%', padding: '11px',
                 background: (loading || !agreed) ? 'rgba(56,189,248,.4)' : 'var(--accent-blue)',
                 color: '#050d18',
-                fontFamily: "'Press Start 2P'", fontSize: '8px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 letterSpacing: '1px', border: 'none',
                 cursor: (loading || !agreed) ? 'not-allowed' : 'pointer',
                 boxShadow: agreed ? 'var(--glow-cyan)' : 'none',

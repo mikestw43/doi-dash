@@ -30,7 +30,7 @@ export const PnLChart = ({ accountId }: Props) => {
   const totalTrades = data.reduce((s, d) => s + d.trades, 0);
 
   const pBtn = (active: boolean): React.CSSProperties => ({
-    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '5px 9px', cursor: 'pointer',
     border: active ? '1px solid var(--cyan)' : '1px solid var(--border2)',
     background: active ? 'rgba(56,189,248,.1)' : 'none',
@@ -41,8 +41,8 @@ export const PnLChart = ({ accountId }: Props) => {
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '.5px', marginBottom: '4px' }}>DAILY P&L</div>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+          <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '.5px', marginBottom: '4px' }}>DAILY P&L</div>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
             {totalTrades} trades · Net:{' '}
             <span style={{ color: totalProfit >= 0 ? 'var(--green)' : 'var(--red)' }}>
               {totalProfit >= 0 ? '+' : ''}${totalProfit.toFixed(2)}
@@ -57,11 +57,11 @@ export const PnLChart = ({ accountId }: Props) => {
       </div>
 
       {loading ? (
-        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
           Loading...
         </div>
       ) : data.length === 0 ? (
-        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+        <div style={{ height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
           No closed trades yet.
         </div>
       ) : (

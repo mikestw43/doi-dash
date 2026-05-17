@@ -113,7 +113,7 @@ export const Layout = ({ children }: LayoutProps) => {
                 {/* Mobile label (shown in bottom nav) */}
                 <span className="sb-label" style={{
                   display: 'none',
-                  fontFamily: "'Press Start 2P'", fontSize: '5px',
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                   letterSpacing: '.3px', lineHeight: 1,
                   color: 'currentColor',
                 }}>{label}</span>

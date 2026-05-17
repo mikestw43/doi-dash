@@ -84,10 +84,10 @@ export const AnnouncePage = () => {
         padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: '10px', color: 'var(--cyan)', letterSpacing: '1px' }}>
+          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '1px' }}>
             ANNOUNCEMENTS
           </div>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '6px' }}>
             System updates, maintenance notices & release notes
           </div>
         </div>
@@ -99,7 +99,7 @@ export const AnnouncePage = () => {
               background: showForm ? 'rgba(239,68,68,.1)' : 'rgba(56,189,248,.1)',
               border: `1px solid ${showForm ? 'var(--red)' : 'var(--cyan)'}`,
               color: showForm ? 'var(--red)' : 'var(--cyan)',
-              fontFamily: "'Press Start 2P'", fontSize: '7px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               cursor: 'pointer', letterSpacing: '.5px',
             }}
           >
@@ -114,7 +114,7 @@ export const AnnouncePage = () => {
           background: 'var(--bg-card)', border: '1px solid var(--cyan)',
           padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px',
         }}>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--cyan)', letterSpacing: '1px' }}>
+          <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)', letterSpacing: '1px' }}>
             NEW ANNOUNCEMENT
           </div>
 
@@ -132,7 +132,7 @@ export const AnnouncePage = () => {
                     border: `1px solid ${active ? cfg.color : 'var(--border2)'}`,
                     background: active ? cfg.bg : 'none',
                     color: active ? cfg.color : 'var(--text-muted)',
-                    fontFamily: "'Press Start 2P'", fontSize: '6px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                     cursor: 'pointer', letterSpacing: '.5px',
                   }}
                 >
@@ -148,7 +148,7 @@ export const AnnouncePage = () => {
             placeholder="Title..."
             style={{
               background: 'var(--bg-card2)', border: '1px solid var(--border2)',
-              color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '13px',
+              color: 'var(--text)', fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
               padding: '9px 12px', outline: 'none',
             }}
           />
@@ -159,7 +159,7 @@ export const AnnouncePage = () => {
             rows={4}
             style={{
               background: 'var(--bg-card2)', border: '1px solid var(--border2)',
-              color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+              color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               padding: '9px 12px', outline: 'none', resize: 'vertical',
             }}
           />
@@ -169,7 +169,7 @@ export const AnnouncePage = () => {
               style={{
                 padding: '9px 20px',
                 background: 'rgba(34,197,94,.1)', border: '1px solid var(--green)',
-                color: 'var(--green)', fontFamily: "'Press Start 2P'", fontSize: '7px',
+                color: 'var(--green)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 cursor: 'pointer', letterSpacing: '.5px',
               }}
             >
@@ -182,7 +182,7 @@ export const AnnouncePage = () => {
       {/* Pinned */}
       {pinned.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '1px', padding: '0 4px' }}>
+          <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', padding: '0 4px' }}>
             PINNED
           </div>
           {pinned.map(a => <AnnCard key={a.id} ann={a} isAdmin={isAdmin} onDelete={setDeleteId} />)}
@@ -193,7 +193,7 @@ export const AnnouncePage = () => {
       {regular.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {pinned.length > 0 && (
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '1px', padding: '0 4px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', padding: '0 4px' }}>
               RECENT
             </div>
           )}
@@ -204,7 +204,7 @@ export const AnnouncePage = () => {
       {announcements.length === 0 && (
         <div style={{
           textAlign: 'center', padding: '60px 20px',
-          fontFamily: "'Share Tech Mono'", fontSize: '13px', color: 'var(--text-muted)',
+          fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)', color: 'var(--text-muted)',
         }}>
           No announcements yet
         </div>
@@ -221,20 +221,20 @@ export const AnnouncePage = () => {
             padding: '24px 28px', minWidth: '320px',
             boxShadow: '4px 4px 0 rgba(239,68,68,.2)',
           }}>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--red)', marginBottom: '12px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', marginBottom: '12px' }}>
               DELETE ANNOUNCEMENT
             </div>
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginBottom: '20px' }}>
               This action cannot be undone.
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button onClick={() => setDeleteId(null)} style={{
                 padding: '8px 16px', background: 'none', border: '1px solid var(--border2)',
-                color: 'var(--text-muted)', fontFamily: "'Press Start 2P'", fontSize: '6px', cursor: 'pointer',
+                color: 'var(--text-muted)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer',
               }}>CANCEL</button>
               <button onClick={() => handleDelete(deleteId)} style={{
                 padding: '8px 16px', background: 'rgba(239,68,68,.1)', border: '1px solid var(--red)',
-                color: 'var(--red)', fontFamily: "'Press Start 2P'", fontSize: '6px', cursor: 'pointer',
+                color: 'var(--red)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer',
               }}>DELETE</button>
             </div>
           </div>
@@ -260,24 +260,24 @@ const AnnCard = ({ ann, isAdmin, onDelete }: {
         <span style={{ fontSize: '16px', color: cfg.color, flexShrink: 0, marginTop: '2px' }}>{cfg.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-            <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '13px', color: 'var(--text)', fontWeight: 600 }}>
+            <span style={{ fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)', color: 'var(--text)', fontWeight: 600 }}>
               {ann.title}
             </span>
             {ann.pinned && (
               <span style={{
-                fontFamily: "'Press Start 2P'", fontSize: '5px', padding: '2px 6px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '2px 6px',
                 border: '1px solid var(--yellow)', color: 'var(--yellow)', background: 'rgba(250,204,21,.06)',
               }}>PINNED</span>
             )}
             <span style={{
-              fontFamily: "'Press Start 2P'", fontSize: '5px', padding: '2px 6px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '2px 6px',
               border: `1px solid ${cfg.color}`, color: cfg.color, background: cfg.bg,
             }}>{cfg.label}</span>
-            <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+            <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginLeft: 'auto' }}>
               {ann.date}
             </span>
           </div>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6 }}>
             {ann.body}
           </div>
         </div>

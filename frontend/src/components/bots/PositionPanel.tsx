@@ -67,7 +67,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
 
   if (orders.length === 0) {
     return (
-      <div style={{ padding: '12px 16px', textAlign: 'center', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+      <div style={{ padding: '12px 16px', textAlign: 'center', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
         No open positions
       </div>
     );
@@ -76,17 +76,17 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   const totalPL = orders.reduce((s, o) => s + o.profit, 0);
 
   const thStyle: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
     letterSpacing: '.5px', padding: '8px 8px', textAlign: 'left',
     borderBottom: '1px solid var(--border2)', fontWeight: 400,
   };
   const thR: React.CSSProperties = { ...thStyle, textAlign: 'right' };
-  const tdStyle: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid rgba(45,64,96,.4)', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' };
+  const tdStyle: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid rgba(45,64,96,.4)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
   const tdR: React.CSSProperties = { ...tdStyle, textAlign: 'right' };
 
   const inputStyle: React.CSSProperties = {
     width: '72px', background: 'var(--bg-input)', border: '1px solid var(--border2)',
-    color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+    color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
     padding: '3px 6px', textAlign: 'right', outline: 'none',
   };
 
@@ -122,7 +122,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                 </td>
                 <td style={tdStyle}>
                   <span style={{
-                    fontFamily: "'Press Start 2P'", fontSize: '7px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                     padding: '3px 6px', letterSpacing: '.5px',
                     border: `1px solid ${isBuy ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
                     color: isBuy ? 'var(--green)' : 'var(--red)',
@@ -141,7 +141,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                     value={order.profit}
                     format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(v)}`}
                     positiveGreen
-                    style={{ fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1 }}
+                    style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1 }}
                   />
                 </td>
 
@@ -205,7 +205,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                           disabled={isLoading}
                           title="Close position"
                           style={{
-                            fontFamily: "'Press Start 2P'", fontSize: '7px',
+                            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                             padding: '3px 6px', letterSpacing: '.5px',
                             color: 'var(--red)', border: '1px solid rgba(239,68,68,.4)',
                             background: 'none', cursor: 'pointer', opacity: isLoading ? .4 : 1,
@@ -225,13 +225,13 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
 
       {/* Summary row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px', borderTop: '1px solid var(--border2)' }}>
-        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
           {orders.length} position{orders.length !== 1 ? 's' : ''}
         </span>
         <span style={{ color: 'var(--border2)' }}>|</span>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)' }}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)' }}>
           TOTAL P/L:{' '}
-          <span style={{ fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1, color: totalPL >= 0 ? 'var(--green)' : 'var(--red)' }}>
+          <span style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1, color: totalPL >= 0 ? 'var(--green)' : 'var(--red)' }}>
             {totalPL >= 0 ? '+' : '-'}{fmtNum(totalPL)} {rawCur}
           </span>
         </span>

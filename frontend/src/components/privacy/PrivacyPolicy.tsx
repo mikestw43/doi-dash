@@ -9,16 +9,16 @@ const card: React.CSSProperties = {
   padding: '20px 22px', marginBottom: '12px',
 };
 const h2: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--cyan)',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)',
   letterSpacing: '.5px', marginBottom: '10px',
 };
 const li: React.CSSProperties = {
-  fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)',
+  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)',
   lineHeight: 1.7, marginBottom: '4px',
 };
 const inp: React.CSSProperties = {
   flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none',
 };
 
@@ -65,7 +65,7 @@ export const PrivacyPolicy = () => {
 
   const Section = ({ title, items }: { title: string; items: string[] }) => (
     <div style={{ marginBottom: '14px' }}>
-      <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text)', letterSpacing: '.5px', marginBottom: '8px' }}>
+      <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '.5px', marginBottom: '8px' }}>
         {title}
       </div>
       <ul style={{ paddingLeft: '16px' }}>
@@ -81,7 +81,7 @@ export const PrivacyPolicy = () => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
           PRIVACY POLICY & PDPA
         </span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
@@ -150,14 +150,14 @@ export const PrivacyPolicy = () => {
           marginBottom: '10px',
         }}>
           <div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text)', letterSpacing: '.5px', marginBottom: '4px' }}>EXPORT MY DATA</div>
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>Download a copy of all your personal data as JSON</div>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '.5px', marginBottom: '4px' }}>EXPORT MY DATA</div>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>Download a copy of all your personal data as JSON</div>
           </div>
           <button
             onClick={handleExport}
             disabled={exporting}
             style={{
-              fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
               padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422',
               border: '1px solid var(--cyan)', cursor: exporting ? 'not-allowed' : 'pointer',
               opacity: exporting ? .6 : 1, flexShrink: 0,
@@ -171,13 +171,13 @@ export const PrivacyPolicy = () => {
         <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,.05)', border: '1px solid rgba(239,68,68,.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--red)', letterSpacing: '.5px', marginBottom: '4px' }}>DELETE MY ACCOUNT</div>
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>Permanently delete your account and all associated data. Cannot be undone.</div>
+              <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', letterSpacing: '.5px', marginBottom: '4px' }}>DELETE MY ACCOUNT</div>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>Permanently delete your account and all associated data. Cannot be undone.</div>
             </div>
             <button
               onClick={() => setShowDeleteConfirm(true)}
               style={{
-                fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                 padding: '8px 12px', background: 'none',
                 border: '1px solid rgba(239,68,68,.5)', color: 'var(--red)',
                 cursor: 'pointer', flexShrink: 0, marginLeft: '12px',
@@ -189,10 +189,10 @@ export const PrivacyPolicy = () => {
 
           {showDeleteConfirm && (
             <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)' }}>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--red)', letterSpacing: '.5px', marginBottom: '8px' }}>
+              <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', letterSpacing: '.5px', marginBottom: '8px' }}>
                 ⚠ THIS ACTION IS PERMANENT AND IRREVERSIBLE
               </div>
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginBottom: '10px', lineHeight: 1.6 }}>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '10px', lineHeight: 1.6 }}>
                 All your accounts, trading history, alerts, and settings will be permanently deleted.
                 Type <strong style={{ color: 'var(--text)' }}>DELETE</strong> to confirm.
               </div>
@@ -208,7 +208,7 @@ export const PrivacyPolicy = () => {
                   onClick={handleDelete}
                   disabled={deleteText !== 'DELETE' || deleting}
                   style={{
-                    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                     padding: '8px 14px',
                     background: deleteText === 'DELETE' && !deleting ? 'var(--red)' : 'rgba(100,116,139,.3)',
                     color: deleteText === 'DELETE' && !deleting ? '#fff' : 'var(--text-dim)',
@@ -222,7 +222,7 @@ export const PrivacyPolicy = () => {
                 <button
                   onClick={() => { setShowDeleteConfirm(false); setDeleteText(''); }}
                   style={{
-                    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                     padding: '8px 12px', background: 'none',
                     border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer',
                     flexShrink: 0,

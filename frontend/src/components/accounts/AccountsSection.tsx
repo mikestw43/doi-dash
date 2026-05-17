@@ -19,21 +19,21 @@ const generateApiKey = () => {
 
 const inp: React.CSSProperties = {
   width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none', boxSizing: 'border-box',
 };
 const lbl: React.CSSProperties = {
-  display: 'block', fontFamily: "'Press Start 2P'", fontSize: '7px',
+  display: 'block', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
   color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '6px',
 };
 const thSt: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
   letterSpacing: '.5px', padding: '8px 10px', textAlign: 'left',
   borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
 };
 const tdSt: React.CSSProperties = {
   padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
-  fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)',
+  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)',
 };
 
 // ─── MaskedKey ────────────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: str
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-      <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {fullKey || maskedKey}
       </span>
       <button
@@ -113,7 +113,7 @@ const DeleteDialog = ({ account, onClose }: { account: Account; onClose: () => v
   return (
     <Dialog open onClose={onClose} title="DELETE ACCOUNT">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
           Are you sure you want to delete{' '}
           <strong style={{ color: 'var(--text)' }}>{account.name}</strong>?
           This action cannot be undone.
@@ -121,12 +121,12 @@ const DeleteDialog = ({ account, onClose }: { account: Account; onClose: () => v
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
           >CANCEL</button>
           <button
             onClick={handleDelete}
             disabled={loading}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: loading ? .6 : 1 }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: loading ? .6 : 1 }}
           >{loading ? 'DELETING...' : 'DELETE'}</button>
         </div>
       </div>
@@ -156,13 +156,13 @@ const NumField = ({
         placeholder={placeholder}
         style={{ ...inp, width: 'auto', flex: 1 }}
       />
-      <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', width: '20px', letterSpacing: '.5px' }}>{unit}</span>
+      <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', width: '20px', letterSpacing: '.5px' }}>{unit}</span>
       {value !== null && (
         <button type="button" onClick={onClear}
           style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}>✕</button>
       )}
     </div>
-    <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)', marginTop: '3px' }}>
+    <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '3px' }}>
       {value === null ? 'Disabled' : 'Enabled'}
     </div>
   </div>
@@ -196,10 +196,10 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
   return (
     <Dialog open onClose={onClose} title={`ALERT THRESHOLDS — ${account.name}`}>
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Loading...</div>
+        <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>Loading...</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
             Leave a field blank to disable that alert. Requires Telegram in Profile Settings.
           </p>
 
@@ -214,16 +214,16 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
               onChange={e => setForm(p => ({ ...p, alertOffline: e.target.checked }))}
               style={{ width: '14px', height: '14px', accentColor: 'var(--cyan)', cursor: 'pointer' }}
             />
-            <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-dim)' }}>Alert when account goes offline</span>
+            <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>Alert when account goes offline</span>
           </label>
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
             <button onClick={onClose}
-              style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
               CANCEL
             </button>
             <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-              style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: mutation.isPending ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: mutation.isPending ? .6 : 1 }}>
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: mutation.isPending ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: mutation.isPending ? .6 : 1 }}>
               {mutation.isPending ? 'SAVING...' : 'SAVE'}
             </button>
           </div>
@@ -252,11 +252,11 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
         <div style={{
           padding: '12px 14px',
           background: 'rgba(250,204,21,.08)', border: '2px solid rgba(250,204,21,.5)',
-          fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', lineHeight: 1.8, letterSpacing: '.5px',
+          fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', lineHeight: 1.8, letterSpacing: '.5px',
           textAlign: 'center',
         }}>
           ⚠ THIS IS THE ONLY TIME YOUR API KEY WILL BE SHOWN.<br />
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', letterSpacing: 0 }}>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', letterSpacing: 0 }}>
             Copy it now and paste it into your MT5 EA settings.
           </span>
         </div>
@@ -264,7 +264,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
         {/* Account name */}
         <div>
           <label style={lbl}>ACCOUNT</label>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '13px', color: 'var(--text)' }}>{accountName}</div>
+          <div style={{ fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)', color: 'var(--text)' }}>{accountName}</div>
         </div>
 
         {/* API Key with large copy button */}
@@ -275,7 +275,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
             background: 'var(--bg-input)', border: '2px solid var(--accent-blue)', padding: '10px 12px',
           }}>
             <code style={{
-              fontFamily: "'Share Tech Mono'", fontSize: '12px',
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               color: 'var(--accent-blue)', flex: 1,
               wordBreak: 'break-all', userSelect: 'all', letterSpacing: '.5px',
             }}>
@@ -285,7 +285,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
               onClick={copyKey}
               style={{
                 flexShrink: 0,
-                fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 12px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 12px',
                 background: copied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.12)',
                 border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`,
                 color: copied ? 'var(--success)' : 'var(--accent-blue)',
@@ -303,7 +303,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
           <label style={lbl}>MT5 EA SETUP</label>
           <div style={{
             background: 'var(--bg-input)', border: '1px solid var(--border2)',
-            padding: '10px 12px', fontFamily: "'Share Tech Mono'", fontSize: '10px',
+            padding: '10px 12px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
             color: 'var(--text-dim)', lineHeight: 2,
           }}>
             <div>① Attach EA to any chart in MT5</div>
@@ -317,7 +317,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
           <button
             onClick={onClose}
             style={{
-              fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px 18px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px 18px',
               background: copied ? 'var(--success)' : 'var(--accent-blue)',
               color: '#0c1422',
               border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`,
@@ -364,7 +364,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
         {/* Info banner */}
-        <div style={{ padding: '8px 10px', background: 'rgba(56,189,248,.06)', border: '1px solid rgba(56,189,248,.2)', fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+        <div style={{ padding: '8px 10px', background: 'rgba(56,189,248,.06)', border: '1px solid rgba(56,189,248,.2)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
           ℹ Broker, account number, server &amp; currency will be filled automatically when your MT5 EA connects.
         </div>
 
@@ -396,10 +396,10 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
             style={{ width: '14px', height: '14px', accentColor: 'var(--warning)', cursor: 'pointer', flexShrink: 0 }}
           />
           <div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: isDemo ? 'var(--warning)' : 'var(--success)', letterSpacing: '.5px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: isDemo ? 'var(--warning)' : 'var(--success)', letterSpacing: '.5px' }}>
               {isDemo ? '⬛ DEMO / SANDBOX' : '▶ LIVE ACCOUNT'}
             </div>
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginTop: '4px' }}>
               {isDemo
                 ? 'Excluded from KPI stats & performance reports'
                 : 'Included in all statistics and reports'}
@@ -409,11 +409,11 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
 
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
           <button type="button" onClick={onClose}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
             CANCEL
           </button>
           <button type="submit" disabled={loading || !name.trim()}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '8px 14px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
             {loading ? 'ADDING...' : 'ADD ACCOUNT'}
           </button>
         </div>
@@ -445,17 +445,17 @@ export const AccountsSection = () => {
         onClick={() => setExpanded(e => !e)}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--cyan)', letterSpacing: '.5px' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)', letterSpacing: '.5px' }}>
             ⌗ API KEY MANAGEMENT
           </span>
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', border: '1px solid var(--border2)', padding: '2px 7px' }}>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', border: '1px solid var(--border2)', padding: '2px 7px' }}>
             {accounts.length}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={e => { e.stopPropagation(); setShowAdd(true); }}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer' }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer' }}
           >
             + ADD ACCOUNT
           </button>
@@ -466,9 +466,9 @@ export const AccountsSection = () => {
       {expanded && (
         <div style={{ marginTop: '14px' }}>
           {isLoading ? (
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>Loading...</div>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>Loading...</div>
           ) : accounts.length === 0 ? (
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>
               No accounts yet. Add your first MT5 account.
             </div>
           ) : (
@@ -496,7 +496,7 @@ export const AccountsSection = () => {
                       <td style={{ ...tdSt, color: 'var(--text-dim)' }}>{acc.accountNumber}</td>
                       <td style={tdSt}><MaskedKey accountId={acc.id} maskedKey={acc.apiKey} /></td>
                       <td style={tdSt}>
-                        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', color: acc.status === 'online' ? 'var(--green)' : 'var(--text-dim)' }}>
+                        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', color: acc.status === 'online' ? 'var(--green)' : 'var(--text-dim)' }}>
                           <span style={{ width: '5px', height: '5px', background: acc.status === 'online' ? 'var(--green)' : '#475569', display: 'inline-block' }} />
                           {acc.status}
                         </span>
@@ -506,12 +506,12 @@ export const AccountsSection = () => {
                           <button
                             onClick={() => setAlertTarget(acc)}
                             title="Alert thresholds"
-                            style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}
+                            style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
                           >🔔</button>
                           <button
                             onClick={() => setDeleteTarget(acc)}
                             title="Delete account"
-                            style={{ background: 'none', border: '1px solid rgba(239,68,68,.3)', color: 'var(--red)', cursor: 'pointer', padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}
+                            style={{ background: 'none', border: '1px solid rgba(239,68,68,.3)', color: 'var(--red)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
                           >✕</button>
                         </div>
                       </td>

@@ -108,7 +108,7 @@ export const NotificationBell = () => {
             minWidth: '16px', height: '16px',
             background: 'var(--danger)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Share Tech Mono'", fontSize: '9px',
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
             color: '#fff', padding: '0 3px',
             lineHeight: 1,
           }}>
@@ -136,12 +136,12 @@ export const NotificationBell = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '1px' }}>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '1px' }}>
               NOTIFICATIONS
             </span>
             <button
               onClick={handleClear}
-              style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, transition: 'color .15s' }}
+              style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', cursor: 'pointer', background: 'none', border: 'none', padding: 0, transition: 'color .15s' }}
               onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)')}
               onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)')}
             >
@@ -152,7 +152,7 @@ export const NotificationBell = () => {
           {/* List */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {logs.length === 0 ? (
-              <div style={{ padding: '24px', textAlign: 'center', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-muted)' }}>
+              <div style={{ padding: '24px', textAlign: 'center', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                 No notifications
               </div>
             ) : (
@@ -174,7 +174,7 @@ export const NotificationBell = () => {
                     {/* Type badge + title */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}>
                       <span style={{
-                        fontFamily: "'Press Start 2P'", fontSize: '5px',
+                        fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                         padding: '2px 4px',
                         border: `1px solid ${log.success ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
                         color: log.success ? 'var(--success)' : 'var(--danger)',
@@ -184,10 +184,10 @@ export const NotificationBell = () => {
                         {log.type.replace(/_/g, ' ')}
                       </span>
                     </div>
-                    <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-primary)', marginBottom: '2px', lineHeight: 1.3 }}>
+                    <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', marginBottom: '2px', lineHeight: 1.3 }}>
                       {log.message}
                     </div>
-                    <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', marginTop: '3px' }}>
+                    <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginTop: '3px' }}>
                       {relTime(log.sentAt)}
                     </div>
                   </div>

@@ -153,7 +153,7 @@ export const SummaryCards = ({ stats }: Props) => {
         {/* 4 TOTAL P/L */}
         <KpiCard
           label="TOTAL P/L"
-          icon={<span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: COLORS[plMod].text, opacity: 0.8 }}>P/L</span>}
+          icon={<span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: COLORS[plMod].text, opacity: 0.8 }}>P/L</span>}
           mod={plMod}
           watchValue={stats.totalProfit}
           value={<CurrencyValue val={stats.totalProfit} color={COLORS[plMod].text} />}

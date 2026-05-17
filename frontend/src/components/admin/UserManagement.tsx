@@ -40,7 +40,7 @@ const STATUS_META: Record<string, { color: string; dot: string; label: string }>
 const roleBadge = (role: string) => {
   const r = ROLE_COLOR[role] || ROLE_COLOR.user;
   return (
-    <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '3px 8px', border: `1px solid ${r.border}`, color: r.color, background: r.bg }}>
+    <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '3px 8px', border: `1px solid ${r.border}`, color: r.color, background: r.bg }}>
       {role.toUpperCase()}
     </span>
   );
@@ -49,15 +49,15 @@ const roleBadge = (role: string) => {
 const StatusBadge = ({ status }: { status: string }) => {
   const m = STATUS_META[status] || STATUS_META.active;
   return (
-    <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: m.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
+    <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: m.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.dot, display: 'inline-block', flexShrink: 0 }} />
       {m.label}
     </span>
   );
 };
 
-const inp: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px', padding: '8px 10px', outline: 'none', boxSizing: 'border-box' };
-const lbl: React.CSSProperties = { fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
+const inp: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '8px 10px', outline: 'none', boxSizing: 'border-box' };
+const lbl: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
 
 export const UserManagement = () => {
   const { setCurrentPage, addToast } = useUIStore();
@@ -141,17 +141,17 @@ export const UserManagement = () => {
   });
 
   const thStyle: React.CSSProperties = {
-    fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
     letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left',
     borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
   };
   const tdStyle: React.CSSProperties = {
     padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
-    fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)',
+    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)',
   };
   const tabBtn = (active: boolean) => ({
     padding: '9px 20px',
-    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     color: active ? 'var(--accent-blue)' : 'var(--text-dim)',
     background: 'none', border: 'none', borderBottom: `2px solid ${active ? 'var(--accent-blue)' : 'transparent'}`,
     cursor: 'pointer', transition: 'all .15s',
@@ -162,7 +162,7 @@ export const UserManagement = () => {
       {/* Back */}
       <button
         onClick={() => setCurrentPage('dashboard')}
-        style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontFamily: "'Press Start 2P'", fontSize: '7px', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
+        style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
       >
         ← BACK
       </button>
@@ -170,7 +170,7 @@ export const UserManagement = () => {
       {/* Section title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>ADMIN</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>ADMIN</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
 
@@ -203,7 +203,7 @@ export const UserManagement = () => {
             }}>
               <button
                 onClick={() => setShowAddDialog(true)}
-                style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
+                style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
               >
                 + CREATE USER
               </button>
@@ -211,7 +211,7 @@ export const UserManagement = () => {
                 <select
                   value={roleFilter}
                   onChange={e => setRoleFilter(e.target.value)}
-                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
                 >
                   <option value="all">All Roles</option>
                   <option value="admin">Admin</option>
@@ -221,7 +221,7 @@ export const UserManagement = () => {
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
@@ -236,10 +236,10 @@ export const UserManagement = () => {
               <div style={{ borderBottom: '1px solid var(--border2)', padding: '12px 14px', background: 'rgba(250,204,21,.04)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                   <div style={{ width: '6px', height: '6px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)' }} />
-                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', letterSpacing: '1px' }}>
+                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', letterSpacing: '1px' }}>
                     PENDING APPROVAL
                   </span>
-                  <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', padding: '3px 8px', border: '1px solid rgba(250,204,21,.4)' }}>
+                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', padding: '3px 8px', border: '1px solid rgba(250,204,21,.4)' }}>
                     {pendingUsers.length}
                   </span>
                 </div>
@@ -252,18 +252,18 @@ export const UserManagement = () => {
                       flexWrap: 'wrap', gap: '8px',
                     }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text)' }}>
+                        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>
                           {u.name || '—'}
                         </span>
-                        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
+                        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
                           {u.email}
                         </span>
                         {u.mobile && (
-                          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
+                          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
                             📱 {u.phoneCountry} {u.mobile}
                           </span>
                         )}
-                        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)' }}>
+                        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
                           Registered: {new Date(u.createdAt).toLocaleDateString()}
                         </span>
                       </div>
@@ -271,14 +271,14 @@ export const UserManagement = () => {
                         <button
                           onClick={() => statusMutation.mutate({ id: u.id, status: 'active' })}
                           disabled={statusMutation.isPending}
-                          style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '6px 12px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(34,197,94,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
+                          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(34,197,94,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
                         >
                           ✓ APPROVE
                         </button>
                         <button
                           onClick={() => statusMutation.mutate({ id: u.id, status: 'rejected' })}
                           disabled={statusMutation.isPending}
-                          style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', padding: '6px 12px', border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(239,68,68,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
+                          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(239,68,68,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
                         >
                           ✕ REJECT
                         </button>
@@ -292,7 +292,7 @@ export const UserManagement = () => {
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               {isLoading ? (
-                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Loading...</div>
+                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>Loading...</div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
                   <thead>
@@ -329,7 +329,7 @@ export const UserManagement = () => {
                           {/* USER */}
                           <td style={tdStyle}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{ width: '26px', height: '26px', flexShrink: 0, background: rc.bg, border: `1px solid ${rc.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Press Start 2P'", fontSize: '7px', color: rc.color }}>
+                              <div style={{ width: '26px', height: '26px', flexShrink: 0, background: rc.bg, border: `1px solid ${rc.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: rc.color }}>
                                 {initials}
                               </div>
                               <span style={{ color: 'var(--text)', fontWeight: 700 }}>{user.displayName || user.name || '—'}</span>
@@ -349,7 +349,7 @@ export const UserManagement = () => {
                             {roleBadge(user.role)}
                           </td>
                           {/* ACCOUNTS */}
-                          <td style={{ ...tdStyle, textAlign: 'center', fontFamily: "'VT323'", fontSize: '22px', color: 'var(--accent-blue)' }} className="um-col-accounts">
+                          <td style={{ ...tdStyle, textAlign: 'center', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: 'var(--accent-blue)' }} className="um-col-accounts">
                             {user._count.accounts}
                           </td>
                           {/* CREATED */}
@@ -362,7 +362,7 @@ export const UserManagement = () => {
                           </td>
                           {/* ACTIONS — open detail */}
                           <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--accent-blue)' }}>
-                            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', letterSpacing: '.5px' }}>
+                            <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px' }}>
                               VIEW ›
                             </span>
                           </td>
@@ -412,7 +412,7 @@ export const UserManagement = () => {
           </div>
           <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
             <button onClick={() => setShowAddDialog(false)}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
@@ -426,7 +426,7 @@ export const UserManagement = () => {
                 role: newRole,
               })}
               disabled={!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
             >
               {createMutation.isPending ? '...' : 'CREATE'}
             </button>
@@ -445,19 +445,19 @@ export const UserManagement = () => {
       {/* Suspend Confirm Dialog */}
       <Dialog open={!!suspendId} onClose={() => setSuspendId(null)} title="SUSPEND USER">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', lineHeight: 1.6 }}>
+          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Suspend <span style={{ color: 'var(--warning)' }}>{suspendTarget?.email}</span>?<br />
             They will not be able to log in until reactivated.
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setSuspendId(null)}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
               onClick={() => suspendId && statusMutation.mutate({ id: suspendId, status: 'suspended' })}
               disabled={statusMutation.isPending}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'rgba(250,204,21,.15)', color: 'var(--warning)', border: '1px solid rgba(250,204,21,.5)', cursor: 'pointer', opacity: statusMutation.isPending ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'rgba(250,204,21,.15)', color: 'var(--warning)', border: '1px solid rgba(250,204,21,.5)', cursor: 'pointer', opacity: statusMutation.isPending ? .5 : 1 }}
             >
               {statusMutation.isPending ? '...' : 'SUSPEND'}
             </button>
@@ -468,20 +468,20 @@ export const UserManagement = () => {
       {/* Delete Confirm Dialog */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} title="DELETE USER">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', lineHeight: 1.6 }}>
+          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Permanently delete <span style={{ color: 'var(--danger)' }}>{deleteTarget?.email}</span>?
             <br />This will also remove {deleteTarget?._count.accounts || 0} account{deleteTarget?._count.accounts !== 1 ? 's' : ''}.
             <br /><span style={{ color: 'var(--danger)', fontSize: '10px' }}>⚠ This action cannot be undone.</span>
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setDeleteId(null)}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               disabled={deleteMutation.isPending}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--danger)', color: '#fff', border: '1px solid var(--danger)', cursor: 'pointer', opacity: deleteMutation.isPending ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--danger)', color: '#fff', border: '1px solid var(--danger)', cursor: 'pointer', opacity: deleteMutation.isPending ? .5 : 1 }}
             >
               {deleteMutation.isPending ? '...' : 'DELETE'}
             </button>

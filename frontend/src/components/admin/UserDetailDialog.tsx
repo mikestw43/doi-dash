@@ -28,7 +28,7 @@ const STATUS_META: Record<string, { color: string; label: string }> = {
 };
 
 const cardTitle: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '7px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
   color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '10px',
 };
 const rowStyle: React.CSSProperties = {
@@ -38,20 +38,20 @@ const rowStyle: React.CSSProperties = {
   alignItems: 'center',
 };
 const lblStyle: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '6px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
   color: 'var(--text-dim)', letterSpacing: '.5px',
 };
 const valStyle: React.CSSProperties = {
-  fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   color: 'var(--text)',
 };
 const sel: React.CSSProperties = {
   background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '6px 9px', outline: 'none', cursor: 'pointer',
 };
 const btn = (color: string, bg: string): React.CSSProperties => ({
-  fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
   padding: '8px 12px', background: bg, color, border: `1px solid ${color}`,
   cursor: 'pointer',
 });
@@ -141,9 +141,9 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
             </div>
             <div style={{ ...rowStyle, borderBottom: 'none' }}>
               <span style={lblStyle}>ACCOUNTS</span>
-              <span style={{ ...valStyle, fontFamily: "'VT323'", fontSize: '20px', color: 'var(--accent-blue)' }}>
+              <span style={{ ...valStyle, fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: 'var(--accent-blue)' }}>
                 {user._count.accounts}
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginLeft: '8px' }}>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '8px' }}>
                   / {user.role === 'user' ? '1' : '∞'}
                 </span>
               </span>
@@ -177,7 +177,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
                 <span style={lblStyle}>ROLE</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{
-                    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                     padding: '3px 8px', border: `1px solid ${r.border}`, color: r.color, background: r.bg,
                   }}>{r.label}</span>
                   <select
@@ -248,7 +248,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
 
           {isSelf && (
             <div style={{
-              fontFamily: "'Share Tech Mono'", fontSize: '11px',
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               color: 'var(--text-dim)', padding: '10px',
               background: 'rgba(45,64,96,.2)', border: '1px solid var(--border2)',
             }}>
@@ -261,7 +261,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
       {/* Reset password confirmation */}
       <Dialog open={resetConfirm} onClose={() => setResetConfirm(false)} title="RESET PASSWORD?">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', lineHeight: 1.6 }}>
+          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Generate a new random password for <span style={{ color: 'var(--accent-blue)' }}>{user.email}</span>?<br />
             <span style={{ color: 'var(--warning)', fontSize: '10px' }}>
               ⚠ The current password will stop working immediately. You'll see the new password once — copy and share it securely.
@@ -269,13 +269,13 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setResetConfirm(false)}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
               onClick={() => resetMutation.mutate(user.id)}
               disabled={resetMutation.isPending}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: resetMutation.isPending ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: resetMutation.isPending ? .5 : 1 }}
             >
               {resetMutation.isPending ? '...' : 'GENERATE'}
             </button>
@@ -286,7 +286,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
       {/* Show generated password */}
       <Dialog open={!!resetPw} onClose={handleCloseReset} title="NEW PASSWORD GENERATED">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', lineHeight: 1.6 }}>
+          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             New password for <span style={{ color: 'var(--accent-blue)' }}>{user.email}</span>:
           </p>
           <div style={{
@@ -298,16 +298,16 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
           }}>
             {resetPw}
           </div>
-          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--warning)', lineHeight: 1.5 }}>
+          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--warning)', lineHeight: 1.5 }}>
             ⚠ This is shown only once. Copy now and share with the user via a secure channel (e.g. Telegram, Signal).
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={handleCopy}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: copied ? 'var(--success)' : 'var(--accent-blue)', color: '#0c1422', border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`, cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: copied ? 'var(--success)' : 'var(--accent-blue)', color: '#0c1422', border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`, cursor: 'pointer' }}>
               {copied ? '✓ COPIED' : '📋 COPY'}
             </button>
             <button onClick={handleCloseReset}
-              style={{ flex: 1, fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CLOSE
             </button>
           </div>

@@ -28,7 +28,7 @@ export const OrdersHeatmap = () => {
 
   if (orders.length === 0) {
     return (
-      <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>
+      <p style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
         No open orders
       </p>
     );
@@ -43,13 +43,13 @@ export const OrdersHeatmap = () => {
             key={order.ticket}
             style={{ border: `1px solid ${s.border}`, background: s.bg, padding: '8px 10px', minHeight: '80px' }}
           >
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text)', marginBottom: '4px' }}>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text)', marginBottom: '4px' }}>
               {order.symbol} {order.type}
             </div>
-            <div style={{ fontFamily: "'VT323'", fontSize: '26px', color: s.color, lineHeight: 1 }}>
+            <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: s.color, lineHeight: 1 }}>
               {order.profit >= 0 ? '+' : ''}{order.profit.toFixed(0)}
             </div>
-            <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)', marginTop: '4px' }}>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '4px' }}>
               {formatLots(order.lots)} lots · {order.accountName}
             </div>
           </div>

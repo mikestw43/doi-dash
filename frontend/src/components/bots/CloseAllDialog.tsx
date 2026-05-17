@@ -39,10 +39,10 @@ export const CloseAllDialog = ({ accountId, accountName, onClose, onSuccess }: P
         <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)' }}>
           <span style={{ color: 'var(--red)', fontSize: '16px', flexShrink: 0 }}>⚠</span>
           <div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--red)', marginBottom: '6px', letterSpacing: '.5px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', marginBottom: '6px', letterSpacing: '.5px' }}>
               DANGEROUS ACTION
             </div>
-            <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+            <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
               This will close ALL open orders on{' '}
               <span style={{ color: 'var(--text)', fontWeight: 700 }}>{accountName}</span>.
               This action cannot be undone.
@@ -53,14 +53,14 @@ export const CloseAllDialog = ({ accountId, accountName, onClose, onSuccess }: P
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
           >
             CANCEL
           </button>
           <button
             onClick={handleConfirm}
             disabled={loading}
-            style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', padding: '9px 16px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: loading ? .6 : 1 }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: loading ? .6 : 1 }}
           >
             {loading ? 'SENDING...' : 'YES, CLOSE ALL'}
           </button>

@@ -26,7 +26,7 @@ const computeMaxDD = (trades: ClosedTrade[]): number => {
 // ── Shared table styles ──────────────────────────────────────────────────────
 
 const thBase: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px',
   padding: '9px 8px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400,
   whiteSpace: 'nowrap',
 };
@@ -38,7 +38,7 @@ const thL = (clickable = false): React.CSSProperties => ({
 });
 const tdBase: React.CSSProperties = {
   padding: '7px 8px', borderBottom: '1px solid rgba(45,64,96,.3)',
-  fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)', whiteSpace: 'nowrap',
+  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', whiteSpace: 'nowrap',
 };
 const tdR: React.CSSProperties = { ...tdBase, textAlign: 'right' };
 
@@ -58,17 +58,17 @@ const SumCard = ({ label, value, color, sub }: SumCardProps) => (
     padding: '12px 14px',
     display: 'flex', flexDirection: 'column', gap: '4px',
   }}>
-    <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', letterSpacing: '1px' }}>
+    <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '1px' }}>
       {label}
     </div>
     <div style={{
-      fontFamily: "'VT323'", fontSize: '28px', lineHeight: 1,
+      fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-md)', lineHeight: 1,
       color, letterSpacing: '.5px',
     }}>
       {value}
     </div>
     {sub && (
-      <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-dim)' }}>
+      <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
         {sub}
       </div>
     )}
@@ -184,7 +184,7 @@ export const TradeHistoryPage = () => {
 
   const selStyle: React.CSSProperties = {
     background: 'var(--bg-input)', border: '1px solid var(--border2)',
-    color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+    color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
     padding: '6px 10px', outline: 'none', cursor: 'pointer',
   };
   const dateInputStyle: React.CSSProperties = {
@@ -206,9 +206,9 @@ export const TradeHistoryPage = () => {
       {/* ── Section header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '2px' }}>TRADE HISTORY</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>TRADE HISTORY</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)' }}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)' }}>
           {total} TRADES
         </span>
       </div>
@@ -271,14 +271,14 @@ export const TradeHistoryPage = () => {
 
         {/* Date range */}
         <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>FROM</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>FROM</span>
           <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} style={dateInputStyle} />
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>TO</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>TO</span>
           <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} style={dateInputStyle} />
           {(dateFrom || dateTo) && (
             <button
               onClick={() => { setDateFrom(''); setDateTo(''); }}
-              style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 8px', transition: 'all .15s' }}
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 8px', transition: 'all .15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}
             >✕</button>
@@ -292,7 +292,7 @@ export const TradeHistoryPage = () => {
           className="th-export-btn"
           style={{
             marginLeft: 'auto',
-            fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             padding: '7px 12px', background: 'none',
             border: '1px solid var(--border2)',
             color: 'var(--text-muted)',
@@ -333,8 +333,8 @@ export const TradeHistoryPage = () => {
             ) : trades.length === 0 ? (
               <tr>
                 <td colSpan={9} style={{ ...tdBase, textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
-                  <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', marginBottom: '8px' }}>NO TRADES FOUND</div>
-                  <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px' }}>Try adjusting your filters</div>
+                  <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', marginBottom: '8px' }}>NO TRADES FOUND</div>
+                  <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>Try adjusting your filters</div>
                 </td>
               </tr>
             ) : (
@@ -348,7 +348,7 @@ export const TradeHistoryPage = () => {
                   <td style={{ ...tdBase, fontWeight: 700, letterSpacing: '.5px' }}>{t.symbol}</td>
                   <td style={tdBase}>
                     <span style={{
-                      fontFamily: "'Press Start 2P'", fontSize: '7px',
+                      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                       padding: '3px 6px', letterSpacing: '.5px',
                       border: `1px solid ${t.type === 'BUY' ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
                       color: t.type === 'BUY' ? 'var(--success)' : 'var(--danger)',
@@ -362,7 +362,7 @@ export const TradeHistoryPage = () => {
                   <td style={{ ...tdR, color: 'var(--text-dim)' }} className="th-col-price">{t.closePrice.toFixed(5)}</td>
                   <td style={{
                     ...tdR,
-                    fontFamily: "'VT323'", fontSize: '20px', lineHeight: 1,
+                    fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1,
                     color: t.profit >= 0 ? 'var(--success)' : 'var(--danger)',
                   }}>
                     {t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}
@@ -381,7 +381,7 @@ export const TradeHistoryPage = () => {
       {/* ── Pagination ── */}
       {totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
             Page {page} / {totalPages} &nbsp;·&nbsp; {total} trades
           </span>
           <div style={{ display: 'flex', gap: '4px' }}>
@@ -399,7 +399,7 @@ export const TradeHistoryPage = () => {
                   background: 'none', border: '1px solid var(--border2)',
                   color: 'var(--text-dim)', cursor: btn.disabled ? 'not-allowed' : 'pointer',
                   padding: '5px 10px', opacity: btn.disabled ? .3 : 1,
-                  fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                   transition: 'all .15s',
                 }}
                 onMouseEnter={e => { if (!btn.disabled) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; } }}

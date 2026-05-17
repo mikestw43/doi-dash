@@ -20,7 +20,7 @@ export const PerformanceCards = ({ accountId }: Props) => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+      <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
         Loading metrics...
       </div>
     );
@@ -28,7 +28,7 @@ export const PerformanceCards = ({ accountId }: Props) => {
 
   if (!metrics || metrics.totalTrades === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+      <div style={{ textAlign: 'center', padding: '32px 0', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
         No closed trades to calculate metrics.
       </div>
     );
@@ -55,8 +55,8 @@ export const PerformanceCards = ({ accountId }: Props) => {
         {cards.map(c => (
           <div key={c.label} style={metricCard}>
             <div style={{ fontSize: '14px', color: c.color, opacity: .7, marginBottom: '6px' }}>{c.symbol}</div>
-            <div style={{ fontFamily: "'VT323'", fontSize: '32px', fontWeight: 400, lineHeight: 1, color: c.color }}>{c.value}</div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-dim)', letterSpacing: '.5px', marginTop: '6px' }}>{c.label.toUpperCase()}</div>
+            <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-md)', fontWeight: 400, lineHeight: 1, color: c.color }}>{c.value}</div>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginTop: '6px' }}>{c.label.toUpperCase()}</div>
           </div>
         ))}
       </div>
@@ -64,12 +64,12 @@ export const PerformanceCards = ({ accountId }: Props) => {
       {/* Gross Profit / Gross Loss row */}
       <div style={{ display: 'flex', gap: '8px' }}>
         <div style={{ ...metricCard, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left' }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>GROSS PROFIT</span>
-          <span style={{ fontFamily: "'VT323'", fontSize: '26px', color: 'var(--success)' }}>+${metrics.grossProfit.toFixed(2)}</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>GROSS PROFIT</span>
+          <span style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: 'var(--success)' }}>+${metrics.grossProfit.toFixed(2)}</span>
         </div>
         <div style={{ ...metricCard, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left' }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>GROSS LOSS</span>
-          <span style={{ fontFamily: "'VT323'", fontSize: '26px', color: 'var(--danger)' }}>-${metrics.grossLoss.toFixed(2)}</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>GROSS LOSS</span>
+          <span style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: 'var(--danger)' }}>-${metrics.grossLoss.toFixed(2)}</span>
         </div>
       </div>
     <style>{`

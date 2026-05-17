@@ -42,7 +42,7 @@ const getImpactCfg = (impact: string): ImpactCfg =>
 // ─── Shared table styles ──────────────────────────────────────────────────────
 
 const thSt: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
   letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left',
   borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
 };
@@ -51,7 +51,7 @@ const thC: React.CSSProperties = { ...thSt, textAlign: 'center' };
 
 const tdSt: React.CSSProperties = {
   padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
-  fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)',
+  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)',
   whiteSpace: 'nowrap',
 };
 const tdR: React.CSSProperties = { ...tdSt, textAlign: 'right' };
@@ -100,7 +100,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               <td style={tdSt}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
-                  <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text)' }}>{event.country}</span>
+                  <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>{event.country}</span>
                 </span>
               </td>
               <td style={{ ...tdSt, color: isHigh && !past ? 'var(--text)' : 'var(--text-dim)' }}>
@@ -108,7 +108,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               </td>
               <td style={tdC}>
                 <span style={{
-                  fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                   display: 'inline-flex', alignItems: 'center', gap: '4px',
                   padding: '3px 6px', border: `1px solid ${cfg.border}`,
                   background: cfg.bg, color: cfg.color,
@@ -187,7 +187,7 @@ export const EconomicCalendar = () => {
           width: '28px', height: '28px', border: '2px solid var(--cyan)', borderTopColor: 'transparent',
           borderRadius: '50%', margin: '0 auto 12px', animation: 'spin 0.8s linear infinite',
         }} />
-        <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-dim)' }}>
+        <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
           Loading economic calendar...
         </p>
       </div>
@@ -199,16 +199,16 @@ export const EconomicCalendar = () => {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: '28px', marginBottom: '12px' }}>⚠</div>
-        <p style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--red)', marginBottom: '8px', letterSpacing: '.5px' }}>
+        <p style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', marginBottom: '8px', letterSpacing: '.5px' }}>
           FAILED TO LOAD CALENDAR
         </p>
-        <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '16px' }}>
           Could not reach ForexFactory. Check network connectivity.
         </p>
         <button
           onClick={() => refetch()}
           style={{
-            fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px',
+            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422',
             border: '1px solid var(--cyan)', cursor: 'pointer',
           }}
@@ -229,7 +229,7 @@ export const EconomicCalendar = () => {
     : null;
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
-    fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '6px 12px', cursor: 'pointer',
     border: active ? '1px solid var(--success)' : '1px solid transparent',
     background: active ? 'rgba(34,197,94,.08)' : 'none',
@@ -238,7 +238,7 @@ export const EconomicCalendar = () => {
   });
 
   const impactBtn = (active: boolean): React.CSSProperties => ({
-    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '5px 10px', cursor: 'pointer',
     border: active ? '1px solid var(--cyan)' : '1px solid var(--border2)',
     background: active ? 'rgba(56,189,248,.1)' : 'none',
@@ -246,7 +246,7 @@ export const EconomicCalendar = () => {
   });
 
   const ccyBtn = (active: boolean): React.CSSProperties => ({
-    fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     display: 'inline-flex', alignItems: 'center', gap: '3px',
     padding: '4px 7px', cursor: 'pointer',
     border: active ? '1px solid rgba(56,189,248,.6)' : '1px solid var(--border2)',
@@ -261,12 +261,12 @@ export const EconomicCalendar = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
               ECONOMIC CALENDAR
             </span>
             {todayHighCount > 0 && (
               <span style={{
-                fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                 display: 'inline-flex', alignItems: 'center', gap: '5px',
                 padding: '3px 8px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--red)',
               }}>
@@ -275,7 +275,7 @@ export const EconomicCalendar = () => {
               </span>
             )}
           </div>
-          <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginLeft: '15px' }}>
+          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '15px' }}>
             ForexFactory · cached 30min · local timezone
           </p>
         </div>
@@ -283,7 +283,7 @@ export const EconomicCalendar = () => {
           onClick={() => refetch()}
           disabled={isFetching}
           style={{
-            fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px',
+            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             padding: '7px 12px', background: 'none', border: '1px solid var(--border2)',
             color: isFetching ? 'var(--text-dim)' : 'var(--text)',
             cursor: isFetching ? 'not-allowed' : 'pointer',
@@ -311,7 +311,7 @@ export const EconomicCalendar = () => {
 
         {/* Currency chips */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
             CUR:
           </span>
           {ALL_CURRENCIES.map(cur => (
@@ -327,7 +327,7 @@ export const EconomicCalendar = () => {
           {selected.length > 0 && (
             <button
               onClick={() => setSelected([])}
-              style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.5px', marginLeft: '2px' }}
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.5px', marginLeft: '2px' }}
             >
               ✕ CLEAR
             </button>
@@ -336,7 +336,7 @@ export const EconomicCalendar = () => {
 
         {/* Impact filter */}
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginLeft: 'auto' }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
             IMPACT:
           </span>
           {(['all', 'medium', 'high'] as const).map(key => (
@@ -344,7 +344,7 @@ export const EconomicCalendar = () => {
               {key === 'all' ? 'ALL' : key === 'medium' ? 'MED+' : 'HIGH'}
             </button>
           ))}
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginLeft: '10px' }}>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '10px' }}>
             {filtered.length} events
           </span>
         </div>
@@ -354,7 +354,7 @@ export const EconomicCalendar = () => {
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '12px', color: 'var(--text-dim)' }}>📅</div>
-          <p style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
+          <p style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
             NO EVENTS MATCH FILTERS
           </p>
         </div>
@@ -371,12 +371,12 @@ export const EconomicCalendar = () => {
                   display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px',
                 }}>
                   <span style={{
-                    fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--text)',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)',
                     letterSpacing: '.5px', padding: '4px 10px',
                     border: '1px solid var(--border2)', background: 'var(--bg-card2)',
                   }}>{dateLabel}</span>
                   {highCount > 0 && (
-                    <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--red)' }}>
+                    <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--red)' }}>
                       {highCount} high impact
                     </span>
                   )}
