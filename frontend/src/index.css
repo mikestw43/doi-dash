@@ -36,6 +36,36 @@
     --orange:     #f97316;
     --text:       #e5e7eb;
     --text-dim:   #64748b;
+
+    /* ── Typography scale (desktop ≥769px) ──
+       Use these tokens instead of inline pixel values so the whole UI
+       scales coherently. Each tier has a fixed semantic meaning. */
+    --fs-title:    10px; /* page titles: "PROFILE", "ANALYTICS" */
+    --fs-section:  8px;  /* card section headings: "PERSONAL INFO" */
+    --fs-label:    7px;  /* form labels, table th, tab labels */
+    --fs-micro:    6px;  /* tiny badges, day numbers, weekday headers */
+    --fs-body:     12px; /* body text, table td, values */
+    --fs-body-sm:  10px; /* secondary body, meta lines, "Last login..." */
+    --fs-input:    13px; /* form input fields (desktop) */
+    --fs-disp-sm:  22px; /* small display numbers: per-day P&L, bot equity */
+    --fs-disp-md:  34px; /* medium display numbers: KPI cards, clock */
+    --fs-disp-lg:  42px; /* large display numbers: hero clock, big KPI */
+  }
+
+  @media (max-width: 768px) {
+    :root {
+      /* Mobile overrides — slightly smaller except --fs-input (iOS no-zoom rule) */
+      --fs-title:    9px;
+      --fs-section:  7px;
+      --fs-label:    6px;
+      --fs-micro:    5px;
+      --fs-body:     11px;
+      --fs-body-sm:  9px;
+      --fs-input:    16px; /* ≥16px on mobile to prevent iOS auto-zoom on focus */
+      --fs-disp-sm:  14px;
+      --fs-disp-md:  22px;
+      --fs-disp-lg:  32px;
+    }
   }
 
   :root.light {
