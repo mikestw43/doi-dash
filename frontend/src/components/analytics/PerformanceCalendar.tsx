@@ -215,18 +215,18 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
       </div>
 
       {/* Calendar table */}
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px', tableLayout: 'fixed' }}>
+      <div className="pcal-wrap" style={{ overflowX: 'auto' }}>
+        <table className="pcal" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px', tableLayout: 'fixed' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
-              <th style={thStyle}>MON</th>
-              <th style={thStyle}>TUE</th>
-              <th style={thStyle}>WED</th>
-              <th style={thStyle}>THU</th>
-              <th style={thStyle}>FRI</th>
-              <th style={thStyle}>SAT</th>
-              <th style={thStyle}>SUN</th>
-              <th style={thWeek}>WEEK</th>
+              <th className="pcal-th" style={thStyle}>MON</th>
+              <th className="pcal-th" style={thStyle}>TUE</th>
+              <th className="pcal-th" style={thStyle}>WED</th>
+              <th className="pcal-th" style={thStyle}>THU</th>
+              <th className="pcal-th" style={thStyle}>FRI</th>
+              <th className="pcal-th" style={thStyle}>SAT</th>
+              <th className="pcal-th" style={thStyle}>SUN</th>
+              <th className="pcal-th pcal-th-wk" style={thWeek}>WEEK</th>
             </tr>
           </thead>
           <tbody>
@@ -235,7 +235,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
               let hasDay = false;
               const dayCells = row.map((day, ci) => {
                 if (day === null) {
-                  return <td key={ci} style={{ ...tdBase, border: '1px solid transparent', background: 'transparent' }} />;
+                  return <td key={ci} className="pcal-td pcal-empty" style={{ ...tdBase, border: '1px solid transparent', background: 'transparent' }} />;
                 }
                 const pnl = dayMap.get(day);
                 if (pnl !== undefined) { weekSum += pnl; hasDay = true; }
@@ -249,13 +249,13 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                   ? (pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text-dim)')
                   : 'var(--text-dim)';
                 return (
-                  <td key={ci} style={{
+                  <td key={ci} className="pcal-td" style={{
                     ...tdBase,
                     background: bg,
                     border,
                     boxShadow: isToday ? 'inset 0 0 16px rgba(56,189,248,.18)' : undefined,
                   }}>
-                    <span style={{
+                    <span className="pcal-dn" style={{
                       display: 'block', fontFamily: "'Share Tech Mono'",
                       fontSize: '9px', color: 'var(--text-dim)',
                       lineHeight: 1, marginBottom: '6px',
@@ -263,7 +263,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                       {day}
                     </span>
                     {pnl !== undefined && (
-                      <span style={{
+                      <span className="pcal-pnl" style={{
                         display: 'block', fontFamily: "'VT323'",
                         fontSize: '22px', lineHeight: 1, color: pnlColor,
                       }}>
@@ -277,14 +277,14 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
               return (
                 <tr key={ri}>
                   {dayCells}
-                  <td style={{
+                  <td className="pcal-td pcal-wk-sum" style={{
                     ...tdBase,
                     background: 'var(--bg-card2)',
                     borderLeft: '2px solid var(--border2)',
                     textAlign: 'center', verticalAlign: 'middle',
                     padding: '0 6px', minWidth: '62px',
                   }}>
-                    <span style={{
+                    <span className="pcal-wk-lbl" style={{
                       display: 'block',
                       fontFamily: "'Press Start 2P'",
                       fontSize: '5px', color: 'rgba(56,189,248,.5)',
@@ -292,7 +292,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     }}>
                       WEEK
                     </span>
-                    <span style={{
+                    <span className="pcal-pnl" style={{
                       display: 'block', fontFamily: "'VT323'",
                       fontSize: '22px', lineHeight: 1, color: weekColor,
                     }}>
@@ -339,6 +339,25 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           Loading...
         </div>
       )}
+
+      {/* ── Mobile responsive — drop horizontal scroll, shrink cells ── */}
+      <style>{`
+        @media (max-width: 768px) {
+          .pcal-wrap { overflow-x: visible !important; }
+          .pcal { min-width: 0 !important; table-layout: fixed !important; }
+          .pcal-th { padding: 4px 1px !important; font-size: 5px !important; letter-spacing: 0 !important; }
+          .pcal-td { padding: 3px 3px !important; height: 52px !important; }
+          .pcal-td.pcal-wk-sum { min-width: 0 !important; padding: 2px 2px !important; }
+          .pcal-dn { font-size: 7px !important; margin-bottom: 3px !important; }
+          .pcal-pnl { font-size: 13px !important; }
+          .pcal-wk-lbl { font-size: 4px !important; margin-bottom: 2px !important; }
+        }
+        @media (max-width: 480px) {
+          .pcal-td { padding: 2px 2px !important; height: 44px !important; }
+          .pcal-dn { font-size: 6px !important; }
+          .pcal-pnl { font-size: 11px !important; }
+        }
+      `}</style>
     </div>
   );
 };
