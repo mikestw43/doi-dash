@@ -195,13 +195,19 @@ export const UserManagement = () => {
 
         {activeTab === 'users' && (
           <>
-            {/* Toolbar */}
+            {/* Toolbar — Create on left, filters pushed right (matches mockup) */}
             <div className="um-toolbar" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              display: 'flex', alignItems: 'center',
               padding: '10px 14px', borderBottom: '1px solid var(--border2)',
               flexWrap: 'wrap', gap: '8px',
             }}>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setShowAddDialog(true)}
+                style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
+              >
+                + CREATE USER
+              </button>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <select
                   value={roleFilter}
                   onChange={e => setRoleFilter(e.target.value)}
@@ -223,12 +229,6 @@ export const UserManagement = () => {
                   <option value="rejected">Rejected</option>
                 </select>
               </div>
-              <button
-                onClick={() => setShowAddDialog(true)}
-                style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
-              >
-                + CREATE USER
-              </button>
             </div>
 
             {/* Pending approval section */}
