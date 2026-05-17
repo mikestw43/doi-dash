@@ -143,12 +143,12 @@ export const Header = () => {
           </div>
           <div className="header-logo-text">
             <div style={{
-              fontFamily: "'Press Start 2P'", fontSize: '9px',
+              fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
               color: 'var(--text-primary)', letterSpacing: '2px',
               textShadow: '0 0 12px rgba(56,189,248,.8)',
             }}>DOI DASH</div>
             <div className="header-subtitle" style={{
-              fontFamily: "'Press Start 2P'", fontSize: '5px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               color: 'var(--text-muted)', letterSpacing: '.5px',
               opacity: .5, marginTop: '3px',
             }}>Run fast, Climb high, Hold tight</div>
@@ -158,7 +158,7 @@ export const Header = () => {
         {/* Center: Clock + Sessions */}
         <div className="header-center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
           <div style={{
-            fontFamily: "'VT323'", fontSize: '34px', fontWeight: 400,
+            fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-md)', fontWeight: 400,
             color: 'var(--warning)', letterSpacing: '2px', lineHeight: 1,
           }}>
             {time}
@@ -171,7 +171,7 @@ export const Header = () => {
                   {i > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '9px', opacity: .35 }}>·</span>}
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: '4px',
-                    fontFamily: "'Press Start 2P'", fontSize: '5px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                     letterSpacing: '.4px',
                     color: active ? 'var(--success)' : 'var(--text-muted)',
                     transition: 'color .4s',
@@ -217,10 +217,10 @@ export const Header = () => {
               ))}
             </div>
             <div className="header-wifi-info" style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: '5px', letterSpacing: '.5px', lineHeight: 1 }}>
+              <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', lineHeight: 1 }}>
                 {wsConnected ? 'LIVE' : 'OFF'}
               </div>
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                 {wsConnected ? '12ms' : '—'}
               </div>
             </div>
@@ -250,12 +250,12 @@ export const Header = () => {
                 background: 'rgba(56,189,248,.08)',
                 border: '1px solid rgba(56,189,248,.5)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: "'Press Start 2P'", fontSize: '6px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 color: 'var(--accent-blue)', flexShrink: 0,
               }}>
                 {initials}
               </div>
-              <span className="header-username" style={{ fontFamily: "'Share Tech Mono'", fontSize: '11px', color: 'var(--text-primary)', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span className="header-username" style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {displayName}
               </span>
               <span style={{ color: 'var(--text-muted)', fontSize: '8px', display: 'inline-block', transform: showMenu ? 'rotate(180deg)' : 'none', transition: 'transform .2s', lineHeight: 1 }}>▾</span>
@@ -278,20 +278,20 @@ export const Header = () => {
                     background: 'rgba(56,189,248,.08)',
                     border: '1px solid var(--accent-blue)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: "'Press Start 2P'", fontSize: '9px',
+                    fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
                     color: 'var(--accent-blue)', flexShrink: 0,
                   }}>
                     {initials}
                   </div>
                   <div>
-                    <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.2 }}>
+                    <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.2 }}>
                       {user?.name || 'User'}
                     </div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginTop: '2px' }}>
                       {user?.email}
                     </div>
                     <span style={{
-                      fontFamily: "'Press Start 2P'", fontSize: '6px',
+                      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                       padding: '2px 5px', display: 'inline-block', marginTop: '5px',
                       border: '1px solid var(--accent-blue)',
                       color: 'var(--accent-blue)',
@@ -315,7 +315,7 @@ export const Header = () => {
                     style={{
                       display: 'flex', alignItems: 'center', gap: '9px',
                       width: '100%', padding: '8px 14px',
-                      fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                       color: 'var(--text-primary)',
                       cursor: 'pointer', background: 'none', border: 'none',
                       transition: 'background .1s', textAlign: 'left',
@@ -336,7 +336,7 @@ export const Header = () => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '9px',
                     width: '100%', padding: '8px 14px',
-                    fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                     color: 'var(--text-primary)',
                     cursor: 'pointer', background: 'none', border: 'none',
                     textDecoration: 'none', transition: 'background .1s',
@@ -352,7 +352,7 @@ export const Header = () => {
                 {user?.role === 'admin' && (
                   <>
                     <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
-                    <div style={{ padding: '5px 14px 2px', fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '1px' }}>
+                    <div style={{ padding: '5px 14px 2px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px' }}>
                       ADMIN
                     </div>
                     {([
@@ -366,7 +366,7 @@ export const Header = () => {
                         style={{
                           display: 'flex', alignItems: 'center', gap: '9px',
                           width: '100%', padding: '8px 14px',
-                          fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                           color: 'var(--text-primary)',
                           cursor: 'pointer', background: 'none', border: 'none',
                           transition: 'background .1s', textAlign: 'left',
@@ -388,7 +388,7 @@ export const Header = () => {
                   style={{
                     display: 'flex', alignItems: 'center', gap: '9px',
                     width: '100%', padding: '8px 14px',
-                    fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                     color: 'var(--danger)',
                     cursor: 'pointer', background: 'none', border: 'none',
                     transition: 'background .1s', textAlign: 'left',
@@ -451,19 +451,19 @@ export const Header = () => {
               padding: '0 16px',
               borderRight: '1px solid var(--border-color)',
             }}>
-              <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.5px' }}>
+              <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', letterSpacing: '.5px' }}>
                 {item.sym}
               </span>
-              <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>
+              <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', fontWeight: 600 }}>
                 {item.price}
               </span>
               {item.chgPct !== null ? (
-                <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: (item.up ?? true) ? 'var(--success)' : 'var(--danger)' }}>
+                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: (item.up ?? true) ? 'var(--success)' : 'var(--danger)' }}>
                   {(item.up ?? true) ? '▲' : '▼'}{Math.abs(item.chgPct).toFixed(2)}%
                 </span>
               ) : (
                 item.price !== '—' && (
-                  <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)' }}>—</span>
+                  <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>—</span>
                 )
               )}
             </div>
