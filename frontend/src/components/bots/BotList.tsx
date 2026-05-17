@@ -19,13 +19,13 @@ const SORT_OPTIONS = [
 const SecHdr = ({ title, count, dot = 'var(--accent-blue)' }: { title: string; count?: string; dot?: string }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
     <div style={{ width: '7px', height: '7px', background: dot, boxShadow: `0 0 6px ${dot}`, flexShrink: 0 }} />
-    <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '2px' }}>
+    <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
       {title}
     </span>
     <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
     {count && (
       <span style={{
-        fontFamily: "'Press Start 2P'", fontSize: '7px',
+        fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
         color: 'var(--text-muted)',
         padding: '4px 10px',
         border: '1px solid var(--border2)',
@@ -111,8 +111,8 @@ export const BotList = () => {
   // button style factory
   const ftabStyle = (active: boolean) => ({
     padding: '5px 10px',
-    fontFamily: "'Press Start 2P'",
-    fontSize: '7px',
+    fontFamily: 'var(--ff-section)',
+    fontSize: 'var(--fs-section)',
     border: active ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
     color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
     background: active ? 'rgba(56,189,248,.08)' : 'none',
@@ -150,7 +150,7 @@ export const BotList = () => {
             }}>
               {/* Search */}
               <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SEARCH</div>
+                <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SEARCH</div>
                 <input
                   type="text"
                   placeholder="name, broker, account #"
@@ -159,7 +159,7 @@ export const BotList = () => {
                   style={{
                     width: '100%', background: 'var(--bg-input)',
                     border: '1px solid var(--border2)', color: 'var(--text-primary)',
-                    padding: '7px 9px', fontFamily: "'Share Tech Mono'", fontSize: '11px',
+                    padding: '7px 9px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                     outline: 'none',
                   }}
                 />
@@ -167,11 +167,11 @@ export const BotList = () => {
 
               {/* Broker */}
               <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>BROKER</div>
+                <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>BROKER</div>
                 <select
                   value={botFilter.broker}
                   onChange={e => setBotFilter({ broker: e.target.value })}
-                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
                 >
                   {brokers.map(b => <option key={b} value={b}>{b === 'all' ? 'All brokers' : b}</option>)}
                 </select>
@@ -180,11 +180,11 @@ export const BotList = () => {
               {/* Group */}
               {groups.length > 0 && (
                 <div style={{ marginBottom: '10px' }}>
-                  <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>GROUP</div>
+                  <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>GROUP</div>
                   <select
                     value={botFilter.group}
                     onChange={e => setBotFilter({ group: e.target.value })}
-                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
                   >
                     <option value="all">All</option>
                     <option value="ungrouped">Ungrouped</option>
@@ -195,11 +195,11 @@ export const BotList = () => {
 
               {/* Sort */}
               <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SORT BY</div>
+                <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SORT BY</div>
                 <select
                   value={botFilter.sort}
                   onChange={e => setBotFilter({ sort: e.target.value })}
-                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: "'Share Tech Mono'", fontSize: '11px', outline: 'none', cursor: 'pointer' }}
+                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
                 >
                   {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
@@ -209,7 +209,7 @@ export const BotList = () => {
                 onClick={() => { clearFilters(); setShowFilter(false); }}
                 style={{
                   width: '100%', padding: '7px',
-                  fontFamily: "'Press Start 2P'", fontSize: '7px',
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                   border: '1px solid var(--border2)', color: 'var(--text-muted)',
                   background: 'none', cursor: 'pointer',
                 }}
@@ -222,11 +222,11 @@ export const BotList = () => {
 
         {/* Bot grid — 3 columns matching mockup */}
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontFamily: "'Share Tech Mono'", fontSize: '12px' }}>
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
             No bots match your filters
             {botFilter.status !== 'all' || botFilter.broker !== 'all' || botFilter.search ? (
               <div style={{ marginTop: '8px' }}>
-                <button onClick={clearFilters} style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--accent-blue)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button onClick={clearFilters} style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--accent-blue)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   CLEAR FILTERS
                 </button>
               </div>
@@ -250,12 +250,12 @@ export const BotList = () => {
           {/* Demo section header — yellow dot + SANDBOX badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <div style={{ width: '7px', height: '7px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)', flexShrink: 0 }} />
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--warning)', letterSpacing: '2px' }}>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', letterSpacing: '2px' }}>
               DEMO ACCOUNTS
             </span>
             <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(250,204,21,.3), transparent)' }} />
             <span style={{
-              fontFamily: "'Press Start 2P'", fontSize: '6px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               color: 'var(--warning)',
               padding: '3px 8px',
               border: '1px solid rgba(250,204,21,.4)',
@@ -263,14 +263,14 @@ export const BotList = () => {
               letterSpacing: '.5px',
             }}>SANDBOX</span>
             <span style={{
-              fontFamily: "'Press Start 2P'", fontSize: '7px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               color: 'var(--text-muted)',
               padding: '4px 10px',
               border: '1px solid var(--border2)',
             }}>{demoOnlineCount} / {demoAccounts.length}</span>
           </div>
 
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '.3px' }}>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginBottom: '10px', letterSpacing: '.3px' }}>
             ⚠ Demo accounts are excluded from KPI stats and performance reports
           </div>
 

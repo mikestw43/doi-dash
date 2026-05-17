@@ -65,18 +65,18 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
 
       {/* Label row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1.4 }}>{label}</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1.4 }}>{label}</span>
         <span style={{ fontSize: '13px', color: 'var(--text-muted)', opacity: 0.5, flexShrink: 0, marginLeft: '4px' }}>{icon}</span>
       </div>
 
       {/* Value */}
-      <div className="kpi-val" style={{ fontFamily: "'VT323'", fontSize: '38px', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div className="kpi-val" style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-lg)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {value}
       </div>
 
       {/* Sub */}
       {sub && (
-        <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginTop: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {sub}
         </div>
       )}
@@ -176,7 +176,7 @@ export const SummaryCards = ({ stats }: Props) => {
           icon={<span style={{ color: COLORS[pendingMod].text, opacity: 0.7 }}>□</span>}
           mod={pendingMod}
           watchValue={stats.totalPendingOrders}
-          value={<span style={{ color: COLORS[pendingMod].text, fontSize: '36px' }}>{stats.totalPendingOrders}</span>}
+          value={<span style={{ color: COLORS[pendingMod].text, fontSize: 'var(--fs-disp-md)' }}>{stats.totalPendingOrders}</span>}
           sub="total pending"
         />
       </div>
@@ -186,10 +186,9 @@ export const SummaryCards = ({ stats }: Props) => {
         @media (min-width: 769px) and (max-width: 1100px) {
           .summary-grid { grid-template-columns: repeat(3, 1fr) !important; }
         }
-        /* Mobile ≤768px: 2 cols, smaller values, hide corners */
+        /* Mobile ≤768px: 2 cols, hide corner brackets — kpi-val auto-scales via --fs-disp-lg token */
         @media (max-width: 768px) {
           .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-          .kpi-val { font-size: 28px !important; }
           .kpi-corner { display: none !important; }
         }
       `}</style>

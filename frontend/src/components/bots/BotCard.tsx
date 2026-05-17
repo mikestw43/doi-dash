@@ -117,14 +117,14 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{
-                  fontFamily: "'Press Start 2P'", fontSize: '8px', fontWeight: 400,
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', fontWeight: 400,
                   color: isOnline ? 'var(--text-primary)' : 'var(--text-muted)',
                 }}>
                   {account.name}
                 </span>
                 {isDemo && (
                   <span style={{
-                    fontFamily: "'Press Start 2P'", fontSize: '5px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                     padding: '2px 5px',
                     border: '1px solid rgba(250,204,21,.4)',
                     color: 'var(--warning)',
@@ -135,14 +135,14 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 )}
               </div>
               <div style={{
-                fontFamily: "'Press Start 2P'", fontSize: '6px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 color: 'var(--text-muted)', marginTop: '4px',
                 display: 'flex', alignItems: 'center', gap: '4px',
               }}>
                 #{account.accountNumber}
                 <span style={{
                   border: '1px solid var(--border2)', padding: '1px 4px',
-                  fontFamily: "'Press Start 2P'", fontSize: '5px', color: 'var(--text-muted)',
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)',
                 }}>{cur}</span>
                 {/* Group picker */}
                 <div style={{ position: 'relative' }} ref={groupRef}>
@@ -173,17 +173,17 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                       boxShadow: '4px 4px 0 rgba(0,0,0,.5)',
                     }}>
                       {account.groupId && (
-                        <button onClick={() => handleAssignGroup(null)} style={{ width: '100%', padding: '6px 10px', textAlign: 'left', fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                        <button onClick={() => handleAssignGroup(null)} style={{ width: '100%', padding: '6px 10px', textAlign: 'left', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>
                           ✕ Remove group
                         </button>
                       )}
                       {groups.map(g => (
-                        <button key={g.id} onClick={() => handleAssignGroup(g.id)} style={{ width: '100%', padding: '6px 10px', textAlign: 'left', fontFamily: "'Share Tech Mono'", fontSize: '9px', color: account.groupId === g.id ? 'var(--accent-blue)' : 'var(--text-primary)', background: account.groupId === g.id ? 'rgba(56,189,248,.08)' : 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button key={g.id} onClick={() => handleAssignGroup(g.id)} style={{ width: '100%', padding: '6px 10px', textAlign: 'left', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: account.groupId === g.id ? 'var(--accent-blue)' : 'var(--text-primary)', background: account.groupId === g.id ? 'rgba(56,189,248,.08)' : 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: g.color, flexShrink: 0 }} />
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.name}</span>
                         </button>
                       ))}
-                      {groups.length === 0 && <p style={{ padding: '8px 10px', fontSize: '9px', color: 'var(--text-muted)', fontFamily: "'Share Tech Mono'" }}>No groups</p>}
+                      {groups.length === 0 && <p style={{ padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>No groups</p>}
                     </div>
                   )}
                 </div>
@@ -193,7 +193,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
 
           {/* DD Badge */}
           <div style={{
-            fontFamily: "'Press Start 2P'", fontSize: '7px', fontWeight: 400,
+            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', fontWeight: 400,
             padding: '3px 8px',
             ...ddBadge,
             ...((!isOnline) ? { animation: 'blink-border .8s step-end infinite' } : {}),
@@ -225,8 +225,8 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               { label: 'Orders',  value: `${orderCount} open`,      color: orderCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
-                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
-                <div style={{ fontFamily: "'VT323'", fontSize: '22px', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
+                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
+                <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
               </div>
             ))}
           </div>
@@ -238,8 +238,8 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               { label: 'Margin Level', value: isOnline && (account.marginLevel ?? 0) > 0 ? `${Math.round(account.marginLevel ?? 0)}%` : '—', color: 'var(--success)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
-                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
-                <div style={{ fontFamily: "'VT323'", fontSize: '22px', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
+                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
+                <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
               </div>
             ))}
             <div /> {/* empty */}
@@ -249,9 +249,9 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {/* Today P/L */}
             <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>TODAY</div>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>TODAY</div>
               <div style={{
-                fontFamily: "'VT323'", fontSize: '28px', fontWeight: 400, lineHeight: 1.1,
+                fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1,
                 color: todayPnl > 0 ? 'var(--success)' : todayPnl < 0 ? 'var(--danger)' : 'var(--text-muted)',
               }}>
                 {todayPnl > 0 ? '+' : todayPnl < 0 ? '-' : ''}{fmtNum(Math.abs(todayPnl))}
@@ -259,29 +259,29 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
             </div>
             {/* Floating P/L */}
             <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>FLOATING P/L</div>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>FLOATING P/L</div>
               <FlashNumber
                 value={account.profit}
                 format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(Math.abs(v))}`}
                 positiveGreen
-                style={{ fontFamily: "'VT323'", fontSize: '28px', fontWeight: 400, lineHeight: 1.1 }}
+                style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1 }}
               />
             </div>
           </div>
 
           {/* Lot exposure */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px' }}>Lot Exposure</span>
-            <span style={{ padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '10px', fontWeight: 700, background: 'rgba(56,189,248,.12)', color: 'var(--accent-blue)', border: '1px solid rgba(56,189,248,.3)' }}>
+            <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px' }}>Lot Exposure</span>
+            <span style={{ padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 700, background: 'rgba(56,189,248,.12)', color: 'var(--accent-blue)', border: '1px solid rgba(56,189,248,.3)' }}>
               B:{formatLots(account.buyLots)}
             </span>
-            <span style={{ padding: '3px 7px', fontFamily: "'Share Tech Mono'", fontSize: '10px', fontWeight: 700, background: 'rgba(239,68,68,.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,.3)' }}>
+            <span style={{ padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 700, background: 'rgba(239,68,68,.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,.3)' }}>
               S:{formatLots(account.sellLots)}
             </span>
           </div>
 
           {/* Broker */}
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: '9px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', letterSpacing: '.5px' }}>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', letterSpacing: '.5px' }}>
             <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--text-muted)', flexShrink: 0 }} />
             {account.broker}
           </div>
@@ -301,7 +301,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onClick={() => setShowPositions(p => !p)}
                 style={{
                   flex: 1, padding: '7px 4px',
-                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
                   border: '1px solid var(--accent-blue)',
                   color: '#0c1422',
                   background: 'var(--accent-blue)',
@@ -319,7 +319,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onClick={() => setShowPositions(p => !p)}
                 style={{
                   flex: 1, padding: '7px 4px',
-                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
                   border: '1px solid var(--border2)',
                   color: 'var(--text-muted)',
                   background: 'none',
@@ -337,7 +337,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onClick={() => setShowNewTrade(true)}
                 style={{
                   flex: 1, padding: '7px 4px',
-                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
                   border: '1px solid var(--border2)',
                   color: 'var(--text-muted)',
                   background: 'none',
@@ -355,7 +355,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onClick={() => setShowCloseAll(true)}
                 style={{
                   flexBasis: '28px', flexShrink: 0, padding: '7px 4px',
-                  fontFamily: "'Share Tech Mono'", fontSize: '12px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                   border: '1px solid rgba(239,68,68,.4)',
                   color: 'var(--danger)',
                   background: 'none',
@@ -376,7 +376,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               <button
                 style={{
                   flex: 2, padding: '7px 4px',
-                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
                   border: '1px solid rgba(239,68,68,.4)',
                   color: 'var(--danger)',
                   background: 'none',
@@ -389,7 +389,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onClick={() => setShowPositions(p => !p)}
                 style={{
                   flex: 1, padding: '7px 4px',
-                  fontFamily: "'Share Tech Mono'", fontSize: '9px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
                   border: '1px solid var(--border2)',
                   color: 'var(--text-muted)',
                   background: 'none',
@@ -424,7 +424,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               borderBottom: '1px solid var(--border-color)',
               background: 'var(--bg-tertiary)',
             }}>
-              <span style={{ fontFamily: "'Press Start 2P'", fontSize: '6px', color: 'var(--accent-blue)', letterSpacing: '1px' }}>
+              <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--accent-blue)', letterSpacing: '1px' }}>
                 OPEN POSITIONS ({ordersArray.length})
               </span>
               <button

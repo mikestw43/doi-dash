@@ -33,7 +33,7 @@ export const OverviewTabs = () => {
       {/* Section header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px 0', }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-primary)', letterSpacing: '2px' }}>PORTFOLIO</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>PORTFOLIO</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
 
@@ -46,8 +46,8 @@ export const OverviewTabs = () => {
             style={{
               flex: 1,
               padding: '8px 4px',
-              fontFamily: "'Press Start 2P'",
-              fontSize: '7px',
+              fontFamily: 'var(--ff-section)',
+              fontSize: 'var(--fs-section)',
               color: activeTab === tab.id ? 'var(--accent-blue)' : 'var(--text-muted)',
               cursor: 'pointer',
               textAlign: 'center',
