@@ -6,10 +6,10 @@ import type { ReportSettings as ReportSettingsType } from '../../types';
 
 const selStyle: React.CSSProperties = {
   background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)',
-  fontFamily: "'Share Tech Mono'", fontSize: '12px', padding: '7px 10px', outline: 'none', cursor: 'pointer',
+  fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-input)', padding: '7px 10px', outline: 'none', cursor: 'pointer',
 };
 const lbl: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
   letterSpacing: '.5px', display: 'block', marginBottom: '6px',
 };
 
@@ -56,7 +56,7 @@ export const ReportSettings = () => {
   };
 
   if (loading) {
-    return <div style={{ color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: '11px', padding: '12px 0' }}>Loading...</div>;
+    return <div style={{ color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', padding: '12px 0' }}>Loading...</div>;
   }
   if (!settings) return null;
 
@@ -74,10 +74,10 @@ export const ReportSettings = () => {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '20px 22px', marginBottom: '12px' }}>
       {/* Title */}
-      <div style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', color: 'var(--cyan)', letterSpacing: '1px', marginBottom: '12px' }}>
+      <div style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', color: 'var(--cyan)', letterSpacing: '1px', marginBottom: '12px' }}>
         SCHEDULED REPORTS
       </div>
-      <p style={{ fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
+      <p style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
         {t('reports.description') || 'Receive automated P&L reports via Telegram.'}
       </p>
 
@@ -89,7 +89,7 @@ export const ReportSettings = () => {
           onChange={e => setSettings({ ...settings, reportEnabled: e.target.checked })}
           style={{ width: '14px', height: '14px', accentColor: 'var(--cyan)', cursor: 'pointer' }}
         />
-        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: '12px', color: settings.reportEnabled ? 'var(--cyan)' : 'var(--text-dim)' }}>
+        <span style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body)', color: settings.reportEnabled ? 'var(--cyan)' : 'var(--text-dim)' }}>
           {t('reports.enabled') || 'Enable scheduled reports'}
         </span>
       </label>
@@ -130,14 +130,14 @@ export const ReportSettings = () => {
         <button
           onClick={handleSave}
           disabled={saving}
-          style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px', padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? .6 : 1, boxShadow: saving ? 'none' : '0 0 8px rgba(56,189,248,.4)' }}
+          style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? .6 : 1, boxShadow: saving ? 'none' : '0 0 8px rgba(56,189,248,.4)' }}
         >
           {saving ? 'SAVING...' : t('common.save') || 'SAVE'}
         </button>
         <button
           onClick={handleSendNow}
           disabled={sending}
-          style={{ fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px', padding: '9px 16px', background: 'none', color: sending ? 'var(--text-dim)' : 'var(--text)', border: '1px solid var(--border2)', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? .6 : 1 }}
+          style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '9px 16px', background: 'none', color: sending ? 'var(--text-dim)' : 'var(--text)', border: '1px solid var(--border2)', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? .6 : 1 }}
         >
           {sending ? 'SENDING...' : t('reports.send_now') || 'SEND NOW'}
         </button>

@@ -8,11 +8,11 @@ interface Props {
 
 const inp: React.CSSProperties = {
   width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: '12px',
+  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-input)',
   padding: '8px 10px', outline: 'none', boxSizing: 'border-box',
 };
 const lbl: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: '7px', color: 'var(--text-dim)',
+  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-label)', color: 'var(--text-dim)',
   letterSpacing: '.5px', display: 'block', marginBottom: '6px',
 };
 
@@ -66,7 +66,7 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
         }}
       >
         <div style={{
-          fontFamily: "'Press Start 2P'", fontSize: '9px', color: 'var(--yellow)',
+          fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', color: 'var(--yellow)',
           letterSpacing: '1px', marginBottom: '18px',
         }}>
           CHANGE PASSWORD
@@ -87,7 +87,7 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
 
         {err && (
           <div style={{
-            fontFamily: "'Share Tech Mono'", fontSize: '10px', color: 'var(--red)',
+            fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--red)',
             marginBottom: '12px', padding: '7px 10px',
             background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)',
           }}>⚠ {err}</div>
@@ -97,7 +97,7 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
           <button
             onClick={onClose}
             style={{
-              fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px',
+              fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
               padding: '9px 16px', background: 'none', color: 'var(--text)',
               border: '1px solid var(--border2)', cursor: 'pointer',
             }}
@@ -108,7 +108,7 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
             onClick={handleSave}
             disabled={saving || !currentPw || !newPw || !confirmPw}
             style={{
-              fontFamily: "'Press Start 2P'", fontSize: '8px', letterSpacing: '.5px',
+              fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
               padding: '9px 16px', background: 'var(--yellow)', color: '#0c1422',
               border: '1px solid var(--yellow)',
               cursor: (saving || !currentPw || !newPw || !confirmPw) ? 'not-allowed' : 'pointer',
