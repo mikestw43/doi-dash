@@ -194,14 +194,18 @@ export const Header = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'flex-end' }}>
 
           {/* WiFi widget */}
-          <div className="header-wifi" style={{
-            display: 'flex', alignItems: 'center', gap: '7px',
-            padding: '5px 10px',
-            border: '1px solid var(--border2)',
-            background: 'var(--bg-tertiary)',
-            color: wsConnected ? 'var(--success)' : 'var(--danger)',
-            cursor: 'default',
-          }}>
+          <div
+            className="header-wifi"
+            title={wsConnected ? 'Connected · ~12ms' : 'Disconnected'}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '7px',
+              padding: '5px 10px',
+              border: '1px solid var(--border2)',
+              background: 'var(--bg-tertiary)',
+              color: wsConnected ? 'var(--success)' : 'var(--danger)',
+              cursor: 'default',
+            }}
+          >
             {/* Bars */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '16px' }}>
               {[5, 8, 12, 16].map((h, i) => (
@@ -212,7 +216,7 @@ export const Header = () => {
                 }} />
               ))}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            <div className="header-wifi-info" style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
               <div style={{ fontFamily: "'Press Start 2P'", fontSize: '5px', letterSpacing: '.5px', lineHeight: 1 }}>
                 {wsConnected ? 'LIVE' : 'OFF'}
               </div>
@@ -410,7 +414,9 @@ export const Header = () => {
             height: 48px !important;
           }
           .header-center { display: none !important; }
-          .header-wifi   { display: none !important; }
+          /* Keep wifi widget visible on mobile but compact: bars only, hide LIVE/12ms text */
+          .header-wifi { padding: 4px 6px !important; gap: 0 !important; }
+          .header-wifi-info { display: none !important; }
           .header-username { display: none !important; }
           .header-subtitle { display: none !important; }
         }
