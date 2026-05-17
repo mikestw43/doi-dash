@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAccountStore } from '../../stores/accountStore';
 import { fetchTradeHistory } from '../../services/api';
 import { EquityChart } from './EquityChart';
-import { PnLChart } from './PnLChart';
+import { PerformanceCalendar } from './PerformanceCalendar';
 import { PerformanceCards } from './PerformanceCards';
 import type { ClosedTrade } from '../../types';
 
@@ -224,7 +224,7 @@ export const AnalyticsPage = () => {
       {/* ── Content ── */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px' }}>
         {tab === 'performance' && (
-          <PnLChart accountId={selectedAccount || undefined} />
+          <PerformanceCalendar accountId={selectedAccount || undefined} />
         )}
 
         {tab === 'equity' && (
