@@ -66,13 +66,13 @@ const EventTable = ({ events, now }: EventTableProps) => (
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
         <tr style={{ background: 'var(--bg-card2)' }}>
-          <th style={{ ...thSt, width: '64px' }}>TIME</th>
-          <th style={{ ...thSt, width: '72px' }}>CCY</th>
+          <th style={{ ...thSt, width: '60px' }}>TIME</th>
+          <th style={{ ...thSt, width: '60px' }}>CCY</th>
+          <th style={{ ...thC, width: '28px', padding: '9px 4px' }} aria-label="Impact" />
           <th style={thSt}>EVENT</th>
-          <th style={{ ...thC, width: '40px' }}>IMPACT</th>
-          <th style={{ ...thR, width: '72px' }}>ACTUAL</th>
-          <th style={{ ...thR, width: '72px' }}>FORECAST</th>
-          <th className="evcol-prev" style={{ ...thR, width: '72px' }}>PREV</th>
+          <th style={{ ...thR, width: '64px' }}>ACTUAL</th>
+          <th style={{ ...thR, width: '64px' }}>FORECAST</th>
+          <th className="evcol-prev" style={{ ...thR, width: '64px' }}>PREV</th>
         </tr>
       </thead>
       <tbody>
@@ -103,30 +103,20 @@ const EventTable = ({ events, now }: EventTableProps) => (
                   <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>{event.country}</span>
                 </span>
               </td>
-              <td style={{ ...tdSt, color: isHigh && !past ? 'var(--text)' : 'var(--text-dim)' }}>
-                {event.title}
-              </td>
-              <td style={tdC}>
-                {/* Desktop: full badge with label. Mobile: just a colored square. */}
-                <span className="impact-full" style={{
-                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-                  display: 'inline-flex', alignItems: 'center', gap: '4px',
-                  padding: '3px 6px', border: `1px solid ${cfg.border}`,
-                  background: cfg.bg, color: cfg.color,
-                }}>
-                  <span style={{ width: '5px', height: '5px', background: cfg.dot, flexShrink: 0 }} />
-                  {cfg.label}
-                </span>
+              <td style={{ ...tdC, padding: '7px 4px' }}>
+                {/* Colored square — sole indicator. Color encodes High/Medium/Low. */}
                 <span
-                  className="impact-square"
                   title={cfg.label}
                   style={{
                     display: 'inline-block',
-                    width: '14px', height: '14px',
+                    width: '12px', height: '12px',
                     background: cfg.dot,
                     border: `1px solid ${cfg.border}`,
                   }}
                 />
+              </td>
+              <td style={{ ...tdSt, color: isHigh && !past ? 'var(--text)' : 'var(--text-dim)' }}>
+                {event.title}
               </td>
               <td style={{ ...tdR, color: event.actual ? 'var(--text)' : '#334155', fontWeight: event.actual ? 700 : 400 }}>
                 {event.actual || '—'}
@@ -144,26 +134,21 @@ const EventTable = ({ events, now }: EventTableProps) => (
     </table>
 
     <style>{`
-      /* Default (desktop): full impact badge visible, square hidden. */
-      .evt-wrap .impact-square { display: none; }
-      .evt-wrap { overflow-x: auto; }
-      .evt-wrap table { min-width: 600px; }
+      .evt-wrap { overflow-x: hidden; }
+      .evt-wrap table { table-layout: auto; }
 
       @media (max-width: 768px) {
-        .evt-wrap { overflow-x: hidden; }
-        .evt-wrap table { min-width: 0 !important; }
-
         /* Hide flag emoji inside CCY cell + the entire PREV column */
         .evt-wrap .evcol-flag { display: none !important; }
         .evt-wrap .evcol-prev { display: none !important; }
 
-        /* Swap impact badge for a compact colored square */
-        .evt-wrap .impact-full   { display: none !important; }
-        .evt-wrap .impact-square { display: inline-block !important; }
-
-        /* Tighter padding so the 6 remaining cols fit ≤375px */
-        .evt-wrap th, .evt-wrap td { padding: 7px 5px !important; }
+        /* Tighter padding so all remaining cols fit ≤375px */
+        .evt-wrap th, .evt-wrap td { padding: 7px 4px !important; }
         .evt-wrap th:first-child, .evt-wrap td:first-child { padding-left: 8px !important; }
+        .evt-wrap th:last-child, .evt-wrap td:last-child { padding-right: 8px !important; }
+
+        /* Trim font sizes to keep EVENT text readable but cells short */
+        .evt-wrap td { font-size: var(--fs-body-sm) !important; }
       }
     `}</style>
   </div>
@@ -355,7 +340,6 @@ export const EconomicCalendar = () => {
               onClick={() => setSelected(p => p.includes(cur) ? p.filter(c => c !== cur) : [...p, cur])}
               style={ccyBtn(selected.includes(cur))}
             >
-              <span style={{ fontSize: '12px', lineHeight: 1 }}>{CURRENCY_FLAGS[cur] ?? ''}</span>
               {cur}
             </button>
           ))}
