@@ -248,10 +248,10 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           {/* P/L section */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {/* Today P/L */}
-            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '8px 10px' }}>
               <div className="bc-label" style={{ marginBottom: '3px' }}>TODAY</div>
               <div
-                className="bc-value"
+                className="bc-value-lg"
                 style={{
                   color: todayPnl > 0 ? 'var(--success)' : todayPnl < 0 ? 'var(--danger)' : 'var(--text-muted)',
                 }}
@@ -260,13 +260,13 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               </div>
             </div>
             {/* Floating P/L */}
-            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '8px 10px' }}>
               <div className="bc-label" style={{ marginBottom: '3px' }}>FLOATING P/L</div>
               <FlashNumber
                 value={account.profit}
                 format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(Math.abs(v))}`}
                 positiveGreen
-                className="bc-value"
+                className="bc-value-lg"
               />
             </div>
           </div>

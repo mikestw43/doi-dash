@@ -350,6 +350,13 @@
     font-weight: 400;
     line-height: 1.1;
   }
+  /* Emphasized P/L numbers — bigger than regular stats, like mockup .pnl-value */
+  .bc-value-lg {
+    font-family: var(--ff-display) !important;
+    font-size: 26px !important;
+    font-weight: 400;
+    line-height: 1.05;
+  }
   .bc-chip {
     font-family: var(--ff-body) !important;
     font-size: 10px !important;
@@ -358,14 +365,16 @@
   .bc-action {
     font-family: var(--ff-body) !important;
     font-size: 10px !important;
-    padding: 7px 4px !important;
+    padding: 5px 4px !important;
     letter-spacing: 0.5px;
+    line-height: 1.2;
   }
   @media (max-width: 768px) {
-    .bc-label  { font-size: 11px !important; }
-    .bc-value  { font-size: 22px !important; }
-    .bc-chip   { font-size: 11px !important; }
-    .bc-action { font-size: 10px !important; padding: 6px 4px !important; }
+    .bc-label    { font-size: 11px !important; }
+    .bc-value    { font-size: 22px !important; }
+    .bc-value-lg { font-size: 26px !important; }
+    .bc-chip     { font-size: 11px !important; }
+    .bc-action   { font-size: 10px !important; padding: 4px 3px !important; }
   }
 
   /* ── Auth box ── */
