@@ -156,21 +156,8 @@
     height: 100%;
   }
 
-  /* ── Scanline + grid background overlays ──
-     Grid sits BEHIND content (z-index:0) so solid card backgrounds hide it,
-     matching the reference mockup. Scanline stays on top — it's subtle and
-     reads as a screen effect, not a card pattern. */
-  html::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-      linear-gradient(rgba(56,189,248,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(56,189,248,.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
+  /* ── Background: subtle cyan grid painted directly on body so any solid
+     card/section background opaques it. Scanline stays on a top overlay. */
   html::after {
     content: '';
     position: fixed;
@@ -186,6 +173,11 @@
 
   body {
     background-color: var(--bg-primary);
+    background-image:
+      linear-gradient(rgba(56,189,248,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-attachment: fixed;
     color: var(--text-primary);
     font-family: 'Share Tech Mono', monospace;
     -webkit-font-smoothing: antialiased;
