@@ -74,8 +74,14 @@ const EventTable = ({ events, now }: EventTableProps) => (
           <th style={{ ...thSt, width: '48px' }}>CCY</th>
           <th style={{ ...thC, width: '24px', padding: '9px 4px' }} aria-label="Impact" />
           <th className="evcol-event" style={thSt}>EVENT</th>
-          <th style={{ ...thR, width: '56px' }}>ACTUAL</th>
-          <th style={{ ...thR, width: '56px' }}>FORECAST</th>
+          <th className="evcol-actual" style={{ ...thR, width: '56px' }}>
+            <span className="lbl-full">ACTUAL</span>
+            <span className="lbl-short">ACT</span>
+          </th>
+          <th className="evcol-forecast" style={{ ...thR, width: '56px' }}>
+            <span className="lbl-full">FORECAST</span>
+            <span className="lbl-short">FCST</span>
+          </th>
           <th className="evcol-prev" style={{ ...thR, width: '56px' }}>PREV</th>
         </tr>
       </thead>
@@ -149,10 +155,21 @@ const EventTable = ({ events, now }: EventTableProps) => (
         line-height: 1.3;
       }
 
+      /* Default (desktop): full header labels, short hidden. */
+      .evt-wrap .lbl-short { display: none; }
+
       @media (max-width: 768px) {
         /* Hide flag emoji inside CCY cell + the entire PREV column */
         .evt-wrap .evcol-flag { display: none !important; }
         .evt-wrap .evcol-prev { display: none !important; }
+
+        /* Swap header labels to compact form: ACTUAL→ACT, FORECAST→FCST */
+        .evt-wrap .lbl-full  { display: none !important; }
+        .evt-wrap .lbl-short { display: inline !important; }
+
+        /* Narrow the abbreviated columns so EVENT gets the freed pixels */
+        .evt-wrap .evcol-actual,
+        .evt-wrap .evcol-forecast { width: 42px !important; }
 
         /* Tighter padding so all remaining cols fit ≤375px */
         .evt-wrap th, .evt-wrap td { padding: 6px 4px !important; }
