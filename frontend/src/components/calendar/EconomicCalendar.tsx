@@ -113,7 +113,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 ...tdSt,
                 padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
-                fontSize: '20px',
+                fontSize: '17px',
                 lineHeight: 1,
                 color: past ? 'var(--text-dim)' : 'var(--text)',
               }}>
@@ -145,6 +145,9 @@ const EventTable = ({ events, now }: EventTableProps) => (
               </td>
               <td className="evcol-event" style={{
                 ...tdSt,
+                fontFamily: 'var(--ff-display)',
+                fontSize: '17px',
+                lineHeight: 1.15,
                 color: past ? 'var(--text-dim)' : (isHigh ? 'var(--text)' : 'var(--text-primary)'),
               }}>
                 {event.title}
@@ -155,7 +158,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 ...tdR,
                 padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
-                fontSize: '20px',
+                fontSize: '17px',
                 lineHeight: 1,
                 color: event.actual ? 'var(--text)' : '#334155',
               }}>
@@ -166,7 +169,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 ...tdR,
                 padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
-                fontSize: '20px',
+                fontSize: '17px',
                 lineHeight: 1,
                 color: past ? 'var(--text-dim)' : 'var(--text)',
               }}>
@@ -176,7 +179,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 ...tdR,
                 padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
-                fontSize: '20px',
+                fontSize: '17px',
                 lineHeight: 1,
                 color: '#475569',
               }}>
