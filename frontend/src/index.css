@@ -362,11 +362,12 @@
     font-size: 10px !important;
     letter-spacing: 0.3px;
   }
-  /* Action button height matches mockup .btn (padding 7px 4px, font 9px). */
+  /* Action button — short height (padding 3/4) with mockup font 9px.
+     User specifically asked to keep font and only shrink the box. */
   .bc-action {
     font-family: var(--ff-body) !important;
     font-size: 9px !important;
-    padding: 7px 4px !important;
+    padding: 3px 4px !important;
     letter-spacing: 0.5px;
     line-height: 1.2;
   }
@@ -375,9 +376,8 @@
     .bc-value    { font-size: 22px !important; }
     .bc-value-lg { font-size: 26px !important; }
     .bc-chip     { font-size: 11px !important; }
-    /* Mobile keeps the mockup padding so height stays consistent;
-       bumps font to 10px for legibility on small screens. */
-    .bc-action   { font-size: 10px !important; padding: 7px 4px !important; }
+    /* Mobile: same padding (height matches desktop), font +1px for legibility. */
+    .bc-action   { font-size: 10px !important; padding: 3px 4px !important; }
   }
 
   /* ── Auth box ── */

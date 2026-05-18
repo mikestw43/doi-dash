@@ -90,7 +90,10 @@ const EventTable = ({ events, now }: EventTableProps) => (
           const past   = new Date(event.date) < now;
           const cfg    = getImpactCfg(event.impact);
           const isHigh = event.impact === 'High';
-          const rowOpacity = past ? 0.45 : 1;
+          // No row-level opacity now — per-cell color (white for upcoming,
+          // dim for past) does the visual separation on its own. Mixing
+          // opacity 0.45 with text-dim made past rows nearly invisible.
+          const rowOpacity = past ? 0.7 : 1;
 
           return (
             <tr
@@ -104,13 +107,27 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
               }}
             >
-              <td style={{ ...tdSt, color: 'var(--text-dim)' }}>
+              {/* TIME — Press Start 2P (matches filter buttons). Upcoming events
+                  render bright white so they pop against the dimmed past rows. */}
+              <td style={{
+                ...tdSt,
+                fontFamily: 'var(--ff-section)',
+                fontSize: '10px',
+                letterSpacing: '.5px',
+                color: past ? 'var(--text-dim)' : 'var(--text)',
+              }}>
                 {fmtTime(event.date)}
               </td>
               <td style={tdSt}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
-                  <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>{event.country}</span>
+                  {/* CCY — Press Start 2P, same color logic as TIME. */}
+                  <span style={{
+                    fontFamily: 'var(--ff-section)',
+                    fontSize: '10px',
+                    letterSpacing: '.5px',
+                    color: past ? 'var(--text-dim)' : 'var(--text)',
+                  }}>{event.country}</span>
                 </span>
               </td>
               <td style={{ ...tdC, padding: '7px 4px' }}>
@@ -125,7 +142,10 @@ const EventTable = ({ events, now }: EventTableProps) => (
                   }}
                 />
               </td>
-              <td className="evcol-event" style={{ ...tdSt, color: isHigh && !past ? 'var(--text)' : 'var(--text-dim)' }}>
+              <td className="evcol-event" style={{
+                ...tdSt,
+                color: past ? 'var(--text-dim)' : (isHigh ? 'var(--text)' : 'var(--text-primary)'),
+              }}>
                 {event.title}
               </td>
               <td style={{ ...tdR, color: event.actual ? 'var(--text)' : '#334155', fontWeight: event.actual ? 700 : 400 }}>
