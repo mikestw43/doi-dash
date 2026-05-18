@@ -1,8 +1,5 @@
 FROM node:22-bookworm-slim
 
-# Build tools required for better-sqlite3 native addon
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app/backend
 
 # Install dependencies (including tsx for runtime)
@@ -20,4 +17,6 @@ COPY backend/tsconfig.json ./
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push && npx tsx prisma/seed.ts && npx tsx src/index.ts"]
+# On every container start: sync schema to Postgres (db push, idempotent),
+# seed the admin user (no-op if it already exists), then start the server.
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss --skip-generate && npx tsx prisma/seed.ts && npx tsx src/index.ts"]

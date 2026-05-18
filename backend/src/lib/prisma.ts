@@ -1,10 +1,7 @@
 import { PrismaClient } from '../generated/prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL || 'file:./prisma/dev.db',
-});
-
-const prisma = new PrismaClient({ adapter });
+// Postgres — uses DATABASE_URL env var (set by Railway when the Postgres
+// service is referenced from this backend service). No adapter needed.
+const prisma = new PrismaClient();
 
 export default prisma;
