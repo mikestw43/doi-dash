@@ -332,6 +332,42 @@
     }
   }
 
+  /* ── Bot card internal typography — match remixed mockup ──
+     Labels: Share Tech Mono 10px (slight 11px bump on mobile for readability).
+     Values: VT323 22px on both viewports (matches mockup stat-value).
+     Action buttons: tighter padding + 10px font so the footer row stays low.
+     All use !important because BotCard renders inline fontSize fallbacks. */
+  .bc-label {
+    font-family: var(--ff-body) !important;
+    font-size: 10px !important;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .bc-value {
+    font-family: var(--ff-display) !important;
+    font-size: 22px !important;
+    font-weight: 400;
+    line-height: 1.1;
+  }
+  .bc-chip {
+    font-family: var(--ff-body) !important;
+    font-size: 10px !important;
+    letter-spacing: 0.3px;
+  }
+  .bc-action {
+    font-family: var(--ff-body) !important;
+    font-size: 10px !important;
+    padding: 7px 4px !important;
+    letter-spacing: 0.5px;
+  }
+  @media (max-width: 768px) {
+    .bc-label  { font-size: 11px !important; }
+    .bc-value  { font-size: 22px !important; }
+    .bc-chip   { font-size: 11px !important; }
+    .bc-action { font-size: 10px !important; padding: 6px 4px !important; }
+  }
+
   /* ── Auth box ── */
   .auth-box {
     width: 100%; max-width: 400px;

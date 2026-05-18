@@ -225,8 +225,8 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               { label: 'Orders',  value: `${orderCount} open`,      color: orderCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
-                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
-                <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
+                <div className="bc-label" style={{ marginBottom: '2px' }}>{label}</div>
+                <div className="bc-value" style={{ color }}>{value}</div>
               </div>
             ))}
           </div>
@@ -238,8 +238,8 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               { label: 'Margin Level', value: isOnline && (account.marginLevel ?? 0) > 0 ? `${(account.marginLevel ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : '—', color: 'var(--success)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
-                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>
-                <div style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1, color }}>{value}</div>
+                <div className="bc-label" style={{ marginBottom: '2px' }}>{label}</div>
+                <div className="bc-value" style={{ color }}>{value}</div>
               </div>
             ))}
             <div /> {/* empty */}
@@ -249,39 +249,41 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {/* Today P/L */}
             <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
-              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>TODAY</div>
-              <div style={{
-                fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1,
-                color: todayPnl > 0 ? 'var(--success)' : todayPnl < 0 ? 'var(--danger)' : 'var(--text-muted)',
-              }}>
+              <div className="bc-label" style={{ marginBottom: '3px' }}>TODAY</div>
+              <div
+                className="bc-value"
+                style={{
+                  color: todayPnl > 0 ? 'var(--success)' : todayPnl < 0 ? 'var(--danger)' : 'var(--text-muted)',
+                }}
+              >
                 {todayPnl > 0 ? '+' : todayPnl < 0 ? '-' : ''}{fmtNum(Math.abs(todayPnl))}
               </div>
             </div>
             {/* Floating P/L */}
             <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '7px 10px' }}>
-              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '3px', letterSpacing: '.5px' }}>FLOATING P/L</div>
+              <div className="bc-label" style={{ marginBottom: '3px' }}>FLOATING P/L</div>
               <FlashNumber
                 value={account.profit}
                 format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(Math.abs(v))}`}
                 positiveGreen
-                style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', fontWeight: 400, lineHeight: 1.1 }}
+                className="bc-value"
               />
             </div>
           </div>
 
           {/* Lot exposure */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px' }}>Lot Exposure</span>
-            <span style={{ padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 700, background: 'rgba(56,189,248,.12)', color: 'var(--accent-blue)', border: '1px solid rgba(56,189,248,.3)' }}>
+            <span className="bc-label">Lot Exposure</span>
+            <span className="bc-chip" style={{ padding: '3px 7px', fontWeight: 700, background: 'rgba(56,189,248,.12)', color: 'var(--accent-blue)', border: '1px solid rgba(56,189,248,.3)' }}>
               B:{formatLots(account.buyLots)}
             </span>
-            <span style={{ padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', fontWeight: 700, background: 'rgba(239,68,68,.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,.3)' }}>
+            <span className="bc-chip" style={{ padding: '3px 7px', fontWeight: 700, background: 'rgba(239,68,68,.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,.3)' }}>
               S:{formatLots(account.sellLots)}
             </span>
           </div>
 
           {/* Broker */}
-          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', letterSpacing: '.5px' }}>
+          <div className="bc-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--text-muted)', flexShrink: 0 }} />
             {account.broker}
           </div>
@@ -299,13 +301,13 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               {/* DETAILS — primary cyan fill, toggles positions panel */}
               <button
                 onClick={() => setShowPositions(p => !p)}
+                className="bc-action"
                 style={{
-                  flex: 1, padding: '7px 4px',
-                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                  flex: 1,
                   border: '1px solid var(--accent-blue)',
                   color: '#0c1422',
                   background: 'var(--accent-blue)',
-                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  cursor: 'pointer', textAlign: 'center',
                   transition: 'all .15s',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#7dd3fc'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#7dd3fc'; }}
@@ -317,13 +319,13 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               {/* ORDERS */}
               <button
                 onClick={() => setShowPositions(p => !p)}
+                className="bc-action"
                 style={{
-                  flex: 1, padding: '7px 4px',
-                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                  flex: 1,
                   border: '1px solid var(--border2)',
                   color: 'var(--text-muted)',
                   background: 'none',
-                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  cursor: 'pointer', textAlign: 'center',
                   transition: 'all .15s',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(56,189,248,.08)'; }}
@@ -335,13 +337,13 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               {/* + TRADE */}
               <button
                 onClick={() => setShowNewTrade(true)}
+                className="bc-action"
                 style={{
-                  flex: 1, padding: '7px 4px',
-                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                  flex: 1,
                   border: '1px solid var(--border2)',
                   color: 'var(--text-muted)',
                   background: 'none',
-                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  cursor: 'pointer', textAlign: 'center',
                   transition: 'all .15s',
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(56,189,248,.08)'; }}
@@ -374,13 +376,13 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
             <>
               {/* RECONNECT */}
               <button
+                className="bc-action"
                 style={{
-                  flex: 2, padding: '7px 4px',
-                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                  flex: 2,
                   border: '1px solid rgba(239,68,68,.4)',
                   color: 'var(--danger)',
                   background: 'none',
-                  cursor: 'default', letterSpacing: '.5px', textAlign: 'center',
+                  cursor: 'default', textAlign: 'center',
                 }}
               >
                 RECONNECT
