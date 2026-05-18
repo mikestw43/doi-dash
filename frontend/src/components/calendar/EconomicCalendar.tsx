@@ -20,10 +20,10 @@ interface ImpactCfg {
 }
 
 const IMPACT_CFG: Record<string, ImpactCfg> = {
-  High:           { label: 'HIGH', color: 'var(--red)',    bg: 'rgba(239,68,68,.12)',  border: 'rgba(239,68,68,.35)',  dot: 'var(--red)' },
-  Medium:         { label: 'MED',  color: 'var(--orange)', bg: 'rgba(249,115,22,.12)', border: 'rgba(249,115,22,.35)', dot: 'var(--orange)' },
-  Low:            { label: 'LOW',  color: 'var(--text-dim)', bg: 'rgba(100,116,139,.1)', border: 'rgba(100,116,139,.25)', dot: '#475569' },
-  'Non-Economic': { label: 'N/E',  color: '#475569',       bg: 'rgba(71,85,105,.08)',  border: 'rgba(71,85,105,.2)',   dot: '#334155' },
+  High:           { label: 'HIGH', color: 'var(--red)',     bg: 'rgba(239,68,68,.12)',  border: 'rgba(239,68,68,.35)',  dot: 'var(--red)' },
+  Medium:         { label: 'MED',  color: 'var(--orange)',  bg: 'rgba(249,115,22,.12)', border: 'rgba(249,115,22,.35)', dot: 'var(--orange)' },
+  Low:            { label: 'LOW',  color: 'var(--warning)', bg: 'rgba(250,204,21,.12)', border: 'rgba(250,204,21,.35)', dot: 'var(--warning)' },
+  'Non-Economic': { label: 'N/E',  color: '#475569',        bg: 'rgba(71,85,105,.08)',  border: 'rgba(71,85,105,.2)',   dot: '#334155' },
 };
 
 const ALL_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF', 'CNY'];
@@ -66,13 +66,13 @@ const EventTable = ({ events, now }: EventTableProps) => (
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
         <tr style={{ background: 'var(--bg-card2)' }}>
-          <th style={{ ...thSt, width: '60px' }}>TIME</th>
-          <th style={{ ...thSt, width: '60px' }}>CCY</th>
-          <th style={{ ...thC, width: '28px', padding: '9px 4px' }} aria-label="Impact" />
-          <th style={thSt}>EVENT</th>
-          <th style={{ ...thR, width: '64px' }}>ACTUAL</th>
-          <th style={{ ...thR, width: '64px' }}>FORECAST</th>
-          <th className="evcol-prev" style={{ ...thR, width: '64px' }}>PREV</th>
+          <th style={{ ...thSt, width: '52px' }}>TIME</th>
+          <th style={{ ...thSt, width: '48px' }}>CCY</th>
+          <th style={{ ...thC, width: '24px', padding: '9px 4px' }} aria-label="Impact" />
+          <th className="evcol-event" style={thSt}>EVENT</th>
+          <th style={{ ...thR, width: '56px' }}>ACTUAL</th>
+          <th style={{ ...thR, width: '56px' }}>FORECAST</th>
+          <th className="evcol-prev" style={{ ...thR, width: '56px' }}>PREV</th>
         </tr>
       </thead>
       <tbody>
@@ -115,7 +115,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                   }}
                 />
               </td>
-              <td style={{ ...tdSt, color: isHigh && !past ? 'var(--text)' : 'var(--text-dim)' }}>
+              <td className="evcol-event" style={{ ...tdSt, color: isHigh && !past ? 'var(--text)' : 'var(--text-dim)' }}>
                 {event.title}
               </td>
               <td style={{ ...tdR, color: event.actual ? 'var(--text)' : '#334155', fontWeight: event.actual ? 700 : 400 }}>
@@ -135,7 +135,15 @@ const EventTable = ({ events, now }: EventTableProps) => (
 
     <style>{`
       .evt-wrap { overflow-x: hidden; }
-      .evt-wrap table { table-layout: auto; }
+      .evt-wrap table { table-layout: fixed; width: 100%; }
+
+      /* EVENT cell is the only one that wraps — other cells stay nowrap so
+         numbers and badges don't break visually. */
+      .evt-wrap .evcol-event {
+        white-space: normal !important;
+        word-break: break-word;
+        line-height: 1.3;
+      }
 
       @media (max-width: 768px) {
         /* Hide flag emoji inside CCY cell + the entire PREV column */
@@ -143,12 +151,12 @@ const EventTable = ({ events, now }: EventTableProps) => (
         .evt-wrap .evcol-prev { display: none !important; }
 
         /* Tighter padding so all remaining cols fit ≤375px */
-        .evt-wrap th, .evt-wrap td { padding: 7px 4px !important; }
-        .evt-wrap th:first-child, .evt-wrap td:first-child { padding-left: 8px !important; }
-        .evt-wrap th:last-child, .evt-wrap td:last-child { padding-right: 8px !important; }
+        .evt-wrap th, .evt-wrap td { padding: 6px 4px !important; }
+        .evt-wrap th:first-child, .evt-wrap td:first-child { padding-left: 6px !important; }
+        .evt-wrap th:last-child, .evt-wrap td:last-child { padding-right: 6px !important; }
 
-        /* Trim font sizes to keep EVENT text readable but cells short */
-        .evt-wrap td { font-size: var(--fs-body-sm) !important; }
+        /* Trim font sizes so EVENT title wraps tighter */
+        .evt-wrap td, .evt-wrap th { font-size: var(--fs-body-sm) !important; }
       }
     `}</style>
   </div>
