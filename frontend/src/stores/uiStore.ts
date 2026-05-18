@@ -10,10 +10,12 @@ interface Toast {
 
 type Language = 'en' | 'th';
 type Theme = 'dark' | 'light';
+type BotViewMode = 'card' | 'table';
 
 interface UIState {
   toasts: Toast[];
   botFilter: { status: string; broker: string; search: string; sort: string; group: string };
+  botViewMode: BotViewMode;
   activeTab: string;
   currentPage: 'dashboard' | 'profile' | 'settings' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce';
   language: Language;
@@ -21,6 +23,7 @@ interface UIState {
   addToast: (toast: Omit<Toast, 'id'>) => void;
   removeToast: (id: string) => void;
   setBotFilter: (filter: Partial<UIState['botFilter']>) => void;
+  setBotViewMode: (mode: BotViewMode) => void;
   setActiveTab: (tab: string) => void;
   setCurrentPage: (page: UIState['currentPage']) => void;
   setLanguage: (lang: Language) => void;
@@ -32,6 +35,7 @@ export const useUIStore = create<UIState>()(
     (set) => ({
       toasts: [],
       botFilter: { status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' },
+      botViewMode: 'card',
       activeTab: 'overview',
       currentPage: 'dashboard',
       language: 'en',
@@ -43,6 +47,7 @@ export const useUIStore = create<UIState>()(
       },
       removeToast: (id) => set(s => ({ toasts: s.toasts.filter(t => t.id !== id) })),
       setBotFilter: (filter) => set(s => ({ botFilter: { ...s.botFilter, ...filter } })),
+      setBotViewMode: (botViewMode) => set({ botViewMode }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setCurrentPage: (page) => set({ currentPage: page }),
       setLanguage: (language) => set({ language }),
@@ -52,6 +57,7 @@ export const useUIStore = create<UIState>()(
       name: 'sentinel_ui',
       partialize: (s) => ({
         botFilter: s.botFilter,
+        botViewMode: s.botViewMode,
         language: s.language,
         theme: s.theme,
       }),

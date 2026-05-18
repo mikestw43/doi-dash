@@ -5,6 +5,7 @@ import { useUIStore } from '../../stores/uiStore';
 import { fetchGroups, fetchTodayPnl } from '../../services/api';
 import type { Account, AccountGroup } from '../../types';
 import { BotCard } from './BotCard';
+import { BotTable } from './BotTable';
 import { GroupManager } from '../groups/GroupManager';
 
 const SORT_OPTIONS = [
@@ -36,7 +37,7 @@ const SecHdr = ({ title, count, dot = 'var(--accent-blue)' }: { title: string; c
 
 export const BotList = () => {
   const accounts = useAccountStore(s => s.accounts);
-  const { botFilter, setBotFilter } = useUIStore();
+  const { botFilter, setBotFilter, botViewMode, setBotViewMode } = useUIStore();
   const [groups, setGroups] = useState<AccountGroup[]>([]);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
@@ -137,6 +138,15 @@ export const BotList = () => {
             ⚙ FILTER
           </button>
 
+          {/* VIEW MODE TOGGLE — applies to both live and demo sections */}
+          <button
+            onClick={() => setBotViewMode(botViewMode === 'card' ? 'table' : 'card')}
+            title={botViewMode === 'card' ? 'Switch to table view' : 'Switch to card view'}
+            style={ftabStyle(false)}
+          >
+            {botViewMode === 'card' ? '▤ TABLE' : '▦ CARDS'}
+          </button>
+
           {/* Filter popup */}
           {showFilter && (
             <div style={{
@@ -232,6 +242,8 @@ export const BotList = () => {
               </div>
             ) : null}
           </div>
+        ) : botViewMode === 'table' ? (
+          <BotTable accounts={filtered} todayPnlMap={todayPnlData ?? {}} accent="blue" />
         ) : (
           <div
             style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '10px' }}
@@ -274,14 +286,18 @@ export const BotList = () => {
             ⚠ Demo accounts are excluded from KPI stats and performance reports
           </div>
 
-          <div
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}
-            className="bot-grid-responsive"
-          >
-            {demoAccounts.map((account: Account) => (
-              <BotCard key={account.id} account={account} todayPnl={todayPnlData?.[account.id] ?? 0} />
-            ))}
-          </div>
+          {botViewMode === 'table' ? (
+            <BotTable accounts={demoAccounts} todayPnlMap={todayPnlData ?? {}} accent="yellow" />
+          ) : (
+            <div
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}
+              className="bot-grid-responsive"
+            >
+              {demoAccounts.map((account: Account) => (
+                <BotCard key={account.id} account={account} todayPnl={todayPnlData?.[account.id] ?? 0} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
