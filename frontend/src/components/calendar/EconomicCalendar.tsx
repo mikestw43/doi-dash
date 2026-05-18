@@ -62,17 +62,17 @@ const tdC: React.CSSProperties = { ...tdSt, textAlign: 'center' };
 interface EventTableProps { events: EconomicEvent[]; now: Date }
 
 const EventTable = ({ events, now }: EventTableProps) => (
-  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', overflowX: 'auto' }}>
-    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+  <div className="evt-wrap" style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
         <tr style={{ background: 'var(--bg-card2)' }}>
-          <th style={{ ...thSt, width: '64px' }}>TIME (BKK)</th>
+          <th style={{ ...thSt, width: '64px' }}>TIME</th>
           <th style={{ ...thSt, width: '72px' }}>CCY</th>
           <th style={thSt}>EVENT</th>
-          <th style={{ ...thC, width: '72px' }}>IMPACT</th>
+          <th style={{ ...thC, width: '40px' }}>IMPACT</th>
           <th style={{ ...thR, width: '72px' }}>ACTUAL</th>
           <th style={{ ...thR, width: '72px' }}>FORECAST</th>
-          <th style={{ ...thR, width: '72px' }}>PREV</th>
+          <th className="evcol-prev" style={{ ...thR, width: '72px' }}>PREV</th>
         </tr>
       </thead>
       <tbody>
@@ -99,7 +99,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               </td>
               <td style={tdSt}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
+                  <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
                   <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>{event.country}</span>
                 </span>
               </td>
@@ -107,7 +107,8 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 {event.title}
               </td>
               <td style={tdC}>
-                <span style={{
+                {/* Desktop: full badge with label. Mobile: just a colored square. */}
+                <span className="impact-full" style={{
                   fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                   display: 'inline-flex', alignItems: 'center', gap: '4px',
                   padding: '3px 6px', border: `1px solid ${cfg.border}`,
@@ -116,6 +117,16 @@ const EventTable = ({ events, now }: EventTableProps) => (
                   <span style={{ width: '5px', height: '5px', background: cfg.dot, flexShrink: 0 }} />
                   {cfg.label}
                 </span>
+                <span
+                  className="impact-square"
+                  title={cfg.label}
+                  style={{
+                    display: 'inline-block',
+                    width: '14px', height: '14px',
+                    background: cfg.dot,
+                    border: `1px solid ${cfg.border}`,
+                  }}
+                />
               </td>
               <td style={{ ...tdR, color: event.actual ? 'var(--text)' : '#334155', fontWeight: event.actual ? 700 : 400 }}>
                 {event.actual || '—'}
@@ -123,7 +134,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               <td style={{ ...tdR, color: '#475569' }}>
                 {event.forecast || '—'}
               </td>
-              <td style={{ ...tdR, color: '#334155' }}>
+              <td className="evcol-prev" style={{ ...tdR, color: '#334155' }}>
                 {event.previous || '—'}
               </td>
             </tr>
@@ -131,6 +142,30 @@ const EventTable = ({ events, now }: EventTableProps) => (
         })}
       </tbody>
     </table>
+
+    <style>{`
+      /* Default (desktop): full impact badge visible, square hidden. */
+      .evt-wrap .impact-square { display: none; }
+      .evt-wrap { overflow-x: auto; }
+      .evt-wrap table { min-width: 600px; }
+
+      @media (max-width: 768px) {
+        .evt-wrap { overflow-x: hidden; }
+        .evt-wrap table { min-width: 0 !important; }
+
+        /* Hide flag emoji inside CCY cell + the entire PREV column */
+        .evt-wrap .evcol-flag { display: none !important; }
+        .evt-wrap .evcol-prev { display: none !important; }
+
+        /* Swap impact badge for a compact colored square */
+        .evt-wrap .impact-full   { display: none !important; }
+        .evt-wrap .impact-square { display: inline-block !important; }
+
+        /* Tighter padding so the 6 remaining cols fit ≤375px */
+        .evt-wrap th, .evt-wrap td { padding: 7px 5px !important; }
+        .evt-wrap th:first-child, .evt-wrap td:first-child { padding-left: 8px !important; }
+      }
+    `}</style>
   </div>
 );
 

@@ -8,21 +8,32 @@ interface Props {
   accent?: 'blue' | 'yellow';
 }
 
+/** USC (USD-cents) accounts don't show a $ prefix — the value is raw cents. */
+const isUsc = (currency?: string) => {
+  const c = (currency || '').toUpperCase();
+  return c === 'USC' || c === 'USDC';
+};
+
 const fmtMoneyFull = (v: number) =>
   Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const signedFull = (v: number) => (v >= 0 ? `+$${fmtMoneyFull(v)}` : `-$${fmtMoneyFull(v)}`);
+const signedFull = (v: number, prefix: string) =>
+  v >= 0 ? `+${prefix}${fmtMoneyFull(v)}` : `-${prefix}${fmtMoneyFull(v)}`;
 
-/** Compact money: $5,238.55 → $5.2k, $1,234,567 → $1.2M, sub-1k stays in dollars. */
+/** Compact money: 5,238.55 → 5.2k, 1,234,567 → 1.2M, sub-1k stays whole. */
 function fmtMoneyK(v: number): string {
   const abs = Math.abs(v);
   const sign = v < 0 ? '-' : '';
-  if (abs < 1000) return `${sign}$${abs.toFixed(0)}`;
-  if (abs < 1e6)  return `${sign}$${(abs / 1000).toFixed(1)}k`;
-  return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+  if (abs < 1000) return `${sign}${abs.toFixed(0)}`;
+  if (abs < 1e6)  return `${sign}${(abs / 1000).toFixed(1)}k`;
+  return `${sign}${(abs / 1e6).toFixed(2)}M`;
 }
 
-const signedK = (v: number) => (v >= 0 ? `+${fmtMoneyK(v).replace('-', '')}` : fmtMoneyK(v));
+const signedK = (v: number, prefix: string) => {
+  const k = fmtMoneyK(v);
+  if (v >= 0) return `+${prefix}${k}`;
+  return `-${prefix}${k.slice(1)}`; // drop the leading '-' from fmtMoneyK
+};
 
 const ddColor = (dd: number, offline: boolean) => {
   if (offline) return 'var(--danger)';
@@ -36,13 +47,17 @@ const plColor = (v: number) => (v > 0 ? 'var(--success)' : v < 0 ? 'var(--danger
 /**
  * Money cell — full precision on desktop, k-unit on mobile. Each row
  * renders both spans; CSS hides the one that doesn't match the viewport.
+ * USC/USDC accounts drop the $ prefix (the value is raw cents, not dollars).
  */
-const Money = ({ value, signed = false }: { value: number; signed?: boolean }) => (
-  <>
-    <span className="num-full">{signed ? signedFull(value) : `$${fmtMoneyFull(value)}`}</span>
-    <span className="num-k">{signed ? signedK(value) : fmtMoneyK(value)}</span>
-  </>
-);
+const Money = ({ value, signed = false, currency }: { value: number; signed?: boolean; currency?: string }) => {
+  const prefix = isUsc(currency) ? '' : '$';
+  return (
+    <>
+      <span className="num-full">{signed ? signedFull(value, prefix) : `${prefix}${fmtMoneyFull(value)}`}</span>
+      <span className="num-k">{signed ? signedK(value, prefix) : `${prefix}${fmtMoneyK(value)}`}</span>
+    </>
+  );
+};
 
 /**
  * Tabular view of accounts.
@@ -132,19 +147,19 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                 <td className="col-broker" style={{ ...tdStyle, color: 'var(--text-muted)' }}>{a.broker}</td>
 
                 <td className="col-balance" style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  <Money value={a.balance} />
+                  <Money value={a.balance} currency={a.currency} />
                 </td>
 
                 <td className="col-equity" style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  <Money value={a.equity} />
+                  <Money value={a.equity} currency={a.currency} />
                 </td>
 
                 <td style={{ ...tdStyle, textAlign: 'right', color: plColor(today), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  <Money value={today} signed />
+                  <Money value={today} signed currency={a.currency} />
                 </td>
 
                 <td style={{ ...tdStyle, textAlign: 'right', color: plColor(a.profit), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  <Money value={a.profit} signed />
+                  <Money value={a.profit} signed currency={a.currency} />
                 </td>
 
                 <td style={{ ...tdStyle, textAlign: 'right', color: ddColor(a.drawdown, offline) }}>
