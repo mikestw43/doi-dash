@@ -330,7 +330,7 @@ export const Header = () => {
 
                 {/* Download EA */}
                 <a
-                  href="/ea/DOI_DASH_Reporter_v1.2.ex5"
+                  href="/ea/DOI_DASH_Reporter_v1.3.ex5"
                   download
                   onClick={() => setShowMenu(false)}
                   style={{

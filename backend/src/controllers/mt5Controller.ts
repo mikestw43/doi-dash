@@ -49,6 +49,8 @@ interface MT5PushPayload {
     expiration: string;
   }[];
   brokerTimeOffset?: number;
+  todayPnl?: number;
+  closedOrdersToday?: number;
   closedDeals?: {
     positionId: number;
     ticket: number;
@@ -160,6 +162,8 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     ...(payload.currency && { currency: payload.currency }),
     ...(payload.accountNumber && { accountNumber: payload.accountNumber }),
     ...(payload.brokerTimeOffset != null && { brokerTimeOffset: payload.brokerTimeOffset }),
+    ...(payload.todayPnl != null && { todayPnl: parseFloat(payload.todayPnl.toFixed(2)) }),
+    ...(payload.closedOrdersToday != null && { closedOrdersToday: payload.closedOrdersToday }),
   };
 
   // Persist MT5 account details to DB if they were empty (first-time connection)

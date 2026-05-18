@@ -89,60 +89,70 @@ router.get('/heatmap/pending', (req: AuthRequest, res: Response) => {
   res.json(pending);
 });
 
-// Today's closed P/L per account — uses broker server time to match MT5 "Today"
+// Today's closed P/L per account.
+// Prefer EA-reported `todayPnl` (v1.3+ computes it from MT5 history directly).
+// Fall back to DB-summed closedTrade rows for accounts that haven't reported one yet
+// (older EA builds, or accounts offline since last server restart).
 router.get('/today-pnl', async (req: AuthRequest, res: Response) => {
   const accounts = runtimeStore.getAccountsByUser(req.user!.id).filter(a => !a.isDemo);
 
-  // Build per-account broker offset map (default GMT+2 = 7200s, most common MT5 broker)
-  const offsetMap = new Map<string, number>();
-  for (const a of accounts) {
-    offsetMap.set(a.id, a.brokerTimeOffset ?? 7200);
-  }
-
-  // Find earliest possible startOfDay across all broker offsets
-  const offsets = accounts.length > 0
-    ? [...new Set(offsetMap.values())]
-    : [7200];
-  const now = new Date();
-  let earliestStart = now;
-  for (const offset of offsets) {
-    const offsetMs = offset * 1000;
-    const brokerNow = new Date(now.getTime() + offsetMs);
-    const brokerMidnight = new Date(Date.UTC(
-      brokerNow.getUTCFullYear(), brokerNow.getUTCMonth(), brokerNow.getUTCDate()
-    ));
-    const startUtc = new Date(brokerMidnight.getTime() - offsetMs);
-    if (startUtc < earliestStart) earliestStart = startUtc;
-  }
-
-  // Query trades from earliest possible startOfDay
-  const trades = await prisma.closedTrade.findMany({
-    where: {
-      closeTime: { gte: earliestStart },
-      account: { userId: req.user!.id },
-    },
-    select: { accountId: true, profit: true, swap: true, commission: true, closeTime: true },
-  });
-
-  // Filter per-account based on each account's broker midnight
   const pnlMap: Record<string, number> = {};
-  for (const t of trades) {
-    const offset = offsetMap.get(t.accountId) ?? 7200;
-    const offsetMs = offset * 1000;
-    const brokerNow = new Date(now.getTime() + offsetMs);
-    const brokerMidnight = new Date(Date.UTC(
-      brokerNow.getUTCFullYear(), brokerNow.getUTCMonth(), brokerNow.getUTCDate()
-    ));
-    const accountStartOfDay = new Date(brokerMidnight.getTime() - offsetMs);
 
-    if (t.closeTime >= accountStartOfDay) {
-      pnlMap[t.accountId] = (pnlMap[t.accountId] || 0) + t.profit + t.swap + t.commission;
+  // 1) Trust EA-reported todayPnl when present
+  const accountsNeedingFallback: typeof accounts = [];
+  for (const a of accounts) {
+    if (typeof a.todayPnl === 'number') {
+      pnlMap[a.id] = parseFloat(a.todayPnl.toFixed(2));
+    } else {
+      accountsNeedingFallback.push(a);
     }
   }
 
-  // Round values
-  for (const id of Object.keys(pnlMap)) {
-    pnlMap[id] = parseFloat(pnlMap[id].toFixed(2));
+  // 2) DB fallback for accounts without an EA-reported value
+  if (accountsNeedingFallback.length > 0) {
+    const offsetMap = new Map<string, number>();
+    for (const a of accountsNeedingFallback) {
+      offsetMap.set(a.id, a.brokerTimeOffset ?? 7200);
+    }
+
+    const offsets = [...new Set(offsetMap.values())];
+    const now = new Date();
+    let earliestStart = now;
+    for (const offset of offsets) {
+      const offsetMs = offset * 1000;
+      const brokerNow = new Date(now.getTime() + offsetMs);
+      const brokerMidnight = new Date(Date.UTC(
+        brokerNow.getUTCFullYear(), brokerNow.getUTCMonth(), brokerNow.getUTCDate()
+      ));
+      const startUtc = new Date(brokerMidnight.getTime() - offsetMs);
+      if (startUtc < earliestStart) earliestStart = startUtc;
+    }
+
+    const trades = await prisma.closedTrade.findMany({
+      where: {
+        closeTime: { gte: earliestStart },
+        accountId: { in: accountsNeedingFallback.map(a => a.id) },
+      },
+      select: { accountId: true, profit: true, swap: true, commission: true, closeTime: true },
+    });
+
+    for (const t of trades) {
+      const offset = offsetMap.get(t.accountId) ?? 7200;
+      const offsetMs = offset * 1000;
+      const brokerNow = new Date(now.getTime() + offsetMs);
+      const brokerMidnight = new Date(Date.UTC(
+        brokerNow.getUTCFullYear(), brokerNow.getUTCMonth(), brokerNow.getUTCDate()
+      ));
+      const accountStartOfDay = new Date(brokerMidnight.getTime() - offsetMs);
+
+      if (t.closeTime >= accountStartOfDay) {
+        pnlMap[t.accountId] = (pnlMap[t.accountId] || 0) + t.profit + t.swap + t.commission;
+      }
+    }
+
+    for (const a of accountsNeedingFallback) {
+      pnlMap[a.id] = parseFloat((pnlMap[a.id] || 0).toFixed(2));
+    }
   }
 
   res.json(pnlMap);
