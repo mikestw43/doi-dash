@@ -235,7 +235,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {[
               { label: 'Margin', value: isOnline ? fmtPrice(account.margin ?? 0) : '—', color: 'var(--accent-blue)' },
-              { label: 'Margin Level', value: isOnline && (account.marginLevel ?? 0) > 0 ? `${Math.round(account.marginLevel ?? 0)}%` : '—', color: 'var(--success)' },
+              { label: 'Margin Level', value: isOnline && (account.marginLevel ?? 0) > 0 ? `${(account.marginLevel ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : '—', color: 'var(--success)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
                 <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: '2px' }}>{label}</div>

@@ -71,11 +71,6 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
         ...flashBg,
       }}
     >
-      {/* Corner TL */}
-      <div className="kpi-corner" style={{ position: 'absolute', top: '4px', left: '4px', width: '12px', height: '12px', borderTop: `2px solid ${c.corner}`, borderLeft: `2px solid ${c.corner}`, pointerEvents: 'none' }} />
-      {/* Corner BR */}
-      <div className="kpi-corner" style={{ position: 'absolute', bottom: '4px', right: '4px', width: '12px', height: '12px', borderBottom: `2px solid ${c.corner}`, borderRight: `2px solid ${c.corner}`, pointerEvents: 'none' }} />
-
       {/* Label row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1.4 }}>{label}</span>
@@ -97,15 +92,15 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
   );
 };
 
-// Currency display with superscript decimal: $21,138⁶⁵
+// Currency display: $21,138.97 — decimal inline on the same baseline as the integer
+// (slightly dimmed so the integer still reads as the primary value).
 // Inherits parent .kpi-val font-size (--fs-disp-lg) so all KPI cards share one size.
-// Sup uses em → automatically 55% of the parent's computed pixel size.
 const CurrencyValue = ({ val, color }: { val: number; color: string }) => {
   const [int, dec] = splitNum(val);
   const prefix = val < 0 ? '-$' : '$';
   return (
     <span style={{ color }}>
-      {prefix}{int}<sup style={{ fontSize: '.55em', color: 'var(--text-muted)', verticalAlign: 'super' }}>.{dec}</sup>
+      {prefix}{int}<span style={{ color: 'var(--text-muted)' }}>.{dec}</span>
     </span>
   );
 };
@@ -203,10 +198,9 @@ export const SummaryCards = ({ stats }: Props) => {
         .kpi-card[data-mod="red"]:hover    { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(239,68,68,.35)  !important; }
         .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(250,204,21,.35) !important; }
 
-        /* Mobile ≤768px: 2 cols + tighter padding + hide corner brackets */
+        /* Mobile ≤768px: 2 cols */
         @media (max-width: 768px) {
           .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-          .kpi-corner { display: none !important; }
         }
       `}</style>
     </>

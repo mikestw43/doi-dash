@@ -123,8 +123,8 @@ export const BotList = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-      {/* ── MY ACCOUNTS BOX ─────────────────────────────────────────────── */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px 16px' }}>
+      {/* ── MY ACCOUNTS — no wrapper box, cards fill width (matches mockup) ── */}
+      <div>
         <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${liveAccounts.length}`} />
 
         {/* Toolbar */}
@@ -244,9 +244,9 @@ export const BotList = () => {
         )}
       </div>
 
-      {/* ── DEMO ACCOUNTS BOX ───────────────────────────────────────────── */}
+      {/* ── DEMO ACCOUNTS — no wrapper box ────────────────────────────── */}
       {demoAccounts.length > 0 && (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px 16px' }}>
+        <div>
           {/* Demo section header — yellow dot + SANDBOX badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <div style={{ width: '7px', height: '7px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)', flexShrink: 0 }} />
