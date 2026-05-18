@@ -16,14 +16,14 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^7.4.1",
+    "@prisma/client": "^6.16.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "prisma": "^7.4.1",
+    "prisma": "^6.16.2",
     "ws": "^8.19.0"
   },
   "devDependencies": {
