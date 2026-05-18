@@ -62,7 +62,11 @@ const tdC: React.CSSProperties = { ...tdSt, textAlign: 'center' };
 interface EventTableProps { events: EconomicEvent[]; now: Date }
 
 const EventTable = ({ events, now }: EventTableProps) => (
-  <div className="evt-wrap" style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)' }}>
+  <div className="evt-wrap" style={{
+    background: 'var(--bg-card)',
+    border: '2px solid var(--accent-blue)',
+    boxShadow: '4px 4px 0 rgba(56,189,248,.3), inset 0 0 20px rgba(56,189,248,.04)',
+  }}>
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
         <tr style={{ background: 'var(--bg-card2)' }}>
@@ -155,8 +159,10 @@ const EventTable = ({ events, now }: EventTableProps) => (
         .evt-wrap th:first-child, .evt-wrap td:first-child { padding-left: 6px !important; }
         .evt-wrap th:last-child, .evt-wrap td:last-child { padding-right: 6px !important; }
 
-        /* Trim font sizes so EVENT title wraps tighter */
-        .evt-wrap td, .evt-wrap th { font-size: var(--fs-body-sm) !important; }
+        /* Headers stay compact (fs-section is 8px on both viewports).
+           Only data cells get fs-body-sm so they're readable. */
+        .evt-wrap th { font-size: var(--fs-section) !important; }
+        .evt-wrap td { font-size: var(--fs-body-sm) !important; }
       }
     `}</style>
   </div>
@@ -325,8 +331,10 @@ export const EconomicCalendar = () => {
       {/* ── Filters ── */}
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-start',
-        marginBottom: '14px', padding: '12px', background: 'var(--bg-card)',
-        border: '1px solid var(--border2)',
+        marginBottom: '14px', padding: '12px',
+        background: 'var(--bg-card)',
+        border: '2px solid var(--accent-blue)',
+        boxShadow: '4px 4px 0 rgba(56,189,248,.3), inset 0 0 20px rgba(56,189,248,.04)',
       }}>
         {/* Today / Week tabs */}
         <div style={{ display: 'flex', border: '1px solid var(--border2)', flexShrink: 0 }}>
