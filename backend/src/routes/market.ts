@@ -46,16 +46,32 @@ router.get('/quotes', async (_req: Request, res: Response): Promise<void> => {
     console.warn('[market] Binance fetch failed:', (err as Error).message);
   }
 
-  // ── 2. Frankfurter: EUR/USD, GBP/USD, USD/JPY ──────────────────────────────
+  // ── 2. Frankfurter: EUR/USD, GBP/USD, USD/JPY (with % change vs yesterday) ─
   try {
-    const data = await safeFetch(
-      'https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY'
-    ) as { rates: { EUR?: number; GBP?: number; JPY?: number } };
+    // Compute yesterday's date (UTC, in YYYY-MM-DD)
+    const y = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const ymd = `${y.getUTCFullYear()}-${String(y.getUTCMonth() + 1).padStart(2, '0')}-${String(y.getUTCDate()).padStart(2, '0')}`;
 
-    const { EUR, GBP, JPY } = data.rates;
-    if (EUR) quotes.push({ sym: 'EURUSD', price: parseFloat((1 / EUR).toFixed(5)), chgPct: null, up: null });
-    if (GBP) quotes.push({ sym: 'GBPUSD', price: parseFloat((1 / GBP).toFixed(5)), chgPct: null, up: null });
-    if (JPY) quotes.push({ sym: 'USDJPY', price: parseFloat(JPY.toFixed(3)), chgPct: null, up: null });
+    const [todayData, yestData] = await Promise.all([
+      safeFetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY') as Promise<{ rates: { EUR?: number; GBP?: number; JPY?: number } }>,
+      safeFetch(`https://api.frankfurter.app/${ymd}?from=USD&to=EUR,GBP,JPY`).catch(() => null) as Promise<{ rates: { EUR?: number; GBP?: number; JPY?: number } } | null>,
+    ]);
+
+    const pushPair = (sym: string, todayRaw: number | undefined, yestRaw: number | undefined, invert: boolean, dp: number) => {
+      if (!todayRaw) return;
+      const price = invert ? 1 / todayRaw : todayRaw;
+      if (yestRaw) {
+        const yestPrice = invert ? 1 / yestRaw : yestRaw;
+        const pct = ((price - yestPrice) / yestPrice) * 100;
+        quotes.push({ sym, price: parseFloat(price.toFixed(dp)), chgPct: parseFloat(pct.toFixed(2)), up: pct >= 0 });
+      } else {
+        quotes.push({ sym, price: parseFloat(price.toFixed(dp)), chgPct: null, up: null });
+      }
+    };
+
+    pushPair('EURUSD', todayData.rates.EUR, yestData?.rates.EUR, true,  5);
+    pushPair('GBPUSD', todayData.rates.GBP, yestData?.rates.GBP, true,  5);
+    pushPair('USDJPY', todayData.rates.JPY, yestData?.rates.JPY, false, 3);
   } catch (err) {
     console.warn('[market] Frankfurter fetch failed:', (err as Error).message);
   }
