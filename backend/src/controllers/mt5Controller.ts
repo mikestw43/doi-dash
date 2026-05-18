@@ -166,6 +166,13 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     ...(payload.closedOrdersToday != null && { closedOrdersToday: payload.closedOrdersToday }),
   };
 
+  // Trace EA-reported today P/L (helps verify EA→backend handoff in prod logs)
+  if (payload.todayPnl != null) {
+    console.log(
+      `[MT5] ${account.name} todayPnl=${payload.todayPnl.toFixed(2)} (${payload.closedOrdersToday ?? 0} deals)`
+    );
+  }
+
   // Persist MT5 account details to DB if they were empty (first-time connection)
   const needsDbUpdate =
     (payload.accountNumber && (!account.accountNumber || account.accountNumber === '')) ||

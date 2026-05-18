@@ -48,8 +48,11 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/admin/audit', auditRouter);
 app.use('/api/market', marketRouter);
 
+// Build stamp helps verify a Railway deploy actually picked up new code.
+// Bump BUILD_TAG with each push that needs verification.
+const BUILD_TAG = 'v1.3-todayPnl';
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', build: BUILD_TAG, timestamp: new Date().toISOString() });
 });
 
 // Global error handler — must be AFTER all routes
