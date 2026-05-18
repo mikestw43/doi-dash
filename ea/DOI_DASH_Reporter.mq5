@@ -65,7 +65,10 @@ void SendData()
    double equity      = AccountInfoDouble(ACCOUNT_EQUITY);
    double margin      = AccountInfoDouble(ACCOUNT_MARGIN);
    double freeMargin  = AccountInfoDouble(ACCOUNT_FREEMARGIN);
-   double profit      = equity - balance;
+   // Floating P/L of open positions. AccountInfoDouble(ACCOUNT_PROFIT) is the
+   // safe way — the older `equity - balance` formula incorrectly includes
+   // credit bonus when the account has any (e.g. broker promotions).
+   double profit      = AccountInfoDouble(ACCOUNT_PROFIT);
    double marginLevel = 0;
    if(margin > 0)
       marginLevel = AccountInfoDouble(ACCOUNT_MARGIN_LEVEL);

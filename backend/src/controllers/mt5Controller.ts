@@ -124,6 +124,15 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
 
   const buyLots = orders.filter(o => o.type === 'BUY').reduce((s, o) => s + o.lots, 0);
   const sellLots = orders.filter(o => o.type === 'SELL').reduce((s, o) => s + o.lots, 0);
+
+  // Floating P/L = sum of open positions' profit + swap.
+  // Don't trust payload.profit — older EAs compute it as `equity - balance`
+  // which incorrectly includes credit bonus when the account has any.
+  // Summing the orders payload sidesteps that bug regardless of EA version.
+  const floatingProfit = parseFloat(
+    orders.reduce((s, o) => s + (o.profit ?? 0) + (o.swap ?? 0), 0).toFixed(2),
+  );
+
   const drawdown = payload.equity < payload.balance
     ? parseFloat(((payload.balance - payload.equity) / payload.balance * 100).toFixed(2))
     : 0;
@@ -136,7 +145,7 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     margin: payload.margin,
     freeMargin: payload.freeMargin,
     marginLevel: payload.marginLevel,
-    profit: payload.profit,
+    profit: floatingProfit,
     drawdown,
     openLots: parseFloat((buyLots + sellLots).toFixed(2)),
     buyLots: parseFloat(buyLots.toFixed(2)),
