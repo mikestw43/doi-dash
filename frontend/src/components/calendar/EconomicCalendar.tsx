@@ -118,19 +118,19 @@ const EventTable = ({ events, now }: EventTableProps) => (
               }}>
                 {fmtTime(event.date)}
               </td>
-              <td style={tdSt}>
+              <td style={{ ...tdSt, paddingRight: '2px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
                   {/* CCY — VT323, same color logic as TIME. */}
                   <span style={{
                     fontFamily: 'var(--ff-display)',
-                    fontSize: '16px',
+                    fontSize: '20px',
                     lineHeight: 1,
                     color: past ? 'var(--text-dim)' : 'var(--text)',
                   }}>{event.country}</span>
                 </span>
               </td>
-              <td style={{ ...tdC, padding: '7px 4px' }}>
+              <td style={{ ...tdC, padding: '7px 2px' }}>
                 {/* Colored square — sole indicator. Color encodes High/Medium/Low. */}
                 <span
                   title={cfg.label}
@@ -148,14 +148,34 @@ const EventTable = ({ events, now }: EventTableProps) => (
               }}>
                 {event.title}
               </td>
-              <td style={{ ...tdR, color: event.actual ? 'var(--text)' : '#334155', fontWeight: event.actual ? 700 : 400 }}>
+              {/* ACTUAL — VT323 20px (same as TIME/CCY) so number columns
+                  read as a single visual group. */}
+              <td style={{
+                ...tdR,
+                fontFamily: 'var(--ff-display)',
+                fontSize: '20px',
+                lineHeight: 1,
+                color: event.actual ? 'var(--text)' : '#334155',
+              }}>
                 {event.actual || '—'}
               </td>
-              {/* FORECAST — bright white for upcoming, dim for past (same rule as TIME/CCY). */}
-              <td style={{ ...tdR, color: past ? 'var(--text-dim)' : 'var(--text)' }}>
+              {/* FORECAST — same font, bright white for upcoming / dim for past. */}
+              <td style={{
+                ...tdR,
+                fontFamily: 'var(--ff-display)',
+                fontSize: '20px',
+                lineHeight: 1,
+                color: past ? 'var(--text-dim)' : 'var(--text)',
+              }}>
                 {event.forecast || '—'}
               </td>
-              <td className="evcol-prev" style={{ ...tdR, color: '#334155' }}>
+              <td className="evcol-prev" style={{
+                ...tdR,
+                fontFamily: 'var(--ff-display)',
+                fontSize: '20px',
+                lineHeight: 1,
+                color: '#475569',
+              }}>
                 {event.previous || '—'}
               </td>
             </tr>
