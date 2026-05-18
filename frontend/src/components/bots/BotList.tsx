@@ -138,11 +138,12 @@ export const BotList = () => {
             ⚙ FILTER
           </button>
 
-          {/* VIEW MODE TOGGLE — applies to both live and demo sections */}
+          {/* VIEW MODE TOGGLE — pushed to the right side of the toolbar.
+              Applies to both live and demo sections. */}
           <button
             onClick={() => setBotViewMode(botViewMode === 'card' ? 'table' : 'card')}
             title={botViewMode === 'card' ? 'Switch to table view' : 'Switch to card view'}
-            style={ftabStyle(false)}
+            style={{ ...ftabStyle(false), marginLeft: 'auto' }}
           >
             {botViewMode === 'card' ? '▤ TABLE' : '▦ CARDS'}
           </button>

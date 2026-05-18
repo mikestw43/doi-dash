@@ -112,7 +112,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               <td style={{
                 ...tdSt,
                 fontFamily: 'var(--ff-display)',
-                fontSize: '16px',
+                fontSize: '20px',
                 lineHeight: 1,
                 color: past ? 'var(--text-dim)' : 'var(--text)',
               }}>
