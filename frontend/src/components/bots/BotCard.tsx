@@ -289,9 +289,9 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           </div>
         </div>
 
-        {/* ── bc-footer ── */}
+        {/* ── bc-footer — tight padding so the action row reads compact ── */}
         <div style={{
-          padding: '8px 12px',
+          padding: '5px 10px',
           borderTop: '1px solid var(--border-color)',
           display: 'flex', gap: '5px',
           background: 'var(--bg-tertiary)',
@@ -352,12 +352,13 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 + TRADE
               </button>
 
-              {/* Close all — ✕ */}
+              {/* Close all — ✕ (uses bc-action so height matches the other 3) */}
               <button
                 onClick={() => setShowCloseAll(true)}
+                className="bc-action"
                 style={{
-                  flexBasis: '28px', flexShrink: 0, padding: '7px 4px',
-                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+                  flexBasis: '28px', flexShrink: 0,
+                  fontSize: '12px',
                   border: '1px solid rgba(239,68,68,.4)',
                   color: 'var(--danger)',
                   background: 'none',
@@ -389,21 +390,22 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               </button>
               <button
                 onClick={() => setShowPositions(p => !p)}
+                className="bc-action"
                 style={{
-                  flex: 1, padding: '7px 4px',
-                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                  flex: 1,
                   border: '1px solid var(--border2)',
                   color: 'var(--text-muted)',
                   background: 'none',
-                  cursor: 'pointer', letterSpacing: '.5px', textAlign: 'center',
+                  cursor: 'pointer', textAlign: 'center',
                 }}
               >
                 ORDERS
               </button>
               <button
                 onClick={() => setShowCloseAll(true)}
+                className="bc-action"
                 style={{
-                  flexBasis: '28px', flexShrink: 0, padding: '7px 4px',
+                  flexBasis: '28px', flexShrink: 0,
                   fontSize: '12px',
                   border: '1px solid rgba(239,68,68,.4)',
                   color: 'var(--danger)',

@@ -107,13 +107,13 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
               }}
             >
-              {/* TIME — Press Start 2P (matches filter buttons). Upcoming events
-                  render bright white so they pop against the dimmed past rows. */}
+              {/* TIME — VT323 display font (Press Start 2P overlapped at this
+                  size). Upcoming events render bright white so they pop. */}
               <td style={{
                 ...tdSt,
-                fontFamily: 'var(--ff-section)',
-                fontSize: '10px',
-                letterSpacing: '.5px',
+                fontFamily: 'var(--ff-display)',
+                fontSize: '16px',
+                lineHeight: 1,
                 color: past ? 'var(--text-dim)' : 'var(--text)',
               }}>
                 {fmtTime(event.date)}
@@ -121,11 +121,11 @@ const EventTable = ({ events, now }: EventTableProps) => (
               <td style={tdSt}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
-                  {/* CCY — Press Start 2P, same color logic as TIME. */}
+                  {/* CCY — VT323, same color logic as TIME. */}
                   <span style={{
-                    fontFamily: 'var(--ff-section)',
-                    fontSize: '10px',
-                    letterSpacing: '.5px',
+                    fontFamily: 'var(--ff-display)',
+                    fontSize: '16px',
+                    lineHeight: 1,
                     color: past ? 'var(--text-dim)' : 'var(--text)',
                   }}>{event.country}</span>
                 </span>
@@ -151,7 +151,8 @@ const EventTable = ({ events, now }: EventTableProps) => (
               <td style={{ ...tdR, color: event.actual ? 'var(--text)' : '#334155', fontWeight: event.actual ? 700 : 400 }}>
                 {event.actual || '—'}
               </td>
-              <td style={{ ...tdR, color: '#475569' }}>
+              {/* FORECAST — bright white for upcoming, dim for past (same rule as TIME/CCY). */}
+              <td style={{ ...tdR, color: past ? 'var(--text-dim)' : 'var(--text)' }}>
                 {event.forecast || '—'}
               </td>
               <td className="evcol-prev" style={{ ...tdR, color: '#334155' }}>
