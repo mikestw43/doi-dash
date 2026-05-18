@@ -111,6 +111,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                   size). Upcoming events render bright white so they pop. */}
               <td style={{
                 ...tdSt,
+                padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
                 fontSize: '20px',
                 lineHeight: 1,
@@ -152,6 +153,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                   read as a single visual group. */}
               <td style={{
                 ...tdR,
+                padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
                 fontSize: '20px',
                 lineHeight: 1,
@@ -162,6 +164,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               {/* FORECAST — same font, bright white for upcoming / dim for past. */}
               <td style={{
                 ...tdR,
+                padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
                 fontSize: '20px',
                 lineHeight: 1,
@@ -171,6 +174,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               </td>
               <td className="evcol-prev" style={{
                 ...tdR,
+                padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
                 fontSize: '20px',
                 lineHeight: 1,
@@ -212,15 +216,12 @@ const EventTable = ({ events, now }: EventTableProps) => (
         .evt-wrap .evcol-actual,
         .evt-wrap .evcol-forecast { width: 42px !important; }
 
-        /* Tighter padding so all remaining cols fit ≤375px */
-        .evt-wrap th, .evt-wrap td { padding: 6px 4px !important; }
-        .evt-wrap th:first-child, .evt-wrap td:first-child { padding-left: 6px !important; }
-        .evt-wrap th:last-child, .evt-wrap td:last-child { padding-right: 6px !important; }
-
-        /* Headers stay compact (fs-section is 8px on both viewports).
-           Only data cells get fs-body-sm so they're readable. */
+        /* Headers stay compact (fs-section is 8px on both viewports). */
         .evt-wrap th { font-size: var(--fs-section) !important; }
-        .evt-wrap td { font-size: var(--fs-body-sm) !important; }
+
+        /* NOTE: removed global td font-size + padding overrides that were
+           clobbering the inline 20px VT font and the per-cell padding. Each
+           cell now controls its own font and padding via inline style. */
       }
     `}</style>
   </div>
