@@ -1,5 +1,12 @@
 FROM node:22-bookworm-slim
 
+# Prisma needs libssl/openssl on Debian slim — without it Prisma emits the
+# "failed to detect libssl/openssl version" warning and falls back to a
+# bundled binary that may not match the OS.
+RUN apt-get update -y \
+ && apt-get install -y --no-install-recommends openssl ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app/backend
 
 # Install dependencies (including tsx for runtime)
