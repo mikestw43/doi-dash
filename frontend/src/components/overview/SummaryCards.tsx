@@ -31,11 +31,11 @@ function splitNum(val: number, dp = 2): [string, string] {
 
 type Modifier = 'cyan' | 'green' | 'red' | 'yellow';
 
-const COLORS: Record<Modifier, { border: string; glow: string; corner: string; text: string }> = {
-  cyan:   { border: 'var(--accent-blue)', glow: '0 0 10px rgba(56,189,248,.6)',  corner: 'rgba(56,189,248,.5)',  text: 'var(--accent-blue)' },
-  green:  { border: 'var(--success)',     glow: '0 0 8px rgba(34,197,94,.8)',    corner: 'rgba(34,197,94,.6)',   text: 'var(--success)'     },
-  red:    { border: 'var(--danger)',      glow: '0 0 10px rgba(239,68,68,.6)',   corner: 'rgba(239,68,68,.6)',   text: 'var(--danger)'      },
-  yellow: { border: 'var(--warning)',     glow: '0 0 10px rgba(250,204,21,.5)',  corner: 'rgba(250,204,21,.6)',  text: 'var(--warning)'     },
+const COLORS: Record<Modifier, { border: string; shadow: string; shadowHover: string; corner: string; text: string }> = {
+  cyan:   { border: 'var(--accent-blue)', shadow: '4px 4px 0 rgba(56,189,248,.3)',  shadowHover: '6px 6px 0 rgba(56,189,248,.35)',  corner: 'rgba(56,189,248,.5)',  text: 'var(--accent-blue)' },
+  green:  { border: 'var(--success)',     shadow: '4px 4px 0 rgba(34,197,94,.3)',   shadowHover: '6px 6px 0 rgba(34,197,94,.35)',   corner: 'rgba(34,197,94,.6)',   text: 'var(--success)'     },
+  red:    { border: 'var(--danger)',      shadow: '4px 4px 0 rgba(239,68,68,.3)',   shadowHover: '6px 6px 0 rgba(239,68,68,.35)',   corner: 'rgba(239,68,68,.6)',   text: 'var(--danger)'      },
+  yellow: { border: 'var(--warning)',     shadow: '4px 4px 0 rgba(250,204,21,.3)',  shadowHover: '6px 6px 0 rgba(250,204,21,.35)',  corner: 'rgba(250,204,21,.6)',  text: 'var(--warning)'     },
 };
 
 interface KpiCardProps {
@@ -57,11 +57,24 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
     : { transition: 'background-color .6s' };
 
   return (
-    <div style={{ background: 'var(--bg-card)', border: `1px solid ${c.border}`, boxShadow: c.glow, padding: '14px 16px', position: 'relative', overflow: 'hidden', minWidth: 0, ...flashBg }}>
+    <div
+      className="kpi-card"
+      data-mod={mod}
+      style={{
+        background: 'var(--bg-card)',
+        border: `2px solid ${c.border}`,
+        boxShadow: c.shadow,
+        padding: '14px 16px',
+        position: 'relative',
+        minWidth: 0,
+        transition: 'transform .15s, box-shadow .15s',
+        ...flashBg,
+      }}
+    >
       {/* Corner TL */}
-      <div className="kpi-corner" style={{ position: 'absolute', top: '-1px', left: '-1px', width: '10px', height: '10px', borderTop: `2px solid ${c.corner}`, borderLeft: `2px solid ${c.corner}`, pointerEvents: 'none' }} />
+      <div className="kpi-corner" style={{ position: 'absolute', top: '4px', left: '4px', width: '12px', height: '12px', borderTop: `2px solid ${c.corner}`, borderLeft: `2px solid ${c.corner}`, pointerEvents: 'none' }} />
       {/* Corner BR */}
-      <div className="kpi-corner" style={{ position: 'absolute', bottom: '-1px', right: '-1px', width: '10px', height: '10px', borderBottom: `2px solid ${c.corner}`, borderRight: `2px solid ${c.corner}`, pointerEvents: 'none' }} />
+      <div className="kpi-corner" style={{ position: 'absolute', bottom: '4px', right: '4px', width: '12px', height: '12px', borderBottom: `2px solid ${c.corner}`, borderRight: `2px solid ${c.corner}`, pointerEvents: 'none' }} />
 
       {/* Label row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
@@ -69,7 +82,7 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
         <span style={{ fontSize: '13px', color: 'var(--text-muted)', opacity: 0.5, flexShrink: 0, marginLeft: '4px' }}>{icon}</span>
       </div>
 
-      {/* Value */}
+      {/* Value — all KPI cards share --fs-disp-lg for consistent main number size */}
       <div className="kpi-val" style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-lg)', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {value}
       </div>
@@ -85,12 +98,14 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
 };
 
 // Currency display with superscript decimal: $21,138⁶⁵
-const CurrencyValue = ({ val, color, size = 24 }: { val: number; color: string; size?: number }) => {
+// Inherits parent .kpi-val font-size (--fs-disp-lg) so all KPI cards share one size.
+// Sup uses em → automatically 55% of the parent's computed pixel size.
+const CurrencyValue = ({ val, color }: { val: number; color: string }) => {
   const [int, dec] = splitNum(val);
   const prefix = val < 0 ? '-$' : '$';
   return (
-    <span style={{ color, fontSize: `${size}px`, fontFamily: "'VT323'" }}>
-      {prefix}{int}<sup style={{ fontSize: `${Math.round(size * 0.6)}px`, color: 'var(--text-muted)', verticalAlign: 'super' }}>.{dec}</sup>
+    <span style={{ color }}>
+      {prefix}{int}<sup style={{ fontSize: '.55em', color: 'var(--text-muted)', verticalAlign: 'super' }}>.{dec}</sup>
     </span>
   );
 };
@@ -107,7 +122,7 @@ export const SummaryCards = ({ stats }: Props) => {
 
   return (
     <>
-      <div className="summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px' }}>
+      <div className="summary-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
 
         {/* 1 ACCOUNTS */}
         <KpiCard
@@ -118,7 +133,7 @@ export const SummaryCards = ({ stats }: Props) => {
           value={
             <span style={{ color: COLORS[acctMod].text }}>
               {stats.onlineAccounts}
-              <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}> / {stats.totalAccounts}</span>
+              <span style={{ fontSize: '.5em', color: 'var(--text-muted)' }}> / {stats.totalAccounts}</span>
             </span>
           }
           sub={hasOffline
@@ -176,19 +191,21 @@ export const SummaryCards = ({ stats }: Props) => {
           icon={<span style={{ color: COLORS[pendingMod].text, opacity: 0.7 }}>□</span>}
           mod={pendingMod}
           watchValue={stats.totalPendingOrders}
-          value={<span style={{ color: COLORS[pendingMod].text, fontSize: 'var(--fs-disp-md)' }}>{stats.totalPendingOrders}</span>}
+          value={<span style={{ color: COLORS[pendingMod].text }}>{stats.totalPendingOrders}</span>}
           sub="total pending"
         />
       </div>
 
       <style>{`
-        /* Tablet 769–1100px: 3 cols */
-        @media (min-width: 769px) and (max-width: 1100px) {
-          .summary-grid { grid-template-columns: repeat(3, 1fr) !important; }
-        }
-        /* Mobile ≤768px: 2 cols, hide corner brackets — kpi-val auto-scales via --fs-disp-lg token */
+        /* Hover lift — pixel-art shadow grows + card translates up-left (per mockup) */
+        .kpi-card[data-mod="cyan"]:hover   { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(56,189,248,.35) !important; }
+        .kpi-card[data-mod="green"]:hover  { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(34,197,94,.35)  !important; }
+        .kpi-card[data-mod="red"]:hover    { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(239,68,68,.35)  !important; }
+        .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(250,204,21,.35) !important; }
+
+        /* Mobile ≤768px: 2 cols + tighter padding + hide corner brackets */
         @media (max-width: 768px) {
-          .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
           .kpi-corner { display: none !important; }
         }
       `}</style>
