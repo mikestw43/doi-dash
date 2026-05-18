@@ -8,10 +8,21 @@ interface Props {
   accent?: 'blue' | 'yellow';
 }
 
-const fmtMoney = (v: number) =>
+const fmtMoneyFull = (v: number) =>
   Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const signedMoney = (v: number) => (v >= 0 ? `+$${fmtMoney(v)}` : `-$${fmtMoney(v)}`);
+const signedFull = (v: number) => (v >= 0 ? `+$${fmtMoneyFull(v)}` : `-$${fmtMoneyFull(v)}`);
+
+/** Compact money: $5,238.55 → $5.2k, $1,234,567 → $1.2M, sub-1k stays in dollars. */
+function fmtMoneyK(v: number): string {
+  const abs = Math.abs(v);
+  const sign = v < 0 ? '-' : '';
+  if (abs < 1000) return `${sign}$${abs.toFixed(0)}`;
+  if (abs < 1e6)  return `${sign}$${(abs / 1000).toFixed(1)}k`;
+  return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+}
+
+const signedK = (v: number) => (v >= 0 ? `+${fmtMoneyK(v).replace('-', '')}` : fmtMoneyK(v));
 
 const ddColor = (dd: number, offline: boolean) => {
   if (offline) return 'var(--danger)';
@@ -23,9 +34,20 @@ const ddColor = (dd: number, offline: boolean) => {
 const plColor = (v: number) => (v > 0 ? 'var(--success)' : v < 0 ? 'var(--danger)' : 'var(--text-muted)');
 
 /**
+ * Money cell — full precision on desktop, k-unit on mobile. Each row
+ * renders both spans; CSS hides the one that doesn't match the viewport.
+ */
+const Money = ({ value, signed = false }: { value: number; signed?: boolean }) => (
+  <>
+    <span className="num-full">{signed ? signedFull(value) : `$${fmtMoneyFull(value)}`}</span>
+    <span className="num-k">{signed ? signedK(value) : fmtMoneyK(value)}</span>
+  </>
+);
+
+/**
  * Tabular view of accounts.
- * Mobile (≤768px) shows only the 4 essential columns — no horizontal scroll.
- * Desktop adds broker, equity, drawdown%, lots, margin level.
+ * Mobile (≤768px) shows only Name, Today P/L, Floating, DD% — no horizontal scroll.
+ * Desktop adds balance, equity, broker, lots, margin level.
  */
 export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
   const accentColor = accent === 'yellow' ? 'var(--warning)' : 'var(--accent-blue)';
@@ -68,14 +90,14 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
           <tr>
             <th style={{ ...thStyle, width: '24px', padding: '8px 4px 8px 10px' }}>{/* status dot */}</th>
             <th style={thStyle}>NAME</th>
-            <th className="col-broker" style={thStyle}>BROKER</th>
-            <th style={{ ...thStyle, textAlign: 'right' }}>BALANCE</th>
-            <th className="col-equity" style={{ ...thStyle, textAlign: 'right' }}>EQUITY</th>
+            <th className="col-broker"  style={thStyle}>BROKER</th>
+            <th className="col-balance" style={{ ...thStyle, textAlign: 'right' }}>BALANCE</th>
+            <th className="col-equity"  style={{ ...thStyle, textAlign: 'right' }}>EQUITY</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>TODAY</th>
-            <th className="col-floating" style={{ ...thStyle, textAlign: 'right' }}>FLOATING</th>
-            <th className="col-dd" style={{ ...thStyle, textAlign: 'right' }}>DD%</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>FLOATING</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>DD%</th>
             <th className="col-lots" style={{ ...thStyle, textAlign: 'right' }}>LOTS</th>
-            <th className="col-ml" style={{ ...thStyle, textAlign: 'right' }}>ML%</th>
+            <th className="col-ml"   style={{ ...thStyle, textAlign: 'right' }}>ML%</th>
           </tr>
         </thead>
         <tbody>
@@ -109,23 +131,23 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
 
                 <td className="col-broker" style={{ ...tdStyle, color: 'var(--text-muted)' }}>{a.broker}</td>
 
-                <td style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  ${fmtMoney(a.balance)}
+                <td className="col-balance" style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
+                  <Money value={a.balance} />
                 </td>
 
                 <td className="col-equity" style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  ${fmtMoney(a.equity)}
+                  <Money value={a.equity} />
                 </td>
 
                 <td style={{ ...tdStyle, textAlign: 'right', color: plColor(today), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  {signedMoney(today)}
+                  <Money value={today} signed />
                 </td>
 
-                <td className="col-floating" style={{ ...tdStyle, textAlign: 'right', color: plColor(a.profit), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
-                  {signedMoney(a.profit)}
+                <td style={{ ...tdStyle, textAlign: 'right', color: plColor(a.profit), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
+                  <Money value={a.profit} signed />
                 </td>
 
-                <td className="col-dd" style={{ ...tdStyle, textAlign: 'right', color: ddColor(a.drawdown, offline) }}>
+                <td style={{ ...tdStyle, textAlign: 'right', color: ddColor(a.drawdown, offline) }}>
                   {formatPercent(a.drawdown)}
                 </td>
 
@@ -144,15 +166,29 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
 
       <style>{`
         .bot-table-wrap .bot-row:hover { background: rgba(56,189,248,.04); }
+
+        /* Default (desktop): show full money, hide k-format */
+        .bot-table-wrap .num-k { display: none; }
+
         @media (max-width: 768px) {
           .bot-table-wrap { overflow-x: hidden !important; }
+
+          /* Swap money formats */
+          .bot-table-wrap .num-full { display: none; }
+          .bot-table-wrap .num-k    { display: inline; }
+
+          /* Hide non-essential columns */
           .bot-table-wrap .col-broker,
+          .bot-table-wrap .col-balance,
           .bot-table-wrap .col-equity,
-          .bot-table-wrap .col-floating,
-          .bot-table-wrap .col-dd,
           .bot-table-wrap .col-lots,
           .bot-table-wrap .col-ml { display: none !important; }
-          .bot-table-wrap th, .bot-table-wrap td { padding: 8px 6px !important; }
+
+          /* Tighten padding so 5 visible columns fit ~375px */
+          .bot-table-wrap th,
+          .bot-table-wrap td { padding: 8px 6px !important; }
+          .bot-table-wrap th:first-child,
+          .bot-table-wrap td:first-child { padding-left: 8px !important; }
         }
       `}</style>
     </div>
