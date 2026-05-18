@@ -199,10 +199,12 @@ export const SummaryCards = ({ stats }: Props) => {
         .kpi-card[data-mod="red"]:hover    { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(239,68,68,.35),   inset 0 0 20px rgba(239,68,68,.06)   !important; }
         .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(250,204,21,.35),  inset 0 0 20px rgba(250,204,21,.06)  !important; }
 
-        /* Mobile ≤768px: 2 cols + tighter padding inside cards */
+        /* Mobile ≤768px: 2 cols, compact cards so all 6 fit one screen.
+           Tighter padding + smaller display number + reduced gaps. */
         @media (max-width: 768px) {
-          .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-          .kpi-card { padding: 14px 16px !important; }
+          .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .kpi-card { padding: 10px 12px !important; }
+          .kpi-card .kpi-val { font-size: 28px !important; }
         }
       `}</style>
     </>
