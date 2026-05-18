@@ -258,28 +258,16 @@
       box-shadow: 6px 6px 0 rgba(56,189,248,.35);
     }
   }
-  .kpi-card::before, .kpi-card::after {
-    content: '';
-    position: absolute;
-    width: 13px; height: 13px;
-    pointer-events: none; z-index: 2;
-    border-color: var(--accent-blue);
-    border-style: solid;
-  }
-  .kpi-card::before { top: 5px; left: 5px; border-width: 2px 0 0 2px; }
-  .kpi-card::after  { bottom: 5px; right: 5px; border-width: 0 2px 2px 0; }
   .kpi-card.kpi-red {
     border-color: var(--danger);
     box-shadow: 4px 4px 0 rgba(239,68,68,.3);
   }
   @media (hover: hover) { .kpi-card.kpi-red:hover { box-shadow: 6px 6px 0 rgba(239,68,68,.35); } }
-  .kpi-card.kpi-red::before, .kpi-card.kpi-red::after { border-color: var(--danger); }
   .kpi-card.kpi-yellow {
     border-color: var(--warning);
     box-shadow: 4px 4px 0 rgba(250,204,21,.3);
   }
   @media (hover: hover) { .kpi-card.kpi-yellow:hover { box-shadow: 6px 6px 0 rgba(250,204,21,.35); } }
-  .kpi-card.kpi-yellow::before, .kpi-card.kpi-yellow::after { border-color: var(--warning); }
 
   /* ── Bot card — pixel-art shadow ── */
   .bot-card {
@@ -298,28 +286,16 @@
       box-shadow: 6px 6px 0 rgba(56,189,248,.35);
     }
   }
-  .bot-card::before, .bot-card::after {
-    content: '';
-    position: absolute;
-    width: 13px; height: 13px;
-    pointer-events: none; z-index: 2;
-    border-color: var(--accent-blue);
-    border-style: solid;
-  }
-  .bot-card::before { top: 5px; left: 5px; border-width: 2px 0 0 2px; }
-  .bot-card::after  { bottom: 5px; right: 5px; border-width: 0 2px 2px 0; }
   .bot-card.bc-offline {
     border-color: var(--danger);
     box-shadow: 4px 4px 0 rgba(239,68,68,.3);
   }
   @media (hover: hover) { .bot-card.bc-offline:hover { box-shadow: 6px 6px 0 rgba(239,68,68,.35); } }
-  .bot-card.bc-offline::before, .bot-card.bc-offline::after { border-color: var(--danger); }
   .bot-card.bc-demo {
     border-color: var(--warning);
     box-shadow: 4px 4px 0 rgba(250,204,21,.25);
   }
   @media (hover: hover) { .bot-card.bc-demo:hover { box-shadow: 6px 6px 0 rgba(250,204,21,.35); } }
-  .bot-card.bc-demo::before, .bot-card.bc-demo::after { border-color: var(--warning); }
 
   /* ── Auth box ── */
   .auth-box {
