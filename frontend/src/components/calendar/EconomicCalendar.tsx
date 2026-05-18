@@ -349,42 +349,47 @@ export const EconomicCalendar = () => {
 
   return (
     <div>
-      {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
-              ECONOMIC CALENDAR
+      {/* ── Header — single row: dot, title, HIGH badge, refresh icon (right) ── */}
+      <div style={{ marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+            ECONOMIC CALENDAR
+          </span>
+          {todayHighCount > 0 && (
+            <span style={{
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              padding: '3px 8px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--red)',
+              flexShrink: 0,
+            }}>
+              <span style={{ width: '5px', height: '5px', background: 'var(--red)', display: 'inline-block' }} />
+              {todayHighCount} HIGH TODAY
             </span>
-            {todayHighCount > 0 && (
-              <span style={{
-                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-                display: 'inline-flex', alignItems: 'center', gap: '5px',
-                padding: '3px 8px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--red)',
-              }}>
-                <span style={{ width: '5px', height: '5px', background: 'var(--red)', display: 'inline-block' }} />
-                {todayHighCount} HIGH TODAY
-              </span>
-            )}
-          </div>
-          <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '15px' }}>
-            ForexFactory · cached 30min · local timezone
-          </p>
+          )}
+          {/* Refresh — icon-only, pushed to the far right of the title row. */}
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title={isFetching ? 'Refreshing…' : 'Refresh calendar'}
+            style={{
+              marginLeft: 'auto', flexShrink: 0,
+              width: '28px', height: '28px',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px', lineHeight: 1,
+              background: 'none', border: '1px solid var(--border2)',
+              color: isFetching ? 'var(--text-dim)' : 'var(--text)',
+              cursor: isFetching ? 'not-allowed' : 'pointer',
+              opacity: isFetching ? .5 : 1,
+              padding: 0,
+            }}
+          >
+            ↻
+          </button>
         </div>
-        <button
-          onClick={() => refetch()}
-          disabled={isFetching}
-          style={{
-            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-            padding: '7px 12px', background: 'none', border: '1px solid var(--border2)',
-            color: isFetching ? 'var(--text-dim)' : 'var(--text)',
-            cursor: isFetching ? 'not-allowed' : 'pointer',
-            opacity: isFetching ? .5 : 1,
-          }}
-        >
-          ↻ {isFetching ? 'REFRESHING...' : 'REFRESH'}
-        </button>
+        <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '15px' }}>
+          ForexFactory · cached 30min · local timezone
+        </p>
       </div>
 
       {/* ── Filters ── */}
