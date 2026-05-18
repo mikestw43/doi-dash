@@ -31,11 +31,11 @@ function splitNum(val: number, dp = 2): [string, string] {
 
 type Modifier = 'cyan' | 'green' | 'red' | 'yellow';
 
-const COLORS: Record<Modifier, { border: string; shadow: string; shadowHover: string; corner: string; text: string }> = {
-  cyan:   { border: 'var(--accent-blue)', shadow: '4px 4px 0 rgba(56,189,248,.3)',  shadowHover: '6px 6px 0 rgba(56,189,248,.35)',  corner: 'rgba(56,189,248,.5)',  text: 'var(--accent-blue)' },
-  green:  { border: 'var(--success)',     shadow: '4px 4px 0 rgba(34,197,94,.3)',   shadowHover: '6px 6px 0 rgba(34,197,94,.35)',   corner: 'rgba(34,197,94,.6)',   text: 'var(--success)'     },
-  red:    { border: 'var(--danger)',      shadow: '4px 4px 0 rgba(239,68,68,.3)',   shadowHover: '6px 6px 0 rgba(239,68,68,.35)',   corner: 'rgba(239,68,68,.6)',   text: 'var(--danger)'      },
-  yellow: { border: 'var(--warning)',     shadow: '4px 4px 0 rgba(250,204,21,.3)',  shadowHover: '6px 6px 0 rgba(250,204,21,.35)',  corner: 'rgba(250,204,21,.6)',  text: 'var(--warning)'     },
+const COLORS: Record<Modifier, { border: string; shadow: string; text: string; rgb: string }> = {
+  cyan:   { border: 'var(--accent-blue)', shadow: '4px 4px 0 rgba(56,189,248,.3),  inset 0 0 20px rgba(56,189,248,.04)',  text: 'var(--accent-blue)', rgb: '56,189,248' },
+  green:  { border: 'var(--success)',     shadow: '4px 4px 0 rgba(34,197,94,.3),   inset 0 0 20px rgba(34,197,94,.04)',   text: 'var(--success)',     rgb: '34,197,94'  },
+  red:    { border: 'var(--danger)',      shadow: '4px 4px 0 rgba(239,68,68,.3),   inset 0 0 20px rgba(239,68,68,.04)',   text: 'var(--danger)',      rgb: '239,68,68'  },
+  yellow: { border: 'var(--warning)',     shadow: '4px 4px 0 rgba(250,204,21,.3),  inset 0 0 20px rgba(250,204,21,.04)',  text: 'var(--warning)',     rgb: '250,204,21' },
 };
 
 interface KpiCardProps {
@@ -64,7 +64,7 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
         background: 'var(--bg-card)',
         border: `2px solid ${c.border}`,
         boxShadow: c.shadow,
-        padding: '14px 16px',
+        padding: '18px 20px',
         position: 'relative',
         minWidth: 0,
         transition: 'transform .15s, box-shadow .15s',
@@ -73,8 +73,8 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
     >
       {/* Label row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1.4 }}>{label}</span>
-        <span style={{ fontSize: '13px', color: 'var(--text-muted)', opacity: 0.5, flexShrink: 0, marginLeft: '4px' }}>{icon}</span>
+        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1.4 }}>{label}</span>
+        <span style={{ fontSize: '18px', color: 'var(--text-muted)', opacity: 0.35, flexShrink: 0, marginLeft: '4px', lineHeight: 1 }}>{icon}</span>
       </div>
 
       {/* Value — all KPI cards share --fs-disp-lg for consistent main number size */}
@@ -92,15 +92,15 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
   );
 };
 
-// Currency display: $21,138.97 — decimal inline on the same baseline as the integer
-// (slightly dimmed so the integer still reads as the primary value).
-// Inherits parent .kpi-val font-size (--fs-disp-lg) so all KPI cards share one size.
+// Currency display: $21,138.97 — decimal inline on the same baseline as the
+// integer but at ~55% size so the integer still reads as primary. Inherits
+// parent .kpi-val font-size (--fs-disp-lg).
 const CurrencyValue = ({ val, color }: { val: number; color: string }) => {
   const [int, dec] = splitNum(val);
   const prefix = val < 0 ? '-$' : '$';
   return (
     <span style={{ color }}>
-      {prefix}{int}<span style={{ color: 'var(--text-muted)' }}>.{dec}</span>
+      {prefix}{int}<span style={{ fontSize: '.55em', color: 'var(--text-muted)' }}>.{dec}</span>
     </span>
   );
 };
@@ -192,15 +192,17 @@ export const SummaryCards = ({ stats }: Props) => {
       </div>
 
       <style>{`
-        /* Hover lift — pixel-art shadow grows + card translates up-left (per mockup) */
-        .kpi-card[data-mod="cyan"]:hover   { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(56,189,248,.35) !important; }
-        .kpi-card[data-mod="green"]:hover  { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(34,197,94,.35)  !important; }
-        .kpi-card[data-mod="red"]:hover    { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(239,68,68,.35)  !important; }
-        .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(250,204,21,.35) !important; }
+        /* Hover lift — pixel-art shadow grows + inner glow intensifies. !important
+           required because the default shadow is set inline on each card. */
+        .kpi-card[data-mod="cyan"]:hover   { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(56,189,248,.35),  inset 0 0 20px rgba(56,189,248,.06)  !important; }
+        .kpi-card[data-mod="green"]:hover  { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(34,197,94,.35),   inset 0 0 20px rgba(34,197,94,.06)   !important; }
+        .kpi-card[data-mod="red"]:hover    { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(239,68,68,.35),   inset 0 0 20px rgba(239,68,68,.06)   !important; }
+        .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(250,204,21,.35),  inset 0 0 20px rgba(250,204,21,.06)  !important; }
 
-        /* Mobile ≤768px: 2 cols */
+        /* Mobile ≤768px: 2 cols + tighter padding inside cards */
         @media (max-width: 768px) {
           .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+          .kpi-card { padding: 14px 16px !important; }
         }
       `}</style>
     </>

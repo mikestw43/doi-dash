@@ -21,6 +21,7 @@ import { cleanOldTrades } from './services/tradeHistoryService';
 import { cleanOldAuditLogs, cleanOldNotificationLogs } from './services/retentionService';
 import { reportScheduler } from './services/reportScheduler';
 import { errorHandler } from './middleware/errorHandler';
+import { warmFxCache } from './services/fxService';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -60,6 +61,9 @@ const server = http.createServer(app);
 runtimeStore.initialize().then(() => {
   initWebSocket(server);
   reportScheduler.start();
+  // Warm the FX cache (used for KPI USD aggregation). Non-blocking — if the
+  // refresh fails the cache is empty and rates fall back to 1.0.
+  warmFxCache().catch(() => { /* logged inside fxService */ });
   server.listen(PORT, () => {
     console.log(`[SENTINEL] Backend running on http://localhost:${PORT}`);
   });

@@ -242,38 +242,60 @@
   .card::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
   .card::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
 
-  /* ── KPI card — pixel-art shadow ── */
+  /* ── KPI card — pixel-art drop shadow + inner glow (lifts card off page bg) ── */
   .kpi-card {
     background: var(--bg-card);
     border: 2px solid var(--accent-blue);
-    box-shadow: 4px 4px 0 rgba(56,189,248,.3);
+    box-shadow:
+      4px 4px 0 rgba(56,189,248,.3),
+      inset 0 0 20px rgba(56,189,248,.04);
     position: relative;
     overflow: visible;
-    padding: 14px 16px;
+    padding: 18px 20px;
     transition: transform .15s, box-shadow .15s;
   }
   @media (hover: hover) {
     .kpi-card:hover {
       transform: translate(-3px,-3px);
-      box-shadow: 6px 6px 0 rgba(56,189,248,.35);
+      box-shadow:
+        6px 6px 0 rgba(56,189,248,.35),
+        inset 0 0 20px rgba(56,189,248,.06);
     }
   }
   .kpi-card.kpi-red {
     border-color: var(--danger);
-    box-shadow: 4px 4px 0 rgba(239,68,68,.3);
+    box-shadow:
+      4px 4px 0 rgba(239,68,68,.3),
+      inset 0 0 20px rgba(239,68,68,.04);
   }
-  @media (hover: hover) { .kpi-card.kpi-red:hover { box-shadow: 6px 6px 0 rgba(239,68,68,.35); } }
+  @media (hover: hover) {
+    .kpi-card.kpi-red:hover {
+      box-shadow:
+        6px 6px 0 rgba(239,68,68,.35),
+        inset 0 0 20px rgba(239,68,68,.06);
+    }
+  }
   .kpi-card.kpi-yellow {
     border-color: var(--warning);
-    box-shadow: 4px 4px 0 rgba(250,204,21,.3);
+    box-shadow:
+      4px 4px 0 rgba(250,204,21,.3),
+      inset 0 0 20px rgba(250,204,21,.04);
   }
-  @media (hover: hover) { .kpi-card.kpi-yellow:hover { box-shadow: 6px 6px 0 rgba(250,204,21,.35); } }
+  @media (hover: hover) {
+    .kpi-card.kpi-yellow:hover {
+      box-shadow:
+        6px 6px 0 rgba(250,204,21,.35),
+        inset 0 0 20px rgba(250,204,21,.06);
+    }
+  }
 
-  /* ── Bot card — pixel-art shadow ── */
+  /* ── Bot card — pixel-art drop shadow + inner glow ── */
   .bot-card {
     background: var(--bg-card);
     border: 2px solid var(--accent-blue);
-    box-shadow: 4px 4px 0 rgba(56,189,248,.3);
+    box-shadow:
+      4px 4px 0 rgba(56,189,248,.3),
+      inset 0 0 20px rgba(56,189,248,.04);
     position: relative;
     overflow: visible; /* allow group picker dropdown & position panel to escape */
     display: flex;
@@ -283,19 +305,37 @@
   @media (hover: hover) {
     .bot-card:hover {
       transform: translate(-3px,-3px);
-      box-shadow: 6px 6px 0 rgba(56,189,248,.35);
+      box-shadow:
+        6px 6px 0 rgba(56,189,248,.35),
+        inset 0 0 20px rgba(56,189,248,.06);
     }
   }
   .bot-card.bc-offline {
     border-color: var(--danger);
-    box-shadow: 4px 4px 0 rgba(239,68,68,.3);
+    box-shadow:
+      4px 4px 0 rgba(239,68,68,.3),
+      inset 0 0 20px rgba(239,68,68,.04);
   }
-  @media (hover: hover) { .bot-card.bc-offline:hover { box-shadow: 6px 6px 0 rgba(239,68,68,.35); } }
+  @media (hover: hover) {
+    .bot-card.bc-offline:hover {
+      box-shadow:
+        6px 6px 0 rgba(239,68,68,.35),
+        inset 0 0 20px rgba(239,68,68,.06);
+    }
+  }
   .bot-card.bc-demo {
     border-color: var(--warning);
-    box-shadow: 4px 4px 0 rgba(250,204,21,.25);
+    box-shadow:
+      4px 4px 0 rgba(250,204,21,.25),
+      inset 0 0 20px rgba(250,204,21,.04);
   }
-  @media (hover: hover) { .bot-card.bc-demo:hover { box-shadow: 6px 6px 0 rgba(250,204,21,.35); } }
+  @media (hover: hover) {
+    .bot-card.bc-demo:hover {
+      box-shadow:
+        6px 6px 0 rgba(250,204,21,.35),
+        inset 0 0 20px rgba(250,204,21,.06);
+    }
+  }
 
   /* ── Auth box ── */
   .auth-box {

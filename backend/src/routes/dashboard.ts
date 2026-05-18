@@ -1,17 +1,11 @@
 import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { runtimeStore } from '../services/runtimeStore';
+import { toUsd } from '../services/fxService';
 import prisma from '../lib/prisma';
 
 const router = Router();
 router.use(authMiddleware);
-
-// Convert cents-based currencies to USD for aggregation
-const toUsd = (value: number, currency: string): number => {
-  const cur = currency.toUpperCase();
-  if (cur === 'USC' || cur === 'UST' || cur === 'USDC') return value / 100;
-  return value;
-};
 
 router.get('/overview', (req: AuthRequest, res: Response) => {
   const allAccounts = runtimeStore.getAccountsByUser(req.user!.id);
@@ -43,7 +37,7 @@ router.get('/overview', (req: AuthRequest, res: Response) => {
 });
 
 router.get('/heatmap/accounts', (req: AuthRequest, res: Response) => {
-  const accounts = runtimeStore.getAccountsByUser(req.user!.id);
+  const accounts = runtimeStore.getAccountsByUser(req.user!.id).filter(a => !a.isDemo);
   const data = accounts.map(a => ({
     id: a.id,
     name: a.name,
@@ -60,7 +54,7 @@ router.get('/heatmap/accounts', (req: AuthRequest, res: Response) => {
 });
 
 router.get('/heatmap/orders', (req: AuthRequest, res: Response) => {
-  const accounts = runtimeStore.getAccountsByUser(req.user!.id);
+  const accounts = runtimeStore.getAccountsByUser(req.user!.id).filter(a => !a.isDemo);
   const orders: object[] = [];
   accounts.forEach(account => {
     account.orders.forEach(order => {
@@ -80,7 +74,7 @@ router.get('/heatmap/orders', (req: AuthRequest, res: Response) => {
 });
 
 router.get('/heatmap/pending', (req: AuthRequest, res: Response) => {
-  const accounts = runtimeStore.getAccountsByUser(req.user!.id);
+  const accounts = runtimeStore.getAccountsByUser(req.user!.id).filter(a => !a.isDemo);
   const pending: object[] = [];
   accounts.forEach(account => {
     account.pending.forEach(order => {
@@ -97,7 +91,7 @@ router.get('/heatmap/pending', (req: AuthRequest, res: Response) => {
 
 // Today's closed P/L per account — uses broker server time to match MT5 "Today"
 router.get('/today-pnl', async (req: AuthRequest, res: Response) => {
-  const accounts = runtimeStore.getAccountsByUser(req.user!.id);
+  const accounts = runtimeStore.getAccountsByUser(req.user!.id).filter(a => !a.isDemo);
 
   // Build per-account broker offset map (default GMT+2 = 7200s, most common MT5 broker)
   const offsetMap = new Map<string, number>();
