@@ -99,6 +99,56 @@ router.patch('/preferences', async (req: AuthRequest, res: Response) => {
   res.json(updated);
 });
 
+// --- Live Ticker Symbols ---
+
+// Default set if the user hasn't customized yet. Keep in sync with the
+// frontend Header.tsx DEFAULT_TICKER_SYMBOLS.
+const DEFAULT_TICKER_SYMBOLS = [
+  'BTCUSD', 'XAUUSD', 'XAGUSD', 'US30',
+  'GBPUSD', 'GBPJPY', 'USDJPY', 'EURUSD', 'USOIL',
+];
+
+// Sanitize a user-supplied list — uppercase, trim, dedupe, drop empties,
+// cap at 20 to avoid abuse.
+const sanitizeTickerSymbols = (raw: unknown): string[] => {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of raw) {
+    if (typeof item !== 'string') continue;
+    const s = item.trim().toUpperCase();
+    if (!s || seen.has(s)) continue;
+    if (!/^[A-Z0-9/]{2,12}$/.test(s)) continue;
+    seen.add(s);
+    out.push(s);
+    if (out.length >= 20) break;
+  }
+  return out;
+};
+
+// GET /api/settings/ticker
+router.get('/ticker', async (req: AuthRequest, res: Response) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user!.id },
+    select: { tickerSymbols: true },
+  });
+  const stored = user?.tickerSymbols as string[] | null | undefined;
+  const symbols = stored && Array.isArray(stored) && stored.length > 0
+    ? stored
+    : DEFAULT_TICKER_SYMBOLS;
+  res.json({ symbols });
+});
+
+// PUT /api/settings/ticker  { symbols: string[] }
+router.put('/ticker', async (req: AuthRequest, res: Response) => {
+  const symbols = sanitizeTickerSymbols((req.body as { symbols?: unknown })?.symbols);
+  await prisma.user.update({
+    where: { id: req.user!.id },
+    data: { tickerSymbols: symbols.length > 0 ? symbols : undefined },
+  });
+  res.json({ symbols });
+});
+
 // --- Drawdown Protection (per account) ---
 
 // GET /api/settings/protection/:accountId

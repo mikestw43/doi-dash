@@ -29,6 +29,8 @@ model User {
   language         String    @default("en")
   theme            String    @default("dark")
   timezone         String    @default("Asia/Bangkok")
+  // Live ticker symbols (JSON array of strings). Null = use server default.
+  tickerSymbols    Json?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastLoginAt      DateTime?
