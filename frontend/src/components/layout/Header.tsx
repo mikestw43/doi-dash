@@ -433,8 +433,10 @@ export const Header = () => {
         @media (max-width: 768px) {
           .header-nav {
             grid-template-columns: auto 1fr !important;
-            padding: 0 10px !important;
-            height: 48px !important;
+            /* env() keeps the nav background under the notch while pushing
+               logo + menu button into the tappable area below it. */
+            padding: env(safe-area-inset-top) 10px 0 !important;
+            height: calc(48px + env(safe-area-inset-top)) !important;
           }
           .header-center { display: none !important; }
           /* Keep wifi widget visible on mobile but compact: bars only, hide LIVE/12ms text */
