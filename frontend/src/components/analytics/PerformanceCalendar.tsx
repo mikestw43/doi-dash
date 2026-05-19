@@ -9,17 +9,23 @@ interface Props {
 const MONTHS_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 /**
- * Cell formatter — designed to fit ~6 characters per cell so the bigger
- * VT font doesn't overflow the day box. Backend already returns USD.
- *   < $1000: 2 decimals, e.g. +$23.45 / -$8.50
- *   ≥ $1000 < $1M: 1 decimal with 'k', e.g. +$1.2k / -$12.4k
- *   ≥ $1M: 2 decimals with 'M', e.g. +$1.25M
+ * Cell formatter — hard 6-character cap so the bigger VT font never
+ * overflows the day box. Backend already returns USD.
+ *   < $10        → +$X.XX  (6 chars, 2 decimals)
+ *   $10 – $99    → +$XX.X  (6 chars, 1 decimal)
+ *   $100 – $999  → +$XXX   (5 chars, no decimals)
+ *   $1k – $9.9k  → +$X.Xk  (6 chars, 1 decimal)
+ *   $10k – $999k → +$XXk / +$XXXk (5-6 chars, no decimals)
+ *   ≥ $1M        → +$X.XM  (6 chars, 1 decimal)
  */
 const fmtCell = (n: number): string => {
   const abs = Math.abs(n);
   const sign = n >= 0 ? '+' : '-';
-  if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+  if (abs >= 1e6)  return `${sign}$${(abs / 1e6).toFixed(1)}M`;
+  if (abs >= 1e4)  return `${sign}$${Math.round(abs / 1000)}k`;
   if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+  if (abs >= 100)  return `${sign}$${Math.round(abs)}`;
+  if (abs >= 10)   return `${sign}$${abs.toFixed(1)}`;
   return `${sign}$${abs.toFixed(2)}`;
 };
 
@@ -276,7 +282,8 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     {pnl !== undefined && (
                       <span className="pcal-pnl" style={{
                         display: 'block', fontFamily: "'VT323'",
-                        fontSize: '26px', lineHeight: 1, color: pnlColor,
+                        fontSize: '24px', lineHeight: 1, color: pnlColor,
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                       }}>
                         {fmtCell(pnl)}
                       </span>
@@ -305,7 +312,8 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     </span>
                     <span className="pcal-pnl" style={{
                       display: 'block', fontFamily: "'VT323'",
-                      fontSize: '26px', lineHeight: 1, color: weekColor,
+                      fontSize: '24px', lineHeight: 1, color: weekColor,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                     }}>
                       {hasDay ? fmtCell(weekSum) : '—'}
                     </span>
