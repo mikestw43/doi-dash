@@ -17,6 +17,7 @@ router.get('/overview', (req: AuthRequest, res: Response) => {
   const totalBalance = accounts.reduce((s, a) => s + toUsd(a.balance, a.currency), 0);
   const totalEquity = accounts.reduce((s, a) => s + toUsd(a.equity, a.currency), 0);
   const totalProfit = accounts.reduce((s, a) => s + toUsd(a.profit, a.currency), 0);
+  const totalTodayPnl = accounts.reduce((s, a) => s + toUsd(a.todayPnl ?? 0, a.currency), 0);
   const totalOpenLots = accounts.reduce((s, a) => s + a.openLots, 0);
   const totalBuyLots = accounts.reduce((s, a) => s + a.buyLots, 0);
   const totalSellLots = accounts.reduce((s, a) => s + a.sellLots, 0);
@@ -29,6 +30,7 @@ router.get('/overview', (req: AuthRequest, res: Response) => {
     totalBalance: parseFloat(totalBalance.toFixed(2)),
     totalEquity: parseFloat(totalEquity.toFixed(2)),
     totalProfit: parseFloat(totalProfit.toFixed(2)),
+    totalTodayPnl: parseFloat(totalTodayPnl.toFixed(2)),
     totalOpenLots: parseFloat(totalOpenLots.toFixed(2)),
     totalBuyLots: parseFloat(totalBuyLots.toFixed(2)),
     totalSellLots: parseFloat(totalSellLots.toFixed(2)),

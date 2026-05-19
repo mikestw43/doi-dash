@@ -75,6 +75,7 @@ export interface OverviewStats {
   totalBalance: number;
   totalEquity: number;
   totalProfit: number;
+  totalTodayPnl: number;
   totalOpenLots: number;
   totalBuyLots: number;
   totalSellLots: number;

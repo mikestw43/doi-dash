@@ -112,7 +112,12 @@ export const SummaryCards = ({ stats }: Props) => {
 
   const acctMod:    Modifier = hasOffline ? 'yellow' : 'cyan';
   const equityMod:  Modifier = equityChange > 0 ? 'green' : equityChange < 0 ? 'red' : 'cyan';
-  const plMod:      Modifier = stats.totalProfit > 0 ? 'green' : stats.totalProfit < 0 ? 'red' : 'cyan';
+  // KPI border + main number follow TODAY P/L (the primary signal). Sub
+  // line shows floating P/L with its own colour so a green TODAY with a
+  // red FLOATING is still readable at a glance.
+  const todayPnl    = stats.totalTodayPnl ?? 0;
+  const todayMod:   Modifier = todayPnl > 0 ? 'green' : todayPnl < 0 ? 'red' : 'cyan';
+  const floatColor  = stats.totalProfit > 0 ? 'var(--success)' : stats.totalProfit < 0 ? 'var(--danger)' : 'var(--text-muted)';
   const pendingMod: Modifier = stats.totalPendingOrders > 0 ? 'yellow' : 'cyan';
 
   return (
@@ -160,14 +165,22 @@ export const SummaryCards = ({ stats }: Props) => {
           }
         />
 
-        {/* 4 TOTAL P/L */}
+        {/* 4 TODAY P/L (main) + Floating (sub) */}
         <KpiCard
-          label="TOTAL P/L"
-          icon={<span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: COLORS[plMod].text, opacity: 0.8 }}>P/L</span>}
-          mod={plMod}
-          watchValue={stats.totalProfit}
-          value={<CurrencyValue val={stats.totalProfit} color={COLORS[plMod].text} />}
-          sub="Floating unrealized"
+          label="TODAY P/L"
+          icon={<span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: COLORS[todayMod].text, opacity: 0.8 }}>P/L</span>}
+          mod={todayMod}
+          watchValue={todayPnl}
+          value={<CurrencyValue val={todayPnl} color={COLORS[todayMod].text} />}
+          sub={
+            <span>
+              <span style={{ color: 'var(--text-muted)' }}>Floating </span>
+              <span style={{ color: floatColor }}>
+                {stats.totalProfit >= 0 ? '+$' : '-$'}
+                {Math.abs(stats.totalProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </span>
+          }
         />
 
         {/* 5 OPEN LOTS */}

@@ -1,5 +1,27 @@
+import { useRef, useEffect, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Account } from '../../types';
 import { formatLots, formatPercent } from '../../utils/formatters';
+
+/** Flash a green/red background on a <td> when `value` changes. */
+const FlashCell = ({ value, style, children }: { value: number; style?: CSSProperties; children: ReactNode }) => {
+  const prev = useRef(value);
+  const [flash, setFlash] = useState<'up' | 'dn' | null>(null);
+  useEffect(() => {
+    if (prev.current !== value) {
+      setFlash(value > prev.current ? 'up' : 'dn');
+      prev.current = value;
+      const t = setTimeout(() => setFlash(null), 600);
+      return () => clearTimeout(t);
+    }
+  }, [value]);
+  const bg = flash === 'up' ? 'rgba(34,197,94,.25)' : flash === 'dn' ? 'rgba(239,68,68,.25)' : undefined;
+  return (
+    <td style={{ ...style, backgroundColor: bg, transition: 'background-color .6s' }}>
+      {children}
+    </td>
+  );
+};
 
 interface Props {
   accounts: Account[];
@@ -158,9 +180,13 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                   <Money value={today} signed currency={a.currency} />
                 </td>
 
-                <td style={{ ...tdStyle, textAlign: 'right', color: plColor(a.profit), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
+                {/* Floating P/L — flashes green/red on change, same as card view */}
+                <FlashCell
+                  value={a.profit}
+                  style={{ ...tdStyle, textAlign: 'right', color: plColor(a.profit), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}
+                >
                   <Money value={a.profit} signed currency={a.currency} />
-                </td>
+                </FlashCell>
 
                 <td style={{ ...tdStyle, textAlign: 'right', color: ddColor(a.drawdown, offline) }}>
                   {formatPercent(a.drawdown)}
