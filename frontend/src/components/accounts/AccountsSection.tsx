@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { fetchAccounts, deleteAccount, createAccount, getAccountAlerts, saveAccountAlerts, revealApiKey } from '../../services/api';
 import type { Account, AccountAlerts } from '../../types';
@@ -62,52 +62,55 @@ const lbl: React.CSSProperties = {
 };
 // ─── MaskedKey ────────────────────────────────────────────────────────────────
 
+/** Masked key + COPY button. The full key is never rendered — Copy fetches
+ *  it from the API and writes straight to the clipboard so it stays hidden. */
 const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: string }) => {
   const addToast = useUIStore(s => s.addToast);
-  const [fullKey, setFullKey] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [justCopied, setJustCopied] = useState(false);
 
-  const handleReveal = async () => {
-    if (fullKey) { setFullKey(null); return; }
-    setLoading(true);
+  const handleCopy = async () => {
+    if (busy) return;
+    setBusy(true);
     try {
       const key = await revealApiKey(accountId);
-      setFullKey(key);
+      await navigator.clipboard.writeText(key);
+      setJustCopied(true);
+      setTimeout(() => setJustCopied(false), 1800);
+      addToast({ type: 'success', title: 'Copied!', message: 'API key copied to clipboard' });
     } catch {
-      addToast({ type: 'error', title: 'Failed to reveal key' });
+      addToast({ type: 'error', title: 'Failed to copy API key' });
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
-  };
-
-  const copy = () => {
-    if (!fullKey) {
-      addToast({ type: 'warning', title: 'Reveal key first', message: 'Click the eye icon to reveal the full key before copying' });
-      return;
-    }
-    navigator.clipboard.writeText(fullKey);
-    addToast({ type: 'success', title: 'Copied!', message: 'API key copied to clipboard' });
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-      <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {fullKey || maskedKey}
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+      <span style={{
+        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
+        flex: 1, minWidth: 0,
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {maskedKey}
       </span>
       <button
-        onClick={handleReveal}
-        disabled={loading}
-        title={fullKey ? 'Hide key' : 'Reveal full key'}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', fontSize: '12px', padding: '0 2px', lineHeight: 1 }}
+        onClick={handleCopy}
+        disabled={busy}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          padding: '6px 12px',
+          background: justCopied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.08)',
+          border: `1px solid ${justCopied ? 'var(--green)' : 'var(--cyan)'}`,
+          color: justCopied ? 'var(--green)' : 'var(--cyan)',
+          fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+          letterSpacing: '.5px',
+          cursor: busy ? 'wait' : 'pointer',
+          flexShrink: 0,
+          transition: 'all .15s',
+        }}
       >
-        {loading ? '…' : fullKey ? '◉' : '○'}
-      </button>
-      <button
-        onClick={copy}
-        title={fullKey ? 'Copy full key' : 'Reveal key first'}
-        style={{ background: 'none', border: 'none', cursor: fullKey ? 'pointer' : 'default', color: fullKey ? 'var(--text-dim)' : 'rgba(100,116,139,.3)', fontSize: '11px', padding: '0 2px', lineHeight: 1 }}
-      >
-        ⎘
+        {busy ? '...' : justCopied ? '✓ COPIED' : '⧉ COPY'}
       </button>
     </div>
   );
@@ -460,6 +463,13 @@ export const AccountsSection = () => {
     staleTime: 30000,
   });
 
+  // Demo accounts always sink to the bottom of the list so live accounts
+  // (the ones that actually count) stay at the top.
+  const sortedAccounts = useMemo(
+    () => [...accounts].sort((a, b) => Number(!!a.isDemo) - Number(!!b.isDemo)),
+    [accounts]
+  );
+
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px 18px' }}>
       {/* Header row */}
@@ -489,7 +499,7 @@ export const AccountsSection = () => {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {accounts.map((acc: Account) => {
+            {sortedAccounts.map((acc: Account) => {
               const isDemo = !!acc.isDemo;
               const online = acc.status === 'online';
               return (
