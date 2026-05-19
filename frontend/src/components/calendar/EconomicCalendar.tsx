@@ -70,8 +70,8 @@ const EventTable = ({ events, now }: EventTableProps) => (
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
         <tr style={{ background: 'var(--bg-card2)' }}>
-          <th style={{ ...thSt, width: '52px' }}>TIME</th>
-          <th style={{ ...thSt, width: '48px', paddingLeft: '4px' }}>CCY</th>
+          <th style={{ ...thSt, width: '40px' }}>TIME</th>
+          <th className="evcol-ccy" style={{ ...thSt, width: '48px', paddingLeft: '4px' }}>CCY</th>
           <th style={{ ...thC, width: '24px', padding: '9px 4px' }} aria-label="Impact" />
           <th className="evcol-event" style={{ ...thSt, width: '40%', padding: '9px 4px' }}>EVENT</th>
           <th className="evcol-actual" style={{ ...thR, width: '80px' }}>
@@ -120,9 +120,8 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 {fmtTime(event.date)}
               </td>
               <td style={{ ...tdSt, padding: '7px 2px 7px 4px' }}>
-                {/* Right-align so the currency code sits flush against the
-                    impact box instead of leaving 18px of dead space. */}
-                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                {/* CCY column is now tight to content (36px) so left-align is fine. */}
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
                   <span style={{
                     fontFamily: 'var(--ff-display)',
@@ -218,6 +217,9 @@ const EventTable = ({ events, now }: EventTableProps) => (
         /* Hide flag emoji inside CCY cell + the entire PREV column */
         .evt-wrap .evcol-flag { display: none !important; }
         .evt-wrap .evcol-prev { display: none !important; }
+
+        /* Without the flag, CCY only needs ~30px for "USD" + padding. */
+        .evt-wrap .evcol-ccy { width: 36px !important; }
 
         /* Swap header labels to compact form: ACTUAL→ACT, FORECAST→FCST */
         .evt-wrap .lbl-full  { display: none !important; }
