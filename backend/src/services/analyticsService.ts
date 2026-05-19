@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma';
+import { toUsd } from './fxService';
 
 export interface DailyPnL {
   date: string;
@@ -43,16 +44,24 @@ export const getDailyPnL = async (
 
   const trades = await prisma.closedTrade.findMany({
     where,
-    select: { profit: true, closeTime: true },
+    // Pull each trade's owning account currency so we can convert the
+    // native-currency profit to USD before summing across accounts.
+    select: {
+      profit: true,
+      closeTime: true,
+      account: { select: { currency: true } },
+    },
     orderBy: { closeTime: 'asc' },
   });
 
-  // Group by date
+  // Group by date — totals are in USD regardless of the underlying account
+  // base currency (USD, USC, EUR, etc.).
   const dailyMap = new Map<string, { profit: number; trades: number }>();
   for (const t of trades) {
     const date = t.closeTime.toISOString().slice(0, 10); // YYYY-MM-DD
+    const profitUsd = toUsd(t.profit, t.account?.currency || 'USD');
     const existing = dailyMap.get(date) || { profit: 0, trades: 0 };
-    existing.profit += t.profit;
+    existing.profit += profitUsd;
     existing.trades += 1;
     dailyMap.set(date, existing);
   }

@@ -8,16 +8,27 @@ interface Props {
 
 const MONTHS_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
-const fmtK = (n: number): string => {
+/**
+ * Cell formatter — designed to fit ~6 characters per cell so the bigger
+ * VT font doesn't overflow the day box. Backend already returns USD.
+ *   < $1000: 2 decimals, e.g. +$23.45 / -$8.50
+ *   ≥ $1000 < $1M: 1 decimal with 'k', e.g. +$1.2k / -$12.4k
+ *   ≥ $1M: 2 decimals with 'M', e.g. +$1.25M
+ */
+const fmtCell = (n: number): string => {
   const abs = Math.abs(n);
-  if (abs >= 1000) {
-    const v = (n / 1000).toFixed(abs >= 10_000 ? 0 : 1);
-    return (n >= 0 ? '+' : '') + '$' + v + 'K';
-  }
-  return (n >= 0 ? '+' : '') + '$' + Math.round(n);
+  const sign = n >= 0 ? '+' : '-';
+  if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`;
+  if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+  return `${sign}$${abs.toFixed(2)}`;
 };
 
-const fmtFull = (n: number): string => (n >= 0 ? '+' : '') + '$' + n.toFixed(2);
+/** Monthly P/L total — full precision with thousands separator. USD. */
+const fmtFull = (n: number): string => {
+  const sign = n >= 0 ? '+' : '-';
+  const abs = Math.abs(n);
+  return `${sign}$${abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
 
 const heatClass = (pnl: number): string => {
   const abs = Math.abs(pnl);
@@ -194,11 +205,11 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           </div>
           <div>
             <span style={pstatLbl}>BEST DAY</span>
-            <span style={{ ...pstatVal, color: 'var(--success)' }}>{fmtK(stats.best)}</span>
+            <span style={{ ...pstatVal, color: 'var(--success)' }}>{fmtCell(stats.best)}</span>
           </div>
           <div>
             <span style={pstatLbl}>WORST DAY</span>
-            <span style={{ ...pstatVal, color: 'var(--danger)' }}>{fmtK(stats.worst)}</span>
+            <span style={{ ...pstatVal, color: 'var(--danger)' }}>{fmtCell(stats.worst)}</span>
           </div>
         </div>
 
@@ -265,9 +276,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     {pnl !== undefined && (
                       <span className="pcal-pnl" style={{
                         display: 'block', fontFamily: "'VT323'",
-                        fontSize: '22px', lineHeight: 1, color: pnlColor,
+                        fontSize: '26px', lineHeight: 1, color: pnlColor,
                       }}>
-                        {fmtK(pnl)}
+                        {fmtCell(pnl)}
                       </span>
                     )}
                   </td>
@@ -294,9 +305,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     </span>
                     <span className="pcal-pnl" style={{
                       display: 'block', fontFamily: "'VT323'",
-                      fontSize: '22px', lineHeight: 1, color: weekColor,
+                      fontSize: '26px', lineHeight: 1, color: weekColor,
                     }}>
-                      {hasDay ? fmtK(weekSum) : '—'}
+                      {hasDay ? fmtCell(weekSum) : '—'}
                     </span>
                   </td>
                 </tr>
@@ -349,13 +360,13 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           .pcal-td { padding: 3px 3px !important; height: 52px !important; }
           .pcal-td.pcal-wk-sum { min-width: 0 !important; padding: 2px 2px !important; }
           .pcal-dn { font-size: 7px !important; margin-bottom: 3px !important; }
-          .pcal-pnl { font-size: 13px !important; }
+          .pcal-pnl { font-size: 17px !important; }
           .pcal-wk-lbl { font-size: 4px !important; margin-bottom: 2px !important; }
         }
         @media (max-width: 480px) {
           .pcal-td { padding: 2px 2px !important; height: 44px !important; }
           .pcal-dn { font-size: 6px !important; }
-          .pcal-pnl { font-size: 11px !important; }
+          .pcal-pnl { font-size: 14px !important; }
         }
       `}</style>
     </div>
