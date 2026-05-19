@@ -160,48 +160,155 @@ router.get('/today-pnl', async (req: AuthRequest, res: Response) => {
   res.json(pnlMap);
 });
 
-// ─── Economic Calendar (ForexFactory proxy) ─────────────────────────────────
+// ─── Economic Calendar (Investing.com proxy) ────────────────────────────────
+// Switched from ForexFactory's ff_calendar_thisweek.json (no `actual` field
+// in the free feed) to Investing.com's filtered-data endpoint which returns
+// HTML with full actual/forecast/previous after release. We parse the HTML
+// here so the frontend keeps consuming the same JSON shape.
+
+interface EconomicEvent {
+  title: string;
+  country: string;
+  date: string;
+  impact: 'High' | 'Medium' | 'Low' | 'Non-Economic';
+  forecast: string;
+  previous: string;
+  actual: string;
+}
 
 interface CalendarCache {
-  data: unknown;
+  data: EconomicEvent[];
   expiry: number;
 }
 
 let calendarCache: CalendarCache | null = null;
 const CALENDAR_TTL = 30 * 60 * 1000; // 30 minutes
 
+/** Convert "YYYY/MM/DD HH:mm:ss" (US Eastern Time) → ISO with offset. */
+function etToIso(etDateStr: string): string {
+  const [datePart, timePart] = etDateStr.split(' ');
+  if (!datePart || !timePart) return etDateStr;
+  const [y, m, d] = datePart.split('/').map(Number);
+  const [h, mi, s] = timePart.split(':').map(Number);
+  // US DST: 2nd Sunday of March → 1st Sunday of November
+  const march = new Date(Date.UTC(y, 2, 1));
+  const dstStart = new Date(Date.UTC(y, 2, 8 + ((7 - march.getUTCDay()) % 7)));
+  const nov = new Date(Date.UTC(y, 10, 1));
+  const dstEnd = new Date(Date.UTC(y, 10, 1 + ((7 - nov.getUTCDay()) % 7)));
+  const ref = new Date(Date.UTC(y, m - 1, d));
+  const isDST = ref >= dstStart && ref < dstEnd;
+  const offset = isDST ? '-04:00' : '-05:00';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${y}-${pad(m)}-${pad(d)}T${pad(h)}:${pad(mi)}:${pad(s)}${offset}`;
+}
+
+/** Decode the handful of HTML entities Investing.com sends in data cells. */
+function cleanCell(s: string): string {
+  return s
+    .replace(/&nbsp;/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .trim();
+}
+
+/** Parse Investing.com's HTML rows into our EconomicEvent shape. */
+function parseInvestingHtml(html: string): EconomicEvent[] {
+  const events: EconomicEvent[] = [];
+  const rowRe =
+    /<tr id="eventRowId_(\d+)"[^>]*data-event-datetime="([^"]+)"[^>]*>([\s\S]*?)<\/tr>/g;
+  let m: RegExpExecArray | null;
+  while ((m = rowRe.exec(html)) !== null) {
+    const datetime = m[2];
+    const inner = m[3];
+
+    const currencyMatch = inner.match(
+      /flagCur[^>]*>[\s\S]*?<\/span>\s*([A-Z]{3})\s*<\/td>/,
+    );
+    const country = currencyMatch ? currencyMatch[1] : '';
+
+    const bullMatch = inner.match(/data-img_key="bull(\d)"/);
+    const bull = bullMatch ? parseInt(bullMatch[1], 10) : 0;
+    const impact: EconomicEvent['impact'] =
+      bull === 3 ? 'High' : bull === 2 ? 'Medium' : bull === 1 ? 'Low' : 'Non-Economic';
+
+    const titleMatch = inner.match(/<a[^>]*>\s*([^<]+?)\s*<\/a>/);
+    const title = titleMatch ? cleanCell(titleMatch[1].replace(/\s+/g, ' ')) : '';
+
+    const actualMatch = inner.match(/eventActual_\d+"[^>]*>([^<]*)</);
+    const actual = actualMatch ? cleanCell(actualMatch[1]) : '';
+
+    const forecastMatch = inner.match(/eventForecast_\d+"[^>]*>([^<]*)</);
+    const forecast = forecastMatch ? cleanCell(forecastMatch[1]) : '';
+
+    const previousMatch = inner.match(
+      /eventPrevious_\d+"[^>]*>(?:<span[^>]*>([^<]*)<\/span>|([^<]*))</,
+    );
+    const previous = previousMatch ? cleanCell(previousMatch[1] || previousMatch[2] || '') : '';
+
+    if (!country || !title) continue;
+
+    events.push({
+      title,
+      country,
+      date: etToIso(datetime),
+      impact,
+      forecast,
+      previous,
+      actual,
+    });
+  }
+  return events;
+}
+
+async function fetchEconomicCalendarUpstream(): Promise<EconomicEvent[]> {
+  const body = new URLSearchParams();
+  // Investing.com country IDs for the majors we care about.
+  const countries = ['4', '5', '6', '12', '17', '22', '25', '32', '35', '37', '43', '72'];
+  countries.forEach(c => body.append('country[]', c));
+  ['1', '2', '3'].forEach(i => body.append('importance[]', i));
+  body.append('timeZone', '8'); // US Eastern — etToIso handles UTC conversion
+  body.append('currentTab', 'thisWeek');
+  body.append('limit_from', '0');
+
+  const res = await fetch(
+    'https://www.investing.com/economic-calendar/Service/getCalendarFilteredData',
+    {
+      method: 'POST',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: '*/*',
+      },
+      body: body.toString(),
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+
+  if (!res.ok) throw new Error(`Investing.com HTTP ${res.status}`);
+  const json = (await res.json()) as { data?: string };
+  if (!json.data) throw new Error('Investing.com payload missing `data`');
+  return parseInvestingHtml(json.data);
+}
+
 router.get('/economic-calendar', async (req: AuthRequest, res: Response) => {
   // ?force=1 (or fresh=1) bypasses the 30-minute cache so a manual
-  // refresh button click actually hits ForexFactory upstream instead
-  // of replaying the cached payload.
+  // refresh button click actually hits upstream instead of the cached payload.
   const force = req.query.force === '1' || req.query.fresh === '1';
   try {
     if (!force && calendarCache && calendarCache.expiry > Date.now()) {
       return res.json(calendarCache.data);
     }
-
-    const response = await fetch(
-      'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
-      {
-        headers: {
-          'User-Agent': 'SENTINEL/2.0',
-          'Accept': 'application/json',
-        },
-        signal: AbortSignal.timeout(10_000),
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(`ForexFactory responded with HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await fetchEconomicCalendarUpstream();
     calendarCache = { data, expiry: Date.now() + CALENDAR_TTL };
     res.json(data);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[Calendar] Fetch failed:', msg);
-    // Return stale cache if available rather than an error
     if (calendarCache) {
       return res.json(calendarCache.data);
     }
