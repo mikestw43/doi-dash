@@ -170,9 +170,13 @@ interface CalendarCache {
 let calendarCache: CalendarCache | null = null;
 const CALENDAR_TTL = 30 * 60 * 1000; // 30 minutes
 
-router.get('/economic-calendar', async (_req: AuthRequest, res: Response) => {
+router.get('/economic-calendar', async (req: AuthRequest, res: Response) => {
+  // ?force=1 (or fresh=1) bypasses the 30-minute cache so a manual
+  // refresh button click actually hits ForexFactory upstream instead
+  // of replaying the cached payload.
+  const force = req.query.force === '1' || req.query.fresh === '1';
   try {
-    if (calendarCache && calendarCache.expiry > Date.now()) {
+    if (!force && calendarCache && calendarCache.expiry > Date.now()) {
       return res.json(calendarCache.data);
     }
 

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { EconomicEvent } from '../../types';
 import { fetchEconomicCalendar } from '../../services/api';
 
@@ -233,12 +233,21 @@ const EventTable = ({ events, now }: EventTableProps) => (
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const EconomicCalendar = () => {
-  const { data, isLoading, error, refetch, isFetching } = useQuery<EconomicEvent[]>({
+  const queryClient = useQueryClient();
+  const { data, isLoading, error, isFetching } = useQuery<EconomicEvent[]>({
     queryKey: ['economic-calendar'],
-    queryFn: fetchEconomicCalendar,
+    queryFn: () => fetchEconomicCalendar(false),
     staleTime: 15 * 60 * 1000,
     refetchInterval: 30 * 60 * 1000,
   });
+
+  /** Manual refresh — bypass the backend 30-min cache so the click
+   *  actually hits ForexFactory upstream. */
+  const handleRefresh = async () => {
+    const fresh = await fetchEconomicCalendar(true);
+    // Seed the query cache with the fresh payload (avoids a second fetch).
+    queryClient.setQueryData(['economic-calendar'], fresh);
+  };
 
   const [viewMode,  setViewMode]  = useState<'today' | 'week'>('today');
   const [selected,  setSelected]  = useState<string[]>([]);
@@ -302,7 +311,7 @@ export const EconomicCalendar = () => {
           Could not reach ForexFactory. Check network connectivity.
         </p>
         <button
-          onClick={() => refetch()}
+          onClick={handleRefresh}
           style={{
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422',
@@ -372,7 +381,7 @@ export const EconomicCalendar = () => {
           )}
           {/* Refresh — icon-only, pushed to the far right of the title row. */}
           <button
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             disabled={isFetching}
             title={isFetching ? 'Refreshing…' : 'Refresh calendar'}
             style={{

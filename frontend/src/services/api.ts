@@ -130,8 +130,11 @@ export const fetchTodayPnl = async (): Promise<Record<string, number>> => {
   return res.data;
 };
 
-export const fetchEconomicCalendar = async () => {
-  const res = await api.get('/dashboard/economic-calendar');
+export const fetchEconomicCalendar = async (force = false) => {
+  const url = force
+    ? '/dashboard/economic-calendar?force=1'
+    : '/dashboard/economic-calendar';
+  const res = await api.get(url);
   return res.data;
 };
 
