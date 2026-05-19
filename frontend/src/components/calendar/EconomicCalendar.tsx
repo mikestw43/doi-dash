@@ -120,9 +120,10 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 {fmtTime(event.date)}
               </td>
               <td style={{ ...tdSt, padding: '7px 2px 7px 4px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {/* Right-align so the currency code sits flush against the
+                    impact box instead of leaving 18px of dead space. */}
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
                   <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
-                  {/* CCY — VT323, same color logic as TIME. */}
                   <span style={{
                     fontFamily: 'var(--ff-display)',
                     fontSize: '20px',
