@@ -4,6 +4,40 @@ import { fetchAccounts, deleteAccount, createAccount, getAccountAlerts, saveAcco
 import type { Account, AccountAlerts } from '../../types';
 import { useUIStore } from '../../stores/uiStore';
 import { Dialog } from '../ui/Dialog';
+import { formatBrokerShort } from '../../utils/formatters';
+
+/** Pixel-art bell glyph — matches retro/pixel theme (replaces the emoji 🔔). */
+const PixelBellIcon = ({ pixelSize = 2 }: { pixelSize?: number }) => {
+  const px = pixelSize;
+  // 6-wide × 7-tall grid
+  const pixels: [number, number][] = [
+    // top dot (handle)
+    [2, 0], [3, 0],
+    // shoulder
+    [1, 1], [2, 1], [3, 1], [4, 1],
+    // body row 2-3
+    [1, 2], [2, 2], [3, 2], [4, 2],
+    [1, 3], [2, 3], [3, 3], [4, 3],
+    // wider base row 4
+    [0, 4], [1, 4], [2, 4], [3, 4], [4, 4], [5, 4],
+    // base row 5
+    [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5],
+    // clapper
+    [2, 6], [3, 6],
+  ];
+  return (
+    <div style={{ position: 'relative', width: `${6 * px}px`, height: `${7 * px}px`, color: 'currentColor' }}>
+      {pixels.map(([x, y]) => (
+        <div key={`${x}-${y}`} style={{
+          position: 'absolute',
+          left: `${x * px}px`, top: `${y * px}px`,
+          width: `${px}px`, height: `${px}px`,
+          background: 'currentColor',
+        }} />
+      ))}
+    </div>
+  );
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -26,16 +60,6 @@ const lbl: React.CSSProperties = {
   display: 'block', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
   color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '6px',
 };
-const thSt: React.CSSProperties = {
-  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
-  letterSpacing: '.5px', padding: '8px 10px', textAlign: 'left',
-  borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
-};
-const tdSt: React.CSSProperties = {
-  padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
-  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)',
-};
-
 // ─── MaskedKey ────────────────────────────────────────────────────────────────
 
 const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: string }) => {
@@ -425,7 +449,6 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
 // ─── AccountsSection (main export) ───────────────────────────────────────────
 
 export const AccountsSection = () => {
-  const [expanded, setExpanded] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
   const [revealKey, setRevealKey] = useState<{ apiKey: string; name: string } | null>(null);
@@ -440,10 +463,7 @@ export const AccountsSection = () => {
   return (
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px 18px' }}>
       {/* Header row */}
-      <div
-        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-        onClick={() => setExpanded(e => !e)}
-      >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)', letterSpacing: '.5px' }}>
             ⌗ API KEY MANAGEMENT
@@ -452,77 +472,110 @@ export const AccountsSection = () => {
             {accounts.length}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={e => { e.stopPropagation(); setShowAdd(true); }}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer' }}
-          >
-            + ADD ACCOUNT
-          </button>
-          <span style={{ color: 'var(--text-dim)', fontSize: '10px' }}>{expanded ? '▴' : '▾'}</span>
-        </div>
+        <button
+          onClick={() => setShowAdd(true)}
+          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer' }}
+        >
+          + ADD ACCOUNT
+        </button>
       </div>
 
-      {expanded && (
-        <div style={{ marginTop: '14px' }}>
-          {isLoading ? (
-            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>Loading...</div>
-          ) : accounts.length === 0 ? (
-            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>
-              No accounts yet. Add your first MT5 account.
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
-                <thead>
-                  <tr style={{ background: 'var(--bg-card2)' }}>
-                    <th style={thSt}>NAME</th>
-                    <th style={thSt}>BROKER</th>
-                    <th style={thSt}>ACCOUNT #</th>
-                    <th style={thSt}>API KEY</th>
-                    <th style={thSt}>STATUS</th>
-                    <th style={{ ...thSt, textAlign: 'right' }}>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.map((acc: Account) => (
-                    <tr
-                      key={acc.id}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.2)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+      <div style={{ marginTop: '14px' }}>
+        {isLoading ? (
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>Loading...</div>
+        ) : accounts.length === 0 ? (
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>
+            No accounts yet. Add your first MT5/MT4 account.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {accounts.map((acc: Account) => {
+              const isDemo = !!acc.isDemo;
+              const online = acc.status === 'online';
+              return (
+                <div
+                  key={acc.id}
+                  style={{
+                    background: isDemo ? 'rgba(250,204,21,.04)' : 'var(--bg-card2)',
+                    border: `1px solid ${isDemo ? 'rgba(250,204,21,.3)' : 'var(--border2)'}`,
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  {/* Row 1: name + DEMO chip + status */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '.5px' }}>
+                      {acc.name}
+                    </span>
+                    {isDemo && (
+                      <span style={{
+                        fontFamily: 'var(--ff-section)', fontSize: '10px',
+                        padding: '2px 6px', letterSpacing: '.5px',
+                        border: '1px solid var(--warning)',
+                        background: 'rgba(250,204,21,.1)',
+                        color: 'var(--warning)',
+                      }}>DEMO</span>
+                    )}
+                    <span style={{
+                      marginLeft: 'auto',
+                      display: 'inline-flex', alignItems: 'center', gap: '5px',
+                      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+                      color: online ? 'var(--green)' : 'var(--text-dim)',
+                    }}>
+                      <span style={{ width: '6px', height: '6px', background: online ? 'var(--green)' : '#475569', boxShadow: online ? '0 0 6px var(--green)' : 'none', display: 'inline-block' }} />
+                      {acc.status}
+                    </span>
+                  </div>
+
+                  {/* Row 2: account # · broker (first word) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
+                    <span>#{acc.accountNumber}</span>
+                    <span style={{ opacity: .5 }}>·</span>
+                    <span>{formatBrokerShort(acc.broker)}</span>
+                  </div>
+
+                  {/* Row 3: API key */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <MaskedKey accountId={acc.id} maskedKey={acc.apiKey} />
+                  </div>
+
+                  {/* Row 4: actions — right-aligned */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', marginTop: '2px' }}>
+                    <button
+                      onClick={() => setAlertTarget(acc)}
+                      title="Alert thresholds"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        background: 'none', border: '1px solid var(--border2)',
+                        color: 'var(--text-dim)', cursor: 'pointer',
+                        padding: '5px 10px',
+                        fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+                      }}
                     >
-                      <td style={{ ...tdSt, color: 'var(--text)' }}>{acc.name}</td>
-                      <td style={{ ...tdSt, color: 'var(--text-dim)' }}>{acc.broker}</td>
-                      <td style={{ ...tdSt, color: 'var(--text-dim)' }}>{acc.accountNumber}</td>
-                      <td style={tdSt}><MaskedKey accountId={acc.id} maskedKey={acc.apiKey} /></td>
-                      <td style={tdSt}>
-                        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', display: 'inline-flex', alignItems: 'center', gap: '4px', color: acc.status === 'online' ? 'var(--green)' : 'var(--text-dim)' }}>
-                          <span style={{ width: '5px', height: '5px', background: acc.status === 'online' ? 'var(--green)' : '#475569', display: 'inline-block' }} />
-                          {acc.status}
-                        </span>
-                      </td>
-                      <td style={{ ...tdSt, textAlign: 'right' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                          <button
-                            onClick={() => setAlertTarget(acc)}
-                            title="Alert thresholds"
-                            style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
-                          >🔔</button>
-                          <button
-                            onClick={() => setDeleteTarget(acc)}
-                            title="Delete account"
-                            style={{ background: 'none', border: '1px solid rgba(239,68,68,.3)', color: 'var(--red)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
-                          >✕</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+                      <PixelBellIcon />
+                      ALERT
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(acc)}
+                      title="Delete account"
+                      style={{
+                        background: 'none', border: '1px solid rgba(239,68,68,.3)',
+                        color: 'var(--red)', cursor: 'pointer',
+                        padding: '5px 10px',
+                        fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+                      }}
+                    >
+                      ✕ DELETE
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {showAdd && <AddAccountDialog onClose={() => setShowAdd(false)} onCreated={(apiKey, name) => { setShowAdd(false); setRevealKey({ apiKey, name }); }} />}
       {revealKey && <ApiKeyRevealDialog apiKey={revealKey.apiKey} accountName={revealKey.name} onClose={() => setRevealKey(null)} />}
