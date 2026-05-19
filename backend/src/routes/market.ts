@@ -14,9 +14,9 @@ export interface MarketQuote {
 let _cache: { data: MarketQuote[]; ts: number } | null = null;
 const CACHE_TTL = 10_000;
 
-// ── FX/index/commodity cache. With 6 TwelveData symbols per call (6 credits)
-// a 12-minute TTL gives 120 calls/day × 6 = 720 credits — comfortably under
-// the free 800/day quota. FX updates every 12 min instead of every minute,
+// ── FX/metals cache. With 6 TwelveData symbols per call (4 FX pairs + gold +
+// silver = 6 credits) a 12-minute TTL gives 120 calls/day × 6 = 720 credits —
+// comfortably under the free 800/day quota. Prices refresh every 12 min,
 // trading freshness for reliable full-day coverage.
 const FX_CACHE_TTL = 12 * 60_000;
 let _fxCache: { quotes: MarketQuote[]; ts: number } | null = null;
@@ -40,12 +40,15 @@ interface TwelveDataQuote {
 }
 
 // TwelveData symbol → our ticker symbol convention.
-// US30 (DJI) and WTI/USD require paid tiers on TwelveData; omitted for now.
+// US30 (DJI) and WTI/USD require paid tiers; we use TwelveData for metals
+// because metals.live is dead and goldprice.org rejects server-side calls.
 const TD_SYMBOL_MAP: Record<string, { out: string; dp: number }> = {
   'EUR/USD': { out: 'EURUSD', dp: 5 },
   'GBP/USD': { out: 'GBPUSD', dp: 5 },
   'USD/JPY': { out: 'USDJPY', dp: 3 },
   'GBP/JPY': { out: 'GBPJPY', dp: 3 },
+  'XAU/USD': { out: 'XAUUSD', dp: 2 },
+  'XAG/USD': { out: 'XAGUSD', dp: 3 },
 };
 
 async function fetchTwelveDataFx(): Promise<MarketQuote[]> {
@@ -160,7 +163,9 @@ router.get('/quotes', async (_req: Request, res: Response): Promise<void> => {
   // ── 1. Binance: BTC + ETH (includes 24h % change) ──────────────────────────
   try {
     const data = await safeFetch(
-      'https://api.binance.com/api/v3/ticker/24hr?symbols=%5B%22BTCUSDT%22%2C%22ETHUSDT%22%5D'
+      // Binance.com geo-blocks Railway's US IPs since 2019 — use api.binance.us
+      // which serves the same JSON shape from a US-allowed host.
+      'https://api.binance.us/api/v3/ticker/24hr?symbols=%5B%22BTCUSDT%22%2C%22ETHUSDT%22%5D'
     ) as { symbol: string; lastPrice: string; priceChangePercent: string }[];
 
     for (const item of data) {
@@ -180,19 +185,8 @@ router.get('/quotes', async (_req: Request, res: Response): Promise<void> => {
   const fxQuotes = await fetchFxQuotes();
   quotes.push(...fxQuotes);
 
-  // ── 3. metals.live: Gold (XAU/USD) + Silver (XAG/USD) ──────────────────────
-  try {
-    const data = await safeFetch('https://api.metals.live/v1/spot') as
-      Array<{ gold?: number; silver?: number }> | { gold?: number; silver?: number };
-
-    const flat = Array.isArray(data) ? data[0] : data;
-    const gold = flat?.gold;
-    const silver = flat?.silver;
-    if (gold) quotes.push({ sym: 'XAUUSD', price: parseFloat(gold.toFixed(2)), chgPct: null, up: null });
-    if (silver) quotes.push({ sym: 'XAGUSD', price: parseFloat(silver.toFixed(3)), chgPct: null, up: null });
-  } catch (err) {
-    console.warn('[market] metals.live fetch failed:', (err as Error).message);
-  }
+  // (Metals — XAU/USD + XAG/USD — are now fetched in the TwelveData batch
+  // above. metals.live was unreliable and goldprice.org blocks server-side calls.)
 
   _cache = { data: quotes, ts: now };
   res.json(quotes);
