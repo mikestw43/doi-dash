@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Account, AccountGroup, Order } from '../../types';
-import { formatLots, formatPercent, getDrawdownColor } from '../../utils/formatters';
+import { formatLots, formatPercent, getDrawdownColor, formatBrokerShort } from '../../utils/formatters';
 import { FlashNumber } from '../ui/FlashNumber';
 import { CloseAllDialog } from './CloseAllDialog';
 import { ProtectionSettings } from '../settings/ProtectionSettings';
@@ -271,7 +271,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
             </div>
           </div>
 
-          {/* Lot exposure */}
+          {/* Lot exposure + broker on the same row (broker pushed right). */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="bc-label">Lot Exposure</span>
             <span className="bc-chip" style={{ padding: '3px 7px', fontWeight: 700, background: 'rgba(56,189,248,.12)', color: 'var(--accent-blue)', border: '1px solid rgba(56,189,248,.3)' }}>
@@ -280,12 +280,10 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
             <span className="bc-chip" style={{ padding: '3px 7px', fontWeight: 700, background: 'rgba(239,68,68,.12)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,.3)' }}>
               S:{formatLots(account.sellLots)}
             </span>
-          </div>
-
-          {/* Broker */}
-          <div className="bc-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--text-muted)', flexShrink: 0 }} />
-            {account.broker}
+            <span className="bc-label" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--text-muted)', flexShrink: 0 }} />
+              {formatBrokerShort(account.broker)}
+            </span>
           </div>
         </div>
 

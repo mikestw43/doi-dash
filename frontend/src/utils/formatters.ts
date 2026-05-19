@@ -32,6 +32,14 @@ export const cn = (...classes: (string | undefined | null | false)[]): string =>
   return classes.filter(Boolean).join(' ');
 };
 
+/** Display only the first word of the broker name — "XM Trading" → "XM",
+ *  "InterStellar Capital" → "InterStellar". Falls back to the full string. */
+export const formatBrokerShort = (broker: string | undefined | null): string => {
+  if (!broker) return '';
+  const first = broker.trim().split(/\s+/)[0];
+  return first || broker;
+};
+
 export const getProfitColor = (profit: number): string => {
   if (profit > 0) return 'text-success';
   if (profit < 0) return 'text-danger';

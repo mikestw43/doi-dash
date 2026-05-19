@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 export const TradingViewChart = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  // Default collapsed on mobile so it doesn't dominate the screen
-  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 768);
+  // Always start collapsed — user expands explicitly if they want the chart.
+  const [collapsed, setCollapsed] = useState(true);
 
   // Re-inject widget every time chart becomes visible
   // so TradingView always initialises into a correctly-sized container

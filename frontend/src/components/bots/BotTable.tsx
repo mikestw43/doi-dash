@@ -84,7 +84,9 @@ const Money = ({ value, signed = false, currency }: { value: number; signed?: bo
 /**
  * Tabular view of accounts.
  * Mobile (≤768px) shows only Name, Today P/L, Floating, DD% — no horizontal scroll.
- * Desktop adds balance, equity, broker, lots, margin level.
+ * Desktop adds balance, equity, lots, margin level.
+ * (Broker name has been removed from the table view per UI request — it's
+ *  still visible on the card view.)
  */
 export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
   const accentColor = accent === 'yellow' ? 'var(--warning)' : 'var(--accent-blue)';
@@ -127,7 +129,6 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
           <tr>
             <th style={{ ...thStyle, width: '24px', padding: '8px 4px 8px 10px' }}>{/* status dot */}</th>
             <th style={thStyle}>NAME</th>
-            <th className="col-broker"  style={thStyle}>BROKER</th>
             <th className="col-balance" style={{ ...thStyle, textAlign: 'right' }}>BALANCE</th>
             <th className="col-equity"  style={{ ...thStyle, textAlign: 'right' }}>EQUITY</th>
             <th style={{ ...thStyle, textAlign: 'right' }}>TODAY</th>
@@ -166,9 +167,7 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                   </div>
                 </td>
 
-                <td className="col-broker" style={{ ...tdStyle, color: 'var(--text-muted)' }}>{a.broker}</td>
-
-                <td className="col-balance" style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
+<td className="col-balance" style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
                   <Money value={a.balance} currency={a.currency} />
                 </td>
 
@@ -219,7 +218,6 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
           .bot-table-wrap .num-k    { display: inline; }
 
           /* Hide non-essential columns */
-          .bot-table-wrap .col-broker,
           .bot-table-wrap .col-balance,
           .bot-table-wrap .col-equity,
           .bot-table-wrap .col-lots,
