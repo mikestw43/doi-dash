@@ -336,52 +336,63 @@ async function fetchInvestingCom(): Promise<EconomicEvent[]> {
 }
 
 /**
- * Hybrid fetcher: Investing.com provides actual / forecast / previous /
- * datetime, ForexFactory provides the impact rating (user prefers FF's
- * editorial — same event sometimes gets a different impact level on each
- * source). We match by (country, datetime-to-the-minute in UTC); if FF
- * has a matching event we override the impact, otherwise we keep
- * Investing's impact as a fallback.
+ * FF-primary hybrid: ForexFactory is the source of truth for the event
+ * list, title, date and impact (user prefers FF's editorial). For each
+ * matched event we pull `actual` and `actualSentiment` from Investing.com.
  *
- * If ForexFactory is unreachable we still return Investing's payload as-is.
+ * Match key: (country | UTC minute). Investing events that don't appear
+ * in FF are dropped — FF's curated list is the canonical set.
+ *
+ * If FF is unreachable but Investing succeeds we fall back to Investing's
+ * full payload so the page isn't empty.
  */
 async function fetchHybridCalendar(): Promise<EconomicEvent[]> {
-  const [invEvents, ffResult] = await Promise.allSettled([
-    fetchInvestingCom(),
+  const [ffResult, invResult] = await Promise.allSettled([
     fetchForexFactory(),
+    fetchInvestingCom(),
   ]);
 
-  if (invEvents.status === 'rejected') throw invEvents.reason;
-  const inv = invEvents.value;
-
   if (ffResult.status === 'rejected') {
-    console.warn('[Calendar] ForexFactory unavailable, falling back to Investing impact:', ffResult.reason?.message);
-    return inv;
+    if (invResult.status === 'fulfilled') {
+      console.warn('[Calendar] ForexFactory unavailable, falling back to Investing:', ffResult.reason?.message);
+      return invResult.value;
+    }
+    throw ffResult.reason;
   }
   const ff = ffResult.value;
+  const inv = invResult.status === 'fulfilled' ? invResult.value : [];
 
-  // Build FF lookup: country|YYYY-MM-DDTHH:MM (UTC).
-  const ffByKey = new Map<string, FfEvent>();
-  for (const e of ff) {
+  // Build Investing lookup by (country | UTC minute) for actual + sentiment.
+  const invByKey = new Map<string, EconomicEvent>();
+  for (const e of inv) {
     const utcMinute = new Date(e.date).toISOString().slice(0, 16);
-    ffByKey.set(`${e.country}|${utcMinute}`, e);
+    invByKey.set(`${e.country}|${utcMinute}`, e);
   }
 
-  let matched = 0;
-  const merged = inv.map((e): EconomicEvent => {
+  const validImpacts: EconomicEvent['impact'][] = ['High', 'Medium', 'Low', 'Non-Economic'];
+  let actualMatched = 0;
+  const merged = ff.map((e): EconomicEvent => {
     const utcMinute = new Date(e.date).toISOString().slice(0, 16);
-    const ffMatch = ffByKey.get(`${e.country}|${utcMinute}`);
-    if (!ffMatch) return e;
-    matched++;
-    const ffImpact = ffMatch.impact as EconomicEvent['impact'];
-    const validImpacts: EconomicEvent['impact'][] = ['High', 'Medium', 'Low', 'Non-Economic'];
+    const invMatch = invByKey.get(`${e.country}|${utcMinute}`);
+    const impact = (validImpacts.includes(e.impact as EconomicEvent['impact'])
+      ? (e.impact as EconomicEvent['impact'])
+      : 'Non-Economic');
+    if (invMatch) actualMatched++;
     return {
-      ...e,
-      impact: validImpacts.includes(ffImpact) ? ffImpact : e.impact,
+      title: e.title,
+      country: e.country,
+      date: e.date,
+      impact,
+      // Forecast / previous: FF if present, otherwise borrow from Investing.
+      forecast: e.forecast || invMatch?.forecast || '',
+      previous: e.previous || invMatch?.previous || '',
+      // Actual + sentiment ALWAYS come from Investing (FF doesn't provide them).
+      actual: invMatch?.actual || '',
+      actualSentiment: invMatch?.actualSentiment || 'neutral',
     };
   });
 
-  console.log(`[Calendar] Hybrid: inv=${inv.length} ff=${ff.length} matched=${matched}`);
+  console.log(`[Calendar] FF-primary: ff=${ff.length} inv=${inv.length} actual_matched=${actualMatched}`);
   return merged;
 }
 

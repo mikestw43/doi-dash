@@ -321,7 +321,7 @@ export const EconomicCalendar = () => {
           FAILED TO LOAD CALENDAR
         </p>
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '16px' }}>
-          Could not reach Investing.com. Check network connectivity.
+          Could not reach ForexFactory. Check network connectivity.
         </p>
         <button
           onClick={handleRefresh}
@@ -414,7 +414,7 @@ export const EconomicCalendar = () => {
           </button>
         </div>
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '15px' }}>
-          Investing.com · cached 30min · local timezone
+          ForexFactory · cached 30min · local timezone
         </p>
       </div>
 
