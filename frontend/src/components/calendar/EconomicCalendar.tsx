@@ -266,7 +266,9 @@ export const EconomicCalendar = () => {
   };
 
   const [viewMode,  setViewMode]  = useState<'today' | 'week'>('today');
-  const [selected,  setSelected]  = useState<string[]>([]);
+  // Default currency filter: USD only — most traders care about US events.
+  // User can deselect with ✕ CLEAR or pick more chips.
+  const [selected,  setSelected]  = useState<string[]>(['USD']);
   const [minImpact, setMinImpact] = useState<'all' | 'medium' | 'high'>('all');
 
   const now = new Date();
