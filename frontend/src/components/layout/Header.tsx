@@ -139,15 +139,18 @@ export const Header = () => {
 
   return (
     <>
-      {/* ══ TOP NAV ══ */}
+      {/* ══ TOP NAV ══
+          paddingTop + height both use env(safe-area-inset-top) so the
+          nav bar background extends under the iPhone notch/Dynamic Island
+          while logo + menu button stay below it (still tappable). */}
       <nav className="header-nav" style={{
         background: 'var(--bg-secondary)',
         borderBottom: '1px solid var(--border2)',
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
         alignItems: 'center',
-        padding: '0 12px',
-        height: '54px',
+        padding: 'env(safe-area-inset-top) 12px 0',
+        height: 'calc(54px + env(safe-area-inset-top))',
         flexShrink: 0,
         position: 'sticky',
         top: 0,
