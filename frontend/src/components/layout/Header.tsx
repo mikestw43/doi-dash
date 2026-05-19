@@ -55,10 +55,10 @@ const quotesToTicker = (quotes: MarketQuote[]): TickerItem[] =>
     up: q.up,
   }));
 
-// Default ticker symbols — overridable per user once preferences ship.
-// Owner picked: BTC, gold, silver, US30, GU, GJ, UJ, EU, oil.
+// Default ticker symbols — overridable per user via Settings → Ticker.
+// US30 / USOIL omitted because they require paid TwelveData tiers.
 const DEFAULT_TICKER_SYMBOLS = [
-  'BTCUSD', 'XAUUSD', 'XAGUSD', 'US30', 'GBPUSD', 'GBPJPY', 'USDJPY', 'EURUSD', 'USOIL',
+  'BTCUSD', 'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'GBPJPY',
 ];
 
 const TICKER_FALLBACK: TickerItem[] = DEFAULT_TICKER_SYMBOLS.map(sym => ({

@@ -103,9 +103,10 @@ router.patch('/preferences', async (req: AuthRequest, res: Response) => {
 
 // Default set if the user hasn't customized yet. Keep in sync with the
 // frontend Header.tsx DEFAULT_TICKER_SYMBOLS.
+// (US30 / USOIL omitted — they require a paid TwelveData tier.)
 const DEFAULT_TICKER_SYMBOLS = [
-  'BTCUSD', 'XAUUSD', 'XAGUSD', 'US30',
-  'GBPUSD', 'GBPJPY', 'USDJPY', 'EURUSD', 'USOIL',
+  'BTCUSD', 'XAUUSD', 'XAGUSD',
+  'EURUSD', 'GBPUSD', 'USDJPY', 'GBPJPY',
 ];
 
 // Sanitize a user-supplied list — uppercase, trim, dedupe, drop empties,

@@ -27,13 +27,6 @@ const CATALOG: { group: string; items: { sym: string; label: string }[] }[] = [
       { sym: 'GBPJPY', label: 'GJ' },
     ],
   },
-  {
-    group: 'Indices / Commodities',
-    items: [
-      { sym: 'US30',   label: 'Dow Jones (US30)' },
-      { sym: 'USOIL',  label: 'WTI Oil' },
-    ],
-  },
 ];
 
 const card: React.CSSProperties = {

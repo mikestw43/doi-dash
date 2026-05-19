@@ -40,15 +40,12 @@ interface TwelveDataQuote {
 }
 
 // TwelveData symbol → our ticker symbol convention.
+// US30 (DJI) and WTI/USD require paid tiers on TwelveData; omitted for now.
 const TD_SYMBOL_MAP: Record<string, { out: string; dp: number }> = {
   'EUR/USD': { out: 'EURUSD', dp: 5 },
   'GBP/USD': { out: 'GBPUSD', dp: 5 },
   'USD/JPY': { out: 'USDJPY', dp: 3 },
   'GBP/JPY': { out: 'GBPJPY', dp: 3 },
-  // Indices — exact TwelveData ticker (DJI is the canonical name on the API).
-  DJI: { out: 'US30', dp: 2 },
-  // Crude oil — WTI/USD is the standard pair for spot WTI.
-  'WTI/USD': { out: 'USOIL', dp: 2 },
 };
 
 async function fetchTwelveDataFx(): Promise<MarketQuote[]> {
