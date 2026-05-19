@@ -454,16 +454,18 @@ export const Header = () => {
               <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', letterSpacing: '.5px' }}>
                 {item.sym}
               </span>
-              <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', fontWeight: 600 }}>
+              {/* Price + change use VT323 to match the number style elsewhere
+                  on the dashboard. Symbol stays Share Tech Mono (it's a label). */}
+              <span style={{ fontFamily: 'var(--ff-display)', fontSize: '18px', lineHeight: 1, color: 'var(--text-primary)' }}>
                 {item.price}
               </span>
               {item.chgPct !== null ? (
-                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: (item.up ?? true) ? 'var(--success)' : 'var(--danger)' }}>
+                <span style={{ fontFamily: 'var(--ff-display)', fontSize: '15px', lineHeight: 1, color: (item.up ?? true) ? 'var(--success)' : 'var(--danger)' }}>
                   {(item.up ?? true) ? '▲' : '▼'}{Math.abs(item.chgPct).toFixed(2)}%
                 </span>
               ) : (
                 item.price !== '—' && (
-                  <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>—</span>
+                  <span style={{ fontFamily: 'var(--ff-display)', fontSize: '15px', lineHeight: 1, color: 'var(--text-dim)' }}>—</span>
                 )
               )}
             </div>
