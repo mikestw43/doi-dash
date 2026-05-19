@@ -351,26 +351,23 @@ export const Header = () => {
                   </button>
                 ))}
 
-                {/* Download EA */}
-                <a
-                  href="/ea/DOI_DASH_Reporter_v1.3.ex5"
-                  download
-                  onClick={() => setShowMenu(false)}
+                {/* Download EA — navigates to the public Download page (MT4 + MT5) */}
+                <button
+                  onClick={() => { setCurrentPage('download'); setShowMenu(false); }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '9px',
                     width: '100%', padding: '8px 14px',
                     fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                     color: 'var(--text-primary)',
                     cursor: 'pointer', background: 'none', border: 'none',
-                    textDecoration: 'none', transition: 'background .1s',
-                    boxSizing: 'border-box',
+                    transition: 'background .1s', textAlign: 'left',
                   }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,.04)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'none')}
+                  onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,.04)')}
+                  onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
                 >
                   <span style={{ fontSize: '13px', lineHeight: 1 }}>⬇</span>
                   Download EA
-                </a>
+                </button>
 
                 {user?.role === 'admin' && (
                   <>

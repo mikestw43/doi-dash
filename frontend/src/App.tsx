@@ -17,6 +17,7 @@ import { TradeHistoryPage } from './components/trades/TradeHistoryPage';
 import { PrivacyPolicy } from './components/privacy/PrivacyPolicy';
 import { EconomicCalendar } from './components/calendar/EconomicCalendar';
 import { EaRepository } from './components/ea/EaRepository';
+import { DownloadPage } from './components/download/DownloadPage';
 import { AnnouncePage } from './components/admin/AnnouncePage';
 import { TradingViewChart } from './components/chart/TradingViewChart';
 import { ToastContainer } from './components/ui/Toast';
@@ -62,6 +63,7 @@ const Dashboard = () => {
       {currentPage === 'privacy' && <PrivacyPolicy />}
       {currentPage === 'calendar' && <EconomicCalendar />}
       {currentPage === 'ea-repository' && <EaRepository />}
+      {currentPage === 'download' && <DownloadPage />}
       {currentPage === 'announce' && <AnnouncePage />}
       <ToastContainer />
     </Layout>
