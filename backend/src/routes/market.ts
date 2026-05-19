@@ -10,9 +10,9 @@ export interface MarketQuote {
   up: boolean | null;    // null when unavailable
 }
 
-// ── Simple in-memory cache (30 s TTL) ────────────────────────────────────────
+// ── Simple in-memory cache (10 s TTL) ────────────────────────────────────────
 let _cache: { data: MarketQuote[]; ts: number } | null = null;
-const CACHE_TTL = 30_000;
+const CACHE_TTL = 10_000;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const safeFetch = async (url: string): Promise<unknown> => {

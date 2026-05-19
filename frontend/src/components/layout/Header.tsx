@@ -86,7 +86,7 @@ export const Header = () => {
     return () => clearInterval(id);
   }, []);
 
-  // live market quotes — fetch on mount then every 30 s
+  // live market quotes — fetch on mount then every 10 s
   useEffect(() => {
     const load = () => {
       fetchMarketQuotes()
@@ -94,7 +94,7 @@ export const Header = () => {
         .catch(() => { /* keep current items on error */ });
     };
     load();
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, 10_000);
     return () => clearInterval(id);
   }, []);
 
