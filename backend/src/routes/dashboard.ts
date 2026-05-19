@@ -277,7 +277,33 @@ function parseInvestingHtml(html: string): EconomicEvent[] {
   return events;
 }
 
-async function fetchEconomicCalendarUpstream(): Promise<EconomicEvent[]> {
+/** Minimal shape from ForexFactory's free JSON — used to override the
+ *  impact on Investing-sourced events (user prefers FF's editorial). */
+interface FfEvent {
+  title: string;
+  country: string;
+  date: string;
+  impact: string;
+  forecast?: string;
+  previous?: string;
+}
+
+async function fetchForexFactory(): Promise<FfEvent[]> {
+  const res = await fetch(
+    'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
+    {
+      headers: {
+        'User-Agent': 'SENTINEL/2.0',
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(10_000),
+    },
+  );
+  if (!res.ok) throw new Error(`ForexFactory HTTP ${res.status}`);
+  return (await res.json()) as FfEvent[];
+}
+
+async function fetchInvestingCom(): Promise<EconomicEvent[]> {
   const body = new URLSearchParams();
   // Investing.com country IDs for the majors we care about.
   const countries = ['4', '5', '6', '12', '17', '22', '25', '32', '35', '37', '43', '72'];
@@ -309,6 +335,56 @@ async function fetchEconomicCalendarUpstream(): Promise<EconomicEvent[]> {
   return parseInvestingHtml(json.data);
 }
 
+/**
+ * Hybrid fetcher: Investing.com provides actual / forecast / previous /
+ * datetime, ForexFactory provides the impact rating (user prefers FF's
+ * editorial — same event sometimes gets a different impact level on each
+ * source). We match by (country, datetime-to-the-minute in UTC); if FF
+ * has a matching event we override the impact, otherwise we keep
+ * Investing's impact as a fallback.
+ *
+ * If ForexFactory is unreachable we still return Investing's payload as-is.
+ */
+async function fetchHybridCalendar(): Promise<EconomicEvent[]> {
+  const [invEvents, ffResult] = await Promise.allSettled([
+    fetchInvestingCom(),
+    fetchForexFactory(),
+  ]);
+
+  if (invEvents.status === 'rejected') throw invEvents.reason;
+  const inv = invEvents.value;
+
+  if (ffResult.status === 'rejected') {
+    console.warn('[Calendar] ForexFactory unavailable, falling back to Investing impact:', ffResult.reason?.message);
+    return inv;
+  }
+  const ff = ffResult.value;
+
+  // Build FF lookup: country|YYYY-MM-DDTHH:MM (UTC).
+  const ffByKey = new Map<string, FfEvent>();
+  for (const e of ff) {
+    const utcMinute = new Date(e.date).toISOString().slice(0, 16);
+    ffByKey.set(`${e.country}|${utcMinute}`, e);
+  }
+
+  let matched = 0;
+  const merged = inv.map((e): EconomicEvent => {
+    const utcMinute = new Date(e.date).toISOString().slice(0, 16);
+    const ffMatch = ffByKey.get(`${e.country}|${utcMinute}`);
+    if (!ffMatch) return e;
+    matched++;
+    const ffImpact = ffMatch.impact as EconomicEvent['impact'];
+    const validImpacts: EconomicEvent['impact'][] = ['High', 'Medium', 'Low', 'Non-Economic'];
+    return {
+      ...e,
+      impact: validImpacts.includes(ffImpact) ? ffImpact : e.impact,
+    };
+  });
+
+  console.log(`[Calendar] Hybrid: inv=${inv.length} ff=${ff.length} matched=${matched}`);
+  return merged;
+}
+
 router.get('/economic-calendar', async (req: AuthRequest, res: Response) => {
   // ?force=1 (or fresh=1) bypasses the 30-minute cache so a manual
   // refresh button click actually hits upstream instead of the cached payload.
@@ -317,7 +393,7 @@ router.get('/economic-calendar', async (req: AuthRequest, res: Response) => {
     if (!force && calendarCache && calendarCache.expiry > Date.now()) {
       return res.json(calendarCache.data);
     }
-    const data = await fetchEconomicCalendarUpstream();
+    const data = await fetchHybridCalendar();
     calendarCache = { data, expiry: Date.now() + CALENDAR_TTL };
     res.json(data);
   } catch (err) {
