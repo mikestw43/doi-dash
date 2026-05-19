@@ -14,10 +14,11 @@ export interface MarketQuote {
 let _cache: { data: MarketQuote[]; ts: number } | null = null;
 const CACHE_TTL = 10_000;
 
-// ── FX: separate cache so TwelveData credits aren't burnt every 10s.
-// 30 s TTL stays under the 8 credits/min throttle (2 calls × 3 symbols = 6/min)
-// while still feeling responsive.
-const FX_CACHE_TTL = 30_000;
+// ── FX/index/commodity cache. With 6 TwelveData symbols per call, a 60s TTL
+// keeps us under the 8 credits/min throttle (1 call × 6 credits = 6/min).
+// Daily 1440 calls × 6 = 8640 credits — exceeds the free 800/day quota, so
+// the fallback to Frankfurter kicks in ~3 hours into a 24h cycle.
+const FX_CACHE_TTL = 60_000;
 let _fxCache: { quotes: MarketQuote[]; ts: number } | null = null;
 
 // When TwelveData returns 429 (daily 800-credit quota exhausted), avoid hammering
@@ -38,10 +39,23 @@ interface TwelveDataQuote {
   percent_change: string;
 }
 
+// TwelveData symbol → our ticker symbol convention.
+const TD_SYMBOL_MAP: Record<string, { out: string; dp: number }> = {
+  'EUR/USD': { out: 'EURUSD', dp: 5 },
+  'GBP/USD': { out: 'GBPUSD', dp: 5 },
+  'USD/JPY': { out: 'USDJPY', dp: 3 },
+  'GBP/JPY': { out: 'GBPJPY', dp: 3 },
+  // Indices — exact TwelveData ticker (DJI is the canonical name on the API).
+  DJI: { out: 'US30', dp: 2 },
+  // Crude oil — WTI/USD is the standard pair for spot WTI.
+  'WTI/USD': { out: 'USOIL', dp: 2 },
+};
+
 async function fetchTwelveDataFx(): Promise<MarketQuote[]> {
   if (!TWELVEDATA_KEY) throw new Error('TWELVEDATA_API_KEY not set');
+  const symbols = Object.keys(TD_SYMBOL_MAP).join(',');
   const url =
-    `https://api.twelvedata.com/quote?symbol=EUR/USD,GBP/USD,USD/JPY` +
+    `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbols)}` +
     `&apikey=${encodeURIComponent(TWELVEDATA_KEY)}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
   if (res.status === 429) throw new Error('429');
@@ -53,17 +67,17 @@ async function fetchTwelveDataFx(): Promise<MarketQuote[]> {
     if (/api credits|daily/i.test(msg)) throw new Error('429');
     throw new Error(`TwelveData error: ${msg}`);
   }
-  const dpForSym = (sym: string) => (sym === 'USDJPY' ? 3 : 5);
   const quotes: MarketQuote[] = [];
   for (const [key, item] of Object.entries(data)) {
     if (!item || typeof item !== 'object' || !('close' in item)) continue;
-    const sym = key.replace('/', '');
+    const map = TD_SYMBOL_MAP[key];
+    if (!map) continue;
     const price = parseFloat((item as TwelveDataQuote).close);
     const pct = parseFloat((item as TwelveDataQuote).percent_change);
     if (Number.isNaN(price)) continue;
     quotes.push({
-      sym,
-      price: parseFloat(price.toFixed(dpForSym(sym))),
+      sym: map.out,
+      price: parseFloat(price.toFixed(map.dp)),
       chgPct: Number.isNaN(pct) ? null : parseFloat(pct.toFixed(2)),
       up: Number.isNaN(pct) ? null : pct >= 0,
     });
@@ -169,13 +183,16 @@ router.get('/quotes', async (_req: Request, res: Response): Promise<void> => {
   const fxQuotes = await fetchFxQuotes();
   quotes.push(...fxQuotes);
 
-  // ── 3. metals.live: Gold (XAU/USD) ─────────────────────────────────────────
+  // ── 3. metals.live: Gold (XAU/USD) + Silver (XAG/USD) ──────────────────────
   try {
     const data = await safeFetch('https://api.metals.live/v1/spot') as
-      Array<{ gold?: number }> | { gold?: number };
+      Array<{ gold?: number; silver?: number }> | { gold?: number; silver?: number };
 
-    const gold = Array.isArray(data) ? data[0]?.gold : (data as { gold?: number }).gold;
-    if (gold) quotes.push({ sym: 'XAUUSD', price: gold, chgPct: null, up: null });
+    const flat = Array.isArray(data) ? data[0] : data;
+    const gold = flat?.gold;
+    const silver = flat?.silver;
+    if (gold) quotes.push({ sym: 'XAUUSD', price: parseFloat(gold.toFixed(2)), chgPct: null, up: null });
+    if (silver) quotes.push({ sym: 'XAGUSD', price: parseFloat(silver.toFixed(3)), chgPct: null, up: null });
   } catch (err) {
     console.warn('[market] metals.live fetch failed:', (err as Error).message);
   }

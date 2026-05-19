@@ -54,15 +54,15 @@ const quotesToTicker = (quotes: MarketQuote[]): TickerItem[] =>
     up: q.up,
   }));
 
-// Static fallback shown until first fetch completes
-const TICKER_FALLBACK: TickerItem[] = [
-  { sym: 'EURUSD', price: '—',      chgPct: null, up: null },
-  { sym: 'GBPUSD', price: '—',      chgPct: null, up: null },
-  { sym: 'USDJPY', price: '—',      chgPct: null, up: null },
-  { sym: 'BTCUSD', price: '—',      chgPct: null, up: null },
-  { sym: 'ETHUSD', price: '—',      chgPct: null, up: null },
-  { sym: 'XAUUSD', price: '—',      chgPct: null, up: null },
+// Default ticker symbols — overridable per user once preferences ship.
+// Owner picked: BTC, gold, silver, US30, GU, GJ, UJ, EU, oil.
+const DEFAULT_TICKER_SYMBOLS = [
+  'BTCUSD', 'XAUUSD', 'XAGUSD', 'US30', 'GBPUSD', 'GBPJPY', 'USDJPY', 'EURUSD', 'USOIL',
 ];
+
+const TICKER_FALLBACK: TickerItem[] = DEFAULT_TICKER_SYMBOLS.map(sym => ({
+  sym, price: '—', chgPct: null, up: null,
+}));
 
 // ── Header ──────────────────────────────────────────────────────────────────
 export const Header = () => {
