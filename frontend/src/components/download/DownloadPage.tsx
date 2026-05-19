@@ -24,25 +24,31 @@ const PLATFORMS = [
   },
 ];
 
-const FEATURES = [
-  'Push account data every 2s via HTTP POST',
-  'Reports equity, balance, today P/L, open + pending orders',
-  'Closed deals history sync for trade-history page',
-  'API Key authentication — one EA per account',
+const SERVER_URL = 'https://doi-dash-production.up.railway.app';
+
+const INSTALL_STEPS = [
+  'Open MetaTrader → File → Open Data Folder',
+  'Navigate to MQL5/Experts (MT5) or MQL4/Experts (MT4)',
+  'Copy the downloaded .ex5 / .ex4 into the Experts folder',
+  'Restart MetaTrader or refresh Navigator',
+  'Drag EA onto any chart, set your API Key',
+  'Enable AutoTrading, add ServerURL to WebRequest whitelist',
 ];
 
 export const DownloadPage = () => {
-  const [tab, setTab] = useState<'MT5' | 'MT4'>('MT5');
-  const active = PLATFORMS.find(p => p.key === tab)!;
+  const [copied, setCopied] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
-  const installSteps = [
-    { step: '01', text: `Open ${active.label} → File → Open Data Folder` },
-    { step: '02', text: `Navigate to ${active.dataFolderPath}` },
-    { step: '03', text: `Copy ${active.ext.toLowerCase()} file into the Experts folder` },
-    { step: '04', text: `Restart ${active.label} or refresh Navigator` },
-    { step: '05', text: 'Drag EA onto any chart, set your API Key in settings' },
-    { step: '06', text: 'Enable AutoTrading, add ServerURL to WebRequest whitelist' },
-  ];
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(SERVER_URL);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // clipboard API blocked — reveal so user can copy manually
+      setRevealed(true);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -56,32 +62,33 @@ export const DownloadPage = () => {
           DOWNLOAD EA
         </div>
         <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '6px' }}>
-          DOI DASH Reporter — choose your MetaTrader platform
+          DOI DASH Reporter — pick your MetaTrader platform
         </div>
       </div>
 
-      {/* Platform tabs */}
-      <div style={{ display: 'flex', gap: '8px' }}>
-        {PLATFORMS.map(p => {
-          const isActive = p.key === tab;
-          return (
-            <button
-              key={p.key}
-              onClick={() => setTab(p.key)}
-              style={{
-                flex: 1,
-                padding: '14px 16px',
-                background: isActive ? 'var(--bg-card)' : 'rgba(56,189,248,.03)',
-                border: `1px solid ${isActive ? 'var(--cyan)' : 'var(--border2)'}`,
-                color: isActive ? 'var(--cyan)' : 'var(--text-muted)',
-                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-                letterSpacing: '1px',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                transition: 'all .15s',
-              }}
-            >
-              <span>{p.label.toUpperCase()}</span>
+      {/* Platform download cards — both shown side-by-side (no tab switching) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '12px',
+      }}>
+        {PLATFORMS.map(p => (
+          <div key={p.key} style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border2)',
+            padding: '18px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+          }}>
+            {/* Top row: label + badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{
+                fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-section)',
+                color: 'var(--text-primary)', letterSpacing: '1px',
+              }}>
+                {p.label.toUpperCase()} {p.version}
+              </span>
               <span style={{
                 fontFamily: 'var(--ff-section)', fontSize: '10px',
                 padding: '2px 6px',
@@ -89,61 +96,33 @@ export const DownloadPage = () => {
                 color: p.badgeColor,
                 background: `${p.badgeColor}15`,
               }}>{p.badge}</span>
-            </button>
-          );
-        })}
-      </div>
+            </div>
 
-      {/* Active platform card */}
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border2)',
-        padding: '20px',
-        display: 'flex',
-        gap: '24px',
-        flexWrap: 'wrap',
-      }}>
-        {/* Left: details */}
-        <div style={{ flex: 1, minWidth: '260px' }}>
-          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '1px' }}>
-            DOI DASH REPORTER {active.version} — {active.label.toUpperCase()}
-          </div>
-          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '4px' }}>
-            File: <span style={{ fontFamily: 'var(--ff-mono)' }}>{active.filename}</span>
-          </div>
+            {/* Filename */}
+            <div style={{
+              fontFamily: 'var(--ff-mono)', fontSize: 'var(--fs-body-sm)',
+              color: 'var(--text-muted)',
+              wordBreak: 'break-all',
+            }}>
+              {p.filename}
+            </div>
 
-          <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', marginTop: '18px', marginBottom: '8px' }}>
-            FEATURES
+            {/* Download button */}
+            <a
+              href={`/ea/${p.filename}`}
+              download
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                padding: '12px 20px',
+                background: 'rgba(56,189,248,.1)', border: '1px solid var(--cyan)',
+                color: 'var(--cyan)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                cursor: 'pointer', textDecoration: 'none', letterSpacing: '1px',
+              }}
+            >
+              ⬇ DOWNLOAD {p.ext}
+            </a>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                <span style={{ color: 'var(--green)', fontSize: '10px', flexShrink: 0, marginTop: '2px' }}>▸</span>
-                <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{f}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: download button */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '200px', alignSelf: 'center' }}>
-          <a
-            href={`/ea/${active.filename}`}
-            download
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-              padding: '14px 22px',
-              background: 'rgba(56,189,248,.1)', border: '1px solid var(--cyan)',
-              color: 'var(--cyan)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-              cursor: 'pointer', textDecoration: 'none', letterSpacing: '1px',
-            }}
-          >
-            ⬇ DOWNLOAD {active.ext}
-          </a>
-          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textAlign: 'center' }}>
-            Free · No registration
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Installation guide */}
@@ -153,21 +132,21 @@ export const DownloadPage = () => {
         padding: '16px 20px',
       }}>
         <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '14px' }}>
-          INSTALLATION GUIDE — {active.label.toUpperCase()}
+          INSTALLATION GUIDE
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {installSteps.map(({ step, text }) => (
-            <div key={step} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+          {INSTALL_STEPS.map((text, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
               <span style={{
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 color: 'var(--cyan)', flexShrink: 0, marginTop: '2px',
-              }}>{step}</span>
+              }}>{String(i + 1).padStart(2, '0')}</span>
               <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{text}</span>
             </div>
           ))}
         </div>
 
-        {/* WebRequest whitelist note — applies to both MT4 + MT5 */}
+        {/* WebRequest whitelist — URL is blurred until copy is pressed */}
         <div style={{
           marginTop: '16px',
           padding: '10px 14px',
@@ -179,8 +158,47 @@ export const DownloadPage = () => {
             ⚠ WEBREQUEST WHITELIST
           </div>
           Tools → Options → Expert Advisors → Allow WebRequest for listed URL:
-          <div style={{ fontFamily: 'var(--ff-mono)', color: 'var(--cyan)', marginTop: '4px', wordBreak: 'break-all' }}>
-            https://doi-dash-production.up.railway.app
+
+          <div style={{
+            marginTop: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+          }}>
+            <span
+              style={{
+                fontFamily: 'var(--ff-mono)',
+                color: 'var(--cyan)',
+                wordBreak: 'break-all',
+                flex: 1,
+                minWidth: 0,
+                userSelect: revealed ? 'text' : 'none',
+                filter: revealed ? 'none' : 'blur(5px)',
+                transition: 'filter .2s',
+                cursor: revealed ? 'text' : 'pointer',
+              }}
+              onClick={() => setRevealed(true)}
+              title={revealed ? '' : 'Click to reveal'}
+            >
+              {SERVER_URL}
+            </span>
+            <button
+              onClick={handleCopy}
+              style={{
+                padding: '6px 12px',
+                background: copied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.08)',
+                border: `1px solid ${copied ? 'var(--green)' : 'var(--cyan)'}`,
+                color: copied ? 'var(--green)' : 'var(--cyan)',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                letterSpacing: '.5px',
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'all .15s',
+              }}
+            >
+              {copied ? '✓ COPIED' : '⧉ COPY'}
+            </button>
           </div>
         </div>
       </div>
