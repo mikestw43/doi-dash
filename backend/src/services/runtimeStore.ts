@@ -153,8 +153,12 @@ class RuntimeAccountStore {
       leverage: dbAcc.leverage,
       isDemo: dbAcc.isDemo,
       status: 'offline',
-      balance: 1000, equity: 1000, margin: 0, freeMargin: 1000,
-      marginLevel: 9999, drawdown: 0, profit: 0,
+      // All financial fields start at 0 — the EA will push real numbers
+      // on its first POST. Seeding with non-zero placeholders made the
+      // dashboard show fake balance + impossible margin levels for
+      // accounts that hadn't connected yet.
+      balance: 0, equity: 0, margin: 0, freeMargin: 0,
+      marginLevel: 0, drawdown: 0, profit: 0,
       openLots: 0, buyLots: 0, sellLots: 0, pendingOrders: 0,
       orders: [], pending: [],
     };

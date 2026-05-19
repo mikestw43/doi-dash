@@ -196,7 +196,9 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                 </td>
 
                 <td className="col-ml" style={{ ...tdStyle, textAlign: 'right', color: a.marginLevel > 0 && a.marginLevel < 200 ? 'var(--warning)' : 'var(--text-primary)' }}>
-                  {a.marginLevel > 0 ? `${a.marginLevel.toFixed(0)}%` : '—'}
+                  {a.marginLevel > 0
+                    ? `${a.marginLevel.toLocaleString('en-US', { maximumFractionDigits: 0 })}%`
+                    : '—'}
                 </td>
               </tr>
             );
