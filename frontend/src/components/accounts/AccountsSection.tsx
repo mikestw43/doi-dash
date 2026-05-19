@@ -73,8 +73,19 @@ const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: str
     if (busy) return;
     setBusy(true);
     try {
-      const key = await revealApiKey(accountId);
-      await navigator.clipboard.writeText(key);
+      // iOS Safari is strict: navigator.clipboard.writeText() must run in the
+      // same tick as the user-gesture. Our API call breaks that. The fix is
+      // navigator.clipboard.write([ClipboardItem]) with a Promise<Blob> — the
+      // write call is synchronous in the gesture, content resolves later.
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        const blobPromise = revealApiKey(accountId)
+          .then(k => new Blob([k], { type: 'text/plain' }));
+        // @ts-ignore — TS lib types haven't caught up with Promise-valued items
+        await navigator.clipboard.write([new ClipboardItem({ 'text/plain': blobPromise })]);
+      } else {
+        const key = await revealApiKey(accountId);
+        await navigator.clipboard.writeText(key);
+      }
       setJustCopied(true);
       setTimeout(() => setJustCopied(false), 1800);
       addToast({ type: 'success', title: 'Copied!', message: 'API key copied to clipboard' });
@@ -97,20 +108,21 @@ const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: str
       <button
         onClick={handleCopy}
         disabled={busy}
+        title="Copy API key"
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          padding: '6px 12px',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: '40px', height: '32px',
+          padding: 0,
           background: justCopied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.08)',
           border: `1px solid ${justCopied ? 'var(--green)' : 'var(--cyan)'}`,
           color: justCopied ? 'var(--green)' : 'var(--cyan)',
           fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-          letterSpacing: '.5px',
           cursor: busy ? 'wait' : 'pointer',
           flexShrink: 0,
           transition: 'all .15s',
         }}
       >
-        {busy ? '...' : justCopied ? '✓ COPIED' : '⧉ COPY'}
+        {busy ? '…' : justCopied ? '✓' : '⧉'}
       </button>
     </div>
   );
