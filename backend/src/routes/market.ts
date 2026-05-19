@@ -14,11 +14,11 @@ export interface MarketQuote {
 let _cache: { data: MarketQuote[]; ts: number } | null = null;
 const CACHE_TTL = 10_000;
 
-// ── FX/index/commodity cache. With 6 TwelveData symbols per call, a 60s TTL
-// keeps us under the 8 credits/min throttle (1 call × 6 credits = 6/min).
-// Daily 1440 calls × 6 = 8640 credits — exceeds the free 800/day quota, so
-// the fallback to Frankfurter kicks in ~3 hours into a 24h cycle.
-const FX_CACHE_TTL = 60_000;
+// ── FX/index/commodity cache. With 6 TwelveData symbols per call (6 credits)
+// a 12-minute TTL gives 120 calls/day × 6 = 720 credits — comfortably under
+// the free 800/day quota. FX updates every 12 min instead of every minute,
+// trading freshness for reliable full-day coverage.
+const FX_CACHE_TTL = 12 * 60_000;
 let _fxCache: { quotes: MarketQuote[]; ts: number } | null = null;
 
 // When TwelveData returns 429 (daily 800-credit quota exhausted), avoid hammering
