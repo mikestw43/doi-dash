@@ -71,18 +71,18 @@ const EventTable = ({ events, now }: EventTableProps) => (
       <thead>
         <tr style={{ background: 'var(--bg-card2)' }}>
           <th style={{ ...thSt, width: '52px' }}>TIME</th>
-          <th style={{ ...thSt, width: '48px' }}>CCY</th>
+          <th style={{ ...thSt, width: '48px', paddingLeft: '4px' }}>CCY</th>
           <th style={{ ...thC, width: '24px', padding: '9px 4px' }} aria-label="Impact" />
-          <th className="evcol-event" style={{ ...thSt, width: '40%' }}>EVENT</th>
-          <th className="evcol-actual" style={{ ...thR, width: '70px' }}>
+          <th className="evcol-event" style={{ ...thSt, width: '40%', padding: '9px 4px' }}>EVENT</th>
+          <th className="evcol-actual" style={{ ...thR, width: '80px' }}>
             <span className="lbl-full">ACTUAL</span>
             <span className="lbl-short">ACT</span>
           </th>
-          <th className="evcol-forecast" style={{ ...thR, width: '70px' }}>
+          <th className="evcol-forecast" style={{ ...thR, width: '80px' }}>
             <span className="lbl-full">FORECAST</span>
             <span className="lbl-short">FCST</span>
           </th>
-          <th className="evcol-prev" style={{ ...thR, width: '70px' }}>PREV</th>
+          <th className="evcol-prev" style={{ ...thR, width: '80px' }}>PREV</th>
         </tr>
       </thead>
       <tbody>
@@ -119,7 +119,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               }}>
                 {fmtTime(event.date)}
               </td>
-              <td style={{ ...tdSt, paddingRight: '2px' }}>
+              <td style={{ ...tdSt, padding: '7px 2px 7px 4px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
                   {/* CCY — VT323, same color logic as TIME. */}
@@ -145,6 +145,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               </td>
               <td className="evcol-event" style={{
                 ...tdSt,
+                padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
                 fontSize: '17px',
                 lineHeight: 1.15,
@@ -320,7 +321,7 @@ export const EconomicCalendar = () => {
           FAILED TO LOAD CALENDAR
         </p>
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '16px' }}>
-          Could not reach ForexFactory. Check network connectivity.
+          Could not reach Investing.com. Check network connectivity.
         </p>
         <button
           onClick={handleRefresh}
@@ -413,7 +414,7 @@ export const EconomicCalendar = () => {
           </button>
         </div>
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '15px' }}>
-          ForexFactory · cached 30min · local timezone
+          Investing.com · cached 30min · local timezone
         </p>
       </div>
 
