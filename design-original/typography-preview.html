@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>DOI DASH — Typography Scale Preview</title>
+<title>DOI DASH — Typography Scale Preview (live)</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -12,10 +12,12 @@
   --cyan:#38bdf8;--green:#22c55e;--red:#ef4444;--yellow:#facc15;
   --text:#e5e7eb;--text-dim:#64748b;--border:#162032;--border2:#2d4060;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;padding:24px}
+html,body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;padding:24px;min-height:100%}
 h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:2px;text-shadow:0 0 12px rgba(56,189,248,.8);margin-bottom:24px}
+h2{font-family:'Press Start 2P';font-size:11px;color:var(--cyan);letter-spacing:2px;margin-top:32px;margin-bottom:14px;padding-top:24px;border-top:1px solid var(--border2)}
 .note{font-family:'Share Tech Mono';font-size:11px;color:var(--text-dim);margin-bottom:24px;line-height:1.6;max-width:900px}
 .note b{color:var(--cyan)}
+.warn{color:var(--yellow)}
 
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1100px;margin-bottom:24px}
 .col{background:var(--bg-card);border:1px solid var(--border2);padding:16px;position:relative}
@@ -23,16 +25,16 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
 .col[data-mobile] {max-width:380px}
 .col[data-mobile] .col-hdr::after{content:' (~380px width)';font-size:6px;opacity:.6}
 
-.tier{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:9px 0;border-bottom:1px dashed var(--border2);align-items:center}
+.tier{display:grid;grid-template-columns:130px 1fr;gap:10px;padding:11px 0;border-bottom:1px dashed var(--border2);align-items:center}
 .tier:last-child{border-bottom:none}
-.tier-lbl{font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.3px}
+.tier-lbl{font-family:'Share Tech Mono';font-size:11px;color:var(--text-dim);letter-spacing:.3px}
 .tier-info{font-family:'Share Tech Mono';font-size:9px;color:var(--text-dim);margin-top:3px}
 
-/* ── Typography tiers, desktop ── */
+/* ────────────── DESKTOP TIERS (current production values) ────────────── */
 .d-title    { font-family:'Press Start 2P'; font-size:10px; color:var(--cyan); letter-spacing:2px }
 .d-section  { font-family:'Press Start 2P'; font-size:8px;  color:var(--cyan); letter-spacing:1px }
-.d-label    { font-family:'Press Start 2P'; font-size:7px;  color:var(--text-dim); letter-spacing:.5px }
-.d-micro    { font-family:'Press Start 2P'; font-size:6px;  color:var(--text-dim); letter-spacing:.3px }
+.d-label    { font-family:'VT323';          font-size:12px; color:var(--text-dim); letter-spacing:.5px }
+.d-micro    { font-family:'VT323';          font-size:10px; color:var(--text-dim); letter-spacing:.3px }
 .d-body     { font-family:'Share Tech Mono'; font-size:12px; color:var(--text) }
 .d-body-sm  { font-family:'Share Tech Mono'; font-size:10px; color:var(--text-dim) }
 .d-input    { font-family:'Share Tech Mono'; font-size:13px; color:var(--text); background:var(--bg-card2); border:1px solid var(--border2); padding:6px 10px; display:inline-block; min-width:200px }
@@ -40,20 +42,20 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
 .d-disp-md  { font-family:'VT323'; font-size:34px; color:var(--cyan); line-height:1 }
 .d-disp-lg  { font-family:'VT323'; font-size:42px; color:var(--yellow); line-height:1; letter-spacing:2px }
 
-/* ── Typography tiers, mobile ── */
-.m-title    { font-family:'Press Start 2P'; font-size:9px;  color:var(--cyan); letter-spacing:1.5px }
-.m-section  { font-family:'Press Start 2P'; font-size:7px;  color:var(--cyan); letter-spacing:.8px }
-.m-label    { font-family:'Press Start 2P'; font-size:6px;  color:var(--text-dim); letter-spacing:.4px }
-.m-micro    { font-family:'Press Start 2P'; font-size:5px;  color:var(--text-dim); letter-spacing:.3px }
-.m-body     { font-family:'Share Tech Mono'; font-size:11px; color:var(--text) }
-.m-body-sm  { font-family:'Share Tech Mono'; font-size:9px;  color:var(--text-dim) }
+/* ────────────── MOBILE TIERS — current production values (bumped UP from desktop) ────────────── */
+.m-title    { font-family:'Press Start 2P'; font-size:10px; color:var(--cyan); letter-spacing:2px }
+.m-section  { font-family:'Press Start 2P'; font-size:8px;  color:var(--cyan); letter-spacing:1px }
+.m-label    { font-family:'VT323';          font-size:18px; color:var(--text-dim); letter-spacing:.5px }
+.m-micro    { font-family:'VT323';          font-size:14px; color:var(--text-dim); letter-spacing:.3px }
+.m-body     { font-family:'Share Tech Mono'; font-size:15px; color:var(--text) }
+.m-body-sm  { font-family:'Share Tech Mono'; font-size:13px; color:var(--text-dim) }
 .m-input    { font-family:'Share Tech Mono'; font-size:16px; color:var(--text); background:var(--bg-card2); border:1px solid var(--border2); padding:6px 10px; display:inline-block; min-width:180px }
-.m-disp-sm  { font-family:'VT323'; font-size:14px; color:var(--green); line-height:1 }
-.m-disp-md  { font-family:'VT323'; font-size:22px; color:var(--cyan); line-height:1 }
-.m-disp-lg  { font-family:'VT323'; font-size:32px; color:var(--yellow); line-height:1; letter-spacing:1.5px }
+.m-disp-sm  { font-family:'VT323'; font-size:20px; color:var(--green); line-height:1 }
+.m-disp-md  { font-family:'VT323'; font-size:28px; color:var(--cyan); line-height:1 }
+.m-disp-lg  { font-family:'VT323'; font-size:38px; color:var(--yellow); line-height:1; letter-spacing:1.5px }
 
 /* ── Realistic example panel ── */
-.examples{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1100px;margin-top:24px}
+.examples{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1100px;margin-top:24px;margin-bottom:24px}
 .ex-card{background:var(--bg-card);border:1px solid var(--border2);padding:14px;position:relative}
 .ex-card[data-mobile]{max-width:380px}
 .ex-card-hdr{font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);letter-spacing:1px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border2);text-transform:uppercase}
@@ -63,59 +65,89 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
 .bracket{position:absolute;width:13px;height:13px;pointer-events:none}
 .bracket-tl{top:5px;left:5px;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
 .bracket-br{bottom:5px;right:5px;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+
+pre{font-family:'Share Tech Mono';font-size:11px;background:var(--bg-card2);padding:14px;color:var(--cyan);overflow-x:auto;line-height:1.5;border:1px solid var(--border2);max-width:900px}
+pre .ff{color:var(--yellow)}
+pre .num{color:var(--green)}
 </style>
 </head>
 <body>
 
-<h1>DOI DASH — TYPOGRAPHY SCALE PREVIEW</h1>
+<h1>DOI DASH — TYPOGRAPHY SCALE PREVIEW (LIVE)</h1>
 
 <div class="note">
-  <b>How to read:</b> Two columns — left shows <b>desktop</b> sizes, right shows <b>mobile</b> sizes (capped at 380px width).
-  Each tier has a fixed <b>label name</b> (--fs-title, --fs-section, etc.) and shows the actual rendered size beside it.
-  After approving, these become CSS variables in <b>frontend/src/index.css</b> and every component switches from inline pixel values to <b>var(--fs-*)</b>.
+  <b>Status:</b> This preview reflects the <b>current production tokens</b> in <b>frontend/src/index.css</b>
+  (last sync'd after iteration on mobile readability + VT323 swap for label/micro tiers).<br>
+  Left = desktop (≥769px). Right = mobile (≤768px, capped at 380px to visualize phone width).<br>
+  <span class="warn">⚠ Mobile sizes are now <b>BIGGER</b> than desktop for label/body/display tiers — counterintuitive but needed because phones are held closer + pixel fonts get unreadable at tiny sizes.</span>
 </div>
 
 <!-- ═══ All tiers side-by-side ═══ -->
 <div class="grid">
+
   <!-- DESKTOP COL -->
   <div class="col">
     <div class="col-hdr">DESKTOP (≥769px)</div>
 
-    <div class="tier"><div class="tier-lbl">--fs-title<div class="tier-info">10px</div></div><div class="d-title">PROFILE</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-section<div class="tier-info">8px</div></div><div class="d-section">PERSONAL INFO</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-label<div class="tier-info">7px</div></div><div class="d-label">FULL NAME</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-micro<div class="tier-info">6px</div></div><div class="d-micro">WEEK · MON · DAY 17</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-body<div class="tier-info">12px</div></div><div class="d-body">admin@doi-dash.com</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-body-sm<div class="tier-info">10px</div></div><div class="d-body-sm">Last login 5/17/2026 4:45 PM</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-input<div class="tier-info">13px</div></div><span class="d-input">Type here…</span></div>
-    <div class="tier"><div class="tier-lbl">--fs-disp-sm<div class="tier-info">22px</div></div><div class="d-disp-sm">+$420</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-disp-md<div class="tier-info">34px</div></div><div class="d-disp-md">$6,498</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-disp-lg<div class="tier-info">42px</div></div><div class="d-disp-lg">15:59:31</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-title<div class="tier-info">10px · Press Start 2P</div></div><div class="d-title">PROFILE</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-section<div class="tier-info">8px · Press Start 2P</div></div><div class="d-section">PERSONAL INFO</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-label<div class="tier-info">12px · VT323</div></div><div class="d-label">FULL NAME · EMAIL · MOBILE</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-micro<div class="tier-info">10px · VT323</div></div><div class="d-micro">ADMIN · MON · DAY 17</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-body<div class="tier-info">12px · Share Tech Mono</div></div><div class="d-body">admin@doi-dash.com</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-body-sm<div class="tier-info">10px · Share Tech Mono</div></div><div class="d-body-sm">Last login 5/17/2026 4:45 PM</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-input<div class="tier-info">13px · Share Tech Mono</div></div><span class="d-input">Type here…</span></div>
+    <div class="tier"><div class="tier-lbl">--fs-disp-sm<div class="tier-info">22px · VT323</div></div><div class="d-disp-sm">+$420</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-disp-md<div class="tier-info">34px · VT323</div></div><div class="d-disp-md">$6,498</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-disp-lg<div class="tier-info">42px · VT323</div></div><div class="d-disp-lg">15:59:31</div></div>
   </div>
 
   <!-- MOBILE COL -->
   <div class="col" data-mobile>
     <div class="col-hdr">MOBILE (≤768px)</div>
 
-    <div class="tier"><div class="tier-lbl">--fs-title<div class="tier-info">9px</div></div><div class="m-title">PROFILE</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-section<div class="tier-info">7px</div></div><div class="m-section">PERSONAL INFO</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-label<div class="tier-info">6px</div></div><div class="m-label">FULL NAME</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-micro<div class="tier-info">5px</div></div><div class="m-micro">WEEK · MON · DAY 17</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-body<div class="tier-info">11px</div></div><div class="m-body">admin@doi-dash.com</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-body-sm<div class="tier-info">9px</div></div><div class="m-body-sm">Last login 5/17/2026 4:45 PM</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-input<div class="tier-info">16px ⚠</div></div><span class="m-input">Type here…</span></div>
-    <div class="tier"><div class="tier-lbl">--fs-disp-sm<div class="tier-info">14px</div></div><div class="m-disp-sm">+$420</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-disp-md<div class="tier-info">22px</div></div><div class="m-disp-md">$6,498</div></div>
-    <div class="tier"><div class="tier-lbl">--fs-disp-lg<div class="tier-info">32px</div></div><div class="m-disp-lg">15:59:31</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-title<div class="tier-info">10px · Press Start 2P</div></div><div class="m-title">PROFILE</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-section<div class="tier-info">8px · Press Start 2P</div></div><div class="m-section">PERSONAL INFO</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-label<div class="tier-info">18px · VT323 ↑</div></div><div class="m-label">FULL NAME · EMAIL</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-micro<div class="tier-info">14px · VT323 ↑</div></div><div class="m-micro">ADMIN · MON · DAY 17</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-body<div class="tier-info">15px · Share Tech Mono ↑</div></div><div class="m-body">admin@doi-dash.com</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-body-sm<div class="tier-info">13px · Share Tech Mono ↑</div></div><div class="m-body-sm">Last login 5/17/2026 4:45 PM</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-input<div class="tier-info">16px · iOS no-zoom ⚠</div></div><span class="m-input">Type here…</span></div>
+    <div class="tier"><div class="tier-lbl">--fs-disp-sm<div class="tier-info">20px · VT323</div></div><div class="m-disp-sm">+$420</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-disp-md<div class="tier-info">28px · VT323</div></div><div class="m-disp-md">$6,498</div></div>
+    <div class="tier"><div class="tier-lbl">--fs-disp-lg<div class="tier-info">38px · VT323</div></div><div class="m-disp-lg">15:59:31</div></div>
   </div>
 </div>
 
 <div class="note">
-  ⚠ <b>--fs-input on mobile = 16px</b> is intentional — iOS auto-zooms in when tapping an input with font-size &lt; 16px. We already follow this rule.
+  <b>Mobile bumps</b> (compared to desktop):<br>
+  <span class="warn">↑</span> label 12→18 · micro 10→14 · body 12→15 · body-sm 10→13 (all bigger).<br>
+  display tiers slightly smaller on mobile so KPI cards fit a 2-col grid (disp-md 34→28 etc.).<br>
+  <b>--fs-input on mobile = 16px</b> — required to prevent iOS Safari auto-zoom on input focus.
 </div>
 
+<!-- ═══ FONT FAMILY MAP ═══ -->
+<h2>FONT FAMILY ASSIGNMENT</h2>
+
+<div class="note">
+  Two pixel-family fonts, one mono-clean. Press Start 2P stays for the iconic chunky 8-bit headings;
+  VT323 (CRT terminal) takes over labels because it's far more legible at small sizes; Share Tech Mono
+  carries readable body text + inputs.
+</div>
+
+<pre>
+:root {
+  <span class="ff">--ff-title</span>:    'Press Start 2P', monospace;  /* 10px headings: PROFILE, ANALYTICS */
+  <span class="ff">--ff-section</span>:  'Press Start 2P', monospace;  /* 8px section + button labels */
+  <span class="ff">--ff-label</span>:    'VT323', monospace;           /* 12/18px form labels, table th */
+  <span class="ff">--ff-micro</span>:    'VT323', monospace;           /* 10/14px tiny badges + day numbers */
+  <span class="ff">--ff-body</span>:     'Share Tech Mono', monospace; /* 12/15px values + meta */
+  <span class="ff">--ff-input</span>:    'Share Tech Mono', monospace; /* 13/16px form inputs */
+  <span class="ff">--ff-display</span>:  'VT323', monospace;           /* big numbers: clock, KPI, P&L */
+}
+</pre>
+
 <!-- ═══ Realistic example: Profile card ═══ -->
-<h1 style="font-size:11px;margin-top:32px">REAL EXAMPLE — Profile header card</h1>
+<h2>REAL EXAMPLE — Profile header card</h2>
 
 <div class="examples">
 
@@ -128,7 +160,7 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
       <div style="flex:1;min-width:0">
         <div class="d-body" style="font-size:16px;margin-bottom:6px">Admin</div>
         <div class="d-body-sm" style="line-height:1.6">
-          <span style="font-family:'Press Start 2P';font-size:6px;padding:2px 6px;border:1px solid rgba(56,189,248,.4);color:var(--cyan);background:rgba(56,189,248,.08);margin-right:6px">ADMIN</span>
+          <span style="font-family:'VT323';font-size:10px;padding:2px 6px;border:1px solid rgba(56,189,248,.4);color:var(--cyan);background:rgba(56,189,248,.08);margin-right:6px">ADMIN</span>
           admin@doi-dash.com<br>
           Member since 2026-05-17 · Last login 5:50 PM
         </div>
@@ -144,21 +176,62 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
     <div style="display:flex;align-items:center;gap:10px">
       <div style="width:44px;height:44px;background:rgba(56,189,248,.08);border:2px solid var(--cyan);box-shadow:0 0 10px rgba(56,189,248,.6);display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';font-size:11px;color:var(--cyan);flex-shrink:0">AD</div>
       <div style="flex:1;min-width:0">
-        <div class="m-body" style="font-size:13px;margin-bottom:4px">Admin</div>
+        <div class="m-body" style="margin-bottom:4px">Admin</div>
         <div class="m-body-sm" style="line-height:1.5">
-          <span style="font-family:'Press Start 2P';font-size:5px;padding:2px 5px;border:1px solid rgba(56,189,248,.4);color:var(--cyan);background:rgba(56,189,248,.08);margin-right:5px">ADMIN</span>
+          <span style="font-family:'VT323';font-size:14px;padding:2px 5px;border:1px solid rgba(56,189,248,.4);color:var(--cyan);background:rgba(56,189,248,.08);margin-right:5px">ADMIN</span>
           admin@doi-dash.com<br>
           Member 2026-05-17 · 5:50 PM
         </div>
       </div>
     </div>
-    <button style="margin-top:10px;width:100%;font-family:'Press Start 2P';font-size:7px;letter-spacing:.5px;padding:8px;background:none;color:var(--text);border:1px solid var(--border2);cursor:pointer">EDIT PROFILE</button>
+    <button style="margin-top:10px;width:100%;font-family:'Press Start 2P';font-size:8px;letter-spacing:.5px;padding:10px;background:none;color:var(--text);border:1px solid var(--border2);cursor:pointer">EDIT PROFILE</button>
+  </div>
+
+</div>
+
+<!-- ═══ Realistic example: Personal Info row ═══ -->
+<h2>REAL EXAMPLE — Personal Info row (label · value)</h2>
+
+<div class="examples">
+
+  <div class="ex-card">
+    <span class="bracket bracket-tl"></span><span class="bracket bracket-br"></span>
+    <div class="ex-card-hdr">DESKTOP</div>
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border)">
+      <span class="d-label">FULL NAME</span>
+      <span class="d-body">John Doe</span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border)">
+      <span class="d-label">EMAIL</span>
+      <span class="d-body">john@doi-dash.com</span>
+    </div>
+    <div style="display:grid;grid-template-columns:140px 1fr;gap:12px;padding:10px 0">
+      <span class="d-label">MOBILE</span>
+      <span class="d-body">+66 812-345-678</span>
+    </div>
+  </div>
+
+  <div class="ex-card" data-mobile>
+    <span class="bracket bracket-tl"></span><span class="bracket bracket-br"></span>
+    <div class="ex-card-hdr">MOBILE</div>
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border)">
+      <span class="m-label">FULL NAME</span>
+      <span class="m-body">John Doe</span>
+    </div>
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;padding:10px 0;border-bottom:1px dashed var(--border)">
+      <span class="m-label">EMAIL</span>
+      <span class="m-body">john@doi-dash.com</span>
+    </div>
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;padding:10px 0">
+      <span class="m-label">MOBILE</span>
+      <span class="m-body">+66 812-345-678</span>
+    </div>
   </div>
 
 </div>
 
 <!-- ═══ Realistic example: KPI card ═══ -->
-<h1 style="font-size:11px;margin-top:32px">REAL EXAMPLE — KPI card (Total Equity)</h1>
+<h2>REAL EXAMPLE — KPI card (Total Equity)</h2>
 
 <div class="examples">
 
@@ -166,8 +239,8 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
     <span class="bracket bracket-tl"></span><span class="bracket bracket-br"></span>
     <div class="ex-card-hdr">DESKTOP</div>
     <div style="padding:16px 0">
-      <div class="d-label" style="margin-bottom:10px">TOTAL EQUITY</div>
-      <div class="d-disp-md" style="color:var(--text);margin-bottom:8px">$6,498<sup style="font-size:22px;color:var(--text-dim)">.89</sup></div>
+      <div class="d-section" style="color:var(--text-dim);margin-bottom:10px">TOTAL EQUITY</div>
+      <div class="d-disp-lg" style="color:var(--text);margin-bottom:8px">$6,498<sup style="font-family:'VT323';font-size:22px;color:var(--text-dim)">.89</sup></div>
       <div class="d-body-sm" style="color:var(--green)">▲ +0.00% vs balance</div>
     </div>
   </div>
@@ -176,8 +249,8 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
     <span class="bracket bracket-tl"></span><span class="bracket bracket-br"></span>
     <div class="ex-card-hdr">MOBILE</div>
     <div style="padding:10px 0">
-      <div class="m-label" style="margin-bottom:7px">TOTAL EQUITY</div>
-      <div class="m-disp-md" style="color:var(--text);margin-bottom:6px">$6,498<sup style="font-size:14px;color:var(--text-dim)">.89</sup></div>
+      <div class="m-section" style="color:var(--text-dim);margin-bottom:7px">TOTAL EQUITY</div>
+      <div class="m-disp-lg" style="color:var(--text);margin-bottom:6px">$6,498<sup style="font-family:'VT323';font-size:20px;color:var(--text-dim)">.89</sup></div>
       <div class="m-body-sm" style="color:var(--green)">▲ +0.00% vs balance</div>
     </div>
   </div>
@@ -185,7 +258,7 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
 </div>
 
 <!-- ═══ Realistic example: Form input ═══ -->
-<h1 style="font-size:11px;margin-top:32px">REAL EXAMPLE — Form input (iOS no-zoom on mobile)</h1>
+<h2>REAL EXAMPLE — Form input (iOS no-zoom on mobile)</h2>
 
 <div class="examples">
 
@@ -207,169 +280,37 @@ h1{font-family:'Press Start 2P';font-size:14px;color:var(--cyan);letter-spacing:
 
 </div>
 
-<div class="note" style="margin-top:32px">
-  <b>Once approved</b>, this scale becomes 9 CSS variables in <b>frontend/src/index.css</b>:
-  <pre style="font-family:'Share Tech Mono';font-size:11px;background:var(--bg-card2);padding:12px;margin-top:8px;color:var(--cyan);overflow-x:auto">
+<!-- ═══ CSS variables snapshot ═══ -->
+<h2>CSS VARIABLES (frontend/src/index.css)</h2>
+
+<pre>
 :root {
-  --fs-title:    10px;
-  --fs-section:  8px;
-  --fs-label:    7px;
-  --fs-micro:    6px;
-  --fs-body:     12px;
-  --fs-body-sm:  10px;
-  --fs-input:    13px;
-  --fs-disp-sm:  22px;
-  --fs-disp-md:  34px;
-  --fs-disp-lg:  42px;
+  --fs-title:    <span class="num">10px</span>;
+  --fs-section:  <span class="num">8px</span>;
+  --fs-label:    <span class="num">12px</span>;  /* VT323 */
+  --fs-micro:    <span class="num">10px</span>;  /* VT323 */
+  --fs-body:     <span class="num">12px</span>;
+  --fs-body-sm:  <span class="num">10px</span>;
+  --fs-input:    <span class="num">13px</span>;
+  --fs-disp-sm:  <span class="num">22px</span>;
+  --fs-disp-md:  <span class="num">34px</span>;
+  --fs-disp-lg:  <span class="num">42px</span>;
 }
 @media (max-width: 768px) {
   :root {
-    --fs-title:    9px;
-    --fs-section:  7px;
-    --fs-label:    6px;
-    --fs-micro:    5px;
-    --fs-body:     11px;
-    --fs-body-sm:  9px;
-    --fs-input:    16px;
-    --fs-disp-sm:  14px;
-    --fs-disp-md:  22px;
-    --fs-disp-lg:  32px;
+    --fs-title:    <span class="num">10px</span>;
+    --fs-section:  <span class="num">8px</span>;
+    --fs-label:    <span class="num">18px</span>;  <span style="color:var(--text-dim)">/* ↑ bigger than desktop */</span>
+    --fs-micro:    <span class="num">14px</span>;  <span style="color:var(--text-dim)">/* ↑ */</span>
+    --fs-body:     <span class="num">15px</span>;  <span style="color:var(--text-dim)">/* ↑ */</span>
+    --fs-body-sm:  <span class="num">13px</span>;  <span style="color:var(--text-dim)">/* ↑ */</span>
+    --fs-input:    <span class="num">16px</span>;  <span style="color:var(--text-dim)">/* iOS no-zoom */</span>
+    --fs-disp-sm:  <span class="num">20px</span>;
+    --fs-disp-md:  <span class="num">28px</span>;
+    --fs-disp-lg:  <span class="num">38px</span>;
   }
-}</pre>
-  Then I migrate components gradually from inline <code style="color:var(--yellow)">fontSize: '12px'</code> → <code style="color:var(--green)">fontSize: 'var(--fs-body)'</code>.
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     FONT COMPARISON — for picking what to use at small sizes
-     ═══════════════════════════════════════════════════════ -->
-<h1 style="font-size:14px;margin-top:48px;border-top:2px solid var(--cyan);padding-top:24px">FONT COMPARISON — small text on mobile</h1>
-
-<div class="note">
-  <b>Problem:</b> at small mobile sizes (6-7px), Press Start 2P labels are hard to read.
-  <b>Question:</b> swap to VT323 (CRT green-screen) or Share Tech Mono (clean mono)?
-  Both stay within the retro theme.<br><br>
-  Each row shows the same label text at the same visual <b>weight</b> (Press Start 2P is compact-pixel, VT323 is taller-per-glyph, so equivalent sizes differ).
-</div>
-
-<!-- Mini table comparing 3 fonts at label sizes -->
-<div style="background:var(--bg-card);border:1px solid var(--border2);padding:16px;max-width:900px;margin-bottom:24px">
-  <div class="col-hdr" style="margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border2)">LABEL TIER — at "label-feel" size</div>
-
-  <div style="display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:14px;padding:14px 0;border-bottom:1px dashed var(--border2);align-items:center">
-    <div class="tier-lbl">Press Start 2P<div class="tier-info">7px (current)</div></div>
-    <div style="font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);letter-spacing:.5px">FULL NAME</div>
-    <div style="font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);letter-spacing:.5px">EMAIL ADDRESS</div>
-    <div style="font-family:'Press Start 2P';font-size:7px;color:var(--text-dim);letter-spacing:.5px">CHANGE PASSWORD</div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:14px;padding:14px 0;border-bottom:1px dashed var(--border2);align-items:center;background:rgba(56,189,248,.04)">
-    <div class="tier-lbl" style="color:var(--cyan)">VT323<div class="tier-info">13px (proposed)</div></div>
-    <div style="font-family:'VT323';font-size:13px;color:var(--text-dim);letter-spacing:.5px">FULL NAME</div>
-    <div style="font-family:'VT323';font-size:13px;color:var(--text-dim);letter-spacing:.5px">EMAIL ADDRESS</div>
-    <div style="font-family:'VT323';font-size:13px;color:var(--text-dim);letter-spacing:.5px">CHANGE PASSWORD</div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:14px;padding:14px 0;align-items:center">
-    <div class="tier-lbl">Share Tech Mono<div class="tier-info">10px</div></div>
-    <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);letter-spacing:.5px">FULL NAME</div>
-    <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);letter-spacing:.5px">EMAIL ADDRESS</div>
-    <div style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);letter-spacing:.5px">CHANGE PASSWORD</div>
-  </div>
-</div>
-
-<!-- Micro tier comparison -->
-<div style="background:var(--bg-card);border:1px solid var(--border2);padding:16px;max-width:900px;margin-bottom:24px">
-  <div class="col-hdr" style="margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border2)">MICRO TIER — at "tiny badge" size</div>
-
-  <div style="display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:14px;padding:14px 0;border-bottom:1px dashed var(--border2);align-items:center">
-    <div class="tier-lbl">Press Start 2P<div class="tier-info">6px (current)</div></div>
-    <div style="font-family:'Press Start 2P';font-size:6px;color:var(--cyan);letter-spacing:.5px;padding:2px 6px;border:1px solid rgba(56,189,248,.4);background:rgba(56,189,248,.08);width:fit-content">ADMIN</div>
-    <div style="font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.5px">MON  TUE  WED</div>
-    <div style="font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.5px">17 MAY</div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:14px;padding:14px 0;border-bottom:1px dashed var(--border2);align-items:center;background:rgba(56,189,248,.04)">
-    <div class="tier-lbl" style="color:var(--cyan)">VT323<div class="tier-info">11px (proposed)</div></div>
-    <div style="font-family:'VT323';font-size:11px;color:var(--cyan);letter-spacing:.5px;padding:2px 6px;border:1px solid rgba(56,189,248,.4);background:rgba(56,189,248,.08);width:fit-content">ADMIN</div>
-    <div style="font-family:'VT323';font-size:11px;color:var(--text-dim);letter-spacing:.5px">MON  TUE  WED</div>
-    <div style="font-family:'VT323';font-size:11px;color:var(--text-dim);letter-spacing:.5px">17 MAY</div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:14px;padding:14px 0;align-items:center">
-    <div class="tier-lbl">Share Tech Mono<div class="tier-info">9px</div></div>
-    <div style="font-family:'Share Tech Mono';font-size:9px;color:var(--cyan);letter-spacing:.5px;padding:2px 6px;border:1px solid rgba(56,189,248,.4);background:rgba(56,189,248,.08);width:fit-content">ADMIN</div>
-    <div style="font-family:'Share Tech Mono';font-size:9px;color:var(--text-dim);letter-spacing:.5px">MON  TUE  WED</div>
-    <div style="font-family:'Share Tech Mono';font-size:9px;color:var(--text-dim);letter-spacing:.5px">17 MAY</div>
-  </div>
-</div>
-
-<!-- Realistic Profile row in 3 variants -->
-<h1 style="font-size:11px;margin-top:24px">REAL EXAMPLE — Profile row, mobile width</h1>
-
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:1200px;margin-bottom:24px">
-
-  <!-- Variant 1: All Press Start 2P (current) -->
-  <div class="ex-card" data-mobile>
-    <div class="ex-card-hdr">A) Press Start 2P (current)</div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border2)">
-      <span style="font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.4px">FULL NAME</span>
-      <span style="font-family:'Share Tech Mono';font-size:11px;color:var(--text)">John Doe</span>
-    </div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border2)">
-      <span style="font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.4px">DISPLAY NAME</span>
-      <span style="font-family:'Share Tech Mono';font-size:11px;color:var(--text)">JohnD</span>
-    </div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0">
-      <span style="font-family:'Press Start 2P';font-size:6px;color:var(--text-dim);letter-spacing:.4px">MOBILE</span>
-      <span style="font-family:'Share Tech Mono';font-size:11px;color:var(--text)">+66 812345678</span>
-    </div>
-  </div>
-
-  <!-- Variant 2: Labels in VT323 (proposed) -->
-  <div class="ex-card" data-mobile style="border-color:var(--cyan);box-shadow:0 0 12px rgba(56,189,248,.2)">
-    <div class="ex-card-hdr" style="color:var(--cyan)">B) VT323 labels (PROPOSED)</div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border2)">
-      <span style="font-family:'VT323';font-size:13px;color:var(--text-dim);letter-spacing:.4px">FULL NAME</span>
-      <span style="font-family:'Share Tech Mono';font-size:13px;color:var(--text)">John Doe</span>
-    </div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border2)">
-      <span style="font-family:'VT323';font-size:13px;color:var(--text-dim);letter-spacing:.4px">DISPLAY NAME</span>
-      <span style="font-family:'Share Tech Mono';font-size:13px;color:var(--text)">JohnD</span>
-    </div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0">
-      <span style="font-family:'VT323';font-size:13px;color:var(--text-dim);letter-spacing:.4px">MOBILE</span>
-      <span style="font-family:'Share Tech Mono';font-size:13px;color:var(--text)">+66 812345678</span>
-    </div>
-  </div>
-
-  <!-- Variant 3: Labels in Share Tech Mono -->
-  <div class="ex-card" data-mobile>
-    <div class="ex-card-hdr">C) Share Tech Mono labels</div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border2)">
-      <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);letter-spacing:.4px">FULL NAME</span>
-      <span style="font-family:'Share Tech Mono';font-size:12px;color:var(--text)">John Doe</span>
-    </div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border2)">
-      <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);letter-spacing:.4px">DISPLAY NAME</span>
-      <span style="font-family:'Share Tech Mono';font-size:12px;color:var(--text)">JohnD</span>
-    </div>
-    <div style="display:grid;grid-template-columns:90px 1fr;gap:8px;padding:8px 0">
-      <span style="font-family:'Share Tech Mono';font-size:10px;color:var(--text-dim);letter-spacing:.4px">MOBILE</span>
-      <span style="font-family:'Share Tech Mono';font-size:12px;color:var(--text)">+66 812345678</span>
-    </div>
-  </div>
-
-</div>
-
-<div class="note">
-  <b>Tip:</b> ดูที่ <b>column B (VT323)</b> ก่อน — เป็นข้อเสนอที่ผมแนะนำ เพราะ:
-  <ul style="padding-left:20px;margin-top:6px;line-height:1.6">
-    <li>อ่านง่ายกว่า Press Start 2P เยอะที่ขนาดเดียวกัน</li>
-    <li>คงคาแร็กเตอร์ retro CRT terminal (VT323 = old VT100 monitor font)</li>
-    <li>ใช้ font ที่โปรเจกต์มีอยู่แล้ว ไม่ต้องโหลด font ใหม่</li>
-    <li>Press Start 2P ยังคงใช้ที่ titles + section headings (8-10px) ที่มีพื้นที่พอ</li>
-  </ul>
-</div>
+}
+</pre>
 
 </body>
 </html>

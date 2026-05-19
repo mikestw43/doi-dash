@@ -94,26 +94,23 @@ export const DownloadPage = () => {
               </div>
             </div>
 
-            {/* Two download boxes side-by-side */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '10px',
-            }}>
+            {/* Compact download buttons — sit inline, no nested tile box */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {ea.downloads.map(d => (
                 <a
                   key={d.platform}
                   href={`/ea/${d.filename}`}
                   download
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px',
-                    padding: '16px',
+                    padding: '7px 12px',
                     background: 'rgba(56,189,248,.06)',
                     border: '1px solid var(--cyan)',
                     color: 'var(--cyan)',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                    letterSpacing: '1px',
                     textDecoration: 'none',
                     cursor: 'pointer',
                     transition: 'background .15s',
@@ -121,14 +118,8 @@ export const DownloadPage = () => {
                   onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(56,189,248,.12)')}
                   onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(56,189,248,.06)')}
                 >
-                  {/* Pixel-art download arrow built from CSS — matches retro theme */}
-                  <PixelDownloadIcon />
-                  <span style={{
-                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-                    letterSpacing: '1px',
-                  }}>
-                    {d.platform} {d.ext}
-                  </span>
+                  <PixelDownloadIcon pixelSize={2} />
+                  <span>{d.platform} {d.ext}</span>
                 </a>
               ))}
             </div>
@@ -217,10 +208,10 @@ export const DownloadPage = () => {
   );
 };
 
-/** 16×16 pixel-art download arrow — drawn from divs so it stays crisp at any size
+/** Pixel-art download arrow — drawn from divs so it stays crisp at any size
  *  and matches the rest of the retro/pixel UI (no fuzzy unicode glyph). */
-const PixelDownloadIcon = () => {
-  const px = 3; // pixel size — adjust to scale the whole icon
+const PixelDownloadIcon = ({ pixelSize = 3 }: { pixelSize?: number }) => {
+  const px = pixelSize;
   const cyan = 'currentColor';
   // Coordinates of "on" pixels in a 7-wide × 8-tall grid
   const pixels: [number, number][] = [

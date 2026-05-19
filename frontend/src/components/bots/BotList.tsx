@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAccountStore } from '../../stores/accountStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -7,6 +7,10 @@ import type { Account, AccountGroup } from '../../types';
 import { BotCard } from './BotCard';
 import { BotTable } from './BotTable';
 import { GroupManager } from '../groups/GroupManager';
+import { Dialog } from '../ui/Dialog';
+
+const DEFAULT_FILTER = { status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' };
+type BotFilter = typeof DEFAULT_FILTER;
 
 const SORT_OPTIONS = [
   { value: 'name',     label: 'Name A-Z' },
@@ -41,7 +45,8 @@ export const BotList = () => {
   const [groups, setGroups] = useState<AccountGroup[]>([]);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
+  // Draft state for the modal — committed to botFilter only when user presses Apply
+  const [draft, setDraft] = useState<BotFilter>(botFilter as BotFilter);
 
   const { data: todayPnlData } = useQuery({
     queryKey: ['today-pnl'],
@@ -55,16 +60,11 @@ export const BotList = () => {
 
   useEffect(() => { loadGroups(); }, [loadGroups]);
 
+  // Reset draft to current committed filter every time the modal opens, so the
+  // user always starts from "what's currently applied" — not a stale draft.
   useEffect(() => {
-    if (!showFilter) return;
-    const handler = (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
-        setShowFilter(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showFilter]);
+    if (showFilter) setDraft(botFilter as BotFilter);
+  }, [showFilter, botFilter]);
 
   // Split live / demo — MUST be declared before `filtered` useMemo
   const liveAccounts = accounts.filter(a => !a.isDemo);
@@ -106,8 +106,22 @@ export const BotList = () => {
   }, [liveAccounts, botFilter]);
 
   const clearFilters = () => {
-    setBotFilter({ status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' });
+    setBotFilter(DEFAULT_FILTER);
   };
+
+  const applyDraft = () => {
+    setBotFilter(draft);
+    setShowFilter(false);
+  };
+
+  const clearDraft = () => setDraft(DEFAULT_FILTER);
+
+  // Number of non-default filter/sort fields currently committed — shown as a
+  // badge on the FILTER button so the user can tell at a glance how many
+  // filters are active without opening the popup.
+  const activeFilterCount = (Object.keys(DEFAULT_FILTER) as (keyof BotFilter)[])
+    .filter(k => (botFilter as BotFilter)[k] !== DEFAULT_FILTER[k])
+    .length;
 
   // button style factory
   const ftabStyle = (active: boolean) => ({
@@ -129,13 +143,22 @@ export const BotList = () => {
         <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${liveAccounts.length}`} />
 
         {/* Toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', position: 'relative' }} ref={filterRef}>
-          {/* ⚙ FILTER */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          {/* ⚙ FILTER — opens the modal; badge shows # of active filter/sort fields */}
           <button
-            onClick={() => setShowFilter(f => !f)}
-            style={ftabStyle(showFilter)}
+            onClick={() => setShowFilter(true)}
+            style={{ ...ftabStyle(activeFilterCount > 0), display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
             ⚙ FILTER
+            {activeFilterCount > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                minWidth: '18px', height: '16px', padding: '0 5px',
+                fontFamily: 'var(--ff-section)', fontSize: '10px',
+                color: 'var(--bg-primary)', background: 'var(--accent-blue)',
+                letterSpacing: 0,
+              }}>{activeFilterCount}</span>
+            )}
           </button>
 
           {/* VIEW MODE TOGGLE — pushed to the right side of the toolbar.
@@ -147,89 +170,93 @@ export const BotList = () => {
           >
             {botViewMode === 'card' ? '▤ TABLE' : '▦ CARDS'}
           </button>
+        </div>
 
-          {/* Filter popup */}
-          {showFilter && (
-            <div style={{
-              position: 'absolute', top: 'calc(100% + 4px)', left: 0,
-              zIndex: 500,
-              background: 'var(--bg-card)',
-              border: '2px solid var(--border2)',
-              padding: '12px 14px',
-              minWidth: '220px',
-              boxShadow: '4px 4px 0 rgba(56,189,248,.2)',
-            }}>
-              {/* Search */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SEARCH</div>
-                <input
-                  type="text"
-                  placeholder="name, broker, account #"
-                  value={botFilter.search}
-                  onChange={e => setBotFilter({ search: e.target.value })}
-                  style={{
-                    width: '100%', background: 'var(--bg-input)',
-                    border: '1px solid var(--border2)', color: 'var(--text-primary)',
-                    padding: '7px 9px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-                    outline: 'none',
-                  }}
-                />
-              </div>
+        {/* Filter & sort modal — draft state, only committed on Apply */}
+        <Dialog open={showFilter} onClose={() => setShowFilter(false)} title="FILTER & SORT">
+          {/* Search */}
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SEARCH</div>
+            <input
+              type="text"
+              placeholder="name, broker, account #"
+              value={draft.search}
+              onChange={e => setDraft(d => ({ ...d, search: e.target.value }))}
+              style={{
+                width: '100%', background: 'var(--bg-input)',
+                border: '1px solid var(--border2)', color: 'var(--text-primary)',
+                padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+                outline: 'none', boxSizing: 'border-box',
+              }}
+            />
+          </div>
 
-              {/* Broker */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>BROKER</div>
-                <select
-                  value={botFilter.broker}
-                  onChange={e => setBotFilter({ broker: e.target.value })}
-                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
-                >
-                  {brokers.map(b => <option key={b} value={b}>{b === 'all' ? 'All brokers' : b}</option>)}
-                </select>
-              </div>
+          {/* Broker */}
+          <div style={{ marginBottom: '12px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>BROKER</div>
+            <select
+              value={draft.broker}
+              onChange={e => setDraft(d => ({ ...d, broker: e.target.value }))}
+              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+            >
+              {brokers.map(b => <option key={b} value={b}>{b === 'all' ? 'All brokers' : b}</option>)}
+            </select>
+          </div>
 
-              {/* Group */}
-              {groups.length > 0 && (
-                <div style={{ marginBottom: '10px' }}>
-                  <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>GROUP</div>
-                  <select
-                    value={botFilter.group}
-                    onChange={e => setBotFilter({ group: e.target.value })}
-                    style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
-                  >
-                    <option value="all">All</option>
-                    <option value="ungrouped">Ungrouped</option>
-                    {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                  </select>
-                </div>
-              )}
-
-              {/* Sort */}
-              <div style={{ marginBottom: '10px' }}>
-                <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SORT BY</div>
-                <select
-                  value={botFilter.sort}
-                  onChange={e => setBotFilter({ sort: e.target.value })}
-                  style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '7px 8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
-                >
-                  {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </div>
-
-              <button
-                onClick={() => { clearFilters(); setShowFilter(false); }}
-                style={{
-                  width: '100%', padding: '7px',
-                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-                  border: '1px solid var(--border2)', color: 'var(--text-muted)',
-                  background: 'none', cursor: 'pointer',
-                }}
+          {/* Group */}
+          {groups.length > 0 && (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>GROUP</div>
+              <select
+                value={draft.group}
+                onChange={e => setDraft(d => ({ ...d, group: e.target.value }))}
+                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
               >
-                CLEAR ALL
-              </button>
+                <option value="all">All</option>
+                <option value="ungrouped">Ungrouped</option>
+                {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
             </div>
           )}
-        </div>
+
+          {/* Sort */}
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '.5px', marginBottom: '6px' }}>SORT BY</div>
+            <select
+              value={draft.sort}
+              onChange={e => setDraft(d => ({ ...d, sort: e.target.value }))}
+              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+            >
+              {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+
+          {/* Footer buttons */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={clearDraft}
+              style={{
+                flex: 1, padding: '9px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                border: '1px solid var(--border2)', color: 'var(--text-muted)',
+                background: 'none', cursor: 'pointer', letterSpacing: '.5px',
+              }}
+            >
+              CLEAR ALL
+            </button>
+            <button
+              onClick={applyDraft}
+              style={{
+                flex: 1, padding: '9px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                border: '1px solid var(--cyan)', color: 'var(--cyan)',
+                background: 'rgba(56,189,248,.1)', cursor: 'pointer', letterSpacing: '.5px',
+              }}
+            >
+              APPLY
+            </button>
+          </div>
+        </Dialog>
 
         {/* Bot grid — 3 columns matching mockup */}
         {filtered.length === 0 ? (
