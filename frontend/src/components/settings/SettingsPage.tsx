@@ -8,9 +8,10 @@ import {
 import { exportToCSV } from '../../utils/export';
 import { AccountsSection } from '../accounts/AccountsSection';
 import { ReportSettings } from './ReportSettings';
+import { TickerSettings } from './TickerSettings';
 import type { NotificationLogEntry } from '../../types';
 
-type Tab = 'account' | 'telegram' | 'reports' | 'notifications';
+type Tab = 'account' | 'telegram' | 'reports' | 'ticker' | 'notifications';
 
 /* ── shared styles ────────────────────────────────────── */
 const card: React.CSSProperties = {
@@ -47,6 +48,7 @@ const TABS: { key: Tab; symbol: string; label: string }[] = [
   { key: 'account',       symbol: '◈', label: 'Account' },
   { key: 'telegram',      symbol: '✈', label: 'Telegram' },
   { key: 'reports',       symbol: '▤', label: 'Reports' },
+  { key: 'ticker',        symbol: '▦', label: 'Ticker' },
   { key: 'notifications', symbol: '◉', label: 'Notifications' },
 ];
 
@@ -118,6 +120,7 @@ export const SettingsPage = () => {
           {tab === 'account'       && <AccountsSection />}
           {tab === 'telegram'      && <TelegramTab />}
           {tab === 'reports'       && <ReportSettings />}
+          {tab === 'ticker'        && <TickerSettings />}
           {tab === 'notifications' && <NotificationsTab />}
         </div>
       </div>

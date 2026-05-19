@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { NotificationBell } from './NotificationBell';
-import { fetchMarketQuotes } from '../../services/api';
+import { fetchMarketQuotes, fetchTickerSymbols } from '../../services/api';
 import type { MarketQuote } from '../../services/api';
 
 // ── Clock + session logic ───────────────────────────────────────────────────
@@ -70,6 +71,14 @@ export const Header = () => {
   const [activeSessions, setActiveSessions] = useState(getActiveSessions);
   const [showMenu, setShowMenu] = useState(false);
   const [tickerItems, setTickerItems] = useState<TickerItem[]>(TICKER_FALLBACK);
+
+  // User's preferred symbol list (synced via backend). Falls back to the
+  // default list above when the API hasn't responded yet.
+  const { data: tickerPrefs } = useQuery<{ symbols: string[] }>({
+    queryKey: ['ticker-symbols'],
+    queryFn: fetchTickerSymbols,
+    staleTime: 60_000,
+  });
   const menuRef = useRef<HTMLDivElement>(null);
 
   const wsConnected = useAccountStore(s => s.wsConnected);
@@ -86,17 +95,30 @@ export const Header = () => {
     return () => clearInterval(id);
   }, []);
 
-  // live market quotes — fetch on mount then every 10 s
+  // live market quotes — fetch on mount then every 10 s. Filter + order
+  // the backend payload by the user's preferred symbol list so the bar
+  // shows exactly what they picked in Settings.
   useEffect(() => {
+    const wanted = tickerPrefs?.symbols && tickerPrefs.symbols.length > 0
+      ? tickerPrefs.symbols
+      : DEFAULT_TICKER_SYMBOLS;
+
     const load = () => {
       fetchMarketQuotes()
-        .then(quotes => { if (quotes.length) setTickerItems(quotesToTicker(quotes)); })
+        .then(quotes => {
+          if (!quotes.length) return;
+          const bySym = new Map(quotes.map(q => [q.sym, q]));
+          const ordered = wanted
+            .map(sym => bySym.get(sym))
+            .filter((q): q is MarketQuote => Boolean(q));
+          if (ordered.length) setTickerItems(quotesToTicker(ordered));
+        })
         .catch(() => { /* keep current items on error */ });
     };
     load();
     const id = setInterval(load, 10_000);
     return () => clearInterval(id);
-  }, []);
+  }, [tickerPrefs?.symbols]);
 
   // close menu on outside click
   useEffect(() => {

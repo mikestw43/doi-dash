@@ -398,6 +398,17 @@ export const fetchMarketQuotes = async (): Promise<MarketQuote[]> => {
   return res.data;
 };
 
+// ── Ticker symbol preferences ────────────────────────────────────────────────
+export const fetchTickerSymbols = async (): Promise<{ symbols: string[] }> => {
+  const res = await api.get<{ symbols: string[] }>('/settings/ticker');
+  return res.data;
+};
+
+export const saveTickerSymbols = async (symbols: string[]): Promise<{ symbols: string[] }> => {
+  const res = await api.put<{ symbols: string[] }>('/settings/ticker', { symbols });
+  return res.data;
+};
+
 export const exportMyData = async () => {
   const res = await api.get('/auth/my-data');
   return res.data;
