@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import type { EconomicEvent } from '../../types';
 import { fetchEconomicCalendar } from '../../services/api';
 
@@ -73,16 +73,16 @@ const EventTable = ({ events, now }: EventTableProps) => (
           <th style={{ ...thSt, width: '52px' }}>TIME</th>
           <th style={{ ...thSt, width: '48px' }}>CCY</th>
           <th style={{ ...thC, width: '24px', padding: '9px 4px' }} aria-label="Impact" />
-          <th className="evcol-event" style={thSt}>EVENT</th>
-          <th className="evcol-actual" style={{ ...thR, width: '56px' }}>
+          <th className="evcol-event" style={{ ...thSt, width: '40%' }}>EVENT</th>
+          <th className="evcol-actual" style={{ ...thR, width: '70px' }}>
             <span className="lbl-full">ACTUAL</span>
             <span className="lbl-short">ACT</span>
           </th>
-          <th className="evcol-forecast" style={{ ...thR, width: '56px' }}>
+          <th className="evcol-forecast" style={{ ...thR, width: '70px' }}>
             <span className="lbl-full">FORECAST</span>
             <span className="lbl-short">FCST</span>
           </th>
-          <th className="evcol-prev" style={{ ...thR, width: '56px' }}>PREV</th>
+          <th className="evcol-prev" style={{ ...thR, width: '70px' }}>PREV</th>
         </tr>
       </thead>
       <tbody>
@@ -152,15 +152,21 @@ const EventTable = ({ events, now }: EventTableProps) => (
               }}>
                 {event.title}
               </td>
-              {/* ACTUAL — VT323 20px (same as TIME/CCY) so number columns
-                  read as a single visual group. */}
+              {/* ACTUAL — green if beat forecast, red if missed (sentiment from
+                  Investing.com), else white when present / dim when empty. */}
               <td style={{
                 ...tdR,
                 padding: '7px 4px',
                 fontFamily: 'var(--ff-display)',
                 fontSize: '17px',
                 lineHeight: 1,
-                color: event.actual ? 'var(--text)' : '#334155',
+                color: !event.actual
+                  ? '#334155'
+                  : event.actualSentiment === 'better'
+                    ? 'var(--success)'
+                    : event.actualSentiment === 'worse'
+                      ? 'var(--danger)'
+                      : 'var(--text)',
               }}>
                 {event.actual || '—'}
               </td>
@@ -234,19 +240,25 @@ const EventTable = ({ events, now }: EventTableProps) => (
 
 export const EconomicCalendar = () => {
   const queryClient = useQueryClient();
-  const { data, isLoading, error, isFetching } = useQuery<EconomicEvent[]>({
+  const { data, isLoading, error } = useQuery<EconomicEvent[]>({
     queryKey: ['economic-calendar'],
     queryFn: () => fetchEconomicCalendar(false),
     staleTime: 15 * 60 * 1000,
     refetchInterval: 30 * 60 * 1000,
   });
 
-  /** Manual refresh — bypass the backend 30-min cache so the click
-   *  actually hits ForexFactory upstream. */
-  const handleRefresh = async () => {
-    const fresh = await fetchEconomicCalendar(true);
-    // Seed the query cache with the fresh payload (avoids a second fetch).
-    queryClient.setQueryData(['economic-calendar'], fresh);
+  /** Manual refresh — bypass backend 30-min cache and seed the query
+   *  cache with the fresh payload. Using useMutation gives us a real
+   *  pending flag for the button's disabled / spinner state. */
+  const refreshMutation = useMutation<EconomicEvent[]>({
+    mutationFn: () => fetchEconomicCalendar(true),
+    onSuccess: (fresh) => {
+      queryClient.setQueryData(['economic-calendar'], fresh);
+    },
+  });
+  const refreshing = refreshMutation.isPending;
+  const handleRefresh = () => {
+    if (!refreshing) refreshMutation.mutate();
   };
 
   const [viewMode,  setViewMode]  = useState<'today' | 'week'>('today');
@@ -382,18 +394,19 @@ export const EconomicCalendar = () => {
           {/* Refresh — icon-only, pushed to the far right of the title row. */}
           <button
             onClick={handleRefresh}
-            disabled={isFetching}
-            title={isFetching ? 'Refreshing…' : 'Refresh calendar'}
+            disabled={refreshing}
+            title={refreshing ? 'Refreshing…' : 'Refresh calendar (bypass cache)'}
             style={{
               marginLeft: 'auto', flexShrink: 0,
               width: '28px', height: '28px',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '18px', lineHeight: 1,
               background: 'none', border: '1px solid var(--border2)',
-              color: isFetching ? 'var(--text-dim)' : 'var(--text)',
-              cursor: isFetching ? 'not-allowed' : 'pointer',
-              opacity: isFetching ? .5 : 1,
+              color: refreshing ? 'var(--text-dim)' : 'var(--text)',
+              cursor: refreshing ? 'not-allowed' : 'pointer',
+              opacity: refreshing ? .5 : 1,
               padding: 0,
+              animation: refreshing ? 'spin 1s linear infinite' : undefined,
             }}
           >
             ↻

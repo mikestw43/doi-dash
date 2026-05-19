@@ -174,6 +174,9 @@ interface EconomicEvent {
   forecast: string;
   previous: string;
   actual: string;
+  /** Sentiment vs forecast — 'better' = good for the country (green),
+   *  'worse' = bad (red), 'neutral' = unset / matches forecast. */
+  actualSentiment: 'better' | 'worse' | 'neutral';
 }
 
 interface CalendarCache {
@@ -237,8 +240,18 @@ function parseInvestingHtml(html: string): EconomicEvent[] {
     const titleMatch = inner.match(/<a[^>]*>\s*([^<]+?)\s*<\/a>/);
     const title = titleMatch ? cleanCell(titleMatch[1].replace(/\s+/g, ' ')) : '';
 
-    const actualMatch = inner.match(/eventActual_\d+"[^>]*>([^<]*)</);
-    const actual = actualMatch ? cleanCell(actualMatch[1]) : '';
+    // Investing.com applies greenFont / redFont to the ACTUAL <td> to mark
+    // "Better Than Expected" vs "Worse Than Expected" relative to forecast.
+    // We capture the entire <td> so we can read the class and the value.
+    const actualBlockMatch = inner.match(/<td[^>]*id="eventActual_\d+"[^>]*>[^<]*<\/td>/);
+    const actualBlock = actualBlockMatch ? actualBlockMatch[0] : '';
+    const actualSentiment: EconomicEvent['actualSentiment'] = /greenFont/.test(actualBlock)
+      ? 'better'
+      : /redFont/.test(actualBlock)
+        ? 'worse'
+        : 'neutral';
+    const actualValueMatch = actualBlock.match(/>([^<]*)<\/td>/);
+    const actual = actualValueMatch ? cleanCell(actualValueMatch[1]) : '';
 
     const forecastMatch = inner.match(/eventForecast_\d+"[^>]*>([^<]*)</);
     const forecast = forecastMatch ? cleanCell(forecastMatch[1]) : '';
@@ -258,6 +271,7 @@ function parseInvestingHtml(html: string): EconomicEvent[] {
       forecast,
       previous,
       actual,
+      actualSentiment,
     });
   }
   return events;

@@ -301,4 +301,6 @@ export interface EconomicEvent {
   forecast: string;
   previous: string;
   actual: string;
+  /** 'better' = beat forecast (green), 'worse' = missed (red), else neutral. */
+  actualSentiment?: 'better' | 'worse' | 'neutral';
 }
