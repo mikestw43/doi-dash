@@ -56,9 +56,10 @@ const quotesToTicker = (quotes: MarketQuote[]): TickerItem[] =>
   }));
 
 // Default ticker symbols — overridable per user via Settings → Ticker.
-// US30 / USOIL omitted because they require paid TwelveData tiers.
+// US30 / USOIL / XAGUSD (spot silver) require paid TwelveData tiers;
+// SLV ETF is the free silver proxy.
 const DEFAULT_TICKER_SYMBOLS = [
-  'BTCUSD', 'XAUUSD', 'XAGUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'GBPJPY',
+  'BTCUSD', 'XAUUSD', 'SLV', 'EURUSD', 'GBPUSD', 'USDJPY', 'GBPJPY',
 ];
 
 const TICKER_FALLBACK: TickerItem[] = DEFAULT_TICKER_SYMBOLS.map(sym => ({

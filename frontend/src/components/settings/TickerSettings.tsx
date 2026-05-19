@@ -15,7 +15,7 @@ const CATALOG: { group: string; items: { sym: string; label: string }[] }[] = [
     group: 'Metals',
     items: [
       { sym: 'XAUUSD', label: 'Gold' },
-      { sym: 'XAGUSD', label: 'Silver' },
+      { sym: 'SLV',    label: 'Silver (ETF)' },
     ],
   },
   {

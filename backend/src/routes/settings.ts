@@ -103,9 +103,10 @@ router.patch('/preferences', async (req: AuthRequest, res: Response) => {
 
 // Default set if the user hasn't customized yet. Keep in sync with the
 // frontend Header.tsx DEFAULT_TICKER_SYMBOLS.
-// (US30 / USOIL omitted — they require a paid TwelveData tier.)
+// Free-tier notes: US30 / USOIL / XAG (spot) require paid tier; SLV ETF
+// is used as a free silver proxy.
 const DEFAULT_TICKER_SYMBOLS = [
-  'BTCUSD', 'XAUUSD', 'XAGUSD',
+  'BTCUSD', 'XAUUSD', 'SLV',
   'EURUSD', 'GBPUSD', 'USDJPY', 'GBPJPY',
 ];
 

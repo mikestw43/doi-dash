@@ -40,15 +40,19 @@ interface TwelveDataQuote {
 }
 
 // TwelveData symbol → our ticker symbol convention.
-// US30 (DJI) and WTI/USD require paid tiers; we use TwelveData for metals
-// because metals.live is dead and goldprice.org rejects server-side calls.
+// Notes on free tier:
+// - US30 (DJI) and WTI/USD require paid tiers — omitted.
+// - XAG/USD also requires paid; SLV (iShares Silver Trust ETF) is the
+//   closest free proxy and tracks spot silver 1:1 by % change. We surface
+//   it under the literal "SLV" symbol so the price (~$70 ETF share)
+//   isn't misread as spot silver (~$32/oz).
 const TD_SYMBOL_MAP: Record<string, { out: string; dp: number }> = {
   'EUR/USD': { out: 'EURUSD', dp: 5 },
   'GBP/USD': { out: 'GBPUSD', dp: 5 },
   'USD/JPY': { out: 'USDJPY', dp: 3 },
   'GBP/JPY': { out: 'GBPJPY', dp: 3 },
   'XAU/USD': { out: 'XAUUSD', dp: 2 },
-  'XAG/USD': { out: 'XAGUSD', dp: 3 },
+  SLV:       { out: 'SLV',    dp: 2 },
 };
 
 async function fetchTwelveDataFx(): Promise<MarketQuote[]> {
