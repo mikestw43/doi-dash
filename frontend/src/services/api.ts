@@ -33,10 +33,10 @@ export const login = async (email: string, password: string) => {
   return res.data as { token: string; user: AuthUser };
 };
 
-/** Send Google ID token (JWT credential) to backend; backend verifies with
- *  Google then returns the same shape as password login. */
-export const googleLogin = async (credential: string) => {
-  const res = await api.post('/auth/google', { credential });
+/** Send Google OAuth access_token to backend; backend validates it +
+ *  fetches the user profile from Google, then returns our own JWT. */
+export const googleLogin = async (accessToken: string) => {
+  const res = await api.post('/auth/google', { accessToken });
   return res.data as { token: string; user: AuthUser };
 };
 

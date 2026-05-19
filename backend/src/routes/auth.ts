@@ -65,39 +65,57 @@ router.post('/login', async (req: Request, res: Response) => {
   res.json({ token, user: publicUser(updated) });
 });
 
-// POST /api/auth/google — verify Google ID token, then log in or create user
+// POST /api/auth/google — validate Google OAuth access_token, then log in or
+// create user. Frontend now uses the popup flow (useGoogleLogin from
+// @react-oauth/google) which returns an access_token rather than a JWT
+// credential, because the FedCM-styled "Continue as X" button can't be
+// disabled — using a custom button + popup flow is the only way back to a
+// standard account picker.
 router.post('/google', async (req: Request, res: Response) => {
   if (!googleClient) {
     res.status(503).json({ error: 'Google login is not configured on this server' });
     return;
   }
-  const { credential } = req.body as { credential?: string };
-  if (!credential) {
-    res.status(400).json({ error: 'Missing Google credential' });
+  const { accessToken } = req.body as { accessToken?: string };
+  if (!accessToken) {
+    res.status(400).json({ error: 'Missing Google access token' });
     return;
   }
 
-  // Verify the ID token came from Google AND is intended for this client.
-  let payload;
+  // 1) Validate the token is real AND was minted for *our* OAuth client.
+  let tokenInfo;
   try {
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: GOOGLE_CLIENT_ID,
-    });
-    payload = ticket.getPayload();
+    tokenInfo = await googleClient.getTokenInfo(accessToken);
   } catch {
-    res.status(401).json({ error: 'Invalid Google credential' });
+    res.status(401).json({ error: 'Invalid Google access token' });
     return;
   }
-  if (!payload || !payload.sub || !payload.email) {
-    res.status(401).json({ error: 'Google credential missing required fields' });
+  if (tokenInfo.aud !== GOOGLE_CLIENT_ID) {
+    res.status(401).json({ error: 'Token audience mismatch' });
     return;
   }
 
-  const googleId = payload.sub;
-  const email = payload.email.toLowerCase();
-  const name = payload.name || null;
-  const avatarUrl = payload.picture || null;
+  // 2) Pull the user's profile (sub, email, name, picture).
+  let profile: { sub?: string; email?: string; name?: string; picture?: string };
+  try {
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!r.ok) throw new Error(`userinfo ${r.status}`);
+    profile = await r.json();
+  } catch {
+    res.status(502).json({ error: 'Failed to fetch Google profile' });
+    return;
+  }
+  if (!profile.sub || !profile.email) {
+    res.status(401).json({ error: 'Google profile missing required fields' });
+    return;
+  }
+
+  const googleId = profile.sub;
+  const email = profile.email.toLowerCase();
+  const name = profile.name || null;
+  const avatarUrl = profile.picture || null;
 
   // 1) Try lookup by googleId (returning Google user)
   let user = await prisma.user.findUnique({ where: { googleId } });
