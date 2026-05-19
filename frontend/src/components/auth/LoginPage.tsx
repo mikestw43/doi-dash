@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import { login } from '../../services/api';
+import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
+import { login, googleLogin } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 import { SignUpPage } from './SignUpPage';
+
+const googleEnabled = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const InfoModal = ({ title, message, onClose }: { title: string; message: string; onClose: () => void }) => (
   <div style={{
@@ -52,6 +55,24 @@ export const LoginPage = () => {
       setAuth(token, user);
     } catch {
       setError('Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (resp: CredentialResponse) => {
+    if (!resp.credential) {
+      setError('Google login failed');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const { token, user } = await googleLogin(resp.credential);
+      setAuth(token, user);
+    } catch (err: unknown) {
+      const ax = err as { response?: { data?: { error?: string } } };
+      setError(ax.response?.data?.error || 'Google login failed');
     } finally {
       setLoading(false);
     }
@@ -226,43 +247,35 @@ export const LoginPage = () => {
             {loading ? 'CONNECTING...' : 'LOGIN'}
           </button>
 
-          {/* Divider */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '8px',
-            margin: '12px 0', color: 'var(--text-muted)',
-            fontSize: 'var(--fs-body-sm)', fontFamily: 'var(--ff-body)',
-          }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
-            OR
-            <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
-          </div>
+          {googleEnabled && (
+            <>
+              {/* Divider */}
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                margin: '12px 0', color: 'var(--text-muted)',
+                fontSize: 'var(--fs-body-sm)', fontFamily: 'var(--ff-body)',
+              }}>
+                <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+                OR
+                <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+              </div>
 
-          {/* Google button */}
-          <button
-            type="button"
-            style={{
-              width: '100%', padding: '10px',
-              background: 'transparent',
-              border: '1px solid var(--border2)',
-              color: 'var(--text-primary)',
-              fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
-              transition: 'border-color .15s',
-            }}
-            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-primary)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)')}
-          >
-            <span style={{
-              fontSize: '16px', fontWeight: 700,
-              background: 'linear-gradient(135deg,#4285F4 25%,#EA4335 50%,#FBBC05 75%,#34A853 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              lineHeight: 1,
-            }}>G</span>
-            CONTINUE WITH GOOGLE
-          </button>
+              {/* Google Sign-In — official GIS button (theme matched to dark UI).
+                  Returns a JWT credential which our backend verifies via
+                  google-auth-library. */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Google login failed')}
+                  theme="filled_black"
+                  text="continue_with"
+                  shape="rectangular"
+                  size="large"
+                  width="280"
+                />
+              </div>
+            </>
+          )}
         </form>
 
         {/* Footer */}

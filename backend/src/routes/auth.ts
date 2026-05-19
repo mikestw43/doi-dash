@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import prisma from '../lib/prisma';
 import { generateToken, authMiddleware, AuthRequest } from '../middleware/auth';
 import { sendTelegramMessage } from '../services/telegramService';
@@ -7,6 +8,25 @@ import { logAudit } from '../services/auditLogger';
 import { encrypt, decrypt } from '../lib/encryption';
 
 const router = Router();
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+/** Shape returned to the client after any successful login/register flow.
+ *  Kept in sync with frontend AuthUser type. */
+const publicUser = (u: {
+  id: string; email: string; role: string;
+  name: string | null; displayName: string | null;
+  mobile: string | null; phoneCountry: string | null;
+  timezone: string; avatarUrl?: string | null;
+  createdAt: Date; lastLoginAt: Date | null;
+}) => ({
+  id: u.id, email: u.email, role: u.role,
+  name: u.name, displayName: u.displayName,
+  mobile: u.mobile, phoneCountry: u.phoneCountry,
+  timezone: u.timezone, avatarUrl: u.avatarUrl ?? null,
+  createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
+});
 
 // POST /api/auth/login
 router.post('/login', async (req: Request, res: Response) => {
@@ -17,7 +37,8 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
+  // A Google-only user has password = null — they must use the Google button.
+  if (!user || !user.password || !(await bcrypt.compare(password, user.password))) {
     res.status(401).json({ error: 'Invalid credentials' });
     return;
   }
@@ -36,26 +57,90 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   const token = generateToken({ id: user.id, email: user.email, role: user.role });
-  await prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: user.id },
     data: { lastLoginAt: new Date() },
   });
   logAudit(user.id, 'login', 'user', user.id);
-  res.json({
-    token,
-    user: {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-      displayName: user.displayName,
-      mobile: user.mobile,
-      phoneCountry: user.phoneCountry,
-      timezone: user.timezone,
-      createdAt: user.createdAt,
-      lastLoginAt: user.lastLoginAt,
-    },
+  res.json({ token, user: publicUser(updated) });
+});
+
+// POST /api/auth/google — verify Google ID token, then log in or create user
+router.post('/google', async (req: Request, res: Response) => {
+  if (!googleClient) {
+    res.status(503).json({ error: 'Google login is not configured on this server' });
+    return;
+  }
+  const { credential } = req.body as { credential?: string };
+  if (!credential) {
+    res.status(400).json({ error: 'Missing Google credential' });
+    return;
+  }
+
+  // Verify the ID token came from Google AND is intended for this client.
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch {
+    res.status(401).json({ error: 'Invalid Google credential' });
+    return;
+  }
+  if (!payload || !payload.sub || !payload.email) {
+    res.status(401).json({ error: 'Google credential missing required fields' });
+    return;
+  }
+
+  const googleId = payload.sub;
+  const email = payload.email.toLowerCase();
+  const name = payload.name || null;
+  const avatarUrl = payload.picture || null;
+
+  // 1) Try lookup by googleId (returning Google user)
+  let user = await prisma.user.findUnique({ where: { googleId } });
+
+  // 2) Fall back to email — link Google to an existing password account
+  if (!user) {
+    const byEmail = await prisma.user.findUnique({ where: { email } });
+    if (byEmail) {
+      user = await prisma.user.update({
+        where: { id: byEmail.id },
+        data: { googleId, avatarUrl: byEmail.avatarUrl || avatarUrl },
+      });
+    }
+  }
+
+  // 3) Brand-new user — auto-create. Google has already verified the email,
+  //    so we set status='active' (skipping the pending/admin-approval step
+  //    that password-register goes through).
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email, googleId, name, avatarUrl,
+        role: 'user', status: 'active',
+      },
+    });
+  }
+
+  if (user.status === 'rejected' || user.status === 'suspended') {
+    res.status(403).json({ error: 'Your account is not active. Please contact an administrator.' });
+    return;
+  }
+  if (user.status === 'pending') {
+    res.status(403).json({ error: 'Your account is pending admin approval.' });
+    return;
+  }
+
+  const token = generateToken({ id: user.id, email: user.email, role: user.role });
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
   });
+  logAudit(user.id, 'login_google', 'user', user.id);
+  res.json({ token, user: publicUser(updated) });
 });
 
 // POST /api/auth/register
@@ -96,18 +181,7 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
     res.status(404).json({ error: 'User not found' });
     return;
   }
-  res.json({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-    name: user.name,
-    displayName: user.displayName,
-    mobile: user.mobile,
-    phoneCountry: user.phoneCountry,
-    timezone: user.timezone,
-    createdAt: user.createdAt,
-    lastLoginAt: user.lastLoginAt,
-  });
+  res.json(publicUser(user));
 });
 
 // PATCH /api/auth/profile
@@ -138,18 +212,7 @@ router.patch('/profile', authMiddleware, async (req: AuthRequest, res: Response)
   });
   logAudit(req.user!.id, 'update_profile', 'user', req.user!.id,
     JSON.stringify({ name, displayName, email, mobile, phoneCountry, timezone }));
-  res.json({
-    id: updated.id,
-    email: updated.email,
-    role: updated.role,
-    name: updated.name,
-    displayName: updated.displayName,
-    mobile: updated.mobile,
-    phoneCountry: updated.phoneCountry,
-    timezone: updated.timezone,
-    createdAt: updated.createdAt,
-    lastLoginAt: updated.lastLoginAt,
-  });
+  res.json(publicUser(updated));
 });
 
 // POST /api/auth/change-password
@@ -165,7 +228,17 @@ router.post('/change-password', authMiddleware, async (req: AuthRequest, res: Re
   }
 
   const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-  if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  // Google-only users have no current password — direct them through a
+  // separate "set password" flow instead (not implemented yet).
+  if (!user.password) {
+    res.status(400).json({ error: 'Cannot change password for Google-linked accounts without an existing password' });
+    return;
+  }
+  if (!(await bcrypt.compare(currentPassword, user.password))) {
     res.status(400).json({ error: 'Current password is incorrect' });
     return;
   }

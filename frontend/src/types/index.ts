@@ -140,6 +140,7 @@ export interface AuthUser {
   mobile?: string | null;
   phoneCountry?: string | null;
   timezone?: string | null;
+  avatarUrl?: string | null;
   createdAt?: string | null;
   lastLoginAt?: string | null;
 }

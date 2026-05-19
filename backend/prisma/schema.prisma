@@ -11,7 +11,9 @@ datasource db {
 model User {
   id               String    @id @default(uuid())
   email            String    @unique
-  password         String
+  password         String?   // optional — Google-only users have no password
+  googleId         String?   @unique // populated when account is linked to a Google login
+  avatarUrl        String?   // pulled from Google profile when available
   name             String?
   displayName      String?
   mobile           String?
