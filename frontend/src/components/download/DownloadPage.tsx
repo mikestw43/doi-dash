@@ -1,26 +1,28 @@
 import { useState } from 'react';
 
-/** Platform-specific download card data — keep filenames in sync with frontend/public/ea/. */
-const PLATFORMS = [
+type DownloadVariant = {
+  platform: 'MT4' | 'MT5';
+  filename: string;
+  ext: string;
+};
+
+type EaRelease = {
+  name: string;
+  version: string;
+  description: string;
+  downloads: DownloadVariant[];
+};
+
+/** EA catalog — one entry per EA, with both platform variants inside. */
+const EA_RELEASES: EaRelease[] = [
   {
-    key: 'MT5' as const,
-    label: 'MetaTrader 5',
-    badge: 'RECOMMENDED',
-    badgeColor: 'var(--green)',
+    name: 'DOI DASH Reporter',
     version: 'v1.3',
-    filename: 'DOI_DASH_Reporter_v1.3.ex5',
-    ext: '.EX5',
-    dataFolderPath: 'MQL5 → Experts',
-  },
-  {
-    key: 'MT4' as const,
-    label: 'MetaTrader 4',
-    badge: 'NEW',
-    badgeColor: 'var(--cyan)',
-    version: 'v1.3',
-    filename: 'DOI_DASH_Reporter_v1.3.ex4',
-    ext: '.EX4',
-    dataFolderPath: 'MQL4 → Experts',
+    description: 'Real-time portfolio reporter for MetaTrader',
+    downloads: [
+      { platform: 'MT5', filename: 'DOI_DASH_Reporter_v1.3.ex5', ext: '.EX5' },
+      { platform: 'MT4', filename: 'DOI_DASH_Reporter_v1.3.ex4', ext: '.EX4' },
+    ],
   },
 ];
 
@@ -45,7 +47,6 @@ export const DownloadPage = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      // clipboard API blocked — reveal so user can copy manually
       setRevealed(true);
     }
   };
@@ -62,65 +63,75 @@ export const DownloadPage = () => {
           DOWNLOAD EA
         </div>
         <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '6px' }}>
-          DOI DASH Reporter — pick your MetaTrader platform
+          Expert Advisors for MetaTrader 4 + 5
         </div>
       </div>
 
-      {/* Platform download cards — both shown side-by-side (no tab switching) */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-        gap: '12px',
-      }}>
-        {PLATFORMS.map(p => (
-          <div key={p.key} style={{
+      {/* EA boxes — one per release, both platform variants inside */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {EA_RELEASES.map(ea => (
+          <div key={ea.name + ea.version} style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border2)',
             padding: '18px 20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '14px',
+            gap: '16px',
           }}>
-            {/* Top row: label + badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{
+            {/* EA name as header */}
+            <div>
+              <div style={{
                 fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-section)',
                 color: 'var(--text-primary)', letterSpacing: '1px',
               }}>
-                {p.label.toUpperCase()} {p.version}
-              </span>
-              <span style={{
-                fontFamily: 'var(--ff-section)', fontSize: '10px',
-                padding: '2px 6px',
-                border: `1px solid ${p.badgeColor}`,
-                color: p.badgeColor,
-                background: `${p.badgeColor}15`,
-              }}>{p.badge}</span>
+                {ea.name.toUpperCase()} {ea.version}
+              </div>
+              <div style={{
+                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                color: 'var(--text-muted)', marginTop: '4px',
+              }}>
+                {ea.description}
+              </div>
             </div>
 
-            {/* Filename */}
+            {/* Two download boxes side-by-side */}
             <div style={{
-              fontFamily: 'var(--ff-mono)', fontSize: 'var(--fs-body-sm)',
-              color: 'var(--text-muted)',
-              wordBreak: 'break-all',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '10px',
             }}>
-              {p.filename}
+              {ea.downloads.map(d => (
+                <a
+                  key={d.platform}
+                  href={`/ea/${d.filename}`}
+                  download
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '16px',
+                    background: 'rgba(56,189,248,.06)',
+                    border: '1px solid var(--cyan)',
+                    color: 'var(--cyan)',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    transition: 'background .15s',
+                  }}
+                  onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(56,189,248,.12)')}
+                  onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(56,189,248,.06)')}
+                >
+                  {/* Pixel-art download arrow built from CSS — matches retro theme */}
+                  <PixelDownloadIcon />
+                  <span style={{
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                    letterSpacing: '1px',
+                  }}>
+                    {d.platform} {d.ext}
+                  </span>
+                </a>
+              ))}
             </div>
-
-            {/* Download button */}
-            <a
-              href={`/ea/${p.filename}`}
-              download
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                padding: '12px 20px',
-                background: 'rgba(56,189,248,.1)', border: '1px solid var(--cyan)',
-                color: 'var(--cyan)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-                cursor: 'pointer', textDecoration: 'none', letterSpacing: '1px',
-              }}
-            >
-              ⬇ DOWNLOAD {p.ext}
-            </a>
           </div>
         ))}
       </div>
@@ -146,7 +157,7 @@ export const DownloadPage = () => {
           ))}
         </div>
 
-        {/* WebRequest whitelist — URL is blurred until copy is pressed */}
+        {/* WebRequest whitelist — URL is blurred until reveal/copy */}
         <div style={{
           marginTop: '16px',
           padding: '10px 14px',
@@ -202,6 +213,48 @@ export const DownloadPage = () => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+/** 16×16 pixel-art download arrow — drawn from divs so it stays crisp at any size
+ *  and matches the rest of the retro/pixel UI (no fuzzy unicode glyph). */
+const PixelDownloadIcon = () => {
+  const px = 3; // pixel size — adjust to scale the whole icon
+  const cyan = 'currentColor';
+  // Coordinates of "on" pixels in a 7-wide × 8-tall grid
+  const pixels: [number, number][] = [
+    // shaft (col 3, rows 0-3)
+    [3, 0], [3, 1], [3, 2], [3, 3],
+    // arrowhead row 4 (cols 1-5)
+    [1, 4], [2, 4], [3, 4], [4, 4], [5, 4],
+    // arrowhead row 5 (cols 2-4)
+    [2, 5], [3, 5], [4, 5],
+    // arrowhead tip row 6 (col 3)
+    [3, 6],
+    // baseline / tray row 7 (cols 0-6)
+    [0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7],
+  ];
+  return (
+    <div style={{
+      position: 'relative',
+      width: `${7 * px}px`,
+      height: `${8 * px}px`,
+      color: cyan,
+    }}>
+      {pixels.map(([x, y]) => (
+        <div
+          key={`${x}-${y}`}
+          style={{
+            position: 'absolute',
+            left: `${x * px}px`,
+            top: `${y * px}px`,
+            width: `${px}px`,
+            height: `${px}px`,
+            background: 'currentColor',
+          }}
+        />
+      ))}
     </div>
   );
 };
