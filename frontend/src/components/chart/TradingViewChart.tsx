@@ -82,14 +82,18 @@ export const TradingViewChart = () => {
         }}>▲</span>
       </button>
 
-      {/* Chart body */}
+      {/* Chart body — Sentinel pattern: 60vh of viewport with a 400px floor so
+          small phones still get a usable chart while large monitors get more
+          vertical room. The chart sits in normal document flow, so expanding
+          just pushes the MY ACCOUNTS section below it — never overlaps. */}
       <div
         className="tradingview-widget-container"
         ref={containerRef}
         style={{
-          height: collapsed ? '0' : '400px',
+          height: collapsed ? '0' : '60vh',
+          minHeight: collapsed ? '0' : '400px',
           overflow: 'hidden',
-          transition: 'height .25s ease',
+          transition: 'height .25s ease, min-height .25s ease',
           width: '100%',
         }}
       />
