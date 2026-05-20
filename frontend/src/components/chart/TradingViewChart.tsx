@@ -82,13 +82,13 @@ export const TradingViewChart = () => {
         }}>▲</span>
       </button>
 
-      {/* Chart body — Sentinel pattern: 60vh of viewport with a 400px floor so
-          small phones still get a usable chart while large monitors get more
-          vertical room. The chart sits in normal document flow, so expanding
-          just pushes the MY ACCOUNTS section below it — never overlaps. */}
+      {/* Chart body — Sentinel pattern: outer wrapper owns the 60vh sizing so
+          TradingView's autosize script can't reach in and reset it (it
+          force-sets the .tradingview-widget-container to height:100%). The
+          inner div is the one TradingView mutates — 100% of the wrapper is
+          exactly what we want. Chart sits in normal document flow so
+          expanding just pushes the MY ACCOUNTS section down. */}
       <div
-        className="tradingview-widget-container"
-        ref={containerRef}
         style={{
           height: collapsed ? '0' : '60vh',
           minHeight: collapsed ? '0' : '400px',
@@ -96,7 +96,13 @@ export const TradingViewChart = () => {
           transition: 'height .25s ease, min-height .25s ease',
           width: '100%',
         }}
-      />
+      >
+        <div
+          className="tradingview-widget-container"
+          ref={containerRef}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
     </div>
   );
 };
