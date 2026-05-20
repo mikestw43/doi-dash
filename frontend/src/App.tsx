@@ -46,10 +46,8 @@ const Dashboard = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {/* ── Portfolio (section header outside box, see OverviewTabs) ── */}
           <OverviewTabs />
-          {/* ── Chart Box ── */}
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px 16px' }}>
-            <TradingViewChart />
-          </div>
+          {/* ── Chart — manages its own border, no outer wrapper ── */}
+          <TradingViewChart />
           {/* ── Accounts Boxes (MY ACCOUNTS + DEMO) ── */}
           <BotList />
         </div>
