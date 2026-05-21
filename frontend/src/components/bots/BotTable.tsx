@@ -3,8 +3,8 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { Account } from '../../types';
 import { formatLots, formatPercent } from '../../utils/formatters';
 
-/** Flash a green/red background on a <td> when `value` changes. */
-const FlashCell = ({ value, style, children }: { value: number; style?: CSSProperties; children: ReactNode }) => {
+/** Returns a fading green/red background colour for a value that just changed. */
+const useFlashBg = (value: number): string | undefined => {
   const prev = useRef(value);
   const [flash, setFlash] = useState<'up' | 'dn' | null>(null);
   useEffect(() => {
@@ -15,11 +15,27 @@ const FlashCell = ({ value, style, children }: { value: number; style?: CSSPrope
       return () => clearTimeout(t);
     }
   }, [value]);
-  const bg = flash === 'up' ? 'rgba(34,197,94,.25)' : flash === 'dn' ? 'rgba(239,68,68,.25)' : undefined;
+  return flash === 'up' ? 'rgba(34,197,94,.25)' : flash === 'dn' ? 'rgba(239,68,68,.25)' : undefined;
+};
+
+/** Flash a green/red background on a <td> when `value` changes. */
+const FlashCell = ({ value, style, children }: { value: number; style?: CSSProperties; children: ReactNode }) => {
+  const bg = useFlashBg(value);
   return (
     <td style={{ ...style, backgroundColor: bg, transition: 'background-color .6s' }}>
       {children}
     </td>
+  );
+};
+
+/** Same flash effect but on an inline span — used for the equity line under
+ *  each account name where we want live updates to feel "alive". */
+const FlashSpan = ({ value, style, children }: { value: number; style?: CSSProperties; children: ReactNode }) => {
+  const bg = useFlashBg(value);
+  return (
+    <span style={{ ...style, backgroundColor: bg, transition: 'background-color .6s' }}>
+      {children}
+    </span>
   );
 };
 
@@ -71,11 +87,17 @@ const plColor = (v: number) => (v > 0 ? 'var(--success)' : v < 0 ? 'var(--danger
  * renders both spans; CSS hides the one that doesn't match the viewport.
  * USC/USDC accounts drop the $ prefix (the value is raw cents, not dollars).
  */
-const Money = ({ value, signed = false, currency }: { value: number; signed?: boolean; currency?: string }) => {
+const Money = ({ value, signed = false, currency, noK = false }: {
+  value: number; signed?: boolean; currency?: string;
+  /** Render the full format on every viewport — skip the k-unit mobile swap. */
+  noK?: boolean;
+}) => {
   const prefix = isUsc(currency) ? '' : '$';
+  const fullText = signed ? signedFull(value, prefix) : `${prefix}${fmtMoneyFull(value)}`;
+  if (noK) return <>{fullText}</>;
   return (
     <>
-      <span className="num-full">{signed ? signedFull(value, prefix) : `${prefix}${fmtMoneyFull(value)}`}</span>
+      <span className="num-full">{fullText}</span>
       <span className="num-k">{signed ? signedK(value, prefix) : `${prefix}${fmtMoneyK(value)}`}</span>
     </>
   );
@@ -158,8 +180,9 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                 </td>
 
                 {/* Name + equity below — equity is the live "right now" value
-                    of the account; doubles as primary indicator on mobile where
-                    the dedicated BALANCE/EQUITY columns are hidden. */}
+                    of the account. Always renders the full number (noK) and
+                    flashes green/red when the equity ticks, so updates feel
+                    alive even on mobile. */}
                 <td style={tdStyle}>
                   <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '.5px' }}>
                     {a.name}
@@ -170,9 +193,9 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                     marginTop: '2px',
                   }}>
                     <span>Eq</span>
-                    <span style={{ fontFamily: 'var(--ff-display)' }}>
-                      <Money value={a.equity} currency={a.currency} />
-                    </span>
+                    <FlashSpan value={a.equity} style={{ fontFamily: 'var(--ff-display)' }}>
+                      <Money value={a.equity} currency={a.currency} noK />
+                    </FlashSpan>
                   </div>
                 </td>
 
