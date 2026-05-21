@@ -28,17 +28,6 @@ const FlashCell = ({ value, style, children }: { value: number; style?: CSSPrope
   );
 };
 
-/** Same flash effect but on an inline span — used for the equity line under
- *  each account name where we want live updates to feel "alive". */
-const FlashSpan = ({ value, style, children }: { value: number; style?: CSSProperties; children: ReactNode }) => {
-  const bg = useFlashBg(value);
-  return (
-    <span style={{ ...style, backgroundColor: bg, transition: 'background-color .6s' }}>
-      {children}
-    </span>
-  );
-};
-
 interface Props {
   accounts: Account[];
   todayPnlMap: Record<string, number>;
@@ -180,32 +169,30 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                 </td>
 
                 {/* Name + equity below — equity is the live "right now" value
-                    of the account. The number is colored against floating P/L
-                    (green = profitable / red = losing / white = break-even)
-                    so a quick glance tells you the account's state. */}
+                    of the account, sized to match the other data columns so
+                    it's actually readable on mobile. Colour follows floating
+                    P/L: green / red / white. No background flash — the
+                    colour change on tick is enough signal. */}
                 <td style={tdStyle}>
                   <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '.5px' }}>
                     {a.name}
                   </div>
                   <div style={{
-                    display: 'flex', alignItems: 'baseline', gap: '5px',
+                    display: 'flex', alignItems: 'baseline', gap: '6px',
                     marginTop: '3px',
                   }}>
                     <span style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>Eq</span>
-                    <FlashSpan
-                      value={a.equity}
-                      style={{
-                        fontFamily: 'var(--ff-display)',
-                        fontSize: 'var(--fs-section)',
-                        color: a.profit > 0
-                          ? 'var(--success)'
-                          : a.profit < 0
-                            ? 'var(--danger)'
-                            : 'var(--text-primary)',
-                      }}
-                    >
+                    <span style={{
+                      fontFamily: 'var(--ff-display)',
+                      fontSize: 'var(--fs-display)',
+                      color: a.profit > 0
+                        ? 'var(--success)'
+                        : a.profit < 0
+                          ? 'var(--danger)'
+                          : 'var(--text-primary)',
+                    }}>
                       <Money value={a.equity} currency={a.currency} noK />
-                    </FlashSpan>
+                    </span>
                   </div>
                 </td>
 
