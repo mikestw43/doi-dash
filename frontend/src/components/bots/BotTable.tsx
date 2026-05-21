@@ -157,13 +157,22 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                   />
                 </td>
 
-                {/* Name + account # below */}
+                {/* Name + equity below — equity is the live "right now" value
+                    of the account; doubles as primary indicator on mobile where
+                    the dedicated BALANCE/EQUITY columns are hidden. */}
                 <td style={tdStyle}>
                   <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '.5px' }}>
                     {a.name}
                   </div>
-                  <div style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    #{a.accountNumber || '—'}
+                  <div style={{
+                    display: 'flex', alignItems: 'baseline', gap: '4px',
+                    fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)',
+                    marginTop: '2px',
+                  }}>
+                    <span>Eq</span>
+                    <span style={{ fontFamily: 'var(--ff-display)' }}>
+                      <Money value={a.equity} currency={a.currency} />
+                    </span>
                   </div>
                 </td>
 
@@ -187,15 +196,15 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                   <Money value={a.profit} signed currency={a.currency} />
                 </FlashCell>
 
-                <td style={{ ...tdStyle, textAlign: 'right', color: ddColor(a.drawdown, offline) }}>
+                <td style={{ ...tdStyle, textAlign: 'right', color: ddColor(a.drawdown, offline), fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
                   {formatPercent(a.drawdown)}
                 </td>
 
-                <td className="col-lots" style={{ ...tdStyle, textAlign: 'right' }}>
+                <td className="col-lots" style={{ ...tdStyle, textAlign: 'right', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
                   {formatLots(a.openLots)}
                 </td>
 
-                <td className="col-ml" style={{ ...tdStyle, textAlign: 'right', color: a.marginLevel > 0 && a.marginLevel < 200 ? 'var(--warning)' : 'var(--text-primary)' }}>
+                <td className="col-ml" style={{ ...tdStyle, textAlign: 'right', color: a.marginLevel > 0 && a.marginLevel < 200 ? 'var(--warning)' : 'var(--text-primary)', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-display)' }}>
                   {a.marginLevel > 0
                     ? `${a.marginLevel.toLocaleString('en-US', { maximumFractionDigits: 0 })}%`
                     : '—'}
