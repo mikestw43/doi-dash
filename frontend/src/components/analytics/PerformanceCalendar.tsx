@@ -327,36 +327,6 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
         </table>
       </div>
 
-      {/* Legend */}
-      <div style={{
-        display: 'flex', gap: '14px', alignItems: 'center',
-        marginTop: '10px', paddingTop: '8px',
-        borderTop: '1px solid var(--border)', flexWrap: 'wrap',
-      }}>
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
-          HEAT:
-        </span>
-        {[
-          { bg: 'rgba(34,197,94,.22)', label: 'Strong profit' },
-          { bg: 'rgba(34,197,94,.12)', label: 'Profit' },
-          { bg: 'rgba(34,197,94,.05)', label: 'Small profit' },
-          { bg: 'rgba(239,68,68,.05)', label: 'Small loss' },
-          { bg: 'rgba(239,68,68,.12)', label: 'Loss' },
-          { bg: 'rgba(239,68,68,.22)', label: 'Strong loss' },
-        ].map(item => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
-            <span style={{ width: '11px', height: '11px', background: item.bg, border: '1px solid rgba(255,255,255,.08)', flexShrink: 0 }} />
-            {item.label}
-          </div>
-        ))}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '8px' }}>
-          {/* Legend swatch now matches the new "today" indicator — a filled
-              cyan disc behind the day number, not a bordered cell. */}
-          <span style={{ width: '11px', height: '11px', borderRadius: '50%', background: 'var(--accent-blue)', flexShrink: 0 }} />
-          Today
-        </div>
-      </div>
-
       {loading && data.length === 0 && (
         <div style={{ textAlign: 'center', padding: '12px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
           Loading...
