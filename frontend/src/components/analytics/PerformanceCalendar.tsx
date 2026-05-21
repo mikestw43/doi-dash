@@ -118,6 +118,10 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
   }, [year, month]);
 
   const todayKey = today.getFullYear() === year && today.getMonth() === month ? today.getDate() : -1;
+  // Column index (Monday-first) of today's day-of-week, or -1 if today is
+  // outside the currently-viewed month/year. Used to highlight the matching
+  // weekday header in cyan.
+  const todayDow = todayKey >= 0 ? (today.getDay() + 6) % 7 : -1;
 
   const changeMonth = (dir: -1 | 1) => {
     let m = month + dir;
@@ -236,13 +240,21 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
         <table className="pcal" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px', tableLayout: 'fixed' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
-              <th className="pcal-th" style={thStyle}>MON</th>
-              <th className="pcal-th" style={thStyle}>TUE</th>
-              <th className="pcal-th" style={thStyle}>WED</th>
-              <th className="pcal-th" style={thStyle}>THU</th>
-              <th className="pcal-th" style={thStyle}>FRI</th>
-              <th className="pcal-th" style={thStyle}>SAT</th>
-              <th className="pcal-th" style={thStyle}>SUN</th>
+              {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map((d, i) => (
+                <th
+                  key={d}
+                  className="pcal-th"
+                  style={{
+                    ...thStyle,
+                    // Highlight the weekday header that matches today's
+                    // day-of-week (only when today falls inside the viewed month).
+                    color: todayDow === i ? 'var(--accent-blue)' : thStyle.color,
+                    background: todayDow === i ? 'rgba(56,189,248,.08)' : undefined,
+                  }}
+                >
+                  {d}
+                </th>
+              ))}
               <th className="pcal-th pcal-th-wk" style={thWeek}>WEEK</th>
             </tr>
           </thead>
