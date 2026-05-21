@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { fetchAuditLogs, fetchAuditActions, fetchUsers } from '../../services/api';
 import { exportToCSV } from '../../utils/export';
 import { useUIStore } from '../../stores/uiStore';
+import { Dialog } from '../ui/Dialog';
 import type { AuditLogEntry, UserInfo } from '../../types';
 
 const ACTION_COLORS: Record<string, string> = {
@@ -24,7 +25,8 @@ const ACTION_COLORS: Record<string, string> = {
   delete_group:           'var(--red)',
 };
 
-const selStyle: React.CSSProperties = { background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '6px 10px', outline: 'none', cursor: 'pointer' };
+const selStyle: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '8px 10px', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' };
+const lblStyle: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
 const thStyle: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap' };
 const tdStyle: React.CSSProperties = { padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
 
@@ -39,6 +41,30 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
   const [actions, setActions] = useState<string[]>([]);
   const [users, setUsers] = useState<UserInfo[]>([]);
   const limit = 25;
+
+  // Filter modal — draft state, only committed when Apply is pressed
+  const [showFilter, setShowFilter] = useState(false);
+  const [draftUser, setDraftUser] = useState('');
+  const [draftAction, setDraftAction] = useState('');
+
+  useEffect(() => {
+    if (showFilter) {
+      setDraftUser(filterUser);
+      setDraftAction(filterAction);
+    }
+  }, [showFilter, filterUser, filterAction]);
+
+  const applyFilters = () => {
+    setFilterUser(draftUser);
+    setFilterAction(draftAction);
+    setPage(1);
+    setShowFilter(false);
+  };
+  const clearDraftFilters = () => {
+    setDraftUser('');
+    setDraftAction('');
+  };
+  const activeFilterCount = (filterUser ? 1 : 0) + (filterAction ? 1 : 0);
 
   useEffect(() => {
     fetchAuditActions().then(setActions).catch(() => {});
@@ -95,16 +121,31 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
         </div>
       )}
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-        <select value={filterUser} onChange={e => { setFilterUser(e.target.value); setPage(1); }} style={selStyle}>
-          <option value="">All Users</option>
-          {users.map(u => <option key={u.id} value={u.id}>{u.email}</option>)}
-        </select>
-        <select value={filterAction} onChange={e => { setFilterAction(e.target.value); setPage(1); }} style={selStyle}>
-          <option value="">All Actions</option>
-          {actions.map(a => <option key={a} value={a}>{a}</option>)}
-        </select>
+      {/* Filter button — opens modal */}
+      <div style={{ marginBottom: '10px' }}>
+        <button
+          onClick={() => setShowFilter(true)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            padding: '6px 10px',
+            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+            border: activeFilterCount > 0 ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
+            color: activeFilterCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)',
+            background: activeFilterCount > 0 ? 'rgba(56,189,248,.08)' : 'none',
+            cursor: 'pointer',
+          }}
+        >
+          ⚙ FILTER
+          {activeFilterCount > 0 && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              minWidth: '18px', height: '16px', padding: '0 5px',
+              fontFamily: 'var(--ff-section)', fontSize: '10px',
+              color: 'var(--bg-primary)', background: 'var(--accent-blue)',
+              letterSpacing: 0,
+            }}>{activeFilterCount}</span>
+          )}
+        </button>
       </div>
 
       {/* Table */}
@@ -176,6 +217,48 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
           </div>
         </div>
       )}
+
+      {/* Filter modal — draft state, only committed when Apply is pressed */}
+      <Dialog open={showFilter} onClose={() => setShowFilter(false)} title="FILTER AUDIT LOG">
+        <div style={{ marginBottom: '12px' }}>
+          <label style={lblStyle}>USER</label>
+          <select value={draftUser} onChange={e => setDraftUser(e.target.value)} style={selStyle}>
+            <option value="">All Users</option>
+            {users.map(u => <option key={u.id} value={u.id}>{u.email}</option>)}
+          </select>
+        </div>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={lblStyle}>ACTION</label>
+          <select value={draftAction} onChange={e => setDraftAction(e.target.value)} style={selStyle}>
+            <option value="">All Actions</option>
+            {actions.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={clearDraftFilters}
+            style={{
+              flex: 1, padding: '9px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+              border: '1px solid var(--border2)', color: 'var(--text-muted)',
+              background: 'none', cursor: 'pointer', letterSpacing: '.5px',
+            }}
+          >
+            CLEAR ALL
+          </button>
+          <button
+            onClick={applyFilters}
+            style={{
+              flex: 1, padding: '9px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+              border: '1px solid var(--cyan)', color: 'var(--cyan)',
+              background: 'rgba(56,189,248,.1)', cursor: 'pointer', letterSpacing: '.5px',
+            }}
+          >
+            APPLY
+          </button>
+        </div>
+      </Dialog>
     </div>
   );
 };

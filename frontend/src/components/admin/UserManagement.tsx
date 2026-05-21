@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchUsers, createUser, deleteUser, changeUserStatus } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
@@ -78,6 +78,28 @@ export const UserManagement = () => {
   const [newRole, setNewRole] = useState('user');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  // Filter modal — draft state, only committed when Apply is pressed
+  const [showFilter, setShowFilter] = useState(false);
+  const [draftRole, setDraftRole] = useState('all');
+  const [draftStatus, setDraftStatus] = useState('all');
+
+  useEffect(() => {
+    if (showFilter) {
+      setDraftRole(roleFilter);
+      setDraftStatus(statusFilter);
+    }
+  }, [showFilter, roleFilter, statusFilter]);
+
+  const applyFilters = () => {
+    setRoleFilter(draftRole);
+    setStatusFilter(draftStatus);
+    setShowFilter(false);
+  };
+  const clearDraftFilters = () => {
+    setDraftRole('all');
+    setDraftStatus('all');
+  };
+  const activeFilterCount = (roleFilter !== 'all' ? 1 : 0) + (statusFilter !== 'all' ? 1 : 0);
 
   const { data: users = [], isLoading } = useQuery<UserInfo[]>({
     queryKey: ['admin-users'],
@@ -207,28 +229,30 @@ export const UserManagement = () => {
               >
                 + CREATE USER
               </button>
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <select
-                  value={roleFilter}
-                  onChange={e => setRoleFilter(e.target.value)}
-                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
-                >
-                  <option value="all">All Roles</option>
-                  <option value="admin">Admin</option>
-                  <option value="vip">VIP</option>
-                  <option value="user">User</option>
-                </select>
-                <select
-                  value={statusFilter}
-                  onChange={e => setStatusFilter(e.target.value)}
-                  style={{ background: 'var(--bg-card2)', border: '1px solid var(--border2)', color: 'var(--text-dim)', padding: '6px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer' }}
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="suspended">Suspended</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
+              <button
+                onClick={() => setShowFilter(true)}
+                style={{
+                  marginLeft: 'auto',
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '6px 10px',
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+                  border: activeFilterCount > 0 ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
+                  color: activeFilterCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)',
+                  background: activeFilterCount > 0 ? 'rgba(56,189,248,.08)' : 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                ⚙ FILTER
+                {activeFilterCount > 0 && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    minWidth: '18px', height: '16px', padding: '0 5px',
+                    fontFamily: 'var(--ff-section)', fontSize: '10px',
+                    color: 'var(--bg-primary)', background: 'var(--accent-blue)',
+                    letterSpacing: 0,
+                  }}>{activeFilterCount}</span>
+                )}
+              </button>
             </div>
 
             {/* Pending approval section */}
@@ -486,6 +510,60 @@ export const UserManagement = () => {
               {deleteMutation.isPending ? '...' : 'DELETE'}
             </button>
           </div>
+        </div>
+      </Dialog>
+
+      {/* Filter & sort modal — draft state, only committed when Apply is pressed */}
+      <Dialog open={showFilter} onClose={() => setShowFilter(false)} title="FILTER USERS">
+        <div style={{ marginBottom: '12px' }}>
+          <label style={lbl}>ROLE</label>
+          <select
+            value={draftRole}
+            onChange={e => setDraftRole(e.target.value)}
+            style={{ ...inp, cursor: 'pointer' }}
+          >
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="vip">VIP</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div style={{ marginBottom: '16px' }}>
+          <label style={lbl}>STATUS</label>
+          <select
+            value={draftStatus}
+            onChange={e => setDraftStatus(e.target.value)}
+            style={{ ...inp, cursor: 'pointer' }}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={clearDraftFilters}
+            style={{
+              flex: 1, padding: '9px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+              border: '1px solid var(--border2)', color: 'var(--text-muted)',
+              background: 'none', cursor: 'pointer', letterSpacing: '.5px',
+            }}
+          >
+            CLEAR ALL
+          </button>
+          <button
+            onClick={applyFilters}
+            style={{
+              flex: 1, padding: '9px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+              border: '1px solid var(--cyan)', color: 'var(--cyan)',
+              background: 'rgba(56,189,248,.1)', cursor: 'pointer', letterSpacing: '.5px',
+            }}
+          >
+            APPLY
+          </button>
         </div>
       </Dialog>
 
