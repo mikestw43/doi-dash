@@ -258,10 +258,11 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                 if (pnl !== undefined) { weekSum += pnl; hasDay = true; }
                 const heat = pnl !== undefined ? heatClass(pnl) : '';
                 const isToday = day === todayKey;
-                const bg = isToday ? 'rgba(56,189,248,.07)' : heatBg(heat);
-                const border = isToday
-                  ? '2px solid var(--accent-blue)'
-                  : `1px solid ${heatBorder(heat)}`;
+                // "Today" is now signalled by a cyan circle around the date
+                // number itself — heat colouring on the cell stays so the
+                // P/L glance still works even on the current day.
+                const bg = heatBg(heat);
+                const border = `1px solid ${heatBorder(heat)}`;
                 const pnlColor = pnl !== undefined
                   ? (pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text-dim)')
                   : 'var(--text-dim)';
@@ -270,12 +271,19 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     ...tdBase,
                     background: bg,
                     border,
-                    boxShadow: isToday ? 'inset 0 0 16px rgba(56,189,248,.18)' : undefined,
                   }}>
-                    <span className="pcal-dn" style={{
-                      display: 'block', fontFamily: "'Share Tech Mono'",
-                      fontSize: '9px', color: 'var(--text-dim)',
-                      lineHeight: 1, marginBottom: '6px',
+                    <span className={`pcal-dn${isToday ? ' pcal-dn-today' : ''}`} style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: "'Share Tech Mono'",
+                      fontSize: '13px',
+                      lineHeight: 1, marginBottom: '4px',
+                      minWidth: isToday ? '20px' : 'auto',
+                      height: isToday ? '20px' : 'auto',
+                      padding: isToday ? '0 5px' : 0,
+                      borderRadius: isToday ? '50%' : 0,
+                      background: isToday ? 'var(--accent-blue)' : 'transparent',
+                      color: isToday ? '#0c1422' : 'var(--text-dim)',
+                      fontWeight: isToday ? 700 : 400,
                     }}>
                       {day}
                     </span>
@@ -302,14 +310,8 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     textAlign: 'center', verticalAlign: 'middle',
                     padding: '0 6px', minWidth: '62px',
                   }}>
-                    <span className="pcal-wk-lbl" style={{
-                      display: 'block',
-                      fontFamily: "'Press Start 2P'",
-                      fontSize: '5px', color: 'rgba(56,189,248,.5)',
-                      letterSpacing: '.3px', marginBottom: '4px',
-                    }}>
-                      WEEK
-                    </span>
+                    {/* Per-row WEEK label removed — the column header already
+                        identifies this column, so we just show the sum. */}
                     <span className="pcal-pnl" style={{
                       display: 'block', fontFamily: "'VT323'",
                       fontSize: '24px', lineHeight: 1, color: weekColor,
@@ -348,7 +350,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           </div>
         ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '8px' }}>
-          <span style={{ width: '11px', height: '11px', background: 'rgba(56,189,248,.07)', border: '1px solid var(--accent-blue)', flexShrink: 0 }} />
+          {/* Legend swatch now matches the new "today" indicator — a filled
+              cyan disc behind the day number, not a bordered cell. */}
+          <span style={{ width: '11px', height: '11px', borderRadius: '50%', background: 'var(--accent-blue)', flexShrink: 0 }} />
           Today
         </div>
       </div>
@@ -367,13 +371,14 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           .pcal-th { padding: 4px 1px !important; font-size: 5px !important; letter-spacing: 0 !important; }
           .pcal-td { padding: 3px 3px !important; height: 52px !important; }
           .pcal-td.pcal-wk-sum { min-width: 0 !important; padding: 2px 2px !important; }
-          .pcal-dn { font-size: 7px !important; margin-bottom: 3px !important; }
+          .pcal-dn { font-size: 11px !important; margin-bottom: 3px !important; }
+          .pcal-dn.pcal-dn-today { min-width: 17px !important; height: 17px !important; }
           .pcal-pnl { font-size: 17px !important; }
-          .pcal-wk-lbl { font-size: 4px !important; margin-bottom: 2px !important; }
         }
         @media (max-width: 480px) {
           .pcal-td { padding: 2px 2px !important; height: 44px !important; }
-          .pcal-dn { font-size: 6px !important; }
+          .pcal-dn { font-size: 10px !important; }
+          .pcal-dn.pcal-dn-today { min-width: 15px !important; height: 15px !important; padding: 0 4px !important; }
           .pcal-pnl { font-size: 14px !important; }
         }
       `}</style>
