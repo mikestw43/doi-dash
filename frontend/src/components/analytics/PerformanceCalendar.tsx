@@ -350,7 +350,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
         @media (max-width: 768px) {
           .pcal-wrap { overflow-x: visible !important; }
           .pcal { min-width: 0 !important; table-layout: fixed !important; }
-          .pcal-th { padding: 4px 1px !important; font-size: 5px !important; letter-spacing: 0 !important; }
+          .pcal-th { padding: 6px 1px !important; font-size: 10px !important; letter-spacing: 0 !important; }
           .pcal-td { padding: 3px 3px !important; height: 52px !important; }
           .pcal-td.pcal-wk-sum { min-width: 0 !important; padding: 2px 2px !important; }
           .pcal-dn { font-size: 11px !important; margin-bottom: 3px !important; }
@@ -358,6 +358,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           .pcal-pnl { font-size: 17px !important; }
         }
         @media (max-width: 480px) {
+          .pcal-th { padding: 5px 1px !important; font-size: 9px !important; }
           .pcal-td { padding: 2px 2px !important; height: 44px !important; }
           .pcal-dn { font-size: 10px !important; }
           .pcal-dn.pcal-dn-today { min-width: 15px !important; height: 15px !important; padding: 0 4px !important; }
