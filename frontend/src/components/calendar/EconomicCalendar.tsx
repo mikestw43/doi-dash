@@ -441,10 +441,7 @@ export const EconomicCalendar = () => {
         </div>
 
         {/* Currency chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
-            CUR:
-          </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', flexBasis: '100%', justifyContent: 'flex-end' }}>
           {ALL_CURRENCIES.map(cur => (
             <button
               key={cur}
@@ -462,13 +459,13 @@ export const EconomicCalendar = () => {
               ✕ CLEAR
             </button>
           )}
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: '#fff', letterSpacing: '.5px', marginLeft: '6px' }}>
+            CUR:
+          </span>
         </div>
 
         {/* Impact filter */}
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginLeft: 'auto' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
-            IMPACT:
-          </span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', flexBasis: '100%', justifyContent: 'flex-end' }}>
           {(['all', 'medium', 'high'] as const).map(key => (
             <button key={key} onClick={() => setMinImpact(key)} style={impactBtn(minImpact === key)}>
               {key === 'all' ? 'ALL' : key === 'medium' ? 'MED+' : 'HIGH'}
@@ -476,6 +473,9 @@ export const EconomicCalendar = () => {
           ))}
           <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '10px' }}>
             {filtered.length} events
+          </span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: '#fff', letterSpacing: '.5px', marginLeft: '6px' }}>
+            IMPACT:
           </span>
         </div>
       </div>
