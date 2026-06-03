@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
-import { updateProfile, savePreferences, getProfile } from '../../services/api';
+import { updateProfile, savePreferences, getProfile, linkGoogle, unlinkGoogle } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 import { ChangePasswordModal } from './ChangePasswordModal';
+
+const googleEnabled = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const PHONE_COUNTRIES = [
   { code: 'TH', dial: '+66', label: 'TH +66' },
@@ -99,6 +102,40 @@ export const ProfilePage = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showPwModal, setShowPwModal] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+
+  const finishGoogleLink = async (accessToken: string) => {
+    setGoogleBusy(true);
+    try {
+      const updated = await linkGoogle(accessToken);
+      if (token) setAuth(token, updated);
+      addToast({ type: 'success', title: 'Google linked' });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to link Google';
+      addToast({ type: 'error', title: msg });
+    } finally {
+      setGoogleBusy(false);
+    }
+  };
+
+  const triggerGoogleLink = useGoogleLogin({
+    onSuccess: (tokenResp) => finishGoogleLink(tokenResp.access_token),
+    onError: () => addToast({ type: 'error', title: 'Google sign-in failed' }),
+  });
+
+  const handleUnlinkGoogle = async () => {
+    setGoogleBusy(true);
+    try {
+      const updated = await unlinkGoogle();
+      if (token) setAuth(token, updated);
+      addToast({ type: 'success', title: 'Google unlinked' });
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to unlink Google';
+      addToast({ type: 'error', title: msg });
+    } finally {
+      setGoogleBusy(false);
+    }
+  };
 
   // Edit form state
   const [fullName, setFullName] = useState(user?.name || '');
@@ -339,13 +376,47 @@ export const ProfilePage = () => {
       {/* Security */}
       <div style={card}>
         <div style={cardTitle}>SECURITY</div>
-        <div style={{ ...rowStyle, borderBottom: 'none' }}>
+        <div style={{ ...rowStyle, borderBottom: googleEnabled ? '1px dashed var(--border)' : 'none' }}>
           <span style={lblStyle}>PASSWORD</span>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-            <span style={readOnlyStyle}>••••••••••••</span>
-            <button style={btnGhost} onClick={() => setShowPwModal(true)}>CHANGE PASSWORD</button>
+            <span style={readOnlyStyle}>{user?.hasPassword === false ? '— (Google-only account)' : '••••••••••••'}</span>
+            <button style={btnGhost} onClick={() => setShowPwModal(true)}>
+              {user?.hasPassword === false ? 'SET PASSWORD' : 'CHANGE PASSWORD'}
+            </button>
           </div>
         </div>
+
+        {googleEnabled && (
+          <div style={{ ...rowStyle, borderBottom: 'none' }}>
+            <span style={lblStyle}>GOOGLE</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
+              {user?.hasGoogleLinked ? (
+                <>
+                  <span style={{ ...valStyle, color: 'var(--green)' }}>✓ LINKED</span>
+                  <button
+                    style={{ ...btnDanger, opacity: googleBusy || !user?.hasPassword ? 0.5 : 1, cursor: googleBusy || !user?.hasPassword ? 'not-allowed' : 'pointer' }}
+                    disabled={googleBusy || !user?.hasPassword}
+                    onClick={handleUnlinkGoogle}
+                    title={!user?.hasPassword ? 'Set a password before unlinking — otherwise you will be locked out' : ''}
+                  >
+                    {googleBusy ? 'WORKING...' : 'UNLINK'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span style={readOnlyStyle}>Not linked</span>
+                  <button
+                    style={{ ...btnGhost, opacity: googleBusy ? 0.5 : 1, cursor: googleBusy ? 'not-allowed' : 'pointer' }}
+                    disabled={googleBusy}
+                    onClick={() => triggerGoogleLink()}
+                  >
+                    {googleBusy ? 'LINKING...' : 'LINK GOOGLE'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Edit action bar */}

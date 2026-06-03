@@ -19,12 +19,15 @@ const publicUser = (u: {
   name: string | null; displayName: string | null;
   mobile: string | null; phoneCountry: string | null;
   timezone: string; avatarUrl?: string | null;
+  password?: string | null; googleId?: string | null;
   createdAt: Date; lastLoginAt: Date | null;
 }) => ({
   id: u.id, email: u.email, role: u.role,
   name: u.name, displayName: u.displayName,
   mobile: u.mobile, phoneCountry: u.phoneCountry,
   timezone: u.timezone, avatarUrl: u.avatarUrl ?? null,
+  hasPassword: !!u.password,
+  hasGoogleLinked: !!u.googleId,
   createdAt: u.createdAt, lastLoginAt: u.lastLoginAt,
 });
 
@@ -159,6 +162,97 @@ router.post('/google', async (req: Request, res: Response) => {
   });
   logAudit(user.id, 'login_google', 'user', user.id);
   res.json({ token, user: publicUser(updated) });
+});
+
+// POST /api/auth/google/link — authenticated. Attach a Google account to
+// the current user so they can sign in either with password or Google.
+// Frontend obtains an OAuth access_token via the same popup flow used at
+// login and posts it here.
+router.post('/google/link', authMiddleware, async (req: AuthRequest, res: Response) => {
+  if (!googleClient) {
+    res.status(503).json({ error: 'Google login is not configured on this server' });
+    return;
+  }
+  const { accessToken } = req.body as { accessToken?: string };
+  if (!accessToken) {
+    res.status(400).json({ error: 'Missing Google access token' });
+    return;
+  }
+
+  let tokenInfo;
+  try {
+    tokenInfo = await googleClient.getTokenInfo(accessToken);
+  } catch {
+    res.status(401).json({ error: 'Invalid Google access token' });
+    return;
+  }
+  if (tokenInfo.aud !== GOOGLE_CLIENT_ID) {
+    res.status(401).json({ error: 'Token audience mismatch' });
+    return;
+  }
+
+  let profile: { sub?: string; email?: string; picture?: string };
+  try {
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!r.ok) throw new Error(`userinfo ${r.status}`);
+    profile = await r.json();
+  } catch {
+    res.status(502).json({ error: 'Failed to fetch Google profile' });
+    return;
+  }
+  if (!profile.sub) {
+    res.status(401).json({ error: 'Google profile missing required fields' });
+    return;
+  }
+
+  const googleId = profile.sub;
+  const avatarUrl = profile.picture || null;
+
+  // Reject if this Google account is already linked to a different user.
+  const owner = await prisma.user.findUnique({ where: { googleId } });
+  if (owner && owner.id !== req.user!.id) {
+    res.status(409).json({ error: 'This Google account is already linked to another user' });
+    return;
+  }
+
+  const me = await prisma.user.findUnique({ where: { id: req.user!.id } });
+  if (!me) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: me.id },
+    data: { googleId, avatarUrl: me.avatarUrl || avatarUrl },
+  });
+  logAudit(me.id, 'link_google', 'user', me.id);
+  res.json(publicUser(updated));
+});
+
+// POST /api/auth/google/unlink — authenticated. Detach the Google account.
+// Refuses if the user has no password — would lock them out.
+router.post('/google/unlink', authMiddleware, async (req: AuthRequest, res: Response) => {
+  const me = await prisma.user.findUnique({ where: { id: req.user!.id } });
+  if (!me) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  if (!me.password) {
+    res.status(400).json({ error: 'Set a password before unlinking Google — otherwise you will be locked out' });
+    return;
+  }
+  if (!me.googleId) {
+    res.status(400).json({ error: 'No Google account is linked' });
+    return;
+  }
+  const updated = await prisma.user.update({
+    where: { id: me.id },
+    data: { googleId: null },
+  });
+  logAudit(me.id, 'unlink_google', 'user', me.id);
+  res.json(publicUser(updated));
 });
 
 // POST /api/auth/register

@@ -141,6 +141,8 @@ export interface AuthUser {
   phoneCountry?: string | null;
   timezone?: string | null;
   avatarUrl?: string | null;
+  hasPassword?: boolean;
+  hasGoogleLinked?: boolean;
   createdAt?: string | null;
   lastLoginAt?: string | null;
 }
