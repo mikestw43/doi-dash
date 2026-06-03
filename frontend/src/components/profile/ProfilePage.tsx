@@ -140,6 +140,7 @@ export const ProfilePage = () => {
   // Edit form state
   const [fullName, setFullName] = useState(user?.name || '');
   const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [phoneCountry, setPhoneCountry] = useState(user?.phoneCountry || 'TH');
   const [mobile, setMobile] = useState(user?.mobile || '');
   const [timezone, setTimezone] = useState(user?.timezone || 'Asia/Bangkok');
@@ -156,6 +157,7 @@ export const ProfilePage = () => {
   useEffect(() => {
     setFullName(user?.name || '');
     setDisplayName(user?.displayName || '');
+    setEmail(user?.email || '');
     setPhoneCountry(user?.phoneCountry || 'TH');
     setMobile(user?.mobile || '');
     setTimezone(user?.timezone || 'Asia/Bangkok');
@@ -166,12 +168,15 @@ export const ProfilePage = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const trimmedEmail = email.trim().toLowerCase();
+      const emailChanged = trimmedEmail && trimmedEmail !== (user?.email || '').toLowerCase();
       const updated = await updateProfile({
         name: fullName,
         displayName,
         mobile,
         phoneCountry,
         timezone,
+        ...(emailChanged && { email: trimmedEmail }),
       });
       if (token) setAuth(token, updated);
       if (lang !== language) {
@@ -308,7 +313,20 @@ export const ProfilePage = () => {
 
         <div style={rowStyle}>
           <span style={lblStyle}>EMAIL</span>
-          <span style={valStyle}>{user?.email}</span>
+          {editing ? (
+            <input
+              type="email"
+              style={inp}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+          ) : (
+            <span style={valStyle}>{user?.email}</span>
+          )}
         </div>
 
         <div style={rowStyle}>
