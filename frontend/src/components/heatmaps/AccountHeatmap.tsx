@@ -24,7 +24,7 @@ export const AccountHeatmap = () => {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px' }}>
+      <div className="heatmap-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px' }}>
         {[...Array(8)].map((_, i) => (
           <div key={i} style={{ height: '54px', background: 'var(--bg-card2)', border: '1px solid var(--border2)' }} />
         ))}
@@ -52,7 +52,7 @@ export const AccountHeatmap = () => {
       </div>
 
       {/* Tiles */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px' }}>
+      <div className="heatmap-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px' }}>
         {accounts.map(acc => {
           const s = getTileStyle(acc);
           return (
@@ -77,6 +77,12 @@ export const AccountHeatmap = () => {
           );
         })}
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .heatmap-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
     </div>
   );
 };
