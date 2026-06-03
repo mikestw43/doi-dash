@@ -40,6 +40,18 @@ export const googleLogin = async (accessToken: string) => {
   return res.data as { token: string; user: AuthUser };
 };
 
+/** Link a Google account to the currently authenticated user. */
+export const linkGoogle = async (accessToken: string): Promise<AuthUser> => {
+  const res = await api.post('/auth/google/link', { accessToken });
+  return res.data;
+};
+
+/** Unlink Google from the currently authenticated user. */
+export const unlinkGoogle = async (): Promise<AuthUser> => {
+  const res = await api.post('/auth/google/unlink');
+  return res.data;
+};
+
 export const register = async (data: {
   email: string; password: string; name?: string; displayName?: string;
   mobile?: string; phoneCountry?: string;
