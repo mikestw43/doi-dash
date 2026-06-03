@@ -28,12 +28,12 @@ const getDdBadgeStyle = (dd: number, offline: boolean) => {
     color: 'var(--danger)',
     background: 'rgba(239,68,68,.08)',
   };
-  if (dd < 5) return {
+  if (dd < 10) return {
     border: '1px solid rgba(34,197,94,.5)',
     color: 'var(--success)',
     background: 'rgba(34,197,94,.08)',
   };
-  if (dd < 20) return {
+  if (dd < 30) return {
     border: '1px solid rgba(250,204,21,.5)',
     color: 'var(--warning)',
     background: 'rgba(250,204,21,.07)',
