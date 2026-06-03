@@ -64,8 +64,8 @@ const signedK = (v: number, prefix: string) => {
 
 const ddColor = (dd: number, offline: boolean) => {
   if (offline) return 'var(--danger)';
-  if (dd < 5) return 'var(--success)';
-  if (dd < 20) return 'var(--warning)';
+  if (dd < 10) return 'var(--success)';
+  if (dd < 30) return 'var(--warning)';
   return 'var(--danger)';
 };
 
