@@ -441,8 +441,8 @@ export const EconomicCalendar = () => {
         </div>
 
         {/* Currency chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', flexBasis: '100%' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: '#fff', letterSpacing: '.5px', marginRight: '2px' }}>
             CUR:
           </span>
           {ALL_CURRENCIES.map(cur => (
@@ -465,8 +465,8 @@ export const EconomicCalendar = () => {
         </div>
 
         {/* Impact filter */}
-        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginLeft: 'auto' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', flexBasis: '100%' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: '#fff', letterSpacing: '.5px', marginRight: '2px' }}>
             IMPACT:
           </span>
           {(['all', 'medium', 'high'] as const).map(key => (
