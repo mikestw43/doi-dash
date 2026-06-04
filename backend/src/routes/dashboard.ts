@@ -96,7 +96,10 @@ router.get('/heatmap/pending', (req: AuthRequest, res: Response) => {
 // Fall back to DB-summed closedTrade rows for accounts that haven't reported one yet
 // (older EA builds, or accounts offline since last server restart).
 router.get('/today-pnl', async (req: AuthRequest, res: Response) => {
-  const accounts = runtimeStore.getAccountsByUser(req.user!.id).filter(a => !a.isDemo);
+  // Per-account map — demos included so the DEMO section can show its own
+  // today P/L. Demo exclusion belongs at the aggregate KPI layer (/overview),
+  // not here.
+  const accounts = runtimeStore.getAccountsByUser(req.user!.id);
 
   const pnlMap: Record<string, number> = {};
 
