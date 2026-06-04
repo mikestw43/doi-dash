@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { fetchDailyPnL } from '../../services/api';
 import type { DailyPnL } from '../../types';
 
@@ -65,17 +66,14 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-based
-  const [data, setData] = useState<DailyPnL[]>([]);
-  const [loading, setLoading] = useState(false);
 
-  // Fetch 6M of data — covers most navigation; user can navigate back ~6 months
-  useEffect(() => {
-    setLoading(true);
-    fetchDailyPnL(accountId || undefined, '6M')
-      .then(setData)
-      .catch(() => setData([]))
-      .finally(() => setLoading(false));
-  }, [accountId]);
+  // Fetch 6M of data — covers most navigation; user can navigate back ~6 months.
+  // Auto-refresh every 30s so newly closed trades show up without manual reload.
+  const { data = [] as DailyPnL[], isLoading: loading } = useQuery<DailyPnL[]>({
+    queryKey: ['daily-pnl', accountId ?? 'all'],
+    queryFn: () => fetchDailyPnL(accountId || undefined, '6M'),
+    refetchInterval: 30_000,
+  });
 
   // Build pnl-by-date map for current month
   const dayMap = useMemo(() => {

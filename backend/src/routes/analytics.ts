@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import prisma from '../lib/prisma';
 import { getEquityHistory } from '../services/equityService';
 import { getTradeHistory } from '../services/tradeHistoryService';
 import { getDailyPnL, getPerformanceMetrics } from '../services/analyticsService';
@@ -55,10 +56,19 @@ router.get('/pnl', async (req: AuthRequest, res: Response) => {
     return;
   }
 
+  // Per-user timezone drives day bucketing so calendar cells match what
+  // the user sees on their clock — not UTC.
+  const user = await prisma.user.findUnique({
+    where: { id: req.user!.id },
+    select: { timezone: true },
+  });
+  const tz = user?.timezone || 'Asia/Bangkok';
+
   const pnl = await getDailyPnL(
     req.user!.id,
     accountId || undefined,
     period as '1M' | '3M' | '6M',
+    tz,
   );
   res.json(pnl);
 });
