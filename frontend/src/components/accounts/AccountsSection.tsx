@@ -6,6 +6,10 @@ import { useUIStore } from '../../stores/uiStore';
 import { Dialog } from '../ui/Dialog';
 import { formatBrokerShort } from '../../utils/formatters';
 
+// EA ServerURL shown to the user: whichever host serves this dashboard
+// (VPS domain today, Railway before). VITE_SERVER_URL overrides it.
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || window.location.origin;
+
 /** Pixel-art bell glyph — matches retro/pixel theme (replaces the emoji 🔔). */
 const PixelBellIcon = ({ pixelSize = 2 }: { pixelSize?: number }) => {
   const px = pixelSize;
@@ -347,7 +351,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
           }}>
             <div>① Attach EA to any chart in MT5</div>
             <div>② Set <span style={{ color: 'var(--accent-blue)' }}>ApiKey</span> = <span style={{ color: 'var(--warning)' }}>{apiKey}</span></div>
-            <div>③ Set <span style={{ color: 'var(--accent-blue)' }}>ServerURL</span> = <span style={{ color: 'var(--text-dim)' }}>https://doi-dash-production.up.railway.app</span></div>
+            <div>③ Set <span style={{ color: 'var(--accent-blue)' }}>ServerURL</span> = <span style={{ color: 'var(--text-dim)' }}>{SERVER_URL}</span></div>
             <div>④ Broker, account number &amp; currency will fill in automatically on first push</div>
           </div>
         </div>

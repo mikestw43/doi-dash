@@ -26,7 +26,9 @@ const EA_RELEASES: EaRelease[] = [
   },
 ];
 
-const SERVER_URL = 'https://doi-dash-production.up.railway.app';
+// The EA must point at whatever host is serving this dashboard, so read it
+// from the browser. VITE_SERVER_URL overrides it if the API lives elsewhere.
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || window.location.origin;
 
 const INSTALL_STEPS = [
   'Open MetaTrader → File → Open Data Folder',
