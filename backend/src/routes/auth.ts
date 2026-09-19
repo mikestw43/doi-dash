@@ -105,7 +105,8 @@ router.post('/google', async (req: Request, res: Response) => {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!r.ok) throw new Error(`userinfo ${r.status}`);
-    profile = await r.json();
+    // fetch().json() is typed unknown — the shape is validated right below.
+    profile = (await r.json()) as typeof profile;
   } catch {
     res.status(502).json({ error: 'Failed to fetch Google profile' });
     return;
@@ -197,7 +198,8 @@ router.post('/google/link', authMiddleware, async (req: AuthRequest, res: Respon
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!r.ok) throw new Error(`userinfo ${r.status}`);
-    profile = await r.json();
+    // fetch().json() is typed unknown — the shape is validated right below.
+    profile = (await r.json()) as typeof profile;
   } catch {
     res.status(502).json({ error: 'Failed to fetch Google profile' });
     return;

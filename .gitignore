@@ -2,7 +2,16 @@ node_modules/
 dist/
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 .env
 .env.local
 .env.production.local
 backend/src/generated/
+# Generated on the VPS by deploy/setup.sh and deploy/backup.sh
+backups/
+logs/
+# One-off migration artifacts — contains real user data, never commit
+deploy/migrate-data/railway-dump.json
+backend/prisma/schema.postgres.prisma
+*.log

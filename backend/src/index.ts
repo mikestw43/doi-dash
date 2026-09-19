@@ -22,6 +22,7 @@ import { cleanOldAuditLogs, cleanOldNotificationLogs } from './services/retentio
 import { reportScheduler } from './services/reportScheduler';
 import { errorHandler } from './middleware/errorHandler';
 import { warmFxCache } from './services/fxService';
+import { applySqlitePragmas } from './lib/prisma';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -48,9 +49,9 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/admin/audit', auditRouter);
 app.use('/api/market', marketRouter);
 
-// Build stamp helps verify a Railway deploy actually picked up new code.
+// Build stamp helps verify a deploy actually picked up new code.
 // Bump BUILD_TAG with each push that needs verification.
-const BUILD_TAG = 'v1.3-todayPnl';
+const BUILD_TAG = 'v1.4-vps-sqlite';
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', build: BUILD_TAG, timestamp: new Date().toISOString() });
 });
@@ -60,15 +61,15 @@ app.use(errorHandler);
 
 const server = http.createServer(app);
 
-// Initialize runtime store from DB, then start
-runtimeStore.initialize().then(() => {
+// Apply SQLite tuning, initialize runtime store from DB, then start
+applySqlitePragmas().then(() => runtimeStore.initialize()).then(() => {
   initWebSocket(server);
   reportScheduler.start();
   // Warm the FX cache (used for KPI USD aggregation). Non-blocking — if the
   // refresh fails the cache is empty and rates fall back to 1.0.
   warmFxCache().catch(() => { /* logged inside fxService */ });
   server.listen(PORT, () => {
-    console.log(`[SENTINEL] Backend running on http://localhost:${PORT}`);
+    console.log(`[DOI DASH] Backend running on http://localhost:${PORT}`);
   });
 
   // Daily cleanup of old data (run every 24h) — PDPA data retention

@@ -3,8 +3,11 @@ generator client {
   output   = "../src/generated/prisma"
 }
 
+// SQLite — single file on the VPS (backend/doi-dash.db), backed up by
+// deploy/backup.sh. Previously Postgres on Railway; every field in this
+// schema (String/Int/Float/Boolean/DateTime/Json) is SQLite-compatible.
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
