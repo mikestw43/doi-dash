@@ -1,23 +1,28 @@
 #!/bin/bash
 # ============================================
-# SENTINEL — Update Script
-# Run on VPS after git pull: bash deploy/update.sh
+# DOI DASH — deploy the latest code
+#   bash /opt/doi-dash/deploy/update.sh
 # ============================================
 
-set -e
+set -euo pipefail
 
-cd /opt/sentinel
+PROJECT_DIR="/opt/doi-dash"
+cd "$PROJECT_DIR"
 
 echo "=============================="
-echo "  SENTINEL — Update"
+echo "  DOI DASH — update"
 echo "=============================="
 
 echo ""
-echo "[1/4] Pulling latest code..."
+echo "[1/5] Backing up the database first..."
+bash deploy/backup.sh
+
+echo ""
+echo "[2/5] Pulling latest code..."
 git pull
 
 echo ""
-echo "[2/4] Building backend..."
+echo "[3/5] Building backend..."
 cd backend
 npm install
 npx prisma generate
@@ -26,19 +31,19 @@ npm run build
 cd ..
 
 echo ""
-echo "[3/4] Building frontend..."
+echo "[4/5] Building frontend..."
 cd frontend
 npm install
 npm run build
 cd ..
 
 echo ""
-echo "[4/4] Restarting PM2..."
-pm2 restart sentinel-api
+echo "[5/5] Restarting the API..."
+pm2 restart doi-dash-api
 
 echo ""
 echo "=============================="
-echo "  Update complete!"
+echo "  Update complete"
 echo "=============================="
-echo "  Check logs: pm2 logs sentinel-api"
+echo "  Check: pm2 logs doi-dash-api"
 echo ""

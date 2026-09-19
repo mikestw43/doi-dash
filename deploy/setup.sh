@@ -1,158 +1,206 @@
 #!/bin/bash
 # ============================================
-# SENTINEL — VPS Setup Script (Ubuntu 22.04+)
-# Run as root: bash setup.sh
+# DOI DASH — VPS setup (Ubuntu 22.04 / 24.04)
+# Run as root on a fresh VPS:
+#   bash /opt/doi-dash/deploy/setup.sh
+# Optionally pass the domain:
+#   bash /opt/doi-dash/deploy/setup.sh dash.example.com
+# Re-running is safe — it never overwrites backend/.env or the database.
 # ============================================
 
-set -e
+set -euo pipefail
 
-DOMAIN="sentinel.fin-tech.com"
-PROJECT_DIR="/opt/sentinel"
+PROJECT_DIR="/opt/doi-dash"
+APP_NAME="doi-dash-api"
+DB_FILE="$PROJECT_DIR/backend/doi-dash.db"
 
-echo "=============================="
-echo "  SENTINEL — VPS Setup"
-echo "  Domain: $DOMAIN"
-echo "=============================="
-
-# --- 1. System update ---
-echo ""
-echo "[1/8] Updating system..."
-apt update && apt upgrade -y
-
-# --- 2. Install Node.js 20 LTS ---
-echo ""
-echo "[2/8] Installing Node.js 20..."
-if ! command -v node &> /dev/null; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  apt install -y nodejs
+DOMAIN="${1:-${DOMAIN:-}}"
+if [ -z "$DOMAIN" ]; then
+  read -r -p "Domain or server IP for the dashboard (e.g. dash.example.com): " DOMAIN
 fi
-echo "  Node.js $(node -v) installed"
-
-# --- 3. Install PM2 ---
-echo ""
-echo "[3/8] Installing PM2..."
-npm install -g pm2
-
-# --- 4. Install Nginx + Certbot ---
-echo ""
-echo "[4/8] Installing Nginx + Certbot..."
-apt install -y nginx certbot python3-certbot-nginx
-systemctl enable nginx
-
-# --- 5. Check project ---
-echo ""
-echo "[5/8] Setting up project..."
-if [ ! -d "$PROJECT_DIR" ]; then
-  echo "  ERROR: Project not found at $PROJECT_DIR"
-  echo "  Please upload your project first:"
-  echo "    scp -r ./SENTINEL root@YOUR_VPS_IP:/opt/sentinel"
-  echo "  Or clone from git:"
-  echo "    git clone YOUR_REPO $PROJECT_DIR"
+if [ -z "$DOMAIN" ]; then
+  echo "ERROR: no domain given." >&2
   exit 1
 fi
 
-cd $PROJECT_DIR
+# An IP address cannot get a Let's Encrypt certificate — HTTP only.
+if [[ "$DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  IS_IP=1
+  SCHEME="http"
+else
+  IS_IP=0
+  SCHEME="https"
+fi
 
-# --- 6. Setup .env ---
+echo "=============================="
+echo "  DOI DASH — VPS setup"
+echo "  Target: $SCHEME://$DOMAIN"
+echo "=============================="
+
+# --- 1. System packages ---
 echo ""
-echo "[6/8] Configuring environment..."
+echo "[1/9] Updating system..."
+export DEBIAN_FRONTEND=noninteractive
+apt update && apt upgrade -y
+apt install -y curl git sqlite3 openssl ca-certificates
+
+# --- 2. Swap (vite/tsc builds OOM on a 1 GB VPS without it) ---
+echo ""
+echo "[2/9] Checking swap..."
+if [ "$(swapon --show --noheadings | wc -l)" -eq 0 ]; then
+  echo "  Creating 2G swapfile..."
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  grep -q '^/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+else
+  echo "  Swap already present."
+fi
+
+# --- 3. Node.js 22 LTS (matches .nvmrc) ---
+echo ""
+echo "[3/9] Installing Node.js 22..."
+if ! command -v node &> /dev/null || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt 22 ]; then
+  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+  apt install -y nodejs
+fi
+echo "  Node.js $(node -v)"
+
+# --- 4. PM2, Nginx, Certbot ---
+echo ""
+echo "[4/9] Installing PM2, Nginx, Certbot..."
+command -v pm2 &> /dev/null || npm install -g pm2
+apt install -y nginx certbot python3-certbot-nginx
+systemctl enable nginx
+
+# --- 5. Project check ---
+echo ""
+echo "[5/9] Checking project..."
+if [ ! -d "$PROJECT_DIR" ]; then
+  echo "  ERROR: project not found at $PROJECT_DIR"
+  echo "  Clone it first:"
+  echo "    git clone https://github.com/mikestw43/doi-dash.git $PROJECT_DIR"
+  exit 1
+fi
+cd "$PROJECT_DIR"
+mkdir -p "$PROJECT_DIR/logs" "$PROJECT_DIR/backups"
+
+# --- 6. Environment files ---
+echo ""
+echo "[6/9] Configuring environment..."
 if [ ! -f backend/.env ]; then
-  echo "  Creating backend/.env..."
-  JWT=$(openssl rand -hex 32)
-  ENCRYPT_KEY=$(openssl rand -hex 32)
+  echo "  Creating backend/.env with fresh secrets..."
   cat > backend/.env << EOF
 PORT=4000
 NODE_ENV=production
-JWT_SECRET=$JWT
-ENCRYPTION_KEY=$ENCRYPT_KEY
-CORS_ORIGIN=https://$DOMAIN
-DATABASE_URL="file:./sentinel.db"
+JWT_SECRET=$(openssl rand -hex 32)
+ENCRYPTION_KEY=$(openssl rand -hex 32)
+CORS_ORIGIN=$SCHEME://$DOMAIN
+DATABASE_URL="file:$DB_FILE"
 EOF
-  echo "  Generated JWT_SECRET & ENCRYPTION_KEY"
 else
-  echo "  backend/.env already exists"
-  # Update CORS_ORIGIN to use domain with HTTPS
-  if grep -q "CORS_ORIGIN" backend/.env; then
-    sed -i "s|CORS_ORIGIN=.*|CORS_ORIGIN=https://$DOMAIN|" backend/.env
+  echo "  backend/.env exists — updating CORS_ORIGIN and DATABASE_URL only."
+  if grep -q '^CORS_ORIGIN=' backend/.env; then
+    sed -i "s|^CORS_ORIGIN=.*|CORS_ORIGIN=$SCHEME://$DOMAIN|" backend/.env
   else
-    echo "CORS_ORIGIN=https://$DOMAIN" >> backend/.env
+    echo "CORS_ORIGIN=$SCHEME://$DOMAIN" >> backend/.env
   fi
+  if grep -q '^DATABASE_URL=' backend/.env; then
+    sed -i "s|^DATABASE_URL=.*|DATABASE_URL=\"file:$DB_FILE\"|" backend/.env
+  else
+    echo "DATABASE_URL=\"file:$DB_FILE\"" >> backend/.env
+  fi
+fi
+
+# Frontend build-time vars. Same-origin API, so VITE_API_URL stays empty.
+if [ ! -f frontend/.env ]; then
+  cat > frontend/.env << 'EOF'
+# Same-origin API through Nginx — leave these empty.
+VITE_API_URL=
+VITE_WS_URL=
+# Fill in only if you use Google sign-in:
+VITE_GOOGLE_CLIENT_ID=
+EOF
+  echo "  Created frontend/.env (add VITE_GOOGLE_CLIENT_ID if you use Google login)."
 fi
 
 # --- 7. Build ---
 echo ""
-echo "[7/8] Building project..."
-
-# Backend
-echo "  Building backend..."
-cd $PROJECT_DIR/backend
-npm install --omit=dev
-npm install tsx  # needed for prisma seed
+echo "[7/9] Building backend..."
+cd "$PROJECT_DIR/backend"
+FRESH_DB=0
+[ -f "$DB_FILE" ] || FRESH_DB=1
+npm install                       # dev deps required: tsc builds dist/
 npx prisma generate
 npx prisma db push
 npm run build
 
-# Seed only if fresh install (no users in DB)
-if [ ! -f "$PROJECT_DIR/backend/sentinel.db" ] && [ -f "$PROJECT_DIR/backend/dev.db" ]; then
-  # Production: use sentinel.db name
-  echo "  Fresh install — running seed..."
+if [ "$FRESH_DB" -eq 1 ]; then
+  echo "  Fresh database — seeding admin user..."
   npx tsx prisma/seed.ts
 fi
 
-# Frontend
+echo ""
 echo "  Building frontend..."
-cd $PROJECT_DIR/frontend
+cd "$PROJECT_DIR/frontend"
 npm install
 npm run build
 
-# Create logs directory
-mkdir -p $PROJECT_DIR/logs
-
-# --- 8. Start services ---
+# --- 8. Nginx ---
 echo ""
-echo "[8/8] Starting services..."
-cd $PROJECT_DIR
+echo "[8/9] Configuring Nginx..."
+sed "s|__DOMAIN__|$DOMAIN|g" "$PROJECT_DIR/deploy/nginx.conf" > /etc/nginx/sites-available/doi-dash
+ln -sf /etc/nginx/sites-available/doi-dash /etc/nginx/sites-enabled/doi-dash
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl restart nginx
 
-# PM2
-pm2 delete sentinel-api 2>/dev/null || true
+# --- 9. PM2 + backups ---
+echo ""
+echo "[9/9] Starting the API..."
+cd "$PROJECT_DIR"
+pm2 delete "$APP_NAME" 2>/dev/null || true
 pm2 start deploy/ecosystem.config.js
 pm2 save
 pm2 startup systemd -u root --hp /root 2>/dev/null || true
 
-# Nginx
-cp deploy/nginx.conf /etc/nginx/sites-available/sentinel
-ln -sf /etc/nginx/sites-available/sentinel /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl restart nginx
+# Nightly SQLite backup at 03:00
+CRON_LINE="0 3 * * * bash $PROJECT_DIR/deploy/backup.sh >> $PROJECT_DIR/logs/backup.log 2>&1"
+( crontab -l 2>/dev/null | grep -v 'deploy/backup.sh' ; echo "$CRON_LINE" ) | crontab -
+echo "  Nightly backup scheduled (03:00)."
 
-# --- SSL with Certbot ---
-echo ""
-echo "Setting up SSL certificate..."
-echo "  Make sure DNS for $DOMAIN points to this server first!"
-echo ""
-read -p "  DNS is configured? Proceed with SSL? (y/n): " -n 1 -r
-echo ""
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-  certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN --redirect
-  echo "  SSL certificate installed!"
+# --- SSL ---
+if [ "$IS_IP" -eq 0 ]; then
+  echo ""
+  echo "Setting up HTTPS for $DOMAIN"
+  echo "  DNS for $DOMAIN must already point to this server."
+  read -r -p "  DNS ready? Run Certbot now? (y/n): " -n 1 REPLY
+  echo ""
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email "admin@$DOMAIN" --redirect
+    echo "  Certificate installed (auto-renews via the certbot timer)."
+  else
+    echo "  Skipped. Run later: certbot --nginx -d $DOMAIN"
+  fi
 else
-  echo "  Skipping SSL. Run later: certbot --nginx -d $DOMAIN"
+  echo ""
+  echo "  $DOMAIN is an IP address — skipping HTTPS."
+  echo "  Point a domain at this server and re-run this script to enable it."
 fi
 
 echo ""
 echo "=============================="
-echo "  SENTINEL DEPLOYED!"
+echo "  DOI DASH is live"
 echo "=============================="
+echo "  Dashboard: $SCHEME://$DOMAIN"
+echo "  Health:    $SCHEME://$DOMAIN/api/health"
+if [ "$FRESH_DB" -eq 1 ]; then
+echo "  Login:     admin@doi-dash.com / password   <-- change this now"
+fi
 echo ""
-echo "  Dashboard: https://$DOMAIN"
-echo "  API:       https://$DOMAIN/api/health"
-echo "  Login:     admin@sentinel.com / password"
-echo ""
-echo "  IMPORTANT: Change the admin password immediately!"
-echo ""
-echo "  Commands:"
-echo "    pm2 status              — check status"
-echo "    pm2 logs sentinel-api   — view logs"
-echo "    pm2 restart sentinel-api — restart backend"
-echo "    bash deploy/update.sh   — deploy updates"
+echo "  pm2 status                 — service status"
+echo "  pm2 logs $APP_NAME         — live logs"
+echo "  pm2 restart $APP_NAME      — restart the API"
+echo "  bash deploy/update.sh      — deploy new code"
+echo "  bash deploy/backup.sh      — back up the database now"
 echo ""
