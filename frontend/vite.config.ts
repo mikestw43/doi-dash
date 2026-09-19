@@ -10,6 +10,12 @@ export default defineConfig({
         target: 'http://localhost:4000',
         changeOrigin: true,
       },
+      // Live account updates. Without this the dev server has nothing on /ws
+      // and the dashboard sits at "offline" while the numbers never move.
+      '/ws': {
+        target: 'ws://localhost:4000',
+        ws: true,
+      },
     },
   },
 });
