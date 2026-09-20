@@ -194,7 +194,13 @@
     -moz-osx-font-smoothing: grayscale;
     display: flex;
     flex-direction: column;
+    /* On iOS, 100vh is the LARGE viewport — the height the page would have if
+       Safari's toolbar were hidden. With overflow:hidden that makes the app
+       taller than what you can see, so the last rows sit under the toolbar and
+       dragging only rubber-bands the page back. 100dvh is the height actually
+       on screen; the 100vh line stays as the fallback for older browsers. */
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
   }
 

@@ -147,7 +147,11 @@ export const Layout = ({ children }: LayoutProps) => {
           .sidebar-nav {
             position: fixed !important;
             bottom: 0 !important; left: 0 !important; right: 0 !important;
-            width: 100% !important; height: 56px !important;
+            width: 100% !important;
+            /* index.html sets viewport-fit=cover, so the bar would otherwise
+               sit under the home indicator. */
+            height: calc(56px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: env(safe-area-inset-bottom) !important;
             flex-direction: row !important;
             align-items: stretch !important;
             border-right: none !important;
@@ -170,13 +174,13 @@ export const Layout = ({ children }: LayoutProps) => {
             display: block !important;
           }
           .main-content {
-            padding-bottom: 70px !important;
+            padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
           }
         }
         @media (max-width: 768px) {
           .main-content {
             padding: 10px !important;
-            padding-bottom: 70px !important;
+            padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
             gap: 10px !important;
           }
         }
