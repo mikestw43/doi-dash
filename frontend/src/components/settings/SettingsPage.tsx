@@ -15,12 +15,12 @@ type Tab = 'account' | 'telegram' | 'reports' | 'ticker' | 'notifications';
 
 /* ── shared styles ────────────────────────────────────── */
 const card: React.CSSProperties = {
-  background: 'var(--bg-card)', border: '1px solid var(--border2)',
+  background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   padding: '20px 22px',
 };
 const cardTitle: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)',
-  color: 'var(--cyan)', letterSpacing: '1px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+  color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px',
   marginBottom: '14px',
 };
 const lbl: React.CSSProperties = {
@@ -28,20 +28,20 @@ const lbl: React.CSSProperties = {
   letterSpacing: '.5px', display: 'block', marginBottom: '6px',
 };
 const inp: React.CSSProperties = {
-  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-input)',
+  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
   padding: '8px 10px', outline: 'none', boxSizing: 'border-box',
 };
 const btnPrimary = (disabled = false): React.CSSProperties => ({
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
   padding: '9px 16px', background: 'var(--cyan)', color: '#25272c',
   border: '1px solid var(--cyan)', cursor: disabled ? 'not-allowed' : 'pointer',
   opacity: disabled ? .5 : 1,
 });
 const btnGhost: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
   padding: '9px 16px', background: 'none', color: 'var(--text)',
-  border: '1px solid var(--border2)', cursor: 'pointer',
+  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
 };
 
 const TABS: { key: Tab; symbol: string; label: string }[] = [
@@ -72,7 +72,7 @@ export const SettingsPage = () => {
           ‹ BACK
         </button>
         <span style={{ width: '6px', height: '6px', background: 'var(--cyan)',}} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '2px',}}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '2px',}}>
           SETTINGS
         </span>
         <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
@@ -86,7 +86,7 @@ export const SettingsPage = () => {
       }}>
         {/* Left nav */}
         <div className="settings-nav" style={{
-          background: 'var(--bg-card)', border: '1px solid var(--border2)',
+          background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
           padding: '8px',
           display: 'flex', flexDirection: 'column', gap: '2px',
           position: 'sticky', top: '12px',
@@ -100,7 +100,7 @@ export const SettingsPage = () => {
                 style={{
                   display: 'flex', alignItems: 'center', gap: '8px',
                   width: '100%', padding: '9px 12px',
-                  fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body)',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                   color: active ? 'var(--cyan)' : 'var(--text-dim)',
                   background: active ? 'rgba(96,165,250,.08)' : 'none',
                   border: `1px solid ${active ? 'var(--cyan)' : 'transparent'}`,
@@ -188,7 +188,7 @@ const TelegramTab = () => {
           <span style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', padding: '3px 8px', border: '1px solid rgba(52,211,153,.4)', color: 'var(--green)' }}>✓ ACTIVE</span>
         )}
       </div>
-      <p style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
+      <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
         Enter your Telegram Bot Token and Chat ID to receive alerts.
       </p>
       <div style={{ marginBottom: '14px' }}>
@@ -246,7 +246,7 @@ const NotificationsTab = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={cardTitle as React.CSSProperties}>NOTIFICATIONS</span>
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', padding: '2px 8px', border: '1px solid var(--border2)' }}>{total}</span>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', padding: '2px 8px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>{total}</span>
         </div>
         <button
           onClick={handleExport}
@@ -258,21 +258,21 @@ const NotificationsTab = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)' }}>Loading...</div>
+        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>Loading...</div>
       ) : logs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)' }}>No notifications sent yet.</div>
+        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>No notifications sent yet.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {logs.map(log => (
-            <div key={log.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'var(--bg-card2)', border: '1px solid var(--border)', padding: '8px 10px' }}>
+            <div key={log.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'var(--bg-card2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}>
               <span style={{ fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px', color: TYPE_COLOR[log.type] || 'var(--text-dim)', flexShrink: 0, width: '52px', marginTop: '2px' }}>
                 {log.type.toUpperCase()}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {log.message.replace(/<[^>]+>/g, '').replace(/\[DOI DASH\]\n?|\[SENTINEL\]\n?/, '').slice(0, 120)}
                 </div>
-                <div style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '2px' }}>
+                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '2px' }}>
                   {new Date(log.sentAt).toLocaleString()}
                 </div>
               </div>
@@ -291,14 +291,14 @@ const NotificationsTab = () => {
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px' }}>
-          <span style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>Page {page}/{totalPages}</span>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>Page {page}/{totalPages}</span>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
-              style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: page > 1 ? 'pointer' : 'not-allowed', padding: '4px 8px', opacity: page > 1 ? 1 : .3 }}>
+              style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: page > 1 ? 'pointer' : 'not-allowed', padding: '4px 8px', opacity: page > 1 ? 1 : .3 }}>
               ‹
             </button>
             <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
-              style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: page < totalPages ? 'pointer' : 'not-allowed', padding: '4px 8px', opacity: page < totalPages ? 1 : .3 }}>
+              style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: page < totalPages ? 'pointer' : 'not-allowed', padding: '4px 8px', opacity: page < totalPages ? 1 : .3 }}>
               ›
             </button>
           </div>

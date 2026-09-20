@@ -141,7 +141,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               }}>
                 #{account.accountNumber}
                 <span style={{
-                  border: '1px solid var(--border2)', padding: '1px 4px',
+                  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '1px 4px',
                   fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)',
                 }}>{cur}</span>
                 {/* Group picker */}
@@ -168,7 +168,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                   {showGroupPicker && (
                     <div style={{
                       position: 'absolute', left: 0, top: '100%', marginTop: '2px',
-                      width: '150px', background: 'var(--bg-card)', border: '1px solid var(--border2)',
+                      width: '150px', background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                       zIndex: 50, maxHeight: '160px', overflowY: 'auto',
                     }}>
                       {account.groupId && (
@@ -247,7 +247,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           {/* P/L section */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {/* Today P/L */}
-            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '8px 10px' }}>
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}>
               <div className="bc-label" style={{ marginBottom: '3px' }}>TODAY</div>
               <div
                 className="bc-value-lg"
@@ -259,7 +259,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               </div>
             </div>
             {/* Floating P/L */}
-            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '8px 10px' }}>
+            <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}>
               <div className="bc-label" style={{ marginBottom: '3px' }}>FLOATING P/L</div>
               <FlashNumber
                 value={account.profit}
@@ -319,7 +319,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 className="bc-action"
                 style={{
                   flex: 1,
-                  border: '1px solid var(--border2)',
+                  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-muted)',
                   background: 'none',
                   cursor: 'pointer', textAlign: 'center',
@@ -337,7 +337,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 className="bc-action"
                 style={{
                   flex: 1,
-                  border: '1px solid var(--border2)',
+                  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-muted)',
                   background: 'none',
                   cursor: 'pointer', textAlign: 'center',
@@ -390,7 +390,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 className="bc-action"
                 style={{
                   flex: 1,
-                  border: '1px solid var(--border2)',
+                  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-muted)',
                   background: 'none',
                   cursor: 'pointer', textAlign: 'center',
@@ -425,7 +425,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
               borderBottom: '1px solid var(--border-color)',
               background: 'var(--bg-tertiary)',
             }}>
-              <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--accent-blue)', letterSpacing: '1px' }}>
+              <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px' }}>
                 OPEN POSITIONS ({ordersArray.length})
               </span>
               <button

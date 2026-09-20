@@ -56,7 +56,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const inp: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '8px 10px', outline: 'none', boxSizing: 'border-box' };
+const inp: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '8px 10px', outline: 'none', boxSizing: 'border-box' };
 const lbl: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
 
 export const UserManagement = () => {
@@ -199,7 +199,7 @@ export const UserManagement = () => {
       {/* Tabs row */}
       <div className="um-tab-bar" style={{
         display: 'flex', alignItems: 'center',
-        background: 'var(--bg-card)', border: '1px solid var(--border2)',
+        background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
         borderBottom: 'none', marginBottom: 0, overflowX: 'auto',
       }}>
         <button className="um-tab-btn" style={tabBtn(activeTab === 'users')} onClick={() => setActiveTab('users')}>
@@ -213,7 +213,7 @@ export const UserManagement = () => {
       </div>
 
       {/* Tab content */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderTop: '2px solid var(--border2)' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', borderTop: '2px solid var(--border2)' }}>
 
         {activeTab === 'users' && (
           <>
@@ -247,7 +247,7 @@ export const UserManagement = () => {
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     minWidth: '18px', height: '16px', padding: '0 5px',
-                    fontFamily: 'var(--ff-section)', fontSize: '10px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)',
                     color: 'var(--bg-primary)', background: 'var(--accent-blue)',
                     letterSpacing: 0,
                   }}>{activeFilterCount}</span>
@@ -377,7 +377,7 @@ export const UserManagement = () => {
                             {user._count.accounts}
                           </td>
                           {/* CREATED */}
-                          <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }} className="um-col-created">
+                          <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: 'var(--fs-micro)' }} className="um-col-created">
                             {new Date(user.createdAt).toLocaleDateString()}
                           </td>
                           {/* STATUS */}
@@ -436,7 +436,7 @@ export const UserManagement = () => {
           </div>
           <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
             <button onClick={() => setShowAddDialog(false)}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
@@ -475,7 +475,7 @@ export const UserManagement = () => {
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setSuspendId(null)}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
@@ -495,11 +495,11 @@ export const UserManagement = () => {
           <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Permanently delete <span style={{ color: 'var(--danger)' }}>{deleteTarget?.email}</span>?
             <br />This will also remove {deleteTarget?._count.accounts || 0} account{deleteTarget?._count.accounts !== 1 ? 's' : ''}.
-            <br /><span style={{ color: 'var(--danger)', fontSize: '10px' }}>⚠ This action cannot be undone.</span>
+            <br /><span style={{ color: 'var(--danger)', fontSize: 'var(--fs-micro)' }}>⚠ This action cannot be undone.</span>
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setDeleteId(null)}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
@@ -547,7 +547,7 @@ export const UserManagement = () => {
             style={{
               flex: 1, padding: '9px',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-              border: '1px solid var(--border2)', color: 'var(--text-muted)',
+              border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)',
               background: 'none', cursor: 'pointer', letterSpacing: '.5px',
             }}
           >

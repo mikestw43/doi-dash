@@ -164,7 +164,7 @@ export const Header = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#25272c' }}>D</span>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>D</span>
           </div>
           <div className="header-logo-text">
             <div style={{
@@ -192,7 +192,7 @@ export const Header = () => {
               const active = activeSessions.has(s.name);
               return (
                 <span key={s.name} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {i > 0 && <span style={{ color: 'var(--text-muted)', fontSize: '9px', opacity: .35 }}>·</span>}
+                  {i > 0 && <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-micro)', opacity: .35 }}>·</span>}
                   <span style={{
                     display: 'flex', alignItems: 'center', gap: '4px',
                     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
@@ -223,7 +223,7 @@ export const Header = () => {
             style={{
               display: 'flex', alignItems: 'center', gap: '7px',
               padding: '5px 10px',
-              border: '1px solid var(--border2)',
+              border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
               background: 'var(--bg-tertiary)',
               color: wsConnected ? 'var(--success)' : 'var(--danger)',
               cursor: 'default',
@@ -259,7 +259,7 @@ export const Header = () => {
               style={{
                 display: 'flex', alignItems: 'center', gap: '7px',
                 padding: '3px 8px 3px 4px',
-                border: '1px solid var(--border2)',
+                border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                 cursor: 'pointer', height: '30px',
                 background: 'none',
                 transition: 'border-color .15s',
@@ -281,7 +281,7 @@ export const Header = () => {
               <span className="header-username" style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {displayName}
               </span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '8px', display: 'inline-block', transform: showMenu ? 'rotate(180deg)' : 'none', transition: 'transform .2s', lineHeight: 1 }}>▾</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-label)', display: 'inline-block', transform: showMenu ? 'rotate(180deg)' : 'none', transition: 'transform .2s', lineHeight: 1 }}>▾</span>
             </button>
 
             {/* Dropdown menu */}
@@ -290,7 +290,7 @@ export const Header = () => {
                 position: 'absolute', top: 'calc(100% + 6px)', right: 0,
                 zIndex: 600,
                 background: 'var(--bg-card)',
-                border: '1px solid var(--border2)',
+                border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                 minWidth: '220px',
               }}>
                 {/* User info */}

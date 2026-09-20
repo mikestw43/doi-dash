@@ -25,12 +25,12 @@ const TIMEZONES = [
 
 /* ── shared styles ────────────────────────────────────── */
 const card: React.CSSProperties = {
-  background: 'var(--bg-card)', border: '1px solid var(--border2)',
+  background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   padding: '18px 20px', marginBottom: '10px',
 };
 const cardTitle: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)',
-  color: 'var(--cyan)', letterSpacing: '1px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+  color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px',
   marginBottom: '14px',
 };
 const rowStyle: React.CSSProperties = {
@@ -45,28 +45,28 @@ const lblStyle: React.CSSProperties = {
   color: 'var(--text-dim)', letterSpacing: '.5px',
 };
 const valStyle: React.CSSProperties = {
-  fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body)',
+  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   color: 'var(--text)',
 };
 const readOnlyStyle: React.CSSProperties = {
   ...valStyle, color: 'var(--text-dim)',
 };
 const inp: React.CSSProperties = {
-  background: 'var(--bg-input)', border: '1px solid var(--border2)',
-  color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-input)',
+  background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+  color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
   padding: '7px 9px', outline: 'none', boxSizing: 'border-box',
   width: '100%',
 };
 const sel: React.CSSProperties = { ...inp, cursor: 'pointer' };
 const btnPrimary: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
   padding: '9px 16px', background: 'var(--cyan)', color: '#25272c',
   border: '1px solid var(--cyan)', cursor: 'pointer',
 };
 const btnGhost: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
   padding: '9px 16px', background: 'none', color: 'var(--text)',
-  border: '1px solid var(--border2)', cursor: 'pointer',
+  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
 };
 const btnDanger: React.CSSProperties = {
   ...btnGhost, color: 'var(--red)', borderColor: 'rgba(248,113,113,.4)',
@@ -224,7 +224,7 @@ export const ProfilePage = () => {
           ‹ BACK
         </button>
         <span style={{ width: '6px', height: '6px', background: 'var(--cyan)',}} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '2px',}}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '2px',}}>
           PROFILE
         </span>
         <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
@@ -237,19 +237,19 @@ export const ProfilePage = () => {
           background: 'rgba(96,165,250,.08)',
           border: '2px solid var(--cyan)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: "'Press Start 2P'", fontSize: '16px',
+          fontFamily: 'var(--ff-section)', fontSize: '16px',
           color: 'var(--cyan)', flexShrink: 0,
         }}>
           {initials}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontFamily: "'Share Tech Mono'", fontSize: '16px',
+            fontFamily: 'var(--ff-body)', fontSize: '16px',
             color: 'var(--text)', marginBottom: '6px', fontWeight: 600,
           }}>
             {headerName}
           </div>
-          <div style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
             <span style={{
               fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
               padding: '2px 6px', marginRight: '8px',
@@ -293,7 +293,7 @@ export const ProfilePage = () => {
           {editing ? (
             <div>
               <input style={inp} value={displayName} onChange={e => setDisplayName(e.target.value)} />
-              <div style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '4px' }}>
+              <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '4px' }}>
                 Shown in top menu · short name or nickname
               </div>
             </div>

@@ -23,7 +23,7 @@ export const PendingHeatmap = () => {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '6px' }}>
         {[...Array(3)].map((_, i) => (
-          <div key={i} style={{ height: '80px', background: 'var(--bg-card2)', border: '1px solid var(--border2)' }} />
+          <div key={i} style={{ height: '80px', background: 'var(--bg-card2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }} />
         ))}
       </div>
     );

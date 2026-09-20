@@ -11,7 +11,7 @@ interface Props {
 }
 
 const inp: React.CSSProperties = {
-  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
+  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none', boxSizing: 'border-box',
 };
@@ -77,7 +77,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
           </div>
           <div>
             <label style={lbl}>ACTION</label>
-            <div style={{ display: 'flex', border: '1px solid var(--border2)' }}>
+            <div style={{ display: 'flex', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>
               <button
                 onClick={() => setAction('BUY')}
                 style={{ flex: 1, padding: '7px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', background: action === 'BUY' ? 'var(--green)' : 'none', color: action === 'BUY' ? '#25272c' : buyColor, border: 'none', letterSpacing: '.5px' }}
@@ -152,7 +152,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
         {/* Buttons */}
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
           <button onClick={onClose} disabled={loading}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
             CANCEL
           </button>
           <button

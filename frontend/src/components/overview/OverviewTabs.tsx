@@ -64,7 +64,7 @@ export const OverviewTabs = () => {
         isLoading || !stats ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px' }}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} style={{ height: '110px', background: 'var(--bg-tertiary)', border: '1px solid var(--border2)' }} />
+              <div key={i} style={{ height: '110px', background: 'var(--bg-tertiary)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }} />
             ))}
           </div>
         ) : (

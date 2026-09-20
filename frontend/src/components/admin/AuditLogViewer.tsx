@@ -25,7 +25,7 @@ const ACTION_COLORS: Record<string, string> = {
   delete_group:           'var(--red)',
 };
 
-const selStyle: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '8px 10px', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' };
+const selStyle: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '8px 10px', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' };
 const lblStyle: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
 const thStyle: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap' };
 const tdStyle: React.CSSProperties = { padding: '7px 10px', borderBottom: '1px solid rgba(42,45,52,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
@@ -110,11 +110,11 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
           <div style={{ width: '7px', height: '7px', background: 'var(--cyan)',flexShrink: 0 }} />
           <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>AUDIT LOG</span>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', padding: '4px 10px', border: '1px solid var(--border2)' }}>{total}</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', padding: '4px 10px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>{total}</span>
           <button
             onClick={handleExport}
             disabled={!logs.length}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: logs.length ? 'pointer' : 'not-allowed', opacity: logs.length ? 1 : .3 }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: logs.length ? 'pointer' : 'not-allowed', opacity: logs.length ? 1 : .3 }}
           >
             ↓ EXPORT
           </button>
@@ -140,7 +140,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
             <span style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               minWidth: '18px', height: '16px', padding: '0 5px',
-              fontFamily: 'var(--ff-section)', fontSize: '10px',
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)',
               color: 'var(--bg-primary)', background: 'var(--accent-blue)',
               letterSpacing: 0,
             }}>{activeFilterCount}</span>
@@ -149,7 +149,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', overflowX: 'auto' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '380px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
@@ -177,13 +177,13 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
                   <td style={tdStyle}>
                     <span style={{ color: ACTION_COLORS[log.action] || 'var(--text-dim)' }}>{log.action}</span>
                   </td>
-                  <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px' }} className="al-col-resource">
+                  <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: 'var(--fs-micro)' }} className="al-col-resource">
                     {log.resourceType || '—'}
                   </td>
                   <td style={{ ...tdStyle, color: 'var(--text-dim)', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="al-col-details" title={log.details || ''}>
                     {log.details ? log.details.slice(0, 60) : '—'}
                   </td>
-                  <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: '10px', whiteSpace: 'nowrap' }}>
+                  <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: 'var(--fs-micro)', whiteSpace: 'nowrap' }}>
                     {new Date(log.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </td>
                 </tr>
@@ -207,11 +207,11 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
           </span>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
-              style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: page > 1 ? 'pointer' : 'not-allowed', padding: '5px 10px', opacity: page > 1 ? 1 : .3, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
+              style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: page > 1 ? 'pointer' : 'not-allowed', padding: '5px 10px', opacity: page > 1 ? 1 : .3, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
               ‹
             </button>
             <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
-              style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: page < totalPages ? 'pointer' : 'not-allowed', padding: '5px 10px', opacity: page < totalPages ? 1 : .3, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
+              style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: page < totalPages ? 'pointer' : 'not-allowed', padding: '5px 10px', opacity: page < totalPages ? 1 : .3, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>
               ›
             </button>
           </div>
@@ -240,7 +240,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
             style={{
               flex: 1, padding: '9px',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-              border: '1px solid var(--border2)', color: 'var(--text-muted)',
+              border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)',
               background: 'none', cursor: 'pointer', letterSpacing: '.5px',
             }}
           >

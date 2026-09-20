@@ -10,7 +10,7 @@ interface Props {
 }
 
 const inp: React.CSSProperties = {
-  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
+  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none', boxSizing: 'border-box',
 };
@@ -56,7 +56,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
       background: 'rgba(0,0,0,.65)',
     }}>
       <div style={{
-        background: 'var(--bg-card)', border: '1px solid var(--border2)',
+        background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
         padding: '20px 22px', width: '100%', maxWidth: '400px',
         margin: '0 16px', position: 'relative',
       }}>
@@ -144,7 +144,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
                 style={{
                   fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                   padding: '9px 14px', background: 'none',
-                  border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer',
+                  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer',
                 }}
               >
                 {t('common.cancel') || 'CANCEL'}

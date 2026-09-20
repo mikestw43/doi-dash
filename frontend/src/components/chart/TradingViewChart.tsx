@@ -52,7 +52,7 @@ export const TradingViewChart = () => {
   const handleToggle = () => setCollapsed(c => !c);
 
   return (
-    <div style={{ border: '1px solid var(--border2)' }}>
+    <div style={{ border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>
       {/* Collapse / expand bar */}
       <button
         onClick={handleToggle}

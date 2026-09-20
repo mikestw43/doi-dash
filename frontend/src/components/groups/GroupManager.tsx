@@ -16,7 +16,7 @@ interface Props {
 }
 
 const inp: React.CSSProperties = {
-  flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border2)',
+  flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none',
 };
@@ -91,7 +91,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
             {editId ? 'UPDATE' : 'ADD'}
           </button>
           {editId && (
-            <button onClick={resetForm} style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+            <button onClick={resetForm} style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 10px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               ✕
             </button>
           )}
@@ -121,7 +121,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
           {groups.map(g => (
             <div
               key={g.id}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card2)', border: '1px solid var(--border2)', padding: '8px 10px' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ width: '10px', height: '10px', background: g.color, flexShrink: 0 }} />
@@ -133,7 +133,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
               <div style={{ display: 'flex', gap: '4px' }}>
                 <button
                   onClick={() => startEdit(g)}
-                  style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
+                  style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
                   title="Edit"
                 >✎</button>
                 <button

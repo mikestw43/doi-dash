@@ -128,7 +128,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               padding: '10px 16px', background: 'transparent',
-              color: 'var(--text-secondary)', border: '1px solid var(--border2)', cursor: 'pointer',
+              color: 'var(--text-secondary)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
             }}
           >
             CLEAR DATA + RELOAD

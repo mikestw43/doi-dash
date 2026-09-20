@@ -56,7 +56,7 @@ const generateApiKey = () => {
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 const inp: React.CSSProperties = {
-  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
+  width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none', boxSizing: 'border-box',
 };
@@ -164,7 +164,7 @@ const DeleteDialog = ({ account, onClose }: { account: Account; onClose: () => v
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
           >CANCEL</button>
           <button
             onClick={handleDelete}
@@ -262,7 +262,7 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
             <button onClick={onClose}
-              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
               CANCEL
             </button>
             <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
@@ -345,7 +345,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
         <div>
           <label style={lbl}>MT5 EA SETUP</label>
           <div style={{
-            background: 'var(--bg-input)', border: '1px solid var(--border2)',
+            background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
             padding: '10px 12px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
             color: 'var(--text-dim)', lineHeight: 2,
           }}>
@@ -452,7 +452,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
 
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
           <button type="button" onClick={onClose}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}>
             CANCEL
           </button>
           <button type="submit" disabled={loading || !name.trim()}
@@ -487,14 +487,14 @@ export const AccountsSection = () => {
   );
 
   return (
-    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px 18px' }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '16px 18px' }}>
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)', letterSpacing: '.5px' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '.5px' }}>
             ⌗ API KEY MANAGEMENT
           </span>
-          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', border: '1px solid var(--border2)', padding: '2px 7px' }}>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '2px 7px' }}>
             {accounts.length}
           </span>
         </div>
@@ -537,7 +537,7 @@ export const AccountsSection = () => {
                     </span>
                     {isDemo && (
                       <span style={{
-                        fontFamily: 'var(--ff-section)', fontSize: '10px',
+                        fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)',
                         padding: '2px 6px', letterSpacing: '.5px',
                         border: '1px solid var(--warning)',
                         background: 'rgba(251,191,36,.1)',
@@ -574,7 +574,7 @@ export const AccountsSection = () => {
                       title="Alert thresholds"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
-                        background: 'none', border: '1px solid var(--border2)',
+                        background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                         color: 'var(--text-dim)', cursor: 'pointer',
                         padding: '5px 10px',
                         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',

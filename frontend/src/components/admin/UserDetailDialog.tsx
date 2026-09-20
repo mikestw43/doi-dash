@@ -46,7 +46,7 @@ const valStyle: React.CSSProperties = {
   color: 'var(--text)',
 };
 const sel: React.CSSProperties = {
-  background: 'var(--bg-input)', border: '1px solid var(--border2)',
+  background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '6px 9px', outline: 'none', cursor: 'pointer',
 };
@@ -250,7 +250,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
             <div style={{
               fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               color: 'var(--text-dim)', padding: '10px',
-              background: 'rgba(42,45,52,.2)', border: '1px solid var(--border2)',
+              background: 'rgba(42,45,52,.2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
             }}>
               ⓘ This is your own account. Use Profile page to manage your own settings.
             </div>
@@ -263,13 +263,13 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Generate a new random password for <span style={{ color: 'var(--accent-blue)' }}>{user.email}</span>?<br />
-            <span style={{ color: 'var(--warning)', fontSize: '10px' }}>
+            <span style={{ color: 'var(--warning)', fontSize: 'var(--fs-micro)' }}>
               ⚠ The current password will stop working immediately. You'll see the new password once — copy and share it securely.
             </span>
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={() => setResetConfirm(false)}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CANCEL
             </button>
             <button
@@ -307,7 +307,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
               {copied ? '✓ COPIED' : '📋 COPY'}
             </button>
             <button onClick={handleCloseReset}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer' }}>
               CLOSE
             </button>
           </div>

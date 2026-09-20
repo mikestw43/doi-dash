@@ -5,11 +5,11 @@ import { exportMyData, deleteMyAccount } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 
 const card: React.CSSProperties = {
-  background: 'var(--bg-card)', border: '1px solid var(--border2)',
+  background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   padding: '20px 22px', marginBottom: '12px',
 };
 const h2: React.CSSProperties = {
-  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)',
+  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600,
   letterSpacing: '.5px', marginBottom: '10px',
 };
 const li: React.CSSProperties = {
@@ -17,7 +17,7 @@ const li: React.CSSProperties = {
   lineHeight: 1.7, marginBottom: '4px',
 };
 const inp: React.CSSProperties = {
-  flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border2)',
+  flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
   color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
   padding: '7px 10px', outline: 'none',
 };
@@ -146,7 +146,7 @@ export const PrivacyPolicy = () => {
         {/* Export data */}
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '12px 14px', background: 'var(--bg-card2)', border: '1px solid var(--border2)',
+          padding: '12px 14px', background: 'var(--bg-card2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
           marginBottom: '10px',
         }}>
           <div>
@@ -224,7 +224,7 @@ export const PrivacyPolicy = () => {
                   style={{
                     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                     padding: '8px 12px', background: 'none',
-                    border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer',
+                    border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer',
                     flexShrink: 0,
                   }}
                 >

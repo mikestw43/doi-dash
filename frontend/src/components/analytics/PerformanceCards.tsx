@@ -45,7 +45,7 @@ export const PerformanceCards = ({ accountId }: Props) => {
   ];
 
   const metricCard: React.CSSProperties = {
-    background: 'var(--bg-card)', border: '1px solid var(--border2)',
+    background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
     padding: '14px 16px', textAlign: 'center', position: 'relative',
   };
 

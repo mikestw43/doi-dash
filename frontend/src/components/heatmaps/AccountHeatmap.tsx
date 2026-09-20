@@ -26,7 +26,7 @@ export const AccountHeatmap = () => {
     return (
       <div className="heatmap-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '4px' }}>
         {[...Array(8)].map((_, i) => (
-          <div key={i} style={{ height: '54px', background: 'var(--bg-card2)', border: '1px solid var(--border2)' }} />
+          <div key={i} style={{ height: '54px', background: 'var(--bg-card2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }} />
         ))}
       </div>
     );

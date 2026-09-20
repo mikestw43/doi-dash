@@ -135,7 +135,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
     gap: '8px', flexWrap: 'wrap', marginBottom: '12px',
   };
   const navBtn: React.CSSProperties = {
-    width: '26px', height: '26px', border: '1px solid var(--border2)',
+    width: '26px', height: '26px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
     color: 'var(--text)', cursor: 'pointer', fontSize: '13px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     background: 'none', transition: 'border-color .15s',
@@ -155,7 +155,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
     display: 'block',
   };
   const totalWrap: React.CSSProperties = {
-    fontSize: '10px', color: 'var(--text-dim)', fontFamily: "'Share Tech Mono'",
+    fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)',
     display: 'flex', alignItems: 'center', gap: '6px',
   };
 
@@ -172,7 +172,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
 
   const tdBase: React.CSSProperties = {
     padding: '5px 7px', textAlign: 'left',
-    border: '1px solid var(--border)',
+    border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)',
     verticalAlign: 'top', height: '70px', position: 'relative',
   };
 
@@ -284,7 +284,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                   }}>
                     <span className={`pcal-dn${isToday ? ' pcal-dn-today' : ''}`} style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: "'Share Tech Mono'",
+                      fontFamily: 'var(--ff-body)',
                       fontSize: '13px',
                       lineHeight: 1, marginBottom: '4px',
                       minWidth: isToday ? '20px' : 'auto',
@@ -299,7 +299,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     </span>
                     {pnl !== undefined && (
                       <span className="pcal-pnl" style={{
-                        display: 'block', fontFamily: "'VT323'",
+                        display: 'block', fontFamily: 'var(--ff-display)',
                         fontSize: '24px', lineHeight: 1, color: pnlColor,
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                       }}>
@@ -323,7 +323,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     {/* Per-row WEEK label removed — the column header already
                         identifies this column, so we just show the sum. */}
                     <span className="pcal-pnl" style={{
-                      display: 'block', fontFamily: "'VT323'",
+                      display: 'block', fontFamily: 'var(--ff-display)',
                       fontSize: '24px', lineHeight: 1, color: weekColor,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                     }}>

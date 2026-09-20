@@ -26,12 +26,12 @@ export const EaRepository = () => {
       {/* Page header */}
       <div style={{
         background: 'var(--bg-card)',
-        border: '1px solid var(--border2)',
+        border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
         padding: '16px 20px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>
-          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '1px' }}>
+          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '1px' }}>
             EA REPOSITORY
           </div>
           <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '6px' }}>
@@ -81,9 +81,9 @@ export const EaRepository = () => {
                     {ea.version}
                   </span>
                   <span style={{
-                    fontFamily: 'var(--ff-section)', fontSize: '10px',
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)',
                     padding: '2px 6px',
-                    border: '1px solid var(--border2)',
+                    border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                     color: 'var(--text-muted)',
                   }}>{ea.platform}</span>
                   {ea.tag && (
@@ -101,7 +101,7 @@ export const EaRepository = () => {
                   <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>
                     {ea.size}
                   </span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '10px', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-micro)', transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>▾</span>
                 </button>
 
                 {expanded && (
@@ -117,7 +117,7 @@ export const EaRepository = () => {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {ea.features.map((f, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                            <span style={{ color: 'var(--green)', fontSize: '10px', flexShrink: 0, marginTop: '1px' }}>▸</span>
+                            <span style={{ color: 'var(--green)', fontSize: 'var(--fs-micro)', flexShrink: 0, marginTop: '1px' }}>▸</span>
                             <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)' }}>{f}</span>
                           </div>
                         ))}
@@ -151,7 +151,7 @@ export const EaRepository = () => {
                           style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
                             padding: '9px 14px',
-                            background: 'none', border: '1px solid var(--border2)',
+                            background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                             color: 'var(--text-muted)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                             cursor: 'pointer', textDecoration: 'none', letterSpacing: '.5px',
                           }}

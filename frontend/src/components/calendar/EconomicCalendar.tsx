@@ -406,7 +406,7 @@ export const EconomicCalendar = () => {
               width: '28px', height: '28px',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '18px', lineHeight: 1,
-              background: 'none', border: '1px solid var(--border2)',
+              background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
               color: refreshing ? 'var(--text-dim)' : 'var(--text)',
               cursor: refreshing ? 'not-allowed' : 'pointer',
               opacity: refreshing ? .5 : 1,
@@ -430,7 +430,7 @@ export const EconomicCalendar = () => {
         border: '2px solid var(--accent-blue)',
       }}>
         {/* Today / Week tabs */}
-        <div style={{ display: 'flex', border: '1px solid var(--border2)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}>
           <button onClick={() => setViewMode('today')} style={tabBtn(viewMode === 'today')}>TODAY</button>
           <button
             onClick={() => setViewMode('week')}
@@ -501,7 +501,7 @@ export const EconomicCalendar = () => {
                   <span style={{
                     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)',
                     letterSpacing: '.5px', padding: '4px 10px',
-                    border: '1px solid var(--border2)', background: 'var(--bg-card2)',
+                    border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-card2)',
                   }}>{dateLabel}</span>
                   {highCount > 0 && (
                     <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--red)' }}>

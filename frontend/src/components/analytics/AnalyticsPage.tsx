@@ -168,8 +168,8 @@ export const AnalyticsPage = () => {
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
     padding: '5px 11px',
-    fontFamily: "'Press Start 2P'",
-    fontSize: '7px',
+    fontFamily: 'var(--ff-section)',
+    fontSize: 'var(--fs-label)',
     letterSpacing: '.5px',
     border: active ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
     color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
@@ -207,7 +207,7 @@ export const AnalyticsPage = () => {
             value={selectedAccount}
             onChange={e => setSelectedAccount(e.target.value)}
             style={{
-              background: 'var(--bg-input)', border: '1px solid var(--border2)',
+              background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
               color: 'var(--text-primary)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               padding: '6px 10px', outline: 'none', cursor: 'pointer',
               width: '100%',
@@ -222,7 +222,7 @@ export const AnalyticsPage = () => {
       </div>
 
       {/* ── Content ── */}
-      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '14px' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '14px' }}>
         {tab === 'performance' && (
           <PerformanceCalendar accountId={selectedAccount || undefined} />
         )}

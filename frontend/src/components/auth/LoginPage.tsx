@@ -17,7 +17,7 @@ const InfoModal = ({ title, message, onClose }: { title: string; message: string
       padding: '24px 28px',
       maxWidth: '340px', width: '100%',
     }} onClick={e => e.stopPropagation()}>
-      <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--accent-blue)', letterSpacing: '1px', marginBottom: '14px' }}>
+      <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px', marginBottom: '14px' }}>
         {title}
       </div>
       <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', lineHeight: 1.6, marginBottom: '20px' }}>
@@ -26,8 +26,8 @@ const InfoModal = ({ title, message, onClose }: { title: string; message: string
       <button onClick={onClose} style={{
         width: '100%', padding: '9px',
         background: 'none', border: '1px solid var(--accent-blue)',
-        color: 'var(--accent-blue)', fontFamily: "'Press Start 2P'",
-        fontSize: '7px', letterSpacing: '1px', cursor: 'pointer',
+        color: 'var(--accent-blue)', fontFamily: 'var(--ff-section)',
+        fontSize: 'var(--fs-label)', letterSpacing: '1px', cursor: 'pointer',
       }}>OK</button>
     </div>
   </div>
@@ -101,7 +101,7 @@ export const LoginPage = () => {
               flexShrink: 0,
             }}
           >
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#25272c' }}>D</span>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>D</span>
           </div>
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
@@ -121,7 +121,7 @@ export const LoginPage = () => {
         {/* Title */}
         <div style={{
           fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-          color: 'var(--accent-blue)', letterSpacing: '3px',
+          color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '3px',
           textAlign: 'center', marginBottom: '18px',
         }}>
           LOGIN
@@ -131,8 +131,8 @@ export const LoginPage = () => {
           {/* Email */}
           <div style={{ marginBottom: '11px' }}>
             <label style={{
-              fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
-              color: 'var(--text-muted)', display: 'block',
+              fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)',
+              color: 'var(--text-secondary)', fontWeight: 500, display: 'block',
               marginBottom: '4px', letterSpacing: '1px',
             }}>EMAIL</label>
             <input
@@ -145,11 +145,11 @@ export const LoginPage = () => {
               style={{
                 width: '100%',
                 background: 'var(--bg-input)',
-                border: '1px solid var(--border2)',
+                border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                 color: 'var(--text-primary)',
                 padding: '9px 11px',
                 fontSize: '13px',
-                fontFamily: "'Share Tech Mono'",
+                fontFamily: 'var(--ff-body)',
                 outline: 'none',
                 transition: 'border-color .15s',
               }}
@@ -161,8 +161,8 @@ export const LoginPage = () => {
           {/* Password */}
           <div style={{ marginBottom: '11px' }}>
             <label style={{
-              fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
-              color: 'var(--text-muted)', display: 'block',
+              fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)',
+              color: 'var(--text-secondary)', fontWeight: 500, display: 'block',
               marginBottom: '4px', letterSpacing: '1px',
             }}>PASSWORD</label>
             <div style={{ position: 'relative' }}>
@@ -176,11 +176,11 @@ export const LoginPage = () => {
                 style={{
                   width: '100%',
                   background: 'var(--bg-input)',
-                  border: '1px solid var(--border2)',
+                  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-primary)',
                   padding: '9px 36px 9px 11px',
                   fontSize: '13px',
-                  fontFamily: "'Share Tech Mono'",
+                  fontFamily: 'var(--ff-body)',
                   outline: 'none',
                   transition: 'border-color .15s',
                 }}
@@ -214,11 +214,11 @@ export const LoginPage = () => {
           {/* Error */}
           {error && (
             <div style={{
-              fontSize: '10px', color: 'var(--danger)',
+              fontSize: 'var(--fs-micro)', color: 'var(--danger)',
               marginBottom: '10px', padding: '7px 10px',
               background: 'rgba(248,113,113,.08)',
               border: '1px solid rgba(248,113,113,.3)',
-              fontFamily: "'Share Tech Mono'",
+              fontFamily: 'var(--ff-body)',
             }}>
               ⚠ {error}
             </div>
@@ -269,7 +269,7 @@ export const LoginPage = () => {
                     style={{
                       width: '100%', padding: '10px',
                       background: 'transparent',
-                      border: '1px solid var(--border2)',
+                      border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                       color: 'var(--text-primary)',
                       fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
                       cursor: loading ? 'not-allowed' : 'pointer',
@@ -300,7 +300,7 @@ export const LoginPage = () => {
         <div style={{
           textAlign: 'center', fontSize: '11px',
           color: 'var(--text-muted)', marginTop: '14px',
-          fontFamily: "'Share Tech Mono'",
+          fontFamily: 'var(--ff-body)',
         }}>
           No account?{' '}
           <span

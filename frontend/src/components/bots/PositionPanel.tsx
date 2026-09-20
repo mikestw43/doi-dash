@@ -85,7 +85,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   const tdR: React.CSSProperties = { ...tdStyle, textAlign: 'right' };
 
   const inputStyle: React.CSSProperties = {
-    width: '72px', background: 'var(--bg-input)', border: '1px solid var(--border2)',
+    width: '72px', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
     color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
     padding: '3px 6px', textAlign: 'right', outline: 'none',
   };
@@ -118,7 +118,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <td style={tdStyle}>
-                  <span style={{ color: 'var(--text)', fontFamily: "'Share Tech Mono'", fontWeight: 700 }}>{order.symbol}</span>
+                  <span style={{ color: 'var(--text)', fontFamily: 'var(--ff-body)', fontWeight: 700 }}>{order.symbol}</span>
                 </td>
                 <td style={tdStyle}>
                   <span style={{
@@ -198,7 +198,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                           onClick={() => startEdit(order)}
                           disabled={isLoading}
                           title="Edit SL/TP"
-                          style={{ background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', fontSize: '10px', padding: '2px 5px', opacity: isLoading ? .4 : 1 }}
+                          style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 'var(--fs-micro)', padding: '2px 5px', opacity: isLoading ? .4 : 1 }}
                         >✎</button>
                         <button
                           onClick={() => handleClose(order.ticket, order.symbol)}

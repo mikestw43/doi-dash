@@ -15,7 +15,7 @@ export const Skeleton = ({ width = '100%', height = '12px', style }: SkeletonPro
 );
 
 export const CardSkeleton = () => (
-  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+  <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
     <Skeleton width="35%" height="10px" />
     <Skeleton width="65%" height="20px" />
     <Skeleton width="50%" height="10px" />

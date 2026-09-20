@@ -32,7 +32,7 @@ export const Dialog = ({ open, onClose, title, children }: DialogProps) => {
 
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 18px', borderBottom: '1px solid var(--border2)' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)', letterSpacing: '1px' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px' }}>
             {title}
           </span>
           <button

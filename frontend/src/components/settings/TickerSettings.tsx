@@ -35,14 +35,14 @@ const card: React.CSSProperties = {
   padding: '20px 22px',
 };
 const cardTitle: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'",
+  fontFamily: 'var(--ff-section)',
   fontSize: 'var(--fs-section)',
   color: 'var(--accent-blue)',
   letterSpacing: '1px',
   marginBottom: '14px',
 };
 const groupLabel: React.CSSProperties = {
-  fontFamily: "'Press Start 2P'",
+  fontFamily: 'var(--ff-section)',
   fontSize: 'var(--fs-section)',
   color: 'var(--text-muted)',
   letterSpacing: '.5px',
@@ -176,7 +176,7 @@ export const TickerSettings = () => {
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
               padding: '8px 14px', background: 'none', color: 'var(--text-muted)',
-              border: '1px solid var(--border2)', cursor: 'pointer',
+              border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
             }}
           >
             CANCEL

@@ -53,7 +53,7 @@ export const CloseAllDialog = ({ accountId, accountName, onClose, onSuccess }: P
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
           <button
             onClick={onClose}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
           >
             CANCEL
           </button>

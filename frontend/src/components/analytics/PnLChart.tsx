@@ -38,7 +38,7 @@ export const PnLChart = ({ accountId }: Props) => {
   });
 
   return (
-    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', padding: '16px' }}>
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div>
           <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '.5px', marginBottom: '4px' }}>DAILY P&L</div>
@@ -74,27 +74,27 @@ export const PnLChart = ({ accountId }: Props) => {
                 const d = new Date(v);
                 return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
               }}
-              tick={{ fontSize: 10, fill: '#6b7280', fontFamily: "'Share Tech Mono'" }}
+              tick={{ fontSize: 10, fill: '#6b7280', fontFamily: 'var(--ff-body)' }}
               stroke="#3b3e46"
             />
             <YAxis
-              tick={{ fontSize: 10, fill: '#6b7280', fontFamily: "'Share Tech Mono'" }}
+              tick={{ fontSize: 10, fill: '#6b7280', fontFamily: 'var(--ff-body)' }}
               stroke="#3b3e46"
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#2b2d33',
                 border: '1px solid #3b3e46',
-                borderRadius: 0,
-                fontFamily: "'Share Tech Mono'",
+                borderRadius: 6,
+                fontFamily: 'var(--ff-body)',
                 fontSize: 11,
               }}
               formatter={((value: number | undefined) => [value != null ? `$${value.toFixed(2)}` : '—', 'P&L']) as never}
               labelFormatter={(v) => `Date: ${v}`}
             />
-            <Bar dataKey="profit">
+            <Bar dataKey="profit" radius={[3, 3, 0, 0]}>
               {data.map((entry, i) => (
-                <Cell key={i} fill={entry.profit >= 0 ? '#34d399' : '#f87171'} fillOpacity={0.85} />
+                <Cell key={i} fill={entry.profit >= 0 ? '#34d399' : '#f87171'} fillOpacity={0.9} />
               ))}
             </Bar>
           </BarChart>

@@ -171,6 +171,11 @@
     height: 100%;
   }
 
+  /* Controls share the card's corner treatment unless they set their own. */
+  button, input, select, textarea {
+    border-radius: var(--radius-sm);
+  }
+
   /* No scanline overlay and no grid wash: the theme is flat and non-glare,
      so depth comes from the card surface sitting above the page colour. */
   body {

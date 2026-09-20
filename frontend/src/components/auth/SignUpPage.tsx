@@ -68,17 +68,17 @@ export const SignUpPage = ({ onBack }: Props) => {
   const inp: React.CSSProperties = {
     width: '100%',
     background: 'var(--bg-input)',
-    border: '1px solid var(--border2)',
+    border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
     color: 'var(--text-primary)',
     padding: '9px 11px',
     fontSize: '13px',
-    fontFamily: "'Share Tech Mono'",
+    fontFamily: 'var(--ff-body)',
     outline: 'none',
     boxSizing: 'border-box',
     transition: 'border-color .15s',
   };
   const lbl: React.CSSProperties = {
-    fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
+    fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)',
     color: 'var(--text-muted)', display: 'block',
     marginBottom: '4px', letterSpacing: '1px',
   };
@@ -105,7 +105,7 @@ export const SignUpPage = ({ onBack }: Props) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
 flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#25272c' }}>D</span>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>D</span>
           </div>
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
@@ -124,7 +124,7 @@ flexShrink: 0,
         {/* Title */}
         <div style={{
           fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-          color: 'var(--accent-blue)', letterSpacing: '3px',
+          color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '3px',
           textAlign: 'center', marginBottom: '18px',
         }}>
           SIGN UP
@@ -150,8 +150,8 @@ flexShrink: 0,
               style={{
                 width: '100%', padding: '11px',
                 background: 'none', border: '1px solid var(--accent-blue)',
-                color: 'var(--accent-blue)', fontFamily: "'Press Start 2P'",
-                fontSize: '7px', letterSpacing: '1px', cursor: 'pointer',
+                color: 'var(--accent-blue)', fontFamily: 'var(--ff-section)',
+                fontSize: 'var(--fs-label)', letterSpacing: '1px', cursor: 'pointer',
               }}
             >
               ← BACK TO LOGIN
@@ -315,11 +315,11 @@ flexShrink: 0,
             {/* Error */}
             {error && (
               <div style={{
-                fontSize: '10px', color: 'var(--danger)',
+                fontSize: 'var(--fs-micro)', color: 'var(--danger)',
                 marginBottom: '10px', padding: '7px 10px',
                 background: 'rgba(248,113,113,.08)',
                 border: '1px solid rgba(248,113,113,.3)',
-                fontFamily: "'Share Tech Mono'",
+                fontFamily: 'var(--ff-body)',
               }}>
                 ⚠ {error}
               </div>
@@ -327,11 +327,11 @@ flexShrink: 0,
 
             {/* Info */}
             <div style={{
-              fontSize: '10px', color: 'var(--text-muted)',
+              fontSize: 'var(--fs-micro)', color: 'var(--text-muted)',
               marginBottom: '12px', padding: '7px 10px',
               background: 'rgba(96,165,250,.04)',
               border: '1px solid rgba(96,165,250,.15)',
-              fontFamily: "'Share Tech Mono'", lineHeight: 1.6,
+              fontFamily: 'var(--ff-body)', lineHeight: 1.6,
             }}>
               ℹ Your account will be reviewed by an admin before activation.
             </div>
@@ -355,7 +355,7 @@ flexShrink: 0,
             </button>
 
             {/* Back */}
-            <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', fontFamily: "'Share Tech Mono'" }}>
+            <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--ff-body)' }}>
               Already have an account?{' '}
               <span
                 style={{ color: 'var(--accent-blue)', cursor: 'pointer' }}

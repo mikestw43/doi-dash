@@ -51,10 +51,13 @@ interface SumCardProps {
   sub?: string;
 }
 const SumCard = ({ label, value, color, sub }: SumCardProps) => (
+  // Same treatment as the KPI cards: neutral panel, state on the left edge.
+  // A plain figure carries no state, so its edge stays the border colour.
   <div style={{
     background: 'var(--bg-card)',
-    border: `1px solid var(--border2)`,
-    borderTop: `2px solid ${color}`,
+    border: '1px solid var(--border2)',
+    borderLeft: `2px solid ${color === 'var(--text-primary)' ? 'var(--border2)' : color}`,
+    borderRadius: 'var(--radius-card)',
     padding: '12px 14px',
     display: 'flex', flexDirection: 'column', gap: '4px',
   }}>
@@ -183,7 +186,7 @@ export const TradeHistoryPage = () => {
   };
 
   const selStyle: React.CSSProperties = {
-    background: 'var(--bg-input)', border: '1px solid var(--border2)',
+    background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
     color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
     padding: '6px 10px', outline: 'none', cursor: 'pointer',
   };
@@ -208,7 +211,7 @@ export const TradeHistoryPage = () => {
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>TRADE HISTORY</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)' }}>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>
           {total} TRADES
         </span>
       </div>
@@ -225,7 +228,7 @@ export const TradeHistoryPage = () => {
         <SumCard
           label="TOTAL TRADES"
           value={statsLoading ? '...' : String(total)}
-          color="var(--accent-blue)"
+          color="var(--text-primary)"
           sub={`${stats.wins} wins`}
         />
         <SumCard
@@ -278,7 +281,7 @@ export const TradeHistoryPage = () => {
           {(dateFrom || dateTo) && (
             <button
               onClick={() => { setDateFrom(''); setDateTo(''); }}
-              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', background: 'none', border: '1px solid var(--border2)', color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 8px', transition: 'all .15s' }}
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 8px', transition: 'all .15s' }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}
             >✕</button>
@@ -294,7 +297,7 @@ export const TradeHistoryPage = () => {
             marginLeft: 'auto',
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             padding: '7px 12px', background: 'none',
-            border: '1px solid var(--border2)',
+            border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
             color: 'var(--text-muted)',
             cursor: trades.length ? 'pointer' : 'not-allowed',
             opacity: trades.length ? 1 : .3,
@@ -308,7 +311,7 @@ export const TradeHistoryPage = () => {
       </div>
 
       {/* ── Table ── */}
-      <div style={{ overflowX: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border2)' }}>
+      <div style={{ overflowX: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
@@ -367,7 +370,7 @@ export const TradeHistoryPage = () => {
                   }}>
                     {t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}
                   </td>
-                  <td style={{ ...tdBase, color: 'var(--text-dim)', fontSize: '10px' }}>
+                  <td style={{ ...tdBase, color: 'var(--text-dim)', fontSize: 'var(--fs-micro)' }}>
                     {new Date(t.closeTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td style={{ ...tdBase, color: 'var(--text-dim)' }} className="th-col-account">{t.account?.name || '—'}</td>
@@ -396,7 +399,7 @@ export const TradeHistoryPage = () => {
                 onClick={() => !btn.disabled && setPage(btn.target)}
                 disabled={btn.disabled}
                 style={{
-                  background: 'none', border: '1px solid var(--border2)',
+                  background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                   color: 'var(--text-dim)', cursor: btn.disabled ? 'not-allowed' : 'pointer',
                   padding: '5px 10px', opacity: btn.disabled ? .3 : 1,
                   fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',

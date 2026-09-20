@@ -123,7 +123,7 @@ export const NotificationBell = () => {
           position: 'absolute', top: 'calc(100% + 6px)', right: 0,
           zIndex: 600,
           background: 'var(--bg-card)',
-          border: '1px solid var(--border2)',
+          border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
           width: '290px',
           maxHeight: '360px',
           display: 'flex', flexDirection: 'column',

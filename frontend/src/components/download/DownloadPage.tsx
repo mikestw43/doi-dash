@@ -58,10 +58,10 @@ export const DownloadPage = () => {
       {/* Page header */}
       <div style={{
         background: 'var(--bg-card)',
-        border: '1px solid var(--border2)',
+        border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
         padding: '16px 20px',
       }}>
-        <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '1px' }}>
+        <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '1px' }}>
           DOWNLOAD EA
         </div>
         <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '6px' }}>
@@ -74,7 +74,7 @@ export const DownloadPage = () => {
         {EA_RELEASES.map(ea => (
           <div key={ea.name + ea.version} style={{
             background: 'var(--bg-card)',
-            border: '1px solid var(--border2)',
+            border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
             padding: '18px 20px',
             display: 'flex',
             flexDirection: 'column',
@@ -132,7 +132,7 @@ export const DownloadPage = () => {
       {/* Installation guide */}
       <div style={{
         background: 'var(--bg-card)',
-        border: '1px solid var(--border2)',
+        border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
         padding: '16px 20px',
       }}>
         <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '14px' }}>

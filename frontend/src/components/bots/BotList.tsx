@@ -33,7 +33,7 @@ const SecHdr = ({ title, count, dot = 'var(--accent-blue)' }: { title: string; c
         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
         color: 'var(--text-muted)',
         padding: '4px 10px',
-        border: '1px solid var(--border2)',
+        border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
       }}>{count}</span>
     )}
   </div>
@@ -154,7 +154,7 @@ export const BotList = () => {
               <span style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 minWidth: '18px', height: '16px', padding: '0 5px',
-                fontFamily: 'var(--ff-section)', fontSize: '10px',
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)',
                 color: 'var(--bg-primary)', background: 'var(--accent-blue)',
                 letterSpacing: 0,
               }}>{activeFilterCount}</span>
@@ -184,7 +184,7 @@ export const BotList = () => {
               onChange={e => setDraft(d => ({ ...d, search: e.target.value }))}
               style={{
                 width: '100%', background: 'var(--bg-input)',
-                border: '1px solid var(--border2)', color: 'var(--text-primary)',
+                border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)',
                 padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
                 outline: 'none', boxSizing: 'border-box',
               }}
@@ -197,7 +197,7 @@ export const BotList = () => {
             <select
               value={draft.broker}
               onChange={e => setDraft(d => ({ ...d, broker: e.target.value }))}
-              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
             >
               {brokers.map(b => <option key={b} value={b}>{b === 'all' ? 'All brokers' : b}</option>)}
             </select>
@@ -210,7 +210,7 @@ export const BotList = () => {
               <select
                 value={draft.group}
                 onChange={e => setDraft(d => ({ ...d, group: e.target.value }))}
-                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
               >
                 <option value="all">All</option>
                 <option value="ungrouped">Ungrouped</option>
@@ -225,7 +225,7 @@ export const BotList = () => {
             <select
               value={draft.sort}
               onChange={e => setDraft(d => ({ ...d, sort: e.target.value }))}
-              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
+              style={{ width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', padding: '8px 10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
             >
               {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
@@ -238,7 +238,7 @@ export const BotList = () => {
               style={{
                 flex: 1, padding: '9px',
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-                border: '1px solid var(--border2)', color: 'var(--text-muted)',
+                border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)',
                 background: 'none', cursor: 'pointer', letterSpacing: '.5px',
               }}
             >
@@ -306,7 +306,7 @@ export const BotList = () => {
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               color: 'var(--text-muted)',
               padding: '4px 10px',
-              border: '1px solid var(--border2)',
+              border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
             }}>{demoOnlineCount} / {demoAccounts.length}</span>
           </div>
 

@@ -80,11 +80,11 @@ export const AnnouncePage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Header */}
       <div style={{
-        background: 'var(--bg-card)', border: '1px solid var(--border2)',
+        background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
         padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div>
-          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '1px' }}>
+          <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '1px' }}>
             ANNOUNCEMENTS
           </div>
           <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', marginTop: '6px' }}>
@@ -114,7 +114,7 @@ export const AnnouncePage = () => {
           background: 'var(--bg-card)', border: '1px solid var(--cyan)',
           padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px',
         }}>
-          <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--cyan)', letterSpacing: '1px' }}>
+          <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px' }}>
             NEW ANNOUNCEMENT
           </div>
 
@@ -147,7 +147,7 @@ export const AnnouncePage = () => {
             onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
             placeholder="Title..."
             style={{
-              background: 'var(--bg-card2)', border: '1px solid var(--border2)',
+              background: 'var(--bg-card2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
               color: 'var(--text)', fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
               padding: '9px 12px', outline: 'none',
             }}
@@ -158,7 +158,7 @@ export const AnnouncePage = () => {
             placeholder="Message body..."
             rows={4}
             style={{
-              background: 'var(--bg-card2)', border: '1px solid var(--border2)',
+              background: 'var(--bg-card2)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
               color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               padding: '9px 12px', outline: 'none', resize: 'vertical',
             }}
@@ -228,7 +228,7 @@ export const AnnouncePage = () => {
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button onClick={() => setDeleteId(null)} style={{
-                padding: '8px 16px', background: 'none', border: '1px solid var(--border2)',
+                padding: '8px 16px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                 color: 'var(--text-muted)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer',
               }}>CANCEL</button>
               <button onClick={() => handleDelete(deleteId)} style={{
@@ -251,7 +251,7 @@ const AnnCard = ({ ann, isAdmin, onDelete }: {
   const cfg = TYPE_CFG[ann.type];
   return (
     <div style={{
-      background: 'var(--bg-card)', border: '1px solid var(--border2)',
+      background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
       borderLeft: `3px solid ${cfg.color}`,
       padding: '14px 16px',
     }}>
