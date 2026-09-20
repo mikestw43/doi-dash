@@ -211,11 +211,12 @@ export const SummaryCards = ({ stats }: Props) => {
         .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(251,191,36,.35),  inset 0 0 20px rgba(251,191,36,.06)  !important; }
 
         /* Mobile ≤768px: 2 cols, compact cards so all 6 fit one screen.
-           Tighter padding + smaller display number + reduced gaps. */
+           Tighter padding + reduced gaps. The display number follows
+           --fs-disp-lg like it does on desktop; a hardcoded 28px here used to
+           override the mobile token and keep the KPI numbers oversized. */
         @media (max-width: 768px) {
           .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
           .kpi-card { padding: 10px 12px !important; }
-          .kpi-card .kpi-val { font-size: 28px !important; }
         }
       `}</style>
     </>

@@ -85,18 +85,20 @@
 
   @media (max-width: 768px) {
     :root {
-      /* Mobile overrides — label/body bump UP for readability on small screens.
+      /* Mobile overrides — a step DOWN from desktop. These used to scale up,
+         which on a phone left barely four KPI cards on the first screen and
+         pushed long balances (4,758,325.68) to the edge of their column.
          --fs-input stays 16px to prevent iOS auto-zoom on input focus. */
-      --fs-title:    16px;
-      --fs-section:  12px;
-      --fs-label:    12px;
-      --fs-micro:    11px;
-      --fs-body:     14px;
-      --fs-body-sm:  12px;
+      --fs-title:    14px;
+      --fs-section:  11px;
+      --fs-label:    11px;
+      --fs-micro:    10px;
+      --fs-body:     12px;
+      --fs-body-sm:  11px;
       --fs-input:    16px;
-      --fs-disp-sm:  20px;
-      --fs-disp-md:  26px;
-      --fs-disp-lg:  32px;
+      --fs-disp-sm:  17px;
+      --fs-disp-md:  22px;
+      --fs-disp-lg:  26px;
     }
   }
 
@@ -321,7 +323,7 @@
     line-height: 1.2;
   }
   @media (max-width: 768px) {
-    .bc-value-lg { font-size: 22px !important; }
+    .bc-value-lg { font-size: 18px !important; }
   }
 
   /* ── Auth box ── */
