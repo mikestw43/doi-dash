@@ -150,8 +150,14 @@ export const Layout = ({ children }: LayoutProps) => {
             width: 100% !important;
             /* index.html sets viewport-fit=cover, so the bar would otherwise
                sit under the home indicator. */
-            height: calc(46px + env(safe-area-inset-bottom)) !important;
-            padding-bottom: env(safe-area-inset-bottom) !important;
+            /* iOS reports a 34pt bottom inset, but the home indicator itself
+               is only a few points tall and sits well inside that. Reserving
+               all of it left an empty band under the labels that reads as
+               wasted bar — most noticeable once the site is installed as an
+               app, where no browser chrome sits below it. Trimming 12pt keeps
+               the indicator clear and takes the bar from ~80pt to ~64pt. */
+            height: calc(42px + max(env(safe-area-inset-bottom) - 12px, 0px)) !important;
+            padding-bottom: max(env(safe-area-inset-bottom) - 12px, 0px) !important;
             flex-direction: row !important;
             align-items: stretch !important;
             border-right: none !important;
@@ -175,13 +181,13 @@ export const Layout = ({ children }: LayoutProps) => {
             font-size: var(--fs-micro) !important;
           }
           .main-content {
-            padding-bottom: calc(58px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: calc(52px + max(env(safe-area-inset-bottom) - 12px, 0px)) !important;
           }
         }
         @media (max-width: 768px) {
           .main-content {
             padding: 10px !important;
-            padding-bottom: calc(58px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: calc(52px + max(env(safe-area-inset-bottom) - 12px, 0px)) !important;
             gap: 10px !important;
           }
         }
