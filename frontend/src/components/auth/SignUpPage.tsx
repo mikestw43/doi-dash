@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { register } from '../../services/api';
+import { register, googleLogin } from '../../services/api';
+import { useAuthStore } from '../../stores/authStore';
 import { Logo } from '../ui/Logo';
+import { GoogleAuth, googleEnabled } from './googleAuth';
 
 // Common country codes
 const COUNTRY_CODES = [
@@ -41,6 +43,25 @@ export const SignUpPage = ({ onBack }: Props) => {
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [done, setDone]               = useState(false);
+
+  const { setAuth } = useAuthStore();
+
+  /** Signing up with Google skips the approval queue: the backend creates the
+   *  account as active, because Google has already verified the address. The
+   *  user lands straight in the dashboard. */
+  const finishGoogleSignUp = async (accessToken: string) => {
+    setError('');
+    setLoading(true);
+    try {
+      const { token, user } = await googleLogin(accessToken);
+      setAuth(token, user);
+    } catch (err: unknown) {
+      const ax = err as { response?: { data?: { error?: string } } };
+      setError(ax.response?.data?.error || 'Google sign-up failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -347,6 +368,64 @@ export const SignUpPage = ({ onBack }: Props) => {
             >
               {loading ? 'SUBMITTING...' : 'SUBMIT REQUEST'}
             </button>
+
+            {googleEnabled && (
+              <>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  margin: '12px 0', color: 'var(--text-muted)',
+                  fontSize: 'var(--fs-body-sm)', fontFamily: 'var(--ff-body)',
+                }}>
+                  <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+                  OR
+                  <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
+                </div>
+
+                <GoogleAuth
+                  onToken={finishGoogleSignUp}
+                  onError={() => setError('Google sign-up failed')}
+                >
+                  {signIn => (
+                    <button
+                      type="button"
+                      onClick={() => signIn()}
+                      disabled={loading}
+                      style={{
+                        width: '100%', padding: '10px',
+                        background: 'transparent',
+                        border: '1px solid var(--border2)',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--text-primary)',
+                        fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
+                        transition: 'border-color .15s',
+                        opacity: loading ? 0.6 : 1,
+                      }}
+                      onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-primary)')}
+                      onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)')}
+                    >
+                      <span style={{
+                        fontSize: '16px', fontWeight: 700,
+                        background: 'linear-gradient(135deg,#4285F4 25%,#EA4335 50%,#FBBC05 75%,#34A853 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        lineHeight: 1,
+                      }}>G</span>
+                      SIGN UP WITH GOOGLE
+                    </button>
+                  )}
+                </GoogleAuth>
+
+                <div style={{
+                  textAlign: 'center', marginTop: '8px', marginBottom: '10px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)',
+                }}>
+                  Google accounts skip admin approval
+                </div>
+              </>
+            )}
 
             {/* Back */}
             <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--ff-body)' }}>
