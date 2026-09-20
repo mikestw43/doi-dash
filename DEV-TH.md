@@ -1,4 +1,4 @@
-# รัน DOI DASH บนคอมตัวเอง (สำหรับปรับ UI)
+# รัน OnlyFunds บนคอมตัวเอง (สำหรับปรับ UI)
 
 ปรับหน้าตาเว็บในเครื่องตัวเองเร็วกว่าแก้บนเซิร์ฟเวอร์มาก —
 แก้ไฟล์ปุ๊บ หน้าเว็บในเบราว์เซอร์เปลี่ยนทันทีภายในไม่ถึงวินาที
@@ -29,10 +29,14 @@ git --version
 ## โหลดโปรเจกต์ลงเครื่อง
 
 ```bash
-git clone https://github.com/mikestw43/doi-dash.git
-cd doi-dash
+git clone https://github.com/mikestw43/doi-dash.git onlyfunds
+cd onlyfunds
 git checkout claude/doi-dash-vps-migration-ljlqso
 ```
+
+> repo บน GitHub ยังชื่อ `doi-dash` อยู่ คำสั่งข้างบนจึงบอกให้โคลนลงโฟลเดอร์ชื่อ
+> `onlyfunds` ให้ตรงกับชื่อแอป ถ้าเครื่องคุณมีโฟลเดอร์ `doi-dash` จากรอบก่อนอยู่แล้ว
+> ใช้อันเดิมต่อได้เลย แค่เปลี่ยนชื่อโฟลเดอร์ในคำสั่งถัด ๆ ไปให้ตรงกัน
 
 ---
 
@@ -71,19 +75,19 @@ cd ..
 
 **หน้าต่างที่ 1 (backend):**
 ```bash
-cd doi-dash/backend
+cd onlyfunds/backend
 npm run dev
 ```
 
 **หน้าต่างที่ 2 (หน้าเว็บ):**
 ```bash
-cd doi-dash/frontend
+cd onlyfunds/frontend
 npm run dev
 ```
 
 แล้วเปิดเบราว์เซอร์ไปที่ **http://localhost:5173**
 
-ล็อกอินด้วย `admin@doi-dash.com` / `password`
+ล็อกอินด้วย `admin@onlyfunds.com` / `password`
 
 > ปิดงานก็แค่กด `Ctrl + C` ในทั้งสองหน้าต่าง
 
@@ -117,7 +121,7 @@ git push
 
 แล้วบน VPS สั่ง:
 ```bash
-cd /opt/doi-dash && bash deploy/update.sh
+cd /opt/onlyfunds && bash deploy/update.sh
 ```
 
 หรือจะไม่แตะ git เองเลยก็ได้ — สั่งผ่าน Claude ให้ push ให้ แล้วคุณแค่รัน `update.sh` บน VPS

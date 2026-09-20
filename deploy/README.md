@@ -1,4 +1,4 @@
-# ย้าย DOI DASH ไปรันบน VPS ตัวเดียว
+# ย้าย OnlyFunds ไปรันบน VPS ตัวเดียว
 
 คู่มือนี้พาไปทีละขั้น ตั้งแต่ VPS เปล่า ๆ จนเว็บใช้งานได้จริง
 คัดลอกคำสั่งไปวางในหน้าต่าง SSH ได้เลย ไม่ต้องแก้โค้ดอะไรเพิ่ม
@@ -50,8 +50,8 @@ ssh root@YOUR_VPS_IP
 
 ```bash
 apt update && apt install -y git
-git clone https://github.com/mikestw43/doi-dash.git /opt/doi-dash
-cd /opt/doi-dash
+git clone https://github.com/mikestw43/doi-dash.git /opt/onlyfunds
+cd /opt/onlyfunds
 git checkout claude/doi-dash-vps-migration-ljlqso
 ```
 
@@ -94,7 +94,7 @@ Certbot จะขอใบรับรองให้ แล้วบังค�
 2. ดึงข้อมูลออกมาเป็นไฟล์เดียว:
 
 ```bash
-cd /opt/doi-dash
+cd /opt/onlyfunds
 bash deploy/migrate-data/export-from-railway.sh "postgresql://...ที่คัดลอกมา..."
 ```
 
@@ -117,11 +117,11 @@ bash deploy/migrate-data/import-to-sqlite.sh
 
 ```bash
 curl https://dash.yourname.com/api/health     # ต้องได้ status: ok
-pm2 status                                    # doi-dash-api ต้องเป็น online
+pm2 status                                    # onlyfunds-api ต้องเป็น online
 ```
 
 แล้วเปิดเว็บ `https://dash.yourname.com` ลองล็อกอิน
-ถ้าเป็นการติดตั้งใหม่ ใช้ `admin@doi-dash.com` / `password`
+ถ้าเป็นการติดตั้งใหม่ ใช้ `admin@onlyfunds.com` / `password`
 **แล้วรีบเปลี่ยนรหัสผ่านทันที**
 
 ---
@@ -150,7 +150,7 @@ EA ตัวเดิมในเครื่องผู้ใช้ยัง�
 3. ถ้าเคยใช้โดเมนเดิมชี้ไป Vercel ให้แก้ DNS มาที่ IP ของ VPS
 4. ถ้าใช้ Google Login: เข้า Google Cloud Console → Credentials
    → เพิ่ม `https://dash.yourname.com` ใน **Authorized JavaScript origins**
-   (และใส่ `VITE_GOOGLE_CLIENT_ID` ใน `/opt/doi-dash/frontend/.env` แล้วรัน `bash deploy/update.sh`)
+   (และใส่ `VITE_GOOGLE_CLIENT_ID` ใน `/opt/onlyfunds/frontend/.env` แล้วรัน `bash deploy/update.sh`)
 
 ---
 
@@ -159,18 +159,18 @@ EA ตัวเดิมในเครื่องผู้ใช้ยัง�
 | อยากทำอะไร | คำสั่ง |
 |---|---|
 | ดูสถานะ | `pm2 status` |
-| ดู log สด | `pm2 logs doi-dash-api` |
-| รีสตาร์ต API | `pm2 restart doi-dash-api` |
-| อัปเดตโค้ดใหม่ | `cd /opt/doi-dash && bash deploy/update.sh` |
-| สำรองข้อมูลเดี๋ยวนี้ | `bash /opt/doi-dash/deploy/backup.sh` |
-| ดูไฟล์สำรอง | `ls -lh /opt/doi-dash/backups` |
+| ดู log สด | `pm2 logs onlyfunds-api` |
+| รีสตาร์ต API | `pm2 restart onlyfunds-api` |
+| อัปเดตโค้ดใหม่ | `cd /opt/onlyfunds && bash deploy/update.sh` |
+| สำรองข้อมูลเดี๋ยวนี้ | `bash /opt/onlyfunds/deploy/backup.sh` |
+| ดูไฟล์สำรอง | `ls -lh /opt/onlyfunds/backups` |
 
 ไฟล์สำรองเก็บไว้ 14 ชุดล่าสุด สำรองอัตโนมัติทุกคืนตี 3 และก่อน `update.sh` ทุกครั้ง
 
 **ดึงไฟล์สำรองมาเก็บที่เครื่องตัวเอง** (รันบนเครื่องตัวเอง ไม่ใช่บน VPS):
 
 ```bash
-scp root@YOUR_VPS_IP:/opt/doi-dash/backups/*.gz ~/Downloads/
+scp root@YOUR_VPS_IP:/opt/onlyfunds/backups/*.gz ~/Downloads/
 ```
 
 ---
@@ -180,12 +180,12 @@ scp root@YOUR_VPS_IP:/opt/doi-dash/backups/*.gz ~/Downloads/
 **เว็บขึ้น 502 Bad Gateway** — backend ไม่ได้รัน
 ```bash
 pm2 status
-pm2 logs doi-dash-api --lines 50
+pm2 logs onlyfunds-api --lines 50
 ```
 
 **เว็บเปิดได้แต่ข้อมูลไม่ขึ้น / ขึ้นว่า offline** — ดูว่า EA ยิงเข้ามาไหม
 ```bash
-pm2 logs doi-dash-api | grep mt5
+pm2 logs onlyfunds-api | grep mt5
 ```
 
 **แก้ Nginx แล้วเว็บพัง**
@@ -211,10 +211,10 @@ pm2 flush                 # ล้าง log เก่า
 ## ไฟล์อะไรอยู่ตรงไหน
 
 ```
-/opt/doi-dash/
+/opt/onlyfunds/
 ├── backend/
 │   ├── .env               ← รหัสลับ + ที่อยู่ฐานข้อมูล (ห้ามลบ ห้ามขึ้น git)
-│   ├── doi-dash.db        ← ฐานข้อมูลทั้งหมดอยู่ในไฟล์นี้ไฟล์เดียว
+│   ├── onlyfunds.db        ← ฐานข้อมูลทั้งหมดอยู่ในไฟล์นี้ไฟล์เดียว
 │   └── dist/              ← โค้ดที่ build แล้ว (PM2 รันตัวนี้)
 ├── frontend/dist/         ← หน้าเว็บที่ build แล้ว (Nginx เสิร์ฟตรงนี้)
 ├── backups/               ← ไฟล์สำรองฐานข้อมูล
@@ -222,4 +222,4 @@ pm2 flush                 # ล้าง log เก่า
 └── deploy/                ← สคริปต์ทั้งหมดในคู่มือนี้
 ```
 
-ไฟล์ตั้งค่า Nginx อยู่ที่ `/etc/nginx/sites-available/doi-dash`
+ไฟล์ตั้งค่า Nginx อยู่ที่ `/etc/nginx/sites-available/onlyfunds`

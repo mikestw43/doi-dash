@@ -82,7 +82,7 @@ export const checkDrawdownProtection = async (
     if (user?.telegramBotToken && user?.telegramChatId) {
       const safeName = escapeHtml(dbAcc.name);
       const msg =
-        `[SENTINEL]\n` +
+        `[OnlyFunds]\n` +
         `⛔ <b>DRAWDOWN PROTECTION TRIGGERED</b>\n\n` +
         `Account: <b>${safeName}</b>\n` +
         `Drawdown: <b>${runtimeAcc.drawdown.toFixed(2)}%</b> (threshold: ${dbAcc.protectionDrawdown}%)\n` +

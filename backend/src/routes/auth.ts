@@ -416,7 +416,7 @@ router.post('/telegram/test', authMiddleware, async (req: AuthRequest, res: Resp
     await sendTelegramMessage(
       botToken,
       user.telegramChatId,
-      '✅ [SENTINEL] Test message — Telegram alerts are working correctly!',
+      '✅ [OnlyFunds] Test message — Telegram alerts are working correctly!',
     );
     res.json({ ok: true, message: 'Test message sent successfully' });
   } catch (err: unknown) {
@@ -471,7 +471,7 @@ router.get('/my-data', authMiddleware, async (req: AuthRequest, res: Response) =
   logAudit(req.user!.id, 'export_data', 'user', req.user!.id);
   res.json({
     exportedAt: new Date().toISOString(),
-    notice: 'This is a copy of all personal data stored by SENTINEL.',
+    notice: 'This is a copy of all personal data stored by OnlyFunds.',
     ...user,
     // Sensitive fields excluded: password, telegramBotToken, apiKeys
   });

@@ -296,7 +296,7 @@ async function fetchForexFactory(): Promise<FfEvent[]> {
     'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
     {
       headers: {
-        'User-Agent': 'SENTINEL/2.0',
+        'User-Agent': 'OnlyFunds/2.0',
         Accept: 'application/json',
       },
       signal: AbortSignal.timeout(10_000),

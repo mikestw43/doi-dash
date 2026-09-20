@@ -16,7 +16,7 @@ type EaRelease = {
 /** EA catalog — one entry per EA, with both platform variants inside. */
 const EA_RELEASES: EaRelease[] = [
   {
-    name: 'DOI DASH Reporter',
+    name: 'OnlyFunds Reporter',
     version: 'v1.3',
     description: 'Real-time portfolio reporter for MetaTrader',
     downloads: [

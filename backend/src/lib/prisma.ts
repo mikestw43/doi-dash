@@ -1,6 +1,6 @@
 import { PrismaClient } from '../generated/prisma/client';
 
-// SQLite — DATABASE_URL points at a file (backend/.env: file:./doi-dash.db).
+// SQLite — DATABASE_URL points at a file (backend/.env: file:./onlyfunds.db).
 const prisma = new PrismaClient();
 
 /**

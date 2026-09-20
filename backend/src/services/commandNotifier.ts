@@ -21,7 +21,7 @@ export const sendCloseAllNotification = async (
   const botToken = decrypt(user.telegramBotToken);
   const safeName = escapeHtml(accountName);
   const message =
-    `[SENTINEL]\n` +
+    `[OnlyFunds]\n` +
     `🔴 <b>CLOSE ALL DISPATCHED</b>\n\n` +
     `Account: <b>${safeName}</b>\n` +
     `Orders to close: <b>${orderCount}</b>\n` +

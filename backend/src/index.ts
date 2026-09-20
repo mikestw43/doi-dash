@@ -69,7 +69,7 @@ applySqlitePragmas().then(() => runtimeStore.initialize()).then(() => {
   // refresh fails the cache is empty and rates fall back to 1.0.
   warmFxCache().catch(() => { /* logged inside fxService */ });
   server.listen(PORT, () => {
-    console.log(`[DOI DASH] Backend running on http://localhost:${PORT}`);
+    console.log(`[OnlyFunds] Backend running on http://localhost:${PORT}`);
   });
 
   // Daily cleanup of old data (run every 24h) — PDPA data retention

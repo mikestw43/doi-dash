@@ -165,13 +165,13 @@ export const Header = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>D</span>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>OF</span>
           </div>
           <div className="header-logo-text">
             <div style={{
               fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
               color: 'var(--text-primary)', letterSpacing: '2px',
-            }}>DOI DASH</div>
+            }}>OnlyFunds</div>
             <div className="header-subtitle" style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               color: 'var(--text-muted)', letterSpacing: '.5px',

@@ -102,10 +102,10 @@ export const LoginPage = () => {
               flexShrink: 0,
             }}
           >
-            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>D</span>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>OF</span>
           </div>
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
-            DOI DASH
+            OnlyFunds
           </div>
         </div>
 

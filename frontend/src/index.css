@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* ── DOI DASH — institutional dark theme ──
+    /* ── OnlyFunds — institutional dark theme ──
        Spec: design/UI-SPEC-INSTITUTIONAL-DARK.md */
     --bg-primary:   #212327;
     --bg-secondary: #25272c;
@@ -131,7 +131,7 @@
     max-width: 100%;
   }
 
-  /* ── DOI DASH: strip all native form chrome ── */
+  /* ── OnlyFunds: strip all native form chrome ── */
   select {
     -webkit-appearance: none;
     -moz-appearance: none;

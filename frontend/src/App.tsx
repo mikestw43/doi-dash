@@ -80,7 +80,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[DOI DASH] render crash:', error, info.componentStack);
+    console.error('[OnlyFunds] render crash:', error, info.componentStack);
   }
 
   render() {
@@ -148,7 +148,7 @@ const Booting = ({ slow }: { slow: boolean }) => (
     fontFamily: 'var(--ff-body)', color: 'var(--text-secondary)',
   }}>
     <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--accent-blue)' }}>
-      DOI DASH
+      OnlyFunds
     </div>
     <div style={{ fontSize: 'var(--fs-body)' }}>Loading…</div>
     {slow && (

@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
-//|                                          DOI_DASH_Reporter.mq5   |
-//|                         DOI DASH MT5 Dashboard Reporter EA       |
+//|                                          OnlyFunds_Reporter.mq5   |
+//|                         OnlyFunds MT5 Dashboard Reporter EA       |
 //|                                                                  |
 //| v1.2                                                             |
 //|   • Accept all closing deal entry types: DEAL_ENTRY_OUT,         |
@@ -17,9 +17,9 @@
 //|   • Push today's closed deals + brokerTimeOffset.                |
 //|   • profit field uses ACCOUNT_PROFIT (was equity-balance).       |
 //+------------------------------------------------------------------+
-#property copyright "DOI DASH"
+#property copyright "OnlyFunds"
 #property version   "1.2"
-#property description "Sends trading data + closed-deal history to DOI DASH Dashboard"
+#property description "Sends trading data + closed-deal history to OnlyFunds Dashboard"
 
 //--- Input Parameters
 input string   ApiKey         = "";           // API Key * (get from Dashboard → Accounts)
@@ -39,14 +39,14 @@ int OnInit()
 {
    if(ApiKey == "")
    {
-      Alert("DOI DASH: กรุณาตั้งค่า API Key ก่อนใช้งาน");
+      Alert("OnlyFunds: กรุณาตั้งค่า API Key ก่อนใช้งาน");
       return INIT_PARAMETERS_INCORRECT;
    }
 
    g_lastDealTime = BrokerMidnight();
 
    EventSetTimer(1);
-   Print("DOI DASH Reporter v1.2 started | Account: ", AccountInfoInteger(ACCOUNT_LOGIN));
+   Print("OnlyFunds Reporter v1.2 started | Account: ", AccountInfoInteger(ACCOUNT_LOGIN));
    Print("  Server: ", ServerURL);
    return INIT_SUCCEEDED;
 }
@@ -55,7 +55,7 @@ int OnInit()
 void OnDeinit(const int reason)
 {
    EventKillTimer();
-   Print("DOI DASH Reporter stopped.");
+   Print("OnlyFunds Reporter stopped.");
 }
 
 //+------------------------------------------------------------------+
@@ -224,7 +224,7 @@ string BuildClosedDealsJson()
 
    // Visibility: log how many deals we're sending each push.
    if(count > 0 || isBackfill) {
-      Print("[DOI DASH] Pushing ", count, " closed deal(s)",
+      Print("[OnlyFunds] Pushing ", count, " closed deal(s)",
             isBackfill ? " (backfill " + IntegerToString(g_backfillCount) + "/" + IntegerToString(BACKFILL_PUSHES) + ")" : "");
    }
 
@@ -354,21 +354,21 @@ void SendData()
    {
       if(!g_initDone)
       {
-         Print("✓ DOI DASH: Connected! Account online (v1.2, broker offset ", (int)brokerOffsetSec, "s)");
+         Print("✓ OnlyFunds: Connected! Account online (v1.2, broker offset ", (int)brokerOffsetSec, "s)");
          g_initDone = true;
       }
    }
    else if(res == 404)
-      Print("✗ DOI DASH: Account not found — เพิ่ม account ใน Dashboard ก่อน (API Key: ", ApiKey, ")");
+      Print("✗ OnlyFunds: Account not found — เพิ่ม account ใน Dashboard ก่อน (API Key: ", ApiKey, ")");
    else if(res == 400)
-      Print("✗ DOI DASH: Bad request — ตรวจสอบ API Key");
+      Print("✗ OnlyFunds: Bad request — ตรวจสอบ API Key");
    else if(res == -1)
    {
-      Print("✗ DOI DASH: ไม่สามารถเชื่อมต่อได้ — เพิ่ม URL ใน MT5 WebRequest whitelist:");
+      Print("✗ OnlyFunds: ไม่สามารถเชื่อมต่อได้ — เพิ่ม URL ใน MT5 WebRequest whitelist:");
       Print("  Tools → Options → Expert Advisors → Allow WebRequest for listed URL");
       Print("  URL: ", ServerURL);
    }
    else
-      Print("✗ DOI DASH: HTTP error ", res);
+      Print("✗ OnlyFunds: HTTP error ", res);
 }
 //+------------------------------------------------------------------+

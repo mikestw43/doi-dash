@@ -69,7 +69,7 @@ const composeReport = async (userId: string): Promise<string> => {
   // Performance metrics
   const metrics = await getPerformanceMetrics(userId);
 
-  let msg = `[SENTINEL]\n📊 <b>DAILY REPORT</b>\n\n`;
+  let msg = `[OnlyFunds]\n📊 <b>DAILY REPORT</b>\n\n`;
   msg += `📅 ${new Date().toLocaleDateString('en-US', { timeZone: REPORT_TZ, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
 
   msg += `<b>Portfolio Summary</b>\n`;

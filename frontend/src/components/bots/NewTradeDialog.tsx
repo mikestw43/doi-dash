@@ -30,7 +30,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
   const [price, setPrice] = useState('');
   const [sl, setSl] = useState('');
   const [tp, setTp] = useState('');
-  const [comment, setComment] = useState('SENTINEL');
+  const [comment, setComment] = useState('OnlyFunds');
 
   const rawCur = currency || 'USD';
 
@@ -45,7 +45,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
         symbol: symbol.trim(), action, volume: vol,
         price: orderType === 'limit' ? parseFloat(price) : 0,
         sl: parseFloat(sl) || 0, tp: parseFloat(tp) || 0,
-        comment: comment || 'SENTINEL',
+        comment: comment || 'OnlyFunds',
       });
       addToast({ type: 'warning', title: 'Trade queued', message: `${action} ${vol} ${symbol.toUpperCase()} sent to EA (~2s)` });
       onClose();

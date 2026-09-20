@@ -97,7 +97,7 @@ export const checkAlerts = async (
     for (const fire of fires) {
       if (isOnCooldown(account.id, fire.type)) continue;
       markFired(account.id, fire.type);
-      const fullMsg = `[SENTINEL]\n${fire.message}`;
+      const fullMsg = `[OnlyFunds]\n${fire.message}`;
       sendTelegramMessage(telegramBotToken, telegramChatId, fullMsg)
         .then(() => logNotification(userId, account.id, fire.type, fullMsg, true))
         .catch(err => {
@@ -139,7 +139,7 @@ export const checkOfflineAlert = async (
 
   markFired(account.id, 'offline');
   const botToken = decrypt(user.telegramBotToken);
-  const offlineMsg = `[SENTINEL]\n📡 <b>OFFLINE ALERT</b>\n\nAccount: <b>${escapeHtml(account.name)}</b>\nNo data received for 30 seconds.`;
+  const offlineMsg = `[OnlyFunds]\n📡 <b>OFFLINE ALERT</b>\n\nAccount: <b>${escapeHtml(account.name)}</b>\nNo data received for 30 seconds.`;
   sendTelegramMessage(botToken, user.telegramChatId, offlineMsg)
     .then(() => logNotification(userId, account.id, 'offline', offlineMsg, true))
     .catch(err => {

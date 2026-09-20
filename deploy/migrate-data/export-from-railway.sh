@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# DOI DASH — export the old Railway Postgres data
+# OnlyFunds — export the old Railway Postgres data
 #
 #   bash deploy/migrate-data/export-from-railway.sh "postgresql://user:pass@host:port/db"
 #

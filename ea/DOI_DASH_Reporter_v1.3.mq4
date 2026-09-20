@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                          DOI_DASH_Reporter.mq4   |
-//|                       DOI DASH MT4 Dashboard Reporter EA         |
+//|                       OnlyFunds MT4 Dashboard Reporter EA         |
 //|                                                                  |
 //| v1.3 (MT4 port) — feature parity with MT5 v1.3                   |
 //|   • Compute today_pl directly from MT4 history (closed orders   |
@@ -12,10 +12,10 @@
 //|   • Backend endpoint identical to MT5 (/api/mt5/push) so MT4 +   |
 //|     MT5 accounts coexist in the same dashboard.                  |
 //+------------------------------------------------------------------+
-#property copyright "DOI DASH"
+#property copyright "OnlyFunds"
 #property version   "1.30"
 #property strict
-#property description "Sends MT4 trading data + EA-computed today_pl to DOI DASH Dashboard"
+#property description "Sends MT4 trading data + EA-computed today_pl to OnlyFunds Dashboard"
 
 //--- Input Parameters
 extern string  ApiKey         = "";           // API Key * (get from Dashboard → Accounts)
@@ -35,14 +35,14 @@ int OnInit()
 {
    if(ApiKey == "")
    {
-      Alert("DOI DASH: กรุณาตั้งค่า API Key ก่อนใช้งาน");
+      Alert("OnlyFunds: กรุณาตั้งค่า API Key ก่อนใช้งาน");
       return INIT_PARAMETERS_INCORRECT;
    }
 
    g_lastDealTime = BrokerMidnight();
 
    EventSetTimer(1);
-   Print("DOI DASH Reporter v1.3 (MT4) started | Account: ", AccountNumber());
+   Print("OnlyFunds Reporter v1.3 (MT4) started | Account: ", AccountNumber());
    Print("  Server: ", ServerURL);
    return INIT_SUCCEEDED;
 }
@@ -51,7 +51,7 @@ int OnInit()
 void OnDeinit(const int reason)
 {
    EventKillTimer();
-   Print("DOI DASH Reporter stopped.");
+   Print("OnlyFunds Reporter stopped.");
 }
 
 //+------------------------------------------------------------------+
@@ -286,21 +286,21 @@ void SendData()
    {
       if(!g_initDone)
       {
-         Print("✓ DOI DASH: Connected! v1.3 (MT4) | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
+         Print("✓ OnlyFunds: Connected! v1.3 (MT4) | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
          g_initDone = true;
       }
    }
    else if(res == 404)
-      Print("✗ DOI DASH: Account not found — เพิ่ม account ใน Dashboard ก่อน (API Key: ", ApiKey, ")");
+      Print("✗ OnlyFunds: Account not found — เพิ่ม account ใน Dashboard ก่อน (API Key: ", ApiKey, ")");
    else if(res == 400)
-      Print("✗ DOI DASH: Bad request — ตรวจสอบ API Key");
+      Print("✗ OnlyFunds: Bad request — ตรวจสอบ API Key");
    else if(res == -1)
    {
-      Print("✗ DOI DASH: ไม่สามารถเชื่อมต่อได้ — เพิ่ม URL ใน MT4 WebRequest whitelist:");
+      Print("✗ OnlyFunds: ไม่สามารถเชื่อมต่อได้ — เพิ่ม URL ใน MT4 WebRequest whitelist:");
       Print("  Tools → Options → Expert Advisors → Allow WebRequest for listed URL");
       Print("  URL: ", ServerURL);
    }
    else
-      Print("✗ DOI DASH: HTTP error ", res);
+      Print("✗ OnlyFunds: HTTP error ", res);
 }
 //+------------------------------------------------------------------+

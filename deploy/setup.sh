@@ -1,18 +1,18 @@
 #!/bin/bash
 # ============================================
-# DOI DASH — VPS setup (Ubuntu 22.04 / 24.04)
+# OnlyFunds — VPS setup (Ubuntu 22.04 / 24.04)
 # Run as root on a fresh VPS:
-#   bash /opt/doi-dash/deploy/setup.sh
+#   bash /opt/onlyfunds/deploy/setup.sh
 # Optionally pass the domain:
-#   bash /opt/doi-dash/deploy/setup.sh dash.example.com
+#   bash /opt/onlyfunds/deploy/setup.sh dash.example.com
 # Re-running is safe — it never overwrites backend/.env or the database.
 # ============================================
 
 set -euo pipefail
 
-PROJECT_DIR="/opt/doi-dash"
-APP_NAME="doi-dash-api"
-DB_FILE="$PROJECT_DIR/backend/doi-dash.db"
+PROJECT_DIR="/opt/onlyfunds"
+APP_NAME="onlyfunds-api"
+DB_FILE="$PROJECT_DIR/backend/onlyfunds.db"
 
 DOMAIN="${1:-${DOMAIN:-}}"
 if [ -z "$DOMAIN" ]; then
@@ -33,7 +33,7 @@ else
 fi
 
 echo "=============================="
-echo "  DOI DASH — VPS setup"
+echo "  OnlyFunds — VPS setup"
 echo "  Target: $SCHEME://$DOMAIN"
 echo "=============================="
 
@@ -150,8 +150,8 @@ npm run build
 # --- 8. Nginx ---
 echo ""
 echo "[8/9] Configuring Nginx..."
-sed "s|__DOMAIN__|$DOMAIN|g" "$PROJECT_DIR/deploy/nginx.conf" > /etc/nginx/sites-available/doi-dash
-ln -sf /etc/nginx/sites-available/doi-dash /etc/nginx/sites-enabled/doi-dash
+sed "s|__DOMAIN__|$DOMAIN|g" "$PROJECT_DIR/deploy/nginx.conf" > /etc/nginx/sites-available/onlyfunds
+ln -sf /etc/nginx/sites-available/onlyfunds /etc/nginx/sites-enabled/onlyfunds
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
 
@@ -190,12 +190,12 @@ fi
 
 echo ""
 echo "=============================="
-echo "  DOI DASH is live"
+echo "  OnlyFunds is live"
 echo "=============================="
 echo "  Dashboard: $SCHEME://$DOMAIN"
 echo "  Health:    $SCHEME://$DOMAIN/api/health"
 if [ "$FRESH_DB" -eq 1 ]; then
-echo "  Login:     admin@doi-dash.com / password   <-- change this now"
+echo "  Login:     admin@onlyfunds.com / password   <-- change this now"
 fi
 echo ""
 echo "  pm2 status                 — service status"

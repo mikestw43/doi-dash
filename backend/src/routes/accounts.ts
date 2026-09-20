@@ -193,7 +193,7 @@ router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
     price: price ?? 0,
     sl: sl ?? 0,
     tp: tp ?? 0,
-    comment: comment || 'SENTINEL',
+    comment: comment || 'OnlyFunds',
   });
 
   logAudit(req.user!.id, 'open_trade', 'account', id,

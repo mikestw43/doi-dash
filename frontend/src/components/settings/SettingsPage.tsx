@@ -270,7 +270,7 @@ const NotificationsTab = () => {
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {log.message.replace(/<[^>]+>/g, '').replace(/\[DOI DASH\]\n?|\[SENTINEL\]\n?/, '').slice(0, 120)}
+                  {log.message.replace(/<[^>]+>/g, '').replace(/\[OnlyFunds\]\n?|\[DOI DASH\]\n?|\[SENTINEL\]\n?/, '').slice(0, 120)}
                 </div>
                 <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '2px' }}>
                   {new Date(log.sentAt).toLocaleString()}

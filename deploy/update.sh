@@ -1,16 +1,16 @@
 #!/bin/bash
 # ============================================
-# DOI DASH — deploy the latest code
-#   bash /opt/doi-dash/deploy/update.sh
+# OnlyFunds — deploy the latest code
+#   bash /opt/onlyfunds/deploy/update.sh
 # ============================================
 
 set -euo pipefail
 
-PROJECT_DIR="/opt/doi-dash"
+PROJECT_DIR="/opt/onlyfunds"
 cd "$PROJECT_DIR"
 
 echo "=============================="
-echo "  DOI DASH — update"
+echo "  OnlyFunds — update"
 echo "=============================="
 
 echo ""
@@ -39,11 +39,11 @@ cd ..
 
 echo ""
 echo "[5/5] Restarting the API..."
-pm2 restart doi-dash-api
+pm2 restart onlyfunds-api
 
 echo ""
 echo "=============================="
 echo "  Update complete"
 echo "=============================="
-echo "  Check: pm2 logs doi-dash-api"
+echo "  Check: pm2 logs onlyfunds-api"
 echo ""

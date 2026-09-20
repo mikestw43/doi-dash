@@ -1,7 +1,6 @@
 {
-  "app.title": "SENTINEL",
+  "app.title": "OnlyFunds",
   "app.subtitle": "แดชบอร์ดเทรด MT5",
-
   "nav.dashboard": "แดชบอร์ด",
   "nav.analytics": "วิเคราะห์",
   "nav.trades": "ประวัติเทรด",
@@ -10,20 +9,16 @@
   "nav.admin": "จัดการผู้ใช้",
   "nav.audit": "บันทึกกิจกรรม",
   "nav.back_dashboard": "กลับแดชบอร์ด",
-
   "auth.login": "เข้าสู่ระบบ",
   "auth.logout": "ออกจากระบบ",
   "auth.email": "อีเมล",
   "auth.password": "รหัสผ่าน",
   "auth.sign_in": "เข้าสู่ระบบ",
   "auth.signing_in": "กำลังเข้าสู่ระบบ...",
-
   "ws.connected": "เชื่อมต่อแล้ว",
   "ws.disconnected": "ไม่ได้เชื่อมต่อ",
-
   "status.online": "ออนไลน์",
   "status.offline": "ออฟไลน์",
-
   "dashboard.total_balance": "ยอดเงินรวม",
   "dashboard.total_equity": "ทุนรวม",
   "dashboard.total_profit": "กำไร/ขาดทุนรวม",
@@ -34,7 +29,6 @@
   "dashboard.buy_lots": "ล็อตซื้อ",
   "dashboard.sell_lots": "ล็อตขาย",
   "dashboard.pending": "รอดำเนินการ",
-
   "bot.balance": "ยอดเงิน",
   "bot.equity": "ทุน",
   "bot.margin": "มาร์จิ้น",
@@ -46,7 +40,6 @@
   "bot.orders_open": "ออเดอร์เปิด",
   "bot.close_all": "ปิดทั้งหมด",
   "bot.protection_on": "ป้องกันเปิด",
-
   "accounts.title": "จัดการคีย์ API",
   "accounts.add": "เพิ่มบัญชี",
   "accounts.name": "ชื่อบัญชี",
@@ -57,7 +50,6 @@
   "accounts.currency": "สกุลเงิน",
   "accounts.leverage": "เลเวอเรจ",
   "accounts.group": "กลุ่ม",
-
   "filter.all_accounts": "ทุกบัญชี",
   "filter.all_statuses": "ทุกสถานะ",
   "filter.all_brokers": "ทุกโบรกเกอร์",
@@ -65,12 +57,10 @@
   "filter.all_types": "ทุกประเภท",
   "filter.search": "ค้นหา...",
   "filter.symbol": "กรองสัญลักษณ์...",
-
   "overview.tab_overview": "ภาพรวม",
   "overview.tab_accounts": "ฮีทแมปบัญชี",
   "overview.tab_orders": "ออเดอร์เปิด",
   "overview.tab_pending": "ออเดอร์รอ",
-
   "analytics.title": "วิเคราะห์",
   "analytics.equity_chart": "กราฟทุน",
   "analytics.daily_pnl": "กำไร/ขาดทุนรายวัน",
@@ -85,7 +75,6 @@
   "analytics.gross_profit": "กำไรรวม",
   "analytics.gross_loss": "ขาดทุนรวม",
   "analytics.no_trades": "ไม่มีเทรดปิดสำหรับคำนวณ",
-
   "trades.title": "ประวัติเทรด",
   "trades.ticket": "ตั๋ว",
   "trades.symbol": "สัญลักษณ์",
@@ -98,7 +87,6 @@
   "trades.account": "บัญชี",
   "trades.no_trades": "ไม่พบเทรดที่ปิดแล้ว",
   "trades.export_csv": "ส่งออก CSV",
-
   "profile.title": "ตั้งค่าโปรไฟล์",
   "profile.info": "ข้อมูลโปรไฟล์",
   "profile.name": "ชื่อ",
@@ -106,7 +94,6 @@
   "profile.role": "บทบาท",
   "profile.save": "บันทึก",
   "profile.updated": "อัปเดตโปรไฟล์แล้ว",
-
   "password.title": "เปลี่ยนรหัสผ่าน",
   "password.current": "รหัสผ่านปัจจุบัน",
   "password.new": "รหัสผ่านใหม่",
@@ -115,7 +102,6 @@
   "password.mismatch": "รหัสผ่านไม่ตรงกัน",
   "password.min_length": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร",
   "password.changed": "เปลี่ยนรหัสผ่านสำเร็จ",
-
   "telegram.title": "การแจ้งเตือน Telegram",
   "telegram.configured": "ตั้งค่าแล้ว",
   "telegram.bot_token": "Bot Token",
@@ -126,13 +112,11 @@
   "telegram.save": "บันทึก",
   "telegram.send_test": "ส่งทดสอบ",
   "telegram.saved": "บันทึกการตั้งค่า Telegram แล้ว",
-
   "notifications.title": "ประวัติการแจ้งเตือน",
   "notifications.no_notifications": "ยังไม่มีการแจ้งเตือน",
   "notifications.sent": "ส่งแล้ว",
   "notifications.failed": "ล้มเหลว",
   "notifications.export": "ส่งออก",
-
   "reports.title": "รายงานอัตโนมัติ",
   "reports.description": "ส่งสรุปพอร์ตโฟลิโอรายวันหรือรายสัปดาห์ไปยัง Telegram อัตโนมัติ",
   "reports.enabled": "เปิดใช้รายงานอัตโนมัติ",
@@ -151,21 +135,18 @@
   "reports.fri": "ศุกร์",
   "reports.sat": "เสาร์",
   "reports.sun": "อาทิตย์",
-
   "protection.title": "ป้องกันดรอว์ดาวน์",
   "protection.description": "ปิดสถานะทั้งหมดอัตโนมัติเมื่อดรอว์ดาวน์เกินเกณฑ์ การดำเนินการนี้ไม่สามารถย้อนกลับได้",
   "protection.enabled": "เปิดใช้การป้องกัน",
   "protection.threshold": "เกณฑ์ดรอว์ดาวน์ (%)",
   "protection.save": "บันทึกการป้องกัน",
   "protection.saved": "บันทึกการตั้งค่าป้องกันแล้ว",
-
   "preferences.title": "การตั้งค่า",
   "preferences.language": "ภาษา",
   "preferences.theme": "ธีม",
   "preferences.dark": "มืด",
   "preferences.light": "สว่าง",
   "preferences.hud": "HUD",
-
   "audit.title": "บันทึกกิจกรรม",
   "audit.user": "ผู้ใช้",
   "audit.action": "การกระทำ",
@@ -176,14 +157,11 @@
   "audit.all_actions": "ทุกการกระทำ",
   "audit.no_logs": "ไม่พบบันทึกกิจกรรม",
   "audit.export": "ส่งออก CSV",
-
   "groups.title": "กลุ่ม",
   "groups.manage": "จัดการกลุ่ม",
-
   "close_all.title": "ปิดสถานะทั้งหมด",
   "close_all.confirm": "คุณแน่ใจหรือว่าต้องการปิดสถานะทั้งหมด?",
   "close_all.execute": "ยืนยันปิดทั้งหมด",
-
   "common.loading": "กำลังโหลด...",
   "common.save": "บันทึก",
   "common.cancel": "ยกเลิก",

@@ -30,7 +30,7 @@
 ## 3. Typography Rules & Hierarchy
 
 ### A. LEMON MILK BOLD (Headers & Titles)
-- Use Case: App Bar Title (`DOI DASH`), Main Section Titles (`PORTFOLIO`, `ANALYTICS`)
+- Use Case: App Bar Title (`OnlyFunds`), Main Section Titles (`PORTFOLIO`, `ANALYTICS`)
 - Size: 16–18px (All Caps)
 - Tracking / Letter Spacing: +0.5px to +1px
 - Role: Defines major section visual anchors. Strictly avoid long text body or dense tables.
@@ -155,7 +155,7 @@
 ## ภาพอ้างอิง
 
 - `design/references/reference-desktop-institutional-dark.webp` — โทนและการจัดวางแบบ dashboard ที่ต้องการ
-- `design/references/reference-mobile-doi-dash.jpg` — mockup มือถือของ DOI DASH เอง (การ์ด KPI, heatmap, calendar)
+- `design/references/reference-mobile-onlyfunds.jpg` — mockup มือถือของ OnlyFunds เอง (การ์ด KPI, heatmap, calendar)
 
 
 ---

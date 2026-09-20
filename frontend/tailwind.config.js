@@ -20,7 +20,7 @@ export default {
         warning: 'var(--warning)',
         neutral: '#9ca3af',
         border2: 'var(--border2)',
-        // DOI DASH aliases
+        // OnlyFunds aliases
         cyan:    'var(--accent-blue)',
         green:   'var(--success)',
         red:     'var(--danger)',

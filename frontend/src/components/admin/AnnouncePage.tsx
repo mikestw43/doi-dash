@@ -20,16 +20,16 @@ const TYPE_CFG = {
 const INITIAL: Announcement[] = [
   {
     id: '1',
-    title: 'DOI DASH v2.0 — Full Redesign Live',
-    body: 'The dashboard has been fully redesigned with the DOI DASH cyberpunk pixel-art design system. All components now use inline styles, Press Start 2P / VT323 / Share Tech Mono fonts, and the signature cyan glow aesthetic.',
+    title: 'OnlyFunds v2.0 — Full Redesign Live',
+    body: 'The dashboard has been fully redesigned with the OnlyFunds cyberpunk pixel-art design system. All components now use inline styles, Press Start 2P / VT323 / Share Tech Mono fonts, and the signature cyan glow aesthetic.',
     type: 'update',
     date: '2025-05-15',
     pinned: true,
   },
   {
     id: '2',
-    title: 'New EA Reporter — DOI DASH v1.0',
-    body: 'The EA has been rebranded and updated. Download the latest DOI_DASH_Reporter.ex5 from EA Repository. Compatible with MetaTrader 5 build 4000+.',
+    title: 'New EA Reporter — OnlyFunds v1.0',
+    body: 'The EA has been rebranded and updated. Download the latest reporter EA from EA Repository. Compatible with MetaTrader 5 build 4000+.',
     type: 'update',
     date: '2025-05-15',
   },

@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================
-# DOI DASH — load railway-dump.json into the VPS SQLite database
-#   bash /opt/doi-dash/deploy/migrate-data/import-to-sqlite.sh
+# OnlyFunds — load railway-dump.json into the VPS SQLite database
+#   bash /opt/onlyfunds/deploy/migrate-data/import-to-sqlite.sh
 #
 # Stops the API, optionally sets the current database aside, imports, restarts.
 # Safe to re-run: rows that already exist are skipped.
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-DB_FILE="$ROOT/backend/doi-dash.db"
+DB_FILE="$ROOT/backend/onlyfunds.db"
 DUMP="$ROOT/deploy/migrate-data/railway-dump.json"
 
 [ -f "$DUMP" ] || {
@@ -18,9 +18,9 @@ DUMP="$ROOT/deploy/migrate-data/railway-dump.json"
   exit 1
 }
 
-pm2 stop doi-dash-api 2>/dev/null || true
+pm2 stop onlyfunds-api 2>/dev/null || true
 
-# A database seeded by setup.sh already holds admin@doi-dash.com. Keeping it
+# A database seeded by setup.sh already holds admin@onlyfunds.com. Keeping it
 # would make the import skip the real admin row coming from Railway, so offer
 # to set the fresh database aside first.
 if [ -f "$DB_FILE" ]; then
@@ -44,7 +44,7 @@ npx prisma generate
 npx prisma db push
 npx tsx ../deploy/migrate-data/import.ts
 
-pm2 start doi-dash-api 2>/dev/null || pm2 start "$ROOT/deploy/ecosystem.config.js"
+pm2 start onlyfunds-api 2>/dev/null || pm2 start "$ROOT/deploy/ecosystem.config.js"
 
 echo ""
-echo "Import complete. Check the dashboard, then:  pm2 logs doi-dash-api"
+echo "Import complete. Check the dashboard, then:  pm2 logs onlyfunds-api"
