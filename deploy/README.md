@@ -187,6 +187,7 @@ bash deploy/update.sh
 | ดู log สด | `pm2 logs onlyfunds-api` |
 | รีสตาร์ต API | `pm2 restart onlyfunds-api` |
 | อัปเดตโค้ดใหม่ | `cd /opt/onlyfunds && bash deploy/update.sh` |
+| เปิดอัปเดตอัตโนมัติ | `bash /opt/onlyfunds/deploy/auto-update.sh --install` |
 | สำรองข้อมูลเดี๋ยวนี้ | `bash /opt/onlyfunds/deploy/backup.sh` |
 | ดูไฟล์สำรอง | `ls -lh /opt/onlyfunds/backups` |
 
@@ -199,6 +200,27 @@ scp root@YOUR_VPS_IP:/opt/onlyfunds/backups/*.gz ~/Downloads/
 ```
 
 ---
+
+## อัปเดตอัตโนมัติ (ไม่ต้องพิมพ์คำสั่งเอง)
+
+ตั้งครั้งเดียว แล้วเซิร์ฟเวอร์จะอัปเดตตัวเองทุกครั้งที่มีโค้ดใหม่บน GitHub
+
+```bash
+bash /opt/onlyfunds/deploy/auto-update.sh --install
+```
+
+ตั้งแล้วเซิร์ฟเวอร์จะเช็ก GitHub ทุก 5 นาที ถ้าไม่มีอะไรใหม่ก็ไม่ทำอะไรเลย
+(แค่เช็ก ไม่กิน CPU) ถ้ามีคอมมิตใหม่ถึงจะ deploy ให้เอง
+
+| อยากทำอะไร | คำสั่ง |
+|---|---|
+| ดูว่าอัปเดตอะไรไปบ้าง | `tail -f /var/log/onlyfunds-auto-update.log` |
+| ปิดอัปเดตอัตโนมัติ | `bash /opt/onlyfunds/deploy/auto-update.sh --uninstall` |
+
+**ถ้า deploy ล้มเหลว** มันจะเขียนบอกใน log แล้ว**หยุดลองคอมมิตนั้น** ไม่วนซ้ำ
+ทุก 5 นาทีจนเซิร์ฟเวอร์ทำงานหนัก — เว็บยังรันเวอร์ชันเดิมที่ใช้ได้อยู่ พอมี
+คอมมิตใหม่เข้ามาถึงจะลองอีกครั้ง
+
 
 ## เวลามีปัญหา
 
