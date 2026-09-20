@@ -24,7 +24,7 @@
 
 //--- Input Parameters
 input string   ApiKey         = "";           // API Key * (get from Dashboard → Accounts)
-input string   ServerURL      = "https://doi-dash-production.up.railway.app"; // Server URL
+input string   ServerURL      = "https://onlyfunds.duckdns.org"; // Server URL
 input int      UpdateInterval = 2;            // Update interval (seconds)
 
 //--- Globals
