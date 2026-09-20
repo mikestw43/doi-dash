@@ -19,9 +19,10 @@ const EA_RELEASES: EaRelease[] = [
     name: 'OnlyFunds Reporter',
     version: 'v1.0',
     description: 'Real-time portfolio reporter for MetaTrader',
+    // MT4 has no compiled build yet, so it gets no button — a link to a
+    // missing .ex4 would just 404.
     downloads: [
       { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.0.ex5', ext: '.EX5' },
-      { platform: 'MT4', filename: 'OnlyFunds_Reporter_v1.0.ex4', ext: '.EX4' },
     ],
   },
 ];
@@ -32,8 +33,8 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL || window.location.origin;
 
 const INSTALL_STEPS = [
   'Open MetaTrader → File → Open Data Folder',
-  'Navigate to MQL5/Experts (MT5) or MQL4/Experts (MT4)',
-  'Copy the downloaded .ex5 / .ex4 into the Experts folder',
+  'Navigate to MQL5/Experts',
+  'Copy the downloaded .ex5 into the Experts folder',
   'Restart MetaTrader or refresh Navigator',
   'Drag EA onto any chart, set your API Key',
   'Enable AutoTrading, add ServerURL to WebRequest whitelist',
