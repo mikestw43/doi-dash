@@ -60,134 +60,123 @@ export const Layout = ({ children }: LayoutProps) => {
   const currentPage = useUIStore(s => s.currentPage);
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
 
+  // Same buttons in both shells — the sidebar on desktop, the bottom bar on
+  // phones. Only one shell is displayed at a time.
+  const navButtons = NAV_ITEMS.map(({ page, label, Icon }) => {
+    const active = currentPage === page;
+    return (
+      <button
+        key={page}
+        onClick={() => setCurrentPage(page)}
+        title={label}
+        className={active ? 'nav-btn sb-btn-active' : 'nav-btn'}
+        style={{
+          color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
+          border: active ? '1px solid var(--border2)' : '1px solid transparent',
+          background: active ? 'rgba(96,165,250,.08)' : 'none',
+        }}
+      >
+        <Icon />
+        <span className="sb-label">{label}</span>
+      </button>
+    );
+  });
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
       <Header />
 
       {/* ── Body: sidebar + content ── */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-
-        {/* ── Sidebar (desktop) ── */}
-        <aside
-          className="sidebar-nav"
-          style={{
-            width: '48px',
-            background: 'var(--bg-secondary)',
-            borderRight: '1px solid var(--border-color)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '10px 0',
-            gap: '4px',
-            flexShrink: 0,
-          }}
-        >
-          {NAV_ITEMS.map(({ page, label, Icon }) => {
-            const active = currentPage === page;
-            return (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                title={label}
-                className={active ? 'sb-btn-active' : ''}
-                style={{
-                  width: '34px', height: '34px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '15px',
-                  color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
-                  cursor: 'pointer',
-                  border: active ? '1px solid var(--border2)' : '1px solid transparent',
-                  background: active ? 'rgba(96,165,250,.08)' : 'none',
-                  position: 'relative',
-                  transition: 'all .15s',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={e => {
-                  if (!active) (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
-                }}
-                onMouseLeave={e => {
-                  if (!active) (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';
-                }}
-              >
-                <Icon />
-                {/* Mobile label (shown in bottom nav) */}
-                <span className="sb-label" style={{
-                  display: 'none',
-                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-                  letterSpacing: '.3px', lineHeight: 1,
-                  color: 'currentColor',
-                }}>{label}</span>
-              </button>
-            );
-          })}
-        </aside>
-
-        {/* ── Main content ── */}
-        <main
-          className="main-content"
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '14px 16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-          }}
-        >
-          {children}
-        </main>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        <aside className="sidebar-nav">{navButtons}</aside>
+        <main className="main-content">{children}</main>
       </div>
 
-      {/* ── Bottom nav (mobile, ≤900px) ── */}
+      {/* ── Bottom nav (mobile) ──
+          It sits in the layout rather than floating over it. Anchored with
+          position:fixed it hung above the screen edge on the first paint of
+          the installed iOS app and only dropped into place once a scroll made
+          Safari recompute the viewport. As the last row of the shell column it
+          is wherever the shell ends, with nothing left to get wrong. */}
+      <nav className="bottom-nav">{navButtons}</nav>
+
       <style>{`
+        .main-content {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
         /* Prevent flex-shrink from clipping children — main scrolls instead */
         .main-content > * { flex-shrink: 0; }
 
+        .nav-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+          cursor: pointer;
+          position: relative;
+          transition: all .15s;
+          flex-shrink: 0;
+        }
+        .nav-btn .sb-label {
+          font-family: var(--ff-section);
+          letter-spacing: .3px;
+          line-height: 1;
+          color: currentColor;
+        }
+
+        .sidebar-nav {
+          width: 48px;
+          flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 10px 0;
+          gap: 4px;
+          background: var(--bg-secondary);
+          border-right: 1px solid var(--border-color);
+        }
+        .sidebar-nav .nav-btn { width: 34px; height: 34px; }
+        .sidebar-nav .sb-label { display: none; }
+
+        .bottom-nav { display: none; }
+
         @media (max-width: 900px) {
-          .sidebar-nav {
-            position: fixed !important;
-            bottom: 0 !important; left: 0 !important; right: 0 !important;
-            width: 100% !important;
-            /* index.html sets viewport-fit=cover, so the bar would otherwise
-               sit under the home indicator. */
-            /* iOS reports a 34pt bottom inset, but the home indicator itself
-               is only a few points tall and sits well inside that. Reserving
-               all of it left an empty band under the labels that reads as
-               wasted bar — most noticeable once the site is installed as an
-               app, where no browser chrome sits below it. Trimming 12pt keeps
-               the indicator clear and takes the bar from ~80pt to ~64pt. */
-            height: calc(42px + max(env(safe-area-inset-bottom) - 12px, 0px)) !important;
-            padding-bottom: max(env(safe-area-inset-bottom) - 12px, 0px) !important;
-            flex-direction: row !important;
-            align-items: stretch !important;
-            border-right: none !important;
-            border-top: 1px solid var(--border2) !important;
-            padding: 0 !important;
-            gap: 0 !important;
-            z-index: 200 !important;
+          .sidebar-nav { display: none; }
+
+          .bottom-nav {
+            display: flex;
+            flex-shrink: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border2);
+            /* iOS reports a 34pt bottom inset, but the home indicator is only
+               a few points tall and sits well inside it. Reserving all of it
+               left an empty band under the labels. */
+            height: calc(42px + max(env(safe-area-inset-bottom) - 12px, 0px));
+            padding-bottom: max(env(safe-area-inset-bottom) - 12px, 0px);
           }
-          .sidebar-nav button {
-            flex: 1 !important;
-            height: 100% !important;
-            width: auto !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            gap: 2px !important;
+          .bottom-nav .nav-btn {
+            flex: 1;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
             border: none !important;
-            border-radius: 0 !important;
+            border-radius: 0;
           }
-          .sidebar-nav button .sb-label {
-            display: block !important;
-            font-size: var(--fs-micro) !important;
-          }
-          .main-content {
-            padding-bottom: calc(52px + max(env(safe-area-inset-bottom) - 12px, 0px)) !important;
+          .bottom-nav .sb-label {
+            display: block;
+            font-size: var(--fs-micro);
           }
         }
         @media (max-width: 768px) {
           .main-content {
             padding: 10px !important;
-            padding-bottom: calc(52px + max(env(safe-area-inset-bottom) - 12px, 0px)) !important;
             gap: 10px !important;
           }
         }

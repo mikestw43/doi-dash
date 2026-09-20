@@ -201,6 +201,10 @@
        on screen; the 100vh line stays as the fallback for older browsers. */
     height: 100vh;
     height: 100dvh;
+    /* --app-height is set from window.innerHeight in main.tsx and wins over
+       both of the above; dvh alone updated too late on the first paint of the
+       installed app. The static units stay as the pre-script fallback. */
+    height: var(--app-height, 100dvh);
     overflow: hidden;
   }
 
