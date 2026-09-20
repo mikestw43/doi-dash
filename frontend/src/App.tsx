@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Component, useEffect, useState } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 import { useAuthStore } from './stores/authStore';
 import { useUIStore } from './stores/uiStore';
 import { useWebSocket } from './hooks/useWebSocket';
@@ -68,6 +69,76 @@ const Dashboard = () => {
   );
 };
 
+/** Catches a crash in any component below it. Without this React unmounts
+ *  the whole tree and leaves a blank page, which tells the user nothing and
+ *  leaves them no way to report what happened. */
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state: { error: Error | null } = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[DOI DASH] render crash:', error, info.componentStack);
+  }
+
+  render() {
+    const { error } = this.state;
+    if (!error) return this.props.children;
+
+    return (
+      <div style={{
+        minHeight: '100vh', padding: '32px', boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', gap: '16px',
+        fontFamily: 'var(--ff-body)', color: 'var(--text-primary)',
+      }}>
+        <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--danger)' }}>
+          SOMETHING BROKE
+        </div>
+        <div style={{
+          border: '1px solid var(--danger)', background: 'var(--bg-card)',
+          padding: '16px', fontSize: 'var(--fs-body)', overflowX: 'auto',
+        }}>
+          <div style={{ color: 'var(--warning)', marginBottom: '10px' }}>{error.message}</div>
+          <pre style={{
+            margin: 0, whiteSpace: 'pre-wrap', fontSize: 'var(--fs-body-sm)',
+            color: 'var(--text-secondary)', lineHeight: 1.6,
+          }}>
+            {(error.stack || '').split('\n').slice(0, 12).join('\n')}
+          </pre>
+        </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+              padding: '10px 16px', background: 'var(--accent-blue)',
+              color: '#0f172a', border: 'none', cursor: 'pointer',
+            }}
+          >
+            RELOAD
+          </button>
+          <button
+            onClick={() => {
+              // Corrupted saved state is the usual cause; start from clean.
+              try { localStorage.clear(); } catch { /* private mode */ }
+              window.location.reload();
+            }}
+            style={{
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+              padding: '10px 16px', background: 'transparent',
+              color: 'var(--text-secondary)', border: '1px solid var(--border2)', cursor: 'pointer',
+            }}
+          >
+            CLEAR DATA + RELOAD
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
 /** Shown while the persisted token is being validated. Anything is better
  *  than a blank page — a white screen gives the user nothing to report. */
 const Booting = ({ slow }: { slow: boolean }) => (
@@ -122,8 +193,11 @@ function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!ready) return <Booting slow={slow} />;
-  if (!isAuthenticated) return <LoginPage />;
-  return <Dashboard />;
+  return (
+    <ErrorBoundary>
+      {isAuthenticated ? <Dashboard /> : <LoginPage />}
+    </ErrorBoundary>
+  );
 }
 
 export default App;
