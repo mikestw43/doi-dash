@@ -39,201 +39,200 @@ const fmtDateLabel = (dateStr: string) =>
 const getImpactCfg = (impact: string): ImpactCfg =>
   IMPACT_CFG[impact] ?? IMPACT_CFG['Low'];
 
-// ─── Shared table styles ──────────────────────────────────────────────────────
+interface DayGroup { label: string | null; events: EconomicEvent[] }
+interface EventTableProps { groups: DayGroup[]; now: Date }
 
-const thSt: React.CSSProperties = {
-  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
-  letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left',
-  borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
-};
-const thR: React.CSSProperties = { ...thSt, textAlign: 'right' };
-const thC: React.CSSProperties = { ...thSt, textAlign: 'center' };
-
-const tdSt: React.CSSProperties = {
-  padding: '7px 10px', borderBottom: '1px solid rgba(42,45,52,.3)',
-  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)',
-  whiteSpace: 'nowrap',
-};
-const tdR: React.CSSProperties = { ...tdSt, textAlign: 'right' };
-const tdC: React.CSSProperties = { ...tdSt, textAlign: 'center' };
-
-// ─── EventTable ──────────────────────────────────────────────────────────────
-
-interface EventTableProps { events: EconomicEvent[]; now: Date }
-
-const EventTable = ({ events, now }: EventTableProps) => (
-  <div className="evt-wrap" style={{
-    background: 'var(--bg-card)',
-    border: '2px solid var(--accent-blue)',
-  }}>
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+/**
+ * One continuous table, the way ForexFactory reads: a day band, then its
+ * events, then the next day. Rendering a separate bordered table per day
+ * (what this did before) turned a week into a stack of boxes that pushed
+ * the actual events off a phone screen.
+ */
+const EventTable = ({ groups, now }: EventTableProps) => (
+  <div className="evt-wrap">
+    <table>
       <thead>
-        <tr style={{ background: 'var(--bg-card2)' }}>
-          <th style={{ ...thSt, width: '40px' }}>TIME</th>
-          <th className="evcol-ccy" style={{ ...thSt, width: '48px', paddingLeft: '4px' }}>CCY</th>
-          <th style={{ ...thC, width: '24px', padding: '9px 4px' }} aria-label="Impact" />
-          <th className="evcol-event" style={{ ...thSt, width: '40%', padding: '9px 4px' }}>EVENT</th>
-          <th className="evcol-actual" style={{ ...thR, width: '80px' }}>
-            <span className="lbl-full">ACTUAL</span>
-            <span className="lbl-short">ACT</span>
+        <tr>
+          <th className="evcol-time">TIME</th>
+          <th className="evcol-ccy">CCY</th>
+          <th className="evcol-imp" aria-label="Impact" />
+          <th className="evcol-event">EVENT</th>
+          <th className="evcol-actual">
+            <span className="lbl-full">ACTUAL</span><span className="lbl-short">ACT</span>
           </th>
-          <th className="evcol-forecast" style={{ ...thR, width: '80px' }}>
-            <span className="lbl-full">FORECAST</span>
-            <span className="lbl-short">FCST</span>
+          <th className="evcol-forecast">
+            <span className="lbl-full">FORECAST</span><span className="lbl-short">FCST</span>
           </th>
-          <th className="evcol-prev" style={{ ...thR, width: '80px' }}>PREV</th>
+          <th className="evcol-prev">PREV</th>
         </tr>
       </thead>
-      <tbody>
-        {events.map((event, i) => {
-          const past   = new Date(event.date) < now;
-          const cfg    = getImpactCfg(event.impact);
-          const isHigh = event.impact === 'High';
-          // No row-level opacity now — per-cell color (white for upcoming,
-          // dim for past) does the visual separation on its own. Mixing
-          // opacity 0.45 with text-dim made past rows nearly invisible.
-          const rowOpacity = past ? 0.7 : 1;
-
-          return (
-            <tr
-              key={`${event.date}-${i}`}
-              style={{ opacity: rowOpacity }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLTableRowElement).style.background =
-                  isHigh && !past ? 'rgba(248,113,113,.05)' : 'rgba(42,45,52,.2)';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
-              }}
-            >
-              {/* TIME — VT323 display font (Press Start 2P overlapped at this
-                  size). Upcoming events render bright white so they pop. */}
-              <td style={{
-                ...tdSt,
-                padding: '7px 4px',
-                fontFamily: 'var(--ff-display)',
-                fontSize: '17px',
-                lineHeight: 1,
-                color: past ? 'var(--text-dim)' : 'var(--text)',
-              }}>
-                {fmtTime(event.date)}
-              </td>
-              <td style={{ ...tdSt, padding: '7px 2px 7px 4px' }}>
-                {/* CCY column is now tight to content (36px) so left-align is fine. */}
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span className="evcol-flag" style={{ fontSize: '13px', lineHeight: 1 }}>{CURRENCY_FLAGS[event.country] ?? '🏳️'}</span>
-                  <span style={{
-                    fontFamily: 'var(--ff-display)',
-                    fontSize: '20px',
-                    lineHeight: 1,
-                    color: past ? 'var(--text-dim)' : 'var(--text)',
-                  }}>{event.country}</span>
-                </span>
-              </td>
-              <td style={{ ...tdC, padding: '7px 2px' }}>
-                {/* Colored square — sole indicator. Color encodes High/Medium/Low. */}
-                <span
-                  title={cfg.label}
-                  style={{
-                    display: 'inline-block',
-                    width: '12px', height: '12px',
-                    background: cfg.dot,
-                    border: `1px solid ${cfg.border}`,
-                  }}
-                />
-              </td>
-              <td className="evcol-event" style={{
-                ...tdSt,
-                padding: '7px 4px',
-                fontFamily: 'var(--ff-display)',
-                fontSize: '17px',
-                lineHeight: 1.15,
-                color: past ? 'var(--text-dim)' : (isHigh ? 'var(--text)' : 'var(--text-primary)'),
-              }}>
-                {event.title}
-              </td>
-              {/* ACTUAL — green if beat forecast, red if missed (sentiment from
-                  Investing.com), else white when present / dim when empty. */}
-              <td style={{
-                ...tdR,
-                padding: '7px 4px',
-                fontFamily: 'var(--ff-display)',
-                fontSize: '17px',
-                lineHeight: 1,
-                color: !event.actual
-                  ? '#3b3e46'
-                  : event.actualSentiment === 'better'
-                    ? 'var(--success)'
-                    : event.actualSentiment === 'worse'
-                      ? 'var(--danger)'
-                      : 'var(--text)',
-              }}>
-                {event.actual || '—'}
-              </td>
-              {/* FORECAST — same font, bright white for upcoming / dim for past. */}
-              <td style={{
-                ...tdR,
-                padding: '7px 4px',
-                fontFamily: 'var(--ff-display)',
-                fontSize: '17px',
-                lineHeight: 1,
-                color: past ? 'var(--text-dim)' : 'var(--text)',
-              }}>
-                {event.forecast || '—'}
-              </td>
-              <td className="evcol-prev" style={{
-                ...tdR,
-                padding: '7px 4px',
-                fontFamily: 'var(--ff-display)',
-                fontSize: '17px',
-                lineHeight: 1,
-                color: '#4a4e57',
-              }}>
-                {event.previous || '—'}
+      {groups.map(({ label, events }) => (
+        <tbody key={label ?? 'all'}>
+          {label && (
+            <tr className="evt-day">
+              <td colSpan={7}>
+                {label}
+                {events.some(e => e.impact === 'High') && (
+                  <span className="evt-day-high">
+                    {events.filter(e => e.impact === 'High').length} HIGH
+                  </span>
+                )}
               </td>
             </tr>
-          );
-        })}
-      </tbody>
+          )}
+          {events.map((event, i) => {
+            const past   = new Date(event.date) < now;
+            const cfg    = getImpactCfg(event.impact);
+            const isHigh = event.impact === 'High';
+
+            return (
+              <tr key={`${event.date}-${i}`} className={past ? 'evt-row evt-past' : 'evt-row'}>
+                <td className="evcol-time ev-mono">{fmtTime(event.date)}</td>
+                <td className="evcol-ccy">
+                  <span className="ev-ccy-wrap">
+                    <span className="evcol-flag">{CURRENCY_FLAGS[event.country] ?? '\u{1F3F3}\uFE0F'}</span>
+                    <span className="ev-mono">{event.country}</span>
+                  </span>
+                </td>
+                <td className="evcol-imp">
+                  {/* Colored square — sole impact indicator, as on ForexFactory. */}
+                  <span className="ev-imp" title={cfg.label} style={{ background: cfg.dot, borderColor: cfg.border }} />
+                </td>
+                <td className={isHigh ? 'evcol-event ev-high' : 'evcol-event'}>
+                  <span className="ev-title" title={event.title}>{event.title}</span>
+                </td>
+                {/* ACTUAL — green when it beat forecast, red when it missed. */}
+                <td
+                  className="evcol-actual ev-mono"
+                  style={{
+                    color: !event.actual
+                      ? 'var(--text-dim)'
+                      : event.actualSentiment === 'better'
+                        ? 'var(--success)'
+                        : event.actualSentiment === 'worse'
+                          ? 'var(--danger)'
+                          : 'var(--text)',
+                  }}
+                >
+                  {event.actual || '\u2014'}
+                </td>
+                <td className="evcol-forecast ev-mono">{event.forecast || '\u2014'}</td>
+                <td className="evcol-prev ev-mono">{event.previous || '\u2014'}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      ))}
     </table>
 
     <style>{`
-      .evt-wrap { overflow-x: hidden; }
-      .evt-wrap table { table-layout: fixed; width: 100%; }
+      .evt-wrap {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-card);
+        overflow: hidden;
+      }
+      .evt-wrap table { width: 100%; table-layout: fixed; border-collapse: collapse; }
 
-      /* EVENT cell is the only one that wraps — other cells stay nowrap so
-         numbers and badges don't break visually. */
-      .evt-wrap .evcol-event {
-        white-space: normal !important;
-        word-break: break-word;
-        line-height: 1.3;
+      .evt-wrap th {
+        font-family: var(--ff-section);
+        font-size: var(--fs-micro);
+        color: var(--text-dim);
+        letter-spacing: .5px;
+        font-weight: 400;
+        text-align: left;
+        padding: 7px 6px;
+        white-space: nowrap;
+        background: var(--bg-card2);
+        border-bottom: 1px solid var(--border2);
+      }
+      .evt-wrap td {
+        padding: 6px;
+        font-family: var(--ff-body);
+        font-size: var(--fs-body-sm);
+        color: var(--text-dim);
+        white-space: nowrap;
+        border-bottom: 1px solid rgba(42,45,52,.35);
       }
 
-      /* Default (desktop): full header labels, short hidden. */
+      /* Day band — the thing that makes a week scannable. */
+      .evt-wrap .evt-day td {
+        background: var(--bg-card2);
+        font-family: var(--ff-section);
+        font-size: var(--fs-label);
+        color: var(--text);
+        letter-spacing: 1px;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--border2);
+      }
+      .evt-wrap .evt-day-high {
+        margin-left: 8px;
+        font-size: var(--fs-micro);
+        color: var(--red);
+        letter-spacing: .5px;
+      }
+
+      .evt-wrap .evt-past { opacity: .55; }
+      .evt-wrap .evt-row:hover td { background: rgba(42,45,52,.25); }
+
+      .evt-wrap .ev-mono { font-family: var(--ff-display); line-height: 1.1; color: var(--text); }
+      .evt-wrap .evt-past .ev-mono { color: var(--text-dim); }
+
+      .evt-wrap .ev-ccy-wrap { display: flex; align-items: center; gap: 4px; }
+      .evt-wrap .evcol-flag { font-size: var(--fs-body-sm); line-height: 1; }
+
+      .evt-wrap .ev-imp {
+        display: inline-block;
+        width: 10px; height: 10px;
+        border: 1px solid;
+      }
+
+      /* EVENT is the only wrapping cell; two lines max so one long title
+         cannot make its row three times the height of its neighbours. */
+      .evt-wrap .evcol-event { white-space: normal; color: var(--text-primary); }
+      /* The clamp lives on a span: a <td> given display:-webkit-box stops
+         behaving like a table cell, so the clamp was ignored and a third line
+         spilled over the row below. */
+      .evt-wrap .ev-title {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-break: break-word;
+        line-height: 1.25;
+      }
+      .evt-wrap .ev-high { color: var(--text); }
+
+      /* Percentages, not pixels: with table-layout:fixed a column hidden at
+         a breakpoint still holds on to its pixel width, and EVENT — the one
+         column that has to wrap real text — was left with a quarter of the
+         table while a hidden PREV sat on the rest. */
+      .evt-wrap .evcol-time     { width: 9%; }
+      .evt-wrap .evcol-ccy      { width: 12%; }
+      .evt-wrap .evcol-imp      { width: 5%; text-align: center; padding: 6px 2px; }
+      .evt-wrap .evcol-event    { width: 42%; }
+      .evt-wrap .evcol-actual,
+      .evt-wrap .evcol-forecast,
+      .evt-wrap .evcol-prev     { width: 10.6%; text-align: right; }
+
       .evt-wrap .lbl-short { display: none; }
 
       @media (max-width: 768px) {
-        /* Hide flag emoji inside CCY cell + the entire PREV column */
-        .evt-wrap .evcol-flag { display: none !important; }
-        .evt-wrap .evcol-prev { display: none !important; }
+        /* Phone: drop the flag and the PREV column, shrink the number
+           columns, and hand every pixel that frees up to EVENT. */
+        .evt-wrap .evcol-flag,
+        .evt-wrap .evcol-prev { display: none; }
+        .evt-wrap .lbl-full   { display: none; }
+        .evt-wrap .lbl-short  { display: inline; }
 
-        /* Without the flag, CCY only needs ~30px for "USD" + padding. */
-        .evt-wrap .evcol-ccy { width: 36px !important; }
-
-        /* Swap header labels to compact form: ACTUAL→ACT, FORECAST→FCST */
-        .evt-wrap .lbl-full  { display: none !important; }
-        .evt-wrap .lbl-short { display: inline !important; }
-
-        /* Narrow the abbreviated columns so EVENT gets the freed pixels */
+        .evt-wrap th, .evt-wrap td { padding: 5px 4px; }
+        /* Six visible columns, summing to 100% so EVENT keeps the rest. */
+        .evt-wrap .evcol-time   { width: 12%; }
+        .evt-wrap .evcol-ccy    { width: 11%; }
+        .evt-wrap .evcol-imp    { width: 7%; }
+        .evt-wrap .evcol-event  { width: 44%; }
         .evt-wrap .evcol-actual,
-        .evt-wrap .evcol-forecast { width: 42px !important; }
-
-        /* Headers stay compact (fs-section is 8px on both viewports). */
-        .evt-wrap th { font-size: var(--fs-section) !important; }
-
-        /* NOTE: removed global td font-size + padding overrides that were
-           clobbering the inline 20px VT font and the per-cell padding. Each
-           cell now controls its own font and padding via inline style. */
+        .evt-wrap .evcol-forecast { width: 13%; }
       }
     `}</style>
   </div>
@@ -264,7 +263,12 @@ export const EconomicCalendar = () => {
     if (!refreshing) refreshMutation.mutate();
   };
 
-  const [viewMode,  setViewMode]  = useState<'today' | 'week'>('today');
+  // Week by default: a filtered TODAY often holds a single row, which is a
+  // whole screen spent on one event. ForexFactory opens on the week too.
+  const [viewMode,  setViewMode]  = useState<'today' | 'week'>('week');
+  // Filters stay folded away — on a phone the expanded panel used to take
+  // half the screen before a single event appeared.
+  const [showFilters, setShowFilters] = useState(false);
   // Default currency filter: USD only — most traders care about US events.
   // User can deselect with ✕ CLEAR or pick more chips.
   const [selected,  setSelected]  = useState<string[]>(['USD']);
@@ -277,9 +281,11 @@ export const EconomicCalendar = () => {
 
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const todayEnd   = new Date(todayStart.getTime() + 86_400_000);
-    const dow        = now.getDay();
-    const weekStart  = new Date(todayStart);
-    weekStart.setDate(todayStart.getDate() - (dow === 0 ? 6 : dow - 1));
+    // Week runs Sunday→Saturday, as ForexFactory's calendar does. Starting it
+    // on Monday meant that on a Sunday "THIS WEEK" showed the six days that
+    // had just finished and none of the week the trader is about to trade.
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - now.getDay());
     const weekEnd = new Date(weekStart.getTime() + 7 * 86_400_000);
 
     return data
@@ -341,14 +347,16 @@ export const EconomicCalendar = () => {
     </div>
   );
 
-  const grouped = viewMode === 'week'
-    ? filtered.reduce<Record<string, EconomicEvent[]>>((acc, ev) => {
-        const label = fmtDateLabel(ev.date);
-        if (!acc[label]) acc[label] = [];
-        acc[label].push(ev);
-        return acc;
-      }, {})
-    : null;
+  // TODAY is one unlabelled group; WEEK gets a band per day.
+  const dayGroups: DayGroup[] = viewMode === 'today'
+    ? [{ label: null, events: filtered }]
+    : Object.entries(
+        filtered.reduce<Record<string, EconomicEvent[]>>((acc, ev) => {
+          const label = fmtDateLabel(ev.date);
+          (acc[label] ??= []).push(ev);
+          return acc;
+        }, {}),
+      ).map(([label, events]) => ({ label, events }));
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
@@ -422,99 +430,90 @@ export const EconomicCalendar = () => {
         </p>
       </div>
 
-      {/* ── Filters ── */}
-      <div style={{
-        display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'flex-start',
-        marginBottom: '14px', padding: '12px',
-        background: 'var(--bg-card)',
-        border: '2px solid var(--accent-blue)',
-      }}>
-        {/* Today / Week tabs */}
-        <div style={{ display: 'flex', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}>
-          <button onClick={() => setViewMode('today')} style={tabBtn(viewMode === 'today')}>TODAY</button>
+      {/* ── Filter bar — one line, expands on demand ── */}
+      <div style={{ marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}>
+            <button onClick={() => setViewMode('today')} style={tabBtn(viewMode === 'today')}>TODAY</button>
+            <button
+              onClick={() => setViewMode('week')}
+              style={{ ...tabBtn(viewMode === 'week'), borderLeft: '1px solid var(--border2)' }}
+            >WEEK</button>
+          </div>
+
+          {/* What's active, so the folded panel still tells you what you're seeing. */}
+          <span style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {selected.length === 0 ? 'ALL CCY' : selected.join(' ')}
+            {minImpact !== 'all' && ` · ${minImpact === 'medium' ? 'MED+' : 'HIGH'}`}
+            {` · ${filtered.length}`}
+          </span>
+
           <button
-            onClick={() => setViewMode('week')}
-            style={{ ...tabBtn(viewMode === 'week'), borderLeft: '1px solid var(--border2)' }}
-          >THIS WEEK</button>
+            onClick={() => setShowFilters(v => !v)}
+            style={{ ...impactBtn(showFilters), marginLeft: 'auto', flexShrink: 0 }}
+          >
+            FILTER {showFilters ? '\u25B4' : '\u25BE'}
+          </button>
         </div>
 
-        {/* Currency chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', flexBasis: '100%' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: '#fff', letterSpacing: '.5px', marginRight: '2px' }}>
-            CUR:
-          </span>
-          {ALL_CURRENCIES.map(cur => (
-            <button
-              key={cur}
-              onClick={() => setSelected(p => p.includes(cur) ? p.filter(c => c !== cur) : [...p, cur])}
-              style={ccyBtn(selected.includes(cur))}
-            >
-              {cur}
-            </button>
-          ))}
-          {selected.length > 0 && (
-            <button
-              onClick={() => setSelected([])}
-              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.5px', marginLeft: '2px' }}
-            >
-              ✕ CLEAR
-            </button>
-          )}
-        </div>
+        {showFilters && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: '8px',
+            marginTop: '8px', padding: '10px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-card)',
+          }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+                CUR
+              </span>
+              {ALL_CURRENCIES.map(cur => (
+                <button
+                  key={cur}
+                  onClick={() => setSelected(p => p.includes(cur) ? p.filter(c => c !== cur) : [...p, cur])}
+                  style={ccyBtn(selected.includes(cur))}
+                >
+                  {cur}
+                </button>
+              ))}
+              {selected.length > 0 && (
+                <button
+                  onClick={() => setSelected([])}
+                  style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.5px' }}
+                >
+                  ✕ CLEAR
+                </button>
+              )}
+            </div>
 
-        {/* Impact filter */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center', flexBasis: '100%' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: '#fff', letterSpacing: '.5px', marginRight: '2px' }}>
-            IMPACT:
-          </span>
-          {(['all', 'medium', 'high'] as const).map(key => (
-            <button key={key} onClick={() => setMinImpact(key)} style={impactBtn(minImpact === key)}>
-              {key === 'all' ? 'ALL' : key === 'medium' ? 'MED+' : 'HIGH'}
-            </button>
-          ))}
-          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '10px' }}>
-            {filtered.length} events
-          </span>
-        </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
+                IMPACT
+              </span>
+              {(['all', 'medium', 'high'] as const).map(key => (
+                <button key={key} onClick={() => setMinImpact(key)} style={impactBtn(minImpact === key)}>
+                  {key === 'all' ? 'ALL' : key === 'medium' ? 'MED+' : 'HIGH'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Events ── */}
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0' }}>
-          <div style={{ fontSize: '28px', marginBottom: '12px', color: 'var(--text-dim)' }}>📅</div>
+        <div style={{ textAlign: 'center', padding: '48px 0' }}>
+          <div style={{ fontSize: '24px', marginBottom: '10px', color: 'var(--text-dim)' }}>📅</div>
           <p style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
             NO EVENTS MATCH FILTERS
           </p>
         </div>
-      ) : viewMode === 'today' ? (
-        <EventTable events={filtered} now={now} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {Object.entries(grouped!).map(([dateLabel, evs]) => {
-            const highCount = evs.filter(e => e.impact === 'High').length;
-            return (
-              <div key={dateLabel}>
-                {/* Date separator */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px',
-                }}>
-                  <span style={{
-                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)',
-                    letterSpacing: '.5px', padding: '4px 10px',
-                    border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', background: 'var(--bg-card2)',
-                  }}>{dateLabel}</span>
-                  {highCount > 0 && (
-                    <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--red)' }}>
-                      {highCount} high impact
-                    </span>
-                  )}
-                  <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-                </div>
-                <EventTable events={evs} now={now} />
-              </div>
-            );
-          })}
-        </div>
+        <EventTable groups={dayGroups} now={now} />
       )}
     </div>
   );
