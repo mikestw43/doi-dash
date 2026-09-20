@@ -19,6 +19,10 @@ bash deploy/backup.sh
 
 echo ""
 echo "[2/5] Pulling latest code..."
+# npm rewrites the lockfiles during install, so the working tree is dirty by
+# the time the next deploy runs. Left alone, the first upstream lockfile
+# change turns `git pull` into a merge conflict on a file nobody edited.
+git checkout -- backend/package-lock.json frontend/package-lock.json 2>/dev/null || true
 git pull
 
 echo ""
