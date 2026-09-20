@@ -166,7 +166,10 @@ pm2 startup systemd -u root --hp /root 2>/dev/null || true
 
 # Nightly SQLite backup at 03:00
 CRON_LINE="0 3 * * * bash $PROJECT_DIR/deploy/backup.sh >> $PROJECT_DIR/logs/backup.log 2>&1"
-( crontab -l 2>/dev/null | grep -v 'deploy/backup.sh' ; echo "$CRON_LINE" ) | crontab -
+# On a box with no crontab yet, `crontab -l | grep -v` produces no output and
+# grep exits 1 — which under `set -e -o pipefail` killed this script right here,
+# before Certbot ever ran. The `|| true` keeps an empty list from being an error.
+( crontab -l 2>/dev/null | grep -v 'deploy/backup.sh' || true ; echo "$CRON_LINE" ) | crontab -
 echo "  Nightly backup scheduled (03:00)."
 
 # --- SSL ---

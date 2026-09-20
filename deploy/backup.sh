@@ -28,4 +28,6 @@ gzip -f "$OUT"
 echo "[backup] Wrote $OUT.gz"
 
 # Keep only the newest $KEEP archives
-ls -1t "$BACKUP_DIR"/onlyfunds-*.db.gz 2>/dev/null | tail -n +$((KEEP + 1)) | xargs -r rm -f
+# Same trap: with fewer than $KEEP archives the pipeline yields nothing and
+# would abort the script on its last line, so cron would log a failure nightly.
+ls -1t "$BACKUP_DIR"/onlyfunds-*.db.gz 2>/dev/null | tail -n +$((KEEP + 1)) | xargs -r rm -f || true
