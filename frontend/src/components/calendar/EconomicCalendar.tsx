@@ -23,7 +23,7 @@ const IMPACT_CFG: Record<string, ImpactCfg> = {
   High:           { label: 'HIGH', color: 'var(--red)',     bg: 'rgba(248,113,113,.12)',  border: 'rgba(248,113,113,.35)',  dot: 'var(--red)' },
   Medium:         { label: 'MED',  color: 'var(--orange)',  bg: 'rgba(251,146,60,.12)', border: 'rgba(251,146,60,.35)', dot: 'var(--orange)' },
   Low:            { label: 'LOW',  color: 'var(--warning)', bg: 'rgba(251,191,36,.12)', border: 'rgba(251,191,36,.35)', dot: 'var(--warning)' },
-  'Non-Economic': { label: 'N/E',  color: '#3a3e47',        bg: 'rgba(58,62,71,.08)',  border: 'rgba(58,62,71,.2)',   dot: '#2a2d34' },
+  'Non-Economic': { label: 'N/E',  color: '#4a4e57',        bg: 'rgba(58,62,71,.08)',  border: 'rgba(58,62,71,.2)',   dot: '#3b3e46' },
 };
 
 const ALL_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF', 'CNY'];
@@ -161,7 +161,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 fontSize: '17px',
                 lineHeight: 1,
                 color: !event.actual
-                  ? '#2a2d34'
+                  ? '#3b3e46'
                   : event.actualSentiment === 'better'
                     ? 'var(--success)'
                     : event.actualSentiment === 'worse'
@@ -187,7 +187,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 fontFamily: 'var(--ff-display)',
                 fontSize: '17px',
                 lineHeight: 1,
-                color: '#3a3e47',
+                color: '#4a4e57',
               }}>
                 {event.previous || '—'}
               </td>
@@ -331,7 +331,7 @@ export const EconomicCalendar = () => {
           onClick={handleRefresh}
           style={{
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-            padding: '9px 16px', background: 'var(--cyan)', color: '#16181c',
+            padding: '9px 16px', background: 'var(--cyan)', color: '#25272c',
             border: '1px solid var(--cyan)', cursor: 'pointer',
           }}
         >

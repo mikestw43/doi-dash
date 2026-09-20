@@ -68,17 +68,17 @@ export const EquityChart = ({ accountId }: Props) => {
               dataKey="timestamp"
               tickFormatter={(v) => formatDate(v, timeframe)}
               tick={{ fontSize: 10, fill: '#6b7280', fontFamily: "'Share Tech Mono'" }}
-              stroke="#2a2d34"
+              stroke="#3b3e46"
             />
             <YAxis
               tick={{ fontSize: 10, fill: '#6b7280', fontFamily: "'Share Tech Mono'" }}
-              stroke="#2a2d34"
+              stroke="#3b3e46"
               domain={['auto', 'auto']}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#1a1c20',
-                border: '1px solid #2a2d34',
+                backgroundColor: '#2b2d33',
+                border: '1px solid #3b3e46',
                 borderRadius: 0,
                 fontFamily: "'Share Tech Mono'",
                 fontSize: 11,

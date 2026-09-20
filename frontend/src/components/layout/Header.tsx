@@ -164,7 +164,7 @@ export const Header = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#16181c' }}>D</span>
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#25272c' }}>D</span>
           </div>
           <div className="header-logo-text">
             <div style={{
@@ -450,7 +450,7 @@ export const Header = () => {
 
       {/* ══ TICKER BAR ══ */}
       <div style={{
-        background: '#16181c',
+        background: '#25272c',
         borderBottom: '1px solid var(--border-color)',
         height: '28px',
         overflow: 'hidden',

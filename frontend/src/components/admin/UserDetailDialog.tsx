@@ -275,7 +275,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
             <button
               onClick={() => resetMutation.mutate(user.id)}
               disabled={resetMutation.isPending}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#16181c', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: resetMutation.isPending ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#25272c', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: resetMutation.isPending ? .5 : 1 }}
             >
               {resetMutation.isPending ? '...' : 'GENERATE'}
             </button>
@@ -303,7 +303,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={handleCopy}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: copied ? 'var(--success)' : 'var(--accent-blue)', color: '#16181c', border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`, cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: copied ? 'var(--success)' : 'var(--accent-blue)', color: '#25272c', border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`, cursor: 'pointer' }}>
               {copied ? '✓ COPIED' : '📋 COPY'}
             </button>
             <button onClick={handleCloseReset}

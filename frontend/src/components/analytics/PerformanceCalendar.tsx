@@ -292,7 +292,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                       padding: isToday ? '0 5px' : 0,
                       borderRadius: isToday ? '50%' : 0,
                       background: isToday ? 'var(--accent-blue)' : 'transparent',
-                      color: isToday ? '#16181c' : 'var(--text-dim)',
+                      color: isToday ? '#25272c' : 'var(--text-dim)',
                       fontWeight: isToday ? 700 : 400,
                     }}>
                       {day}

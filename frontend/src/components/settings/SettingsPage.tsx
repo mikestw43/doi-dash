@@ -34,7 +34,7 @@ const inp: React.CSSProperties = {
 };
 const btnPrimary = (disabled = false): React.CSSProperties => ({
   fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-  padding: '9px 16px', background: 'var(--cyan)', color: '#16181c',
+  padding: '9px 16px', background: 'var(--cyan)', color: '#25272c',
   border: '1px solid var(--cyan)', cursor: disabled ? 'not-allowed' : 'pointer',
   opacity: disabled ? .5 : 1,
 });

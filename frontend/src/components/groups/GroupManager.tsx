@@ -71,7 +71,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
 
   const btnPrimary: React.CSSProperties = {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-    padding: '8px 12px', background: 'var(--cyan)', color: '#16181c',
+    padding: '8px 12px', background: 'var(--cyan)', color: '#25272c',
     border: '1px solid var(--cyan)', cursor: name.trim() ? 'pointer' : 'not-allowed',
     opacity: name.trim() ? 1 : .4,
   };

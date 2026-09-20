@@ -101,7 +101,7 @@ export const LoginPage = () => {
               flexShrink: 0,
             }}
           >
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#16181c' }}>D</span>
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#25272c' }}>D</span>
           </div>
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
@@ -231,7 +231,7 @@ export const LoginPage = () => {
             style={{
               width: '100%', padding: '11px',
               background: loading ? 'rgba(96,165,250,.5)' : 'var(--accent-blue)',
-              color: '#121316',
+              color: '#212327',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               letterSpacing: '1px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
               marginTop: '6px',

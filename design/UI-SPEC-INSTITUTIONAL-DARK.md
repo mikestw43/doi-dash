@@ -13,10 +13,12 @@
 
 ## 2. Color Palette & Tokens
 - Main Background: `#121316` (Deep Charcoal Black)
-- Card / Panel Background: `#1A1C20` (Dark Slate Gray)
+  - **ใช้จริง: `#212327`** — spec เดิมเข้มเกินไปเมื่อเทียบกับ mockup
+    ทุกพื้นผิวเลื่อนขึ้นพร้อมกัน (พื้น การ์ด ขอบ) การ์ดจึงยังแยกจากพื้นได้
+- Card / Panel Background: `#1A1C20` (Dark Slate Gray) — **ใช้จริง: `#2b2d33`**
 - Primary Text / Numbers: `#ECEED1` / `#FFFFFF` (High Contrast White)
 - Secondary Text / Labels: `#8E95A2` (Muted Light Gray)
-- Border / Dividers: `#2A2D34` (Subtle Dark Border)
+- Border / Dividers: `#2A2D34` (Subtle Dark Border) — **ใช้จริง: `#3b3e46`**
 
 ### Semantic Colors (Status Indicators)
 - Profit / Positive Gain: `#34D399` (Emerald Mint)
@@ -81,12 +83,13 @@
 
 | ตัวแปร | ค่าเดิม | ค่าใหม่ |
 |---|---|---|
-| `--bg-primary` / `--bg` | `#0f172a` | `#121316` |
-| `--bg-secondary` / `--bg-nav` | `#0c1422` | `#121316` |
-| `--bg-card` | `#1e293b` | `#1A1C20` |
-| `--bg-tertiary` / `--bg-card2` / `--bg-input` | `#162032` | `#1A1C20` |
-| `--border-color` | `#162032` | `#2A2D34` |
-| `--border2` | `#2d4060` | `#2A2D34` |
+| `--bg-primary` / `--bg` | `#0f172a` | `#212327` |
+| `--bg-secondary` / `--bg-nav` | `#0c1422` | `#25272c` |
+| `--bg-card` | `#1e293b` | `#2b2d33` |
+| `--bg-tertiary` / `--bg-card2` | `#162032` | `#2b2d33` |
+| `--bg-input` | `#162032` | `#33353c` |
+| `--border-color` | `#162032` | `#3b3e46` |
+| `--border2` | `#2d4060` | `#3b3e46` |
 | `--text-primary` / `--text` | `#e5e7eb` | `#FFFFFF` |
 | `--text-secondary` | `#94a3b8` | `#8E95A2` |
 | `--text-muted` / `--text-dim` | `#64748b` | `#8E95A2` |

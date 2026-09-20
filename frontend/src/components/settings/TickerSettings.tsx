@@ -189,7 +189,7 @@ export const TickerSettings = () => {
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             padding: '8px 16px',
             background: !dirty || selected.size === 0 ? 'var(--border2)' : 'var(--accent-blue)',
-            color: '#16181c',
+            color: '#25272c',
             border: 'none',
             cursor: !dirty || saving || selected.size === 0 ? 'not-allowed' : 'pointer',
             opacity: saving ? 0.6 : 1,

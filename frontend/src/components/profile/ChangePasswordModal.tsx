@@ -108,7 +108,7 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
             disabled={saving || !currentPw || !newPw || !confirmPw}
             style={{
               fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-              padding: '9px 16px', background: 'var(--yellow)', color: '#16181c',
+              padding: '9px 16px', background: 'var(--yellow)', color: '#25272c',
               border: '1px solid var(--yellow)',
               cursor: (saving || !currentPw || !newPw || !confirmPw) ? 'not-allowed' : 'pointer',
               opacity: (saving || !currentPw || !newPw || !confirmPw) ? .5 : 1,

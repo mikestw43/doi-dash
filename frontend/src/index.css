@@ -6,11 +6,11 @@
   :root {
     /* ── DOI DASH — institutional dark theme ──
        Spec: design/UI-SPEC-INSTITUTIONAL-DARK.md */
-    --bg-primary:   #121316;
-    --bg-secondary: #16181c;
-    --bg-tertiary:  #1a1c20;
-    --bg-card:      #1a1c20;
-    --bg-input:     #202329;
+    --bg-primary:   #212327;
+    --bg-secondary: #25272c;
+    --bg-tertiary:  #2b2d33;
+    --bg-card:      #2b2d33;
+    --bg-input:     #33353c;
     --success:      #34d399;
     --danger:       #f87171;
     --warning:      #fbbf24;
@@ -19,8 +19,8 @@
     --text-primary: #ffffff;
     --text-secondary:#8e95a2;
     --text-muted:   #6b7280;
-    --border-color: #2a2d34;
-    --border2:      #2a2d34;
+    --border-color: #3b3e46;
+    --border2:      #3b3e46;
 
     /* Badge fills — the semantic colour at ~12% over a card */
     --success-bg: rgba(52,211,153,.12);
@@ -39,9 +39,9 @@
     --glow-yellow:none;
 
     /* ── shorthand aliases (used by rebuilt components) ── */
-    --bg:         #121316;
-    --bg-nav:     #16181c;
-    --bg-card2:   #1a1c20;
+    --bg:         #212327;
+    --bg-nav:     #25272c;
+    --bg-card2:   #2b2d33;
     --cyan:       #60a5fa;
     --green:      #34d399;
     --red:        #f87171;
@@ -203,11 +203,11 @@
     background: var(--bg-secondary);
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2d34;
+    background: #3b3e46;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3a3e47;
+    background: #4a4e57;
   }
   .light ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
@@ -240,7 +240,7 @@
   }
   @media (hover: hover) {
     .kpi-card:hover {
-      background: #1e2127;
+      background: #32343a;
     }
   }
   .kpi-card.kpi-red,
@@ -263,7 +263,7 @@
   }
   @media (hover: hover) {
     .bot-card:hover {
-      background: #1e2127;
+      background: #32343a;
     }
   }
   .bot-card.bc-offline { border-left-color: var(--danger); }

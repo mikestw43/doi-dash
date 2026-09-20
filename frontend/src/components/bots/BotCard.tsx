@@ -302,7 +302,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 style={{
                   flex: 1,
                   border: '1px solid var(--accent-blue)',
-                  color: '#16181c',
+                  color: '#25272c',
                   background: 'var(--accent-blue)',
                   cursor: 'pointer', textAlign: 'center',
                   transition: 'all .15s',

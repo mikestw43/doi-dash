@@ -158,7 +158,7 @@ export const PrivacyPolicy = () => {
             disabled={exporting}
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-              padding: '8px 14px', background: 'var(--cyan)', color: '#16181c',
+              padding: '8px 14px', background: 'var(--cyan)', color: '#25272c',
               border: '1px solid var(--cyan)', cursor: exporting ? 'not-allowed' : 'pointer',
               opacity: exporting ? .6 : 1, flexShrink: 0,
             }}

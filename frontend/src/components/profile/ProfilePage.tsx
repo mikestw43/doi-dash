@@ -60,7 +60,7 @@ const inp: React.CSSProperties = {
 const sel: React.CSSProperties = { ...inp, cursor: 'pointer' };
 const btnPrimary: React.CSSProperties = {
   fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-  padding: '9px 16px', background: 'var(--cyan)', color: '#16181c',
+  padding: '9px 16px', background: 'var(--cyan)', color: '#25272c',
   border: '1px solid var(--cyan)', cursor: 'pointer',
 };
 const btnGhost: React.CSSProperties = {

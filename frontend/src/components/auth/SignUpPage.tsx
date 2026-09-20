@@ -105,7 +105,7 @@ export const SignUpPage = ({ onBack }: Props) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
 flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#16181c' }}>D</span>
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#25272c' }}>D</span>
           </div>
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
@@ -297,7 +297,7 @@ flexShrink: 0,
                     cursor: 'pointer', transition: 'all .15s',
                   }}
                 >
-                  {agreed && <span style={{ color: '#16181c', fontSize: '11px', fontWeight: 'bold', lineHeight: 1 }}>✓</span>}
+                  {agreed && <span style={{ color: '#25272c', fontSize: '11px', fontWeight: 'bold', lineHeight: 1 }}>✓</span>}
                 </div>
                 <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   I agree to the{' '}
@@ -343,7 +343,7 @@ flexShrink: 0,
               style={{
                 width: '100%', padding: '11px',
                 background: (loading || !agreed) ? 'rgba(96,165,250,.4)' : 'var(--accent-blue)',
-                color: '#121316',
+                color: '#212327',
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 letterSpacing: '1px', border: 'none',
                 cursor: (loading || !agreed) ? 'not-allowed' : 'pointer',

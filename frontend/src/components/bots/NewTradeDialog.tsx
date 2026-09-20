@@ -80,7 +80,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
             <div style={{ display: 'flex', border: '1px solid var(--border2)' }}>
               <button
                 onClick={() => setAction('BUY')}
-                style={{ flex: 1, padding: '7px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', background: action === 'BUY' ? 'var(--green)' : 'none', color: action === 'BUY' ? '#16181c' : buyColor, border: 'none', letterSpacing: '.5px' }}
+                style={{ flex: 1, padding: '7px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', background: action === 'BUY' ? 'var(--green)' : 'none', color: action === 'BUY' ? '#25272c' : buyColor, border: 'none', letterSpacing: '.5px' }}
               >BUY</button>
               <button
                 onClick={() => setAction('SELL')}
@@ -161,7 +161,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', letterSpacing: '.5px',
               background: action === 'BUY' ? 'var(--green)' : 'var(--red)',
-              color: action === 'BUY' ? '#16181c' : '#fff',
+              color: action === 'BUY' ? '#25272c' : '#fff',
               border: `1px solid ${action === 'BUY' ? 'var(--green)' : 'var(--red)'}`,
               cursor: (loading || !symbol || !parseFloat(volume)) ? 'not-allowed' : 'pointer',
               opacity: (loading || !symbol || !parseFloat(volume)) ? .5 : 1,

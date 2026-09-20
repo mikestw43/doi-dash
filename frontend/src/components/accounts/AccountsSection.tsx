@@ -266,7 +266,7 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
               CANCEL
             </button>
             <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--cyan)', color: '#16181c', border: '1px solid var(--cyan)', cursor: mutation.isPending ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: mutation.isPending ? .6 : 1 }}>
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--cyan)', color: '#25272c', border: '1px solid var(--cyan)', cursor: mutation.isPending ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: mutation.isPending ? .6 : 1 }}>
               {mutation.isPending ? 'SAVING...' : 'SAVE'}
             </button>
           </div>
@@ -362,7 +362,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px 18px',
               background: copied ? 'var(--success)' : 'var(--accent-blue)',
-              color: '#16181c',
+              color: '#25272c',
               border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`,
               cursor: 'pointer', letterSpacing: '.5px',
             }}
@@ -456,7 +456,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
             CANCEL
           </button>
           <button type="submit" disabled={loading || !name.trim()}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--accent-blue)', color: '#16181c', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--accent-blue)', color: '#25272c', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
             {loading ? 'ADDING...' : 'ADD ACCOUNT'}
           </button>
         </div>
@@ -500,7 +500,7 @@ export const AccountsSection = () => {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#16181c', border: '1px solid var(--cyan)', cursor: 'pointer' }}
+          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#25272c', border: '1px solid var(--cyan)', cursor: 'pointer' }}
         >
           + ADD ACCOUNT
         </button>
@@ -550,7 +550,7 @@ export const AccountsSection = () => {
                       fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                       color: online ? 'var(--green)' : 'var(--text-dim)',
                     }}>
-                      <span style={{ width: '6px', height: '6px', background: online ? 'var(--green)' : '#3a3e47',display: 'inline-block' }} />
+                      <span style={{ width: '6px', height: '6px', background: online ? 'var(--green)' : '#4a4e57',display: 'inline-block' }} />
                       {acc.status}
                     </span>
                   </div>

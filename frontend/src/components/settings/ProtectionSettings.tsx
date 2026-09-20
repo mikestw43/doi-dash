@@ -132,7 +132,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
                 disabled={saving}
                 style={{
                   fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-                  padding: '9px 16px', background: 'var(--yellow)', color: '#16181c',
+                  padding: '9px 16px', background: 'var(--yellow)', color: '#25272c',
                   border: '1px solid var(--yellow)', cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving ? .6 : 1,
                 }}
