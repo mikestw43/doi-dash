@@ -1,19 +1,19 @@
 //+------------------------------------------------------------------+
-//|                                          DOI_DASH_Reporter.mq4   |
-//|                       OnlyFunds MT4 Dashboard Reporter EA         |
+//|                                      OnlyFunds_Reporter_v1.0.mq4 |
+//|                         OnlyFunds MT4 Dashboard Reporter EA      |
 //|                                                                  |
-//| v1.3 (MT4 port) — feature parity with MT5 v1.3                   |
-//|   • Compute today_pl directly from MT4 history (closed orders   |
-//|     for the broker's current day).                              |
-//|   • Filter to trading-only orders (OP_BUY / OP_SELL) — skip      |
-//|     balance/credit/bonus operations.                            |
+//| v1.0 (MT4) — feature parity with the MT5 build:                  |
+//|   • today_pl computed from MT4 history (closed orders for the    |
+//|     broker's current day).                                       |
+//|   • Trading-only orders (OP_BUY / OP_SELL); balance, credit and  |
+//|     bonus operations are skipped.                                |
 //|   • Floating P/L = equity - balance - credit.                    |
-//|   • Push closedDeals[] for the trade-history page.               |
-//|   • Backend endpoint identical to MT5 (/api/mt5/push) so MT4 +   |
-//|     MT5 accounts coexist in the same dashboard.                  |
+//|   • Pushes closedDeals[] for the trade-history page.             |
+//|   • Same endpoint as MT5 (/api/mt5/push), so MT4 and MT5         |
+//|     accounts live side by side in one dashboard.                 |
 //+------------------------------------------------------------------+
 #property copyright "OnlyFunds"
-#property version   "1.30"
+#property version   "1.00"
 #property strict
 #property description "Sends MT4 trading data + EA-computed today_pl to OnlyFunds Dashboard"
 
@@ -42,7 +42,7 @@ int OnInit()
    g_lastDealTime = BrokerMidnight();
 
    EventSetTimer(1);
-   Print("OnlyFunds Reporter v1.3 (MT4) started | Account: ", AccountNumber());
+   Print("OnlyFunds Reporter v1.0 (MT4) started | Account: ", AccountNumber());
    Print("  Server: ", ServerURL);
    return INIT_SUCCEEDED;
 }
@@ -286,7 +286,7 @@ void SendData()
    {
       if(!g_initDone)
       {
-         Print("✓ OnlyFunds: Connected! v1.3 (MT4) | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
+         Print("✓ OnlyFunds: Connected! v1.0 (MT4) | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
          g_initDone = true;
       }
    }

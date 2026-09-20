@@ -17,11 +17,11 @@ type EaRelease = {
 const EA_RELEASES: EaRelease[] = [
   {
     name: 'OnlyFunds Reporter',
-    version: 'v1.3',
+    version: 'v1.0',
     description: 'Real-time portfolio reporter for MetaTrader',
     downloads: [
-      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.3.ex5', ext: '.EX5' },
-      { platform: 'MT4', filename: 'OnlyFunds_Reporter_v1.3.ex4', ext: '.EX4' },
+      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.0.ex5', ext: '.EX5' },
+      { platform: 'MT4', filename: 'OnlyFunds_Reporter_v1.0.ex4', ext: '.EX4' },
     ],
   },
 ];

@@ -1,25 +1,24 @@
 //+------------------------------------------------------------------+
-//|                                          OnlyFunds_Reporter.mq5   |
-//|                         OnlyFunds MT5 Dashboard Reporter EA       |
+//|                                      OnlyFunds_Reporter_v1.0.mq5 |
+//|                         OnlyFunds MT5 Dashboard Reporter EA      |
 //|                                                                  |
-//| v1.3                                                             |
-//|   • Compute today_pl on the EA side and send it as one trusted   |
-//|     number. Backend no longer reconstructs TODAY P/L from        |
-//|     stored deals (which was missing trades when the EA was       |
-//|     offline at close time). Matches MT5 history exactly.         |
-//|   • Filter DEAL_TYPE: only BUY/SELL deals count toward today_pl  |
-//|     — explicitly excludes BALANCE/CREDIT/BONUS operations that   |
-//|     would otherwise inflate the number.                          |
-//|   • Floating P/L = equity - balance - credit (subtract credit    |
-//|     explicitly so promotional bonuses don't leak through).       |
-//|   • Still pushes closedDeals[] (for the trade-history page)      |
-//|     and brokerTimeOffset.                                        |
+//| v1.0 — first release under the OnlyFunds name. Numbering starts  |
+//|        over here; the reporter logic is the one that shipped as  |
+//|        v1.3 of the previous EA:                                  |
 //|                                                                  |
-//| v1.2 — IsClosingEntry covers OUT/OUT_BY/INOUT, robust 2-pass loop|
-//| v1.1 — initial closedDeals push + brokerTimeOffset + ACCOUNT_PROFIT|
+//|   • today_pl is computed on the EA side and sent as one trusted  |
+//|     number, so the backend never reconstructs TODAY P/L from     |
+//|     stored deals — that used to miss trades closed while the EA  |
+//|     was offline. Matches MT5 history exactly.                    |
+//|   • Only BUY/SELL deals count toward today_pl; BALANCE, CREDIT   |
+//|     and BONUS operations are excluded so they cannot inflate it. |
+//|   • Floating P/L = equity - balance - credit, subtracting credit |
+//|     explicitly so promotional bonuses don't leak through.        |
+//|   • Pushes closedDeals[] for the trade-history page, plus        |
+//|     brokerTimeOffset.                                            |
 //+------------------------------------------------------------------+
 #property copyright "OnlyFunds"
-#property version   "1.3"
+#property version   "1.0"
 #property description "Sends trading data + EA-computed today_pl to OnlyFunds Dashboard"
 
 //--- Input Parameters
@@ -47,7 +46,7 @@ int OnInit()
    g_lastDealTime = BrokerMidnight();
 
    EventSetTimer(1);
-   Print("OnlyFunds Reporter v1.3 started | Account: ", AccountInfoInteger(ACCOUNT_LOGIN));
+   Print("OnlyFunds Reporter v1.0 started | Account: ", AccountInfoInteger(ACCOUNT_LOGIN));
    Print("  Server: ", ServerURL);
    return INIT_SUCCEEDED;
 }
@@ -377,7 +376,7 @@ void SendData()
    {
       if(!g_initDone)
       {
-         Print("✓ OnlyFunds: Connected! v1.3 | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
+         Print("✓ OnlyFunds: Connected! v1.0 | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
          g_initDone = true;
       }
    }
