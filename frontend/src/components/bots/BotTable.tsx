@@ -238,7 +238,15 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
         .bot-table-wrap .num-k { display: none; }
 
         @media (max-width: 768px) {
-          .bot-table-wrap { overflow-x: hidden !important; }
+          /* overflow:visible, not overflow-x:hidden. CSS will not let one axis
+             be visible while the other is not, so overflow-x:hidden quietly
+             turned overflow-y into auto and left a scroll container with
+             nothing to scroll. iOS swallows a drag that starts inside one
+             instead of passing it to the page, which is why the dashboard felt
+             stuck — it springs back — while every other page scrolled fine.
+             Columns are hidden at this width and the table is 100% wide, so
+             there is nothing to scroll sideways here either. */
+          .bot-table-wrap { overflow: visible !important; }
 
           /* Swap money formats */
           .bot-table-wrap .num-full { display: none; }
