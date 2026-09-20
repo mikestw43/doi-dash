@@ -10,7 +10,7 @@ const api = axios.create({
 
 // Attach token
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('sentinel_token');
+  const token = localStorage.getItem('onlyfunds_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -20,8 +20,8 @@ api.interceptors.response.use(
   res => res,
   error => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('sentinel_token');
-      localStorage.removeItem('sentinel_auth');
+      localStorage.removeItem('onlyfunds_token');
+      localStorage.removeItem('onlyfunds_auth');
       window.location.reload();
     }
     return Promise.reject(error);

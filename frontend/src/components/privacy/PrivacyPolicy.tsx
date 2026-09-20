@@ -39,7 +39,7 @@ export const PrivacyPolicy = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `sentinel-my-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `onlyfunds-my-data-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
       addToast({ type: 'success', title: 'Data exported successfully' });

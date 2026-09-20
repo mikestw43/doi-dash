@@ -3,6 +3,7 @@ import { login, googleLogin } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 import { SignUpPage } from './SignUpPage';
 import { GoogleAuth, googleEnabled } from './googleAuth';
+import { Logo } from '../ui/Logo';
 
 const InfoModal = ({ title, message, onClose }: { title: string; message: string; onClose: () => void }) => (
   <div style={{
@@ -93,17 +94,7 @@ export const LoginPage = () => {
       <div className="auth-box">
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
-          <div
-            style={{
-              width: '38px', height: '38px',
-              background: 'var(--accent-blue)',
-              borderRadius: 'var(--radius-sm)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>OF</span>
-          </div>
+          <Logo size={38} />
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             OnlyFunds
           </div>

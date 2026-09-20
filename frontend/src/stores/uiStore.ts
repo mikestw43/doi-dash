@@ -54,7 +54,7 @@ export const useUIStore = create<UIState>()(
       setTheme: (theme) => set({ theme }),
     }),
     {
-      name: 'sentinel_ui',
+      name: 'onlyfunds_ui',
       partialize: (s) => ({
         botFilter: s.botFilter,
         botViewMode: s.botViewMode,

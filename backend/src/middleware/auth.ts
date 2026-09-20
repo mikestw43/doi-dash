@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'sentinel_dev_secret_2024';
+export const JWT_SECRET = process.env.JWT_SECRET || 'onlyfunds_dev_secret';
 
 export interface AuthRequest extends Request {
   user?: { id: string; email: string; role: string };

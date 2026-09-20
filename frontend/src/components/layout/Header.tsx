@@ -6,6 +6,7 @@ import { useUIStore } from '../../stores/uiStore';
 import { NotificationBell } from './NotificationBell';
 import { fetchMarketQuotes, fetchTickerSymbols } from '../../services/api';
 import type { MarketQuote } from '../../services/api';
+import { Logo } from '../ui/Logo';
 
 // ── Clock + session logic ───────────────────────────────────────────────────
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -158,14 +159,8 @@ export const Header = () => {
       }}>
         {/* Left: Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <div className="header-logo-box" style={{
-            width: '36px', height: '36px',
-            background: 'var(--accent-blue)',
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <span style={{ fontFamily: 'var(--ff-section)', fontSize: '13px', color: '#25272c' }}>OF</span>
+          <div className="header-logo-box">
+            <Logo size={34} />
           </div>
           <div className="header-logo-text">
             <div style={{
@@ -444,8 +439,7 @@ export const Header = () => {
         }
         @media (max-width: 400px) {
           .header-logo-text { display: none !important; }
-          .header-logo-box  { width: 30px !important; height: 30px !important; }
-          .header-logo-box span { font-size: 11px !important; }
+          .header-logo-box svg { width: 28px !important; height: 28px !important; }
         }
       `}</style>
 

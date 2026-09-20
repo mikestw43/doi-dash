@@ -9,7 +9,7 @@ const TAG_LENGTH = 16;
  * In production, use a separate ENCRYPTION_KEY env var.
  */
 const getKey = (): Buffer => {
-  const secret = process.env.ENCRYPTION_KEY || process.env.JWT_SECRET || 'sentinel_dev_secret_2024';
+  const secret = process.env.ENCRYPTION_KEY || process.env.JWT_SECRET || 'onlyfunds_dev_secret';
   return crypto.createHash('sha256').update(secret).digest();
 };
 

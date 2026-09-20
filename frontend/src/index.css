@@ -22,6 +22,10 @@
     --border-color: #3b3e46;
     --border2:      #3b3e46;
 
+    /* Brand mint, from the OnlyFunds shield. Used by the logo only — the
+       interactive accent stays blue so it never reads as a profit figure. */
+    --brand:        #8ecfae;
+
     /* Badge fills — the semantic colour at ~12% over a card */
     --success-bg: rgba(52,211,153,.12);
     --danger-bg:  rgba(248,113,113,.12);

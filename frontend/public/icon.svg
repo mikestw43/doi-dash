@@ -1,15 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 16 16">
-  <!-- OnlyFunds mark: "OF" cut out of the accent tile, matching the in-app badge -->
-  <rect width="16" height="16" rx="3.5" fill="#60a5fa"/>
-  <g fill="#212327">
-    <!-- O -->
-    <rect x="2"   y="4"    width="6"   height="1.5"/>
-    <rect x="2"   y="10.5" width="6"   height="1.5"/>
-    <rect x="2"   y="4"    width="1.5" height="8"/>
-    <rect x="6.5" y="4"    width="1.5" height="8"/>
-    <!-- F -->
-    <rect x="9.5" y="4"    width="4.5" height="1.5"/>
-    <rect x="9.5" y="4"    width="1.5" height="8"/>
-    <rect x="11"  y="7.25" width="3.5" height="1.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64">
+  <!-- OnlyFunds mark: double-outline shield on the brand's graphite tile.
+       Wordmark is left off so the shield still reads at favicon size. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3f3f3f"/>
+      <stop offset="100%" stop-color="#202020"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#tile)"/>
+  <g fill="none" stroke="#8ecfae" stroke-linejoin="round">
+    <path d="M32 8 L54 16.5 L54 33 C54 45.5 44.5 53 32 58.5 C19.5 53 10 45.5 10 33 L10 16.5 Z"
+          stroke-width="1.9"/>
+    <path d="M32 12.4 L50 19.3 L50 33 C50 43.2 42.2 49.4 32 54 C21.8 49.4 14 43.2 14 33 L14 19.3 Z"
+          stroke-width="1.5"/>
   </g>
 </svg>

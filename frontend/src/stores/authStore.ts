@@ -17,14 +17,14 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       setAuth: (token, user) => {
-        localStorage.setItem('sentinel_token', token);
+        localStorage.setItem('onlyfunds_token', token);
         set({ token, user, isAuthenticated: true });
       },
       logout: () => {
-        localStorage.removeItem('sentinel_token');
+        localStorage.removeItem('onlyfunds_token');
         set({ token: null, user: null, isAuthenticated: false });
       },
     }),
-    { name: 'sentinel_auth' }
+    { name: 'onlyfunds_auth' }
   )
 );

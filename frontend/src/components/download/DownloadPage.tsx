@@ -20,8 +20,8 @@ const EA_RELEASES: EaRelease[] = [
     version: 'v1.3',
     description: 'Real-time portfolio reporter for MetaTrader',
     downloads: [
-      { platform: 'MT5', filename: 'DOI_DASH_Reporter_v1.3.ex5', ext: '.EX5' },
-      { platform: 'MT4', filename: 'DOI_DASH_Reporter_v1.3.ex4', ext: '.EX4' },
+      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.3.ex5', ext: '.EX5' },
+      { platform: 'MT4', filename: 'OnlyFunds_Reporter_v1.3.ex4', ext: '.EX4' },
     ],
   },
 ];
