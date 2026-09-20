@@ -52,10 +52,7 @@ ssh root@YOUR_VPS_IP
 apt update && apt install -y git
 git clone https://github.com/mikestw43/onlyfunds.git /opt/onlyfunds
 cd /opt/onlyfunds
-git checkout claude/doi-dash-vps-migration-ljlqso
 ```
-
-*(เมื่อ merge branch นี้เข้า `main` แล้ว ข้ามบรรทัด `git checkout` ได้เลย)*
 
 ---
 

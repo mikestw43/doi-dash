@@ -31,12 +31,11 @@ git --version
 ```bash
 git clone https://github.com/mikestw43/onlyfunds.git
 cd onlyfunds
-git checkout claude/doi-dash-vps-migration-ljlqso
 ```
 
 > ถ้าเครื่องคุณมีโฟลเดอร์ `doi-dash` จากรอบก่อนอยู่แล้ว ใช้อันเดิมต่อได้เลย
-> ไม่ต้องโคลนใหม่ — GitHub จะส่งต่อชื่อเก่าไปชื่อใหม่ให้เอง แค่สั่ง `git pull`
-> (ชื่อ branch ยังเป็นชื่อเดิมอยู่ เพราะเป็นชื่อ branch ไม่ใช่ชื่อโปรเจกต์)
+> ไม่ต้องโคลนใหม่ — GitHub ส่งต่อชื่อเก่าไปชื่อใหม่ให้เอง สั่ง `git checkout main`
+> แล้ว `git pull` ก็ได้โค้ดล่าสุดครบ
 
 ---
 
