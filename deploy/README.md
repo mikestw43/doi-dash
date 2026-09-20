@@ -145,9 +145,37 @@ EA ตัวเดิมในเครื่องผู้ใช้ยัง�
 1. **Railway** → Project Settings → Delete Project (หรือหยุด service ไว้ก่อน)
 2. **Vercel** → Project Settings → Delete Project
 3. ถ้าเคยใช้โดเมนเดิมชี้ไป Vercel ให้แก้ DNS มาที่ IP ของ VPS
-4. ถ้าใช้ Google Login: เข้า Google Cloud Console → Credentials
-   → เพิ่ม `https://dash.yourname.com` ใน **Authorized JavaScript origins**
-   (และใส่ `VITE_GOOGLE_CLIENT_ID` ใน `/opt/onlyfunds/frontend/.env` แล้วรัน `bash deploy/update.sh`)
+4. ถ้าใช้ Google Login ดูหัวข้อถัดไป
+
+---
+
+## เปิดใช้ Google Login (ไม่บังคับ)
+
+ปุ่ม Google จะไม่ขึ้นเลยจนกว่าจะตั้งค่า **2 ที่ ต้องใส่ทั้งคู่** —
+ฝั่งหน้าเว็บใช้แสดงปุ่ม ฝั่งเซิร์ฟเวอร์ใช้ตรวจว่า token ที่ส่งมาออกให้แอปเราจริง
+ใส่แค่ที่เดียวจะกดปุ่มแล้วล็อกอินไม่ผ่าน โดยไม่มีข้อความบอกสาเหตุ
+
+1. เข้า **Google Cloud Console → APIs & Services → Credentials**
+   - ยังไม่มีก็สร้าง **OAuth client ID** แบบ **Web application**
+   - ช่อง **Authorized JavaScript origins** ใส่ URL ของเว็บ เช่น `https://onlyfunds.duckdns.org`
+   - คัดลอก **Client ID** (ลงท้ายด้วย `.apps.googleusercontent.com`)
+
+2. บน VPS:
+
+```bash
+cd /opt/onlyfunds
+CLIENT_ID="วาง-client-id-ตรงนี้"
+
+sed -i "s|^VITE_GOOGLE_CLIENT_ID=.*|VITE_GOOGLE_CLIENT_ID=$CLIENT_ID|" frontend/.env
+grep -q '^GOOGLE_CLIENT_ID=' backend/.env \
+  && sed -i "s|^GOOGLE_CLIENT_ID=.*|GOOGLE_CLIENT_ID=$CLIENT_ID|" backend/.env \
+  || echo "GOOGLE_CLIENT_ID=$CLIENT_ID" >> backend/.env
+
+bash deploy/update.sh
+```
+
+> บัญชีที่สมัครผ่าน Google **ไม่ต้องรอแอดมินอนุมัติ** เพราะ Google ยืนยันอีเมลมาแล้ว
+> ต่างจากสมัครด้วยรหัสผ่านที่ต้องรออนุมัติก่อนใช้งาน
 
 ---
 
