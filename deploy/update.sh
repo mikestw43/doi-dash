@@ -45,6 +45,28 @@ echo ""
 echo "[5/5] Restarting the API..."
 pm2 restart onlyfunds-api
 
+# Nginx: make sure index.html is served uncached. Without the header, browsers
+# (iOS Safari especially) keep showing the previous build after a deploy.
+#
+# The live site file belongs to certbot once HTTPS is set up — it rewrote it to
+# add the TLS block — so patch the one line in place rather than re-rendering
+# deploy/nginx.conf over the top of it and losing HTTPS. Idempotent: the grep
+# skips it once the header is there.
+SITE=/etc/nginx/sites-available/onlyfunds
+if [ -f "$SITE" ] && ! grep -q 'no-store' "$SITE"; then
+  echo ""
+  echo "[nginx] Teaching nginx not to cache index.html..."
+  cp "$SITE" "$SITE.bak"
+  sed -i 's|\(try_files \$uri \$uri/ /index.html;\)|\1\n        add_header Cache-Control "no-store, must-revalidate" always;|' "$SITE"
+  if nginx -t >/dev/null 2>&1; then
+    systemctl reload nginx
+    echo "        done — browsers will pick up new builds immediately"
+  else
+    mv "$SITE.bak" "$SITE"
+    echo "        config did not validate; reverted, nothing changed"
+  fi
+fi
+
 echo ""
 echo "=============================="
 echo "  Update complete"
