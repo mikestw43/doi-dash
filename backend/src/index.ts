@@ -23,6 +23,8 @@ import { reportScheduler } from './services/reportScheduler';
 import { errorHandler } from './middleware/errorHandler';
 import { warmFxCache } from './services/fxService';
 import { applySqlitePragmas } from './lib/prisma';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -50,10 +52,39 @@ app.use('/api/admin/audit', auditRouter);
 app.use('/api/market', marketRouter);
 
 // Build stamp helps verify a deploy actually picked up new code.
-// Bump BUILD_TAG with each push that needs verification.
 const BUILD_TAG = 'v1.4-vps-sqlite';
+
+/**
+ * The commit this process is running, read straight from .git at boot.
+ *
+ * "Is the fix live yet?" was costing a round-trip every time: the browser
+ * caches, the deploy is on a five-minute cron, and nothing on screen says
+ * which build you are looking at. Opening /api/health now answers it.
+ */
+const readDeployedCommit = (): string => {
+  try {
+    const gitDir = path.resolve(process.cwd(), '..', '.git');
+    const head = fs.readFileSync(path.join(gitDir, 'HEAD'), 'utf8').trim();
+    // Detached HEAD holds the sha itself; otherwise it points at a ref file.
+    const sha = head.startsWith('ref: ')
+      ? fs.readFileSync(path.join(gitDir, head.slice(5)), 'utf8').trim()
+      : head;
+    return sha.slice(0, 7);
+  } catch {
+    return 'unknown';
+  }
+};
+const DEPLOYED_COMMIT = readDeployedCommit();
+const STARTED_AT = new Date().toISOString();
+
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', build: BUILD_TAG, timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    build: BUILD_TAG,
+    commit: DEPLOYED_COMMIT,
+    startedAt: STARTED_AT,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Global error handler — must be AFTER all routes
