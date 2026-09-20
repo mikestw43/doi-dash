@@ -80,7 +80,7 @@ echo "[5/9] Checking project..."
 if [ ! -d "$PROJECT_DIR" ]; then
   echo "  ERROR: project not found at $PROJECT_DIR"
   echo "  Clone it first:"
-  echo "    git clone https://github.com/mikestw43/doi-dash.git $PROJECT_DIR"
+  echo "    git clone https://github.com/mikestw43/onlyfunds.git $PROJECT_DIR"
   exit 1
 fi
 cd "$PROJECT_DIR"

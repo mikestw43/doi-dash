@@ -50,7 +50,7 @@ ssh root@YOUR_VPS_IP
 
 ```bash
 apt update && apt install -y git
-git clone https://github.com/mikestw43/doi-dash.git /opt/onlyfunds
+git clone https://github.com/mikestw43/onlyfunds.git /opt/onlyfunds
 cd /opt/onlyfunds
 git checkout claude/doi-dash-vps-migration-ljlqso
 ```

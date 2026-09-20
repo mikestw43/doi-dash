@@ -29,14 +29,14 @@ git --version
 ## โหลดโปรเจกต์ลงเครื่อง
 
 ```bash
-git clone https://github.com/mikestw43/doi-dash.git onlyfunds
+git clone https://github.com/mikestw43/onlyfunds.git
 cd onlyfunds
 git checkout claude/doi-dash-vps-migration-ljlqso
 ```
 
-> repo บน GitHub ยังชื่อ `doi-dash` อยู่ คำสั่งข้างบนจึงบอกให้โคลนลงโฟลเดอร์ชื่อ
-> `onlyfunds` ให้ตรงกับชื่อแอป ถ้าเครื่องคุณมีโฟลเดอร์ `doi-dash` จากรอบก่อนอยู่แล้ว
-> ใช้อันเดิมต่อได้เลย แค่เปลี่ยนชื่อโฟลเดอร์ในคำสั่งถัด ๆ ไปให้ตรงกัน
+> ถ้าเครื่องคุณมีโฟลเดอร์ `doi-dash` จากรอบก่อนอยู่แล้ว ใช้อันเดิมต่อได้เลย
+> ไม่ต้องโคลนใหม่ — GitHub จะส่งต่อชื่อเก่าไปชื่อใหม่ให้เอง แค่สั่ง `git pull`
+> (ชื่อ branch ยังเป็นชื่อเดิมอยู่ เพราะเป็นชื่อ branch ไม่ใช่ชื่อโปรเจกต์)
 
 ---
 
