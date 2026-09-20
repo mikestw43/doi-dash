@@ -97,6 +97,7 @@ export const LoginPage = () => {
             style={{
               width: '38px', height: '38px',
               background: 'var(--accent-blue)',
+              borderRadius: 'var(--radius-sm)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}

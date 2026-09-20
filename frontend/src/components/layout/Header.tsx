@@ -161,6 +161,7 @@ export const Header = () => {
           <div className="header-logo-box" style={{
             width: '36px', height: '36px',
             background: 'var(--accent-blue)',
+            borderRadius: 'var(--radius-sm)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>

@@ -234,11 +234,12 @@ export const ProfilePage = () => {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{
           width: '60px', height: '60px',
-          background: 'rgba(96,165,250,.08)',
-          border: '2px solid var(--cyan)',
+          background: 'var(--accent-bg)',
+          border: '1px solid var(--border2)',
+          borderRadius: 'var(--radius-card)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'var(--ff-section)', fontSize: '16px',
-          color: 'var(--cyan)', flexShrink: 0,
+          fontFamily: 'var(--ff-section)', fontSize: '16px', fontWeight: 600,
+          color: 'var(--text-primary)', flexShrink: 0,
         }}>
           {initials}
         </div>
