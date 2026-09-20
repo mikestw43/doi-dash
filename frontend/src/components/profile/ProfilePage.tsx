@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { updateProfile, savePreferences, getProfile, linkGoogle, unlinkGoogle } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 import { ChangePasswordModal } from './ChangePasswordModal';
-
-const googleEnabled = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import { GoogleAuth, googleEnabled } from '../auth/googleAuth';
 
 const PHONE_COUNTRIES = [
   { code: 'TH', dial: '+66', label: 'TH +66' },
@@ -117,11 +115,6 @@ export const ProfilePage = () => {
       setGoogleBusy(false);
     }
   };
-
-  const triggerGoogleLink = useGoogleLogin({
-    onSuccess: (tokenResp) => finishGoogleLink(tokenResp.access_token),
-    onError: () => addToast({ type: 'error', title: 'Google sign-in failed' }),
-  });
 
   const handleUnlinkGoogle = async () => {
     setGoogleBusy(true);
@@ -423,13 +416,20 @@ export const ProfilePage = () => {
               ) : (
                 <>
                   <span style={readOnlyStyle}>Not linked</span>
-                  <button
-                    style={{ ...btnGhost, opacity: googleBusy ? 0.5 : 1, cursor: googleBusy ? 'not-allowed' : 'pointer' }}
-                    disabled={googleBusy}
-                    onClick={() => triggerGoogleLink()}
+                  <GoogleAuth
+                    onToken={finishGoogleLink}
+                    onError={() => addToast({ type: 'error', title: 'Google sign-in failed' })}
                   >
-                    {googleBusy ? 'LINKING...' : 'LINK GOOGLE'}
-                  </button>
+                    {signIn => (
+                      <button
+                        style={{ ...btnGhost, opacity: googleBusy ? 0.5 : 1, cursor: googleBusy ? 'not-allowed' : 'pointer' }}
+                        disabled={googleBusy}
+                        onClick={() => signIn()}
+                      >
+                        {googleBusy ? 'LINKING...' : 'LINK GOOGLE'}
+                      </button>
+                    )}
+                  </GoogleAuth>
                 </>
               )}
             </div>

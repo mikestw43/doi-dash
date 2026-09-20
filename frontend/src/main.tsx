@@ -19,12 +19,18 @@ const queryClient = new QueryClient({
 // is set in the deploy environment.
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
+const app = (
+  <QueryClientProvider client={queryClient}>
+    <App />
+  </QueryClientProvider>
+);
+
+// Mounting the provider with an empty client id makes Google's script throw
+// once it loads, which blanks the page — so only mount it when configured.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </GoogleOAuthProvider>
+    {googleClientId
+      ? <GoogleOAuthProvider clientId={googleClientId}>{app}</GoogleOAuthProvider>
+      : app}
   </StrictMode>,
 );

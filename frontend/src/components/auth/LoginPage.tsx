@@ -1,10 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
 import { login, googleLogin } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 import { SignUpPage } from './SignUpPage';
-
-const googleEnabled = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import { GoogleAuth, googleEnabled } from './googleAuth';
 
 const InfoModal = ({ title, message, onClose }: { title: string; message: string; onClose: () => void }) => (
   <div style={{
@@ -76,13 +74,6 @@ export const LoginPage = () => {
       setLoading(false);
     }
   };
-
-  // Popup flow — always shows Google's account picker (no FedCM
-  // personalized "Continue as X" button).
-  const triggerGoogle = useGoogleLogin({
-    onSuccess: (tokenResp) => finishGoogleLogin(tokenResp.access_token),
-    onError: () => setError('Google login failed'),
-  });
 
   return (
     <>
@@ -266,37 +257,44 @@ export const LoginPage = () => {
                 <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
               </div>
 
-              {/* Custom retro Google button — calls useGoogleLogin (popup flow)
+              {/* Custom retro Google button — GoogleAuth uses the popup flow
                   so Google always shows the standard account picker instead of
                   the FedCM personalized "Continue as X" button. */}
-              <button
-                type="button"
-                onClick={() => triggerGoogle()}
-                disabled={loading}
-                style={{
-                  width: '100%', padding: '10px',
-                  background: 'transparent',
-                  border: '1px solid var(--border2)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
-                  transition: 'border-color .15s',
-                  opacity: loading ? 0.6 : 1,
-                }}
-                onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-primary)')}
-                onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)')}
+              <GoogleAuth
+                onToken={finishGoogleLogin}
+                onError={() => setError('Google login failed')}
               >
-                <span style={{
-                  fontSize: '16px', fontWeight: 700,
-                  background: 'linear-gradient(135deg,#4285F4 25%,#EA4335 50%,#FBBC05 75%,#34A853 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  lineHeight: 1,
-                }}>G</span>
-                CONTINUE WITH GOOGLE
-              </button>
+                {signIn => (
+                  <button
+                    type="button"
+                    onClick={() => signIn()}
+                    disabled={loading}
+                    style={{
+                      width: '100%', padding: '10px',
+                      background: 'transparent',
+                      border: '1px solid var(--border2)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
+                      transition: 'border-color .15s',
+                      opacity: loading ? 0.6 : 1,
+                    }}
+                    onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--text-primary)')}
+                    onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)')}
+                  >
+                    <span style={{
+                      fontSize: '16px', fontWeight: 700,
+                      background: 'linear-gradient(135deg,#4285F4 25%,#EA4335 50%,#FBBC05 75%,#34A853 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      lineHeight: 1,
+                    }}>G</span>
+                    CONTINUE WITH GOOGLE
+                  </button>
+                )}
+              </GoogleAuth>
             </>
           )}
         </form>
