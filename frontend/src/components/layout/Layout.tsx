@@ -150,7 +150,7 @@ export const Layout = ({ children }: LayoutProps) => {
             width: 100% !important;
             /* index.html sets viewport-fit=cover, so the bar would otherwise
                sit under the home indicator. */
-            height: calc(56px + env(safe-area-inset-bottom)) !important;
+            height: calc(46px + env(safe-area-inset-bottom)) !important;
             padding-bottom: env(safe-area-inset-bottom) !important;
             flex-direction: row !important;
             align-items: stretch !important;
@@ -166,21 +166,22 @@ export const Layout = ({ children }: LayoutProps) => {
             width: auto !important;
             flex-direction: column !important;
             justify-content: center !important;
-            gap: 4px !important;
+            gap: 2px !important;
             border: none !important;
             border-radius: 0 !important;
           }
           .sidebar-nav button .sb-label {
             display: block !important;
+            font-size: var(--fs-micro) !important;
           }
           .main-content {
-            padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: calc(58px + env(safe-area-inset-bottom)) !important;
           }
         }
         @media (max-width: 768px) {
           .main-content {
             padding: 10px !important;
-            padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: calc(58px + env(safe-area-inset-bottom)) !important;
             gap: 10px !important;
           }
         }
