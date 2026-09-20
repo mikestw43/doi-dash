@@ -1,6 +1,11 @@
 //+------------------------------------------------------------------+
-//|                                      OnlyFunds_Reporter_v1.0.mq5 |
+//|                                      OnlyFunds_Reporter_v1.1.mq5 |
 //|                         OnlyFunds MT5 Dashboard Reporter EA      |
+//|                                                                  |
+//| v1.1 — all clock reads moved from TimeCurrent() to the terminal's|
+//|        server clock. See ServerNow() below: with the market shut |
+//|        TimeCurrent() stops moving, which silently stopped the    |
+//|        EA from pushing and skewed the broker offset by ~40h.     |
 //|                                                                  |
 //| v1.0 — first release under the OnlyFunds name. Numbering starts  |
 //|        over here; the reporter logic is the one that shipped as  |
@@ -18,7 +23,7 @@
 //|     brokerTimeOffset.                                            |
 //+------------------------------------------------------------------+
 #property copyright "OnlyFunds"
-#property version   "1.0"
+#property version   "1.1"
 #property description "Sends trading data + EA-computed today_pl to OnlyFunds Dashboard"
 
 //--- Input Parameters
@@ -46,7 +51,7 @@ int OnInit()
    g_lastDealTime = BrokerMidnight();
 
    EventSetTimer(1);
-   Print("OnlyFunds Reporter v1.0 started | Account: ", AccountInfoInteger(ACCOUNT_LOGIN));
+   Print("OnlyFunds Reporter v1.1 started | Account: ", AccountInfoInteger(ACCOUNT_LOGIN));
    Print("  Server: ", ServerURL);
    return INIT_SUCCEEDED;
 }
@@ -61,8 +66,8 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTimer()
 {
-   if(TimeCurrent() - g_lastSend < UpdateInterval) return;
-   g_lastSend = TimeCurrent();
+   if(ServerNow() - g_lastSend < UpdateInterval) return;
+   g_lastSend = ServerNow();
    SendData();
 }
 
@@ -78,14 +83,34 @@ string EscapeJson(string text)
    return text;
 }
 
+//+------------------------------------------------------------------+
+//  Current server time.
+//
+//  TimeCurrent() is the timestamp of the LAST TICK, so it freezes solid
+//  whenever the market is closed — over a weekend it can sit ~40 hours
+//  behind. That broke two things at once: the send throttle below never
+//  saw time move, so the EA pushed once and then went quiet (the
+//  dashboard marked the account offline after 30s), and the broker
+//  offset came out as nonsense like -142329s.
+//
+//  TimeTradeServer() is the terminal's own running clock for the server,
+//  so it keeps ticking with no quotes. Fall back to TimeCurrent() on the
+//  rare startup where the terminal has not resolved the offset yet.
+//+------------------------------------------------------------------+
+datetime ServerNow()
+{
+   datetime t = TimeTradeServer();
+   return (t > 0) ? t : TimeCurrent();
+}
+
 datetime BrokerMidnight()
 {
-   return StringToTime(TimeToString(TimeCurrent(), TIME_DATE) + " 00:00:00");
+   return StringToTime(TimeToString(ServerNow(), TIME_DATE) + " 00:00:00");
 }
 
 long BrokerTimeOffsetSec()
 {
-   return (long)(TimeCurrent() - TimeGMT());
+   return (long)(ServerNow() - TimeGMT());
 }
 
 bool IsClosingEntry(long entry)
@@ -106,7 +131,7 @@ double ComputeTodayPl(int &closedCount)
    double todayPl = 0;
 
    datetime todayStart = BrokerMidnight();
-   if(!HistorySelect(todayStart, TimeCurrent() + 1)) return 0;
+   if(!HistorySelect(todayStart, ServerNow() + 1)) return 0;
 
    int total = HistoryDealsTotal();
    for(int i = 0; i < total; i++)
@@ -142,7 +167,7 @@ string BuildClosedDealsJson()
    bool     isBackfill     = g_backfillCount < BACKFILL_PUSHES;
    datetime brokerMidnight = BrokerMidnight();
    datetime fromTime       = isBackfill ? brokerMidnight : (datetime)(g_lastDealTime - 5);
-   datetime toTime         = TimeCurrent();
+   datetime toTime         = ServerNow();
 
    if(!HistorySelect(fromTime, toTime)) return "[]";
 
@@ -376,7 +401,7 @@ void SendData()
    {
       if(!g_initDone)
       {
-         Print("✓ OnlyFunds: Connected! v1.0 | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
+         Print("✓ OnlyFunds: Connected! v1.1 | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
          g_initDone = true;
       }
    }

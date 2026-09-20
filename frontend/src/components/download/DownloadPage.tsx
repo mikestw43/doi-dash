@@ -17,12 +17,12 @@ type EaRelease = {
 const EA_RELEASES: EaRelease[] = [
   {
     name: 'OnlyFunds Reporter',
-    version: 'v1.0',
+    version: 'v1.1',
     description: 'Real-time portfolio reporter for MetaTrader',
     // MT4 has no compiled build yet, so it gets no button — a link to a
     // missing .ex4 would just 404.
     downloads: [
-      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.0.ex5', ext: '.EX5' },
+      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.1.ex5', ext: '.EX5' },
     ],
   },
 ];

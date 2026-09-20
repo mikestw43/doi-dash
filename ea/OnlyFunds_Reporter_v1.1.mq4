@@ -1,8 +1,9 @@
 //+------------------------------------------------------------------+
-//|                                      OnlyFunds_Reporter_v1.0.mq4 |
+//|                                      OnlyFunds_Reporter_v1.1.mq4 |
 //|                         OnlyFunds MT4 Dashboard Reporter EA      |
 //|                                                                  |
-//| v1.0 (MT4) — feature parity with the MT5 build:                  |
+//| v1.1 (MT4) — clock reads moved to the terminal's server clock;   |
+//|   see ServerNow(). Otherwise feature parity with the MT5 build:  |
 //|   • today_pl computed from MT4 history (closed orders for the    |
 //|     broker's current day).                                       |
 //|   • Trading-only orders (OP_BUY / OP_SELL); balance, credit and  |
@@ -13,7 +14,7 @@
 //|     accounts live side by side in one dashboard.                 |
 //+------------------------------------------------------------------+
 #property copyright "OnlyFunds"
-#property version   "1.00"
+#property version   "1.10"
 #property strict
 #property description "Sends MT4 trading data + EA-computed today_pl to OnlyFunds Dashboard"
 
@@ -42,7 +43,7 @@ int OnInit()
    g_lastDealTime = BrokerMidnight();
 
    EventSetTimer(1);
-   Print("OnlyFunds Reporter v1.0 (MT4) started | Account: ", AccountNumber());
+   Print("OnlyFunds Reporter v1.1 (MT4) started | Account: ", AccountNumber());
    Print("  Server: ", ServerURL);
    return INIT_SUCCEEDED;
 }
@@ -57,8 +58,8 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTimer()
 {
-   if(TimeCurrent() - g_lastSend < UpdateInterval) return;
-   g_lastSend = TimeCurrent();
+   if(ServerNow() - g_lastSend < UpdateInterval) return;
+   g_lastSend = ServerNow();
    SendData();
 }
 
@@ -74,14 +75,34 @@ string EscapeJson(string text)
    return text;
 }
 
+//+------------------------------------------------------------------+
+//  Current server time.
+//
+//  TimeCurrent() is the timestamp of the LAST TICK, so it freezes solid
+//  whenever the market is closed — over a weekend it can sit ~40 hours
+//  behind. That broke two things at once: the send throttle below never
+//  saw time move, so the EA pushed once and then went quiet (the
+//  dashboard marked the account offline after 30s), and the broker
+//  offset came out as nonsense like -142329s.
+//
+//  TimeTradeServer() is the terminal's own running clock for the server,
+//  so it keeps ticking with no quotes. Fall back to TimeCurrent() on the
+//  rare startup where the terminal has not resolved the offset yet.
+//+------------------------------------------------------------------+
+datetime ServerNow()
+{
+   datetime t = TimeTradeServer();
+   return (t > 0) ? t : TimeCurrent();
+}
+
 datetime BrokerMidnight()
 {
-   return StringToTime(TimeToString(TimeCurrent(), TIME_DATE) + " 00:00:00");
+   return StringToTime(TimeToString(ServerNow(), TIME_DATE) + " 00:00:00");
 }
 
 long BrokerTimeOffsetSec()
 {
-   return (long)(TimeCurrent() - TimeGMT());
+   return (long)(ServerNow() - TimeGMT());
 }
 
 //+------------------------------------------------------------------+
@@ -286,7 +307,7 @@ void SendData()
    {
       if(!g_initDone)
       {
-         Print("✓ OnlyFunds: Connected! v1.0 (MT4) | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
+         Print("✓ OnlyFunds: Connected! v1.1 (MT4) | broker offset ", (int)brokerOffsetSec, "s | today P/L: ", DoubleToString(todayPl, 2), " (", closedToday, " deals)");
          g_initDone = true;
       }
    }
