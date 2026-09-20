@@ -99,21 +99,28 @@ class RuntimeAccountStore {
         groupName: dbAcc.group?.name,
         groupColor: dbAcc.group?.color,
         isDemo: dbAcc.isDemo,
-        // If demo account, use mock data; otherwise start with defaults
+        // Demo accounts run on mock data. Everything else comes back as the
+        // last snapshot its EA pushed, so a restart doesn't wipe the numbers
+        // back to invented ones. Status stays offline until a push proves
+        // the EA is alive again.
         status: demo?.status ?? 'offline',
-        balance: demo?.balance ?? 1000,
-        equity: demo?.equity ?? 1000,
-        margin: demo?.margin ?? 0,
-        freeMargin: demo?.freeMargin ?? 1000,
-        marginLevel: demo?.marginLevel ?? 9999,
-        drawdown: demo?.drawdown ?? 0,
-        profit: demo?.profit ?? 0,
-        openLots: demo?.openLots ?? 0,
-        buyLots: demo?.buyLots ?? 0,
-        sellLots: demo?.sellLots ?? 0,
-        pendingOrders: demo?.pendingOrders ?? 0,
+        balance: demo?.balance ?? dbAcc.balance,
+        equity: demo?.equity ?? dbAcc.equity,
+        margin: demo?.margin ?? dbAcc.margin,
+        freeMargin: demo?.freeMargin ?? dbAcc.freeMargin,
+        marginLevel: demo?.marginLevel ?? dbAcc.marginLevel,
+        drawdown: demo?.drawdown ?? dbAcc.drawdown,
+        profit: demo?.profit ?? dbAcc.profit,
+        openLots: demo?.openLots ?? dbAcc.openLots,
+        buyLots: demo?.buyLots ?? dbAcc.buyLots,
+        sellLots: demo?.sellLots ?? dbAcc.sellLots,
+        pendingOrders: demo?.pendingOrders ?? dbAcc.pendingOrders,
+        // Open positions are live-only; the EA re-sends them on its next push.
         orders: demo?.orders ?? [],
         pending: demo?.pending ?? [],
+        ...(dbAcc.todayPnl != null && { todayPnl: dbAcc.todayPnl }),
+        ...(dbAcc.closedOrdersToday != null && { closedOrdersToday: dbAcc.closedOrdersToday }),
+        ...(dbAcc.brokerTimeOffset != null && { brokerTimeOffset: dbAcc.brokerTimeOffset }),
       };
 
       const userId = dbAcc.userId;

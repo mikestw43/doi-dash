@@ -194,6 +194,8 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     }).catch(err => console.error('[MT5] Failed to persist account details:', err.message));
   }
 
+  persistSnapshot(updated);
+
   // Record closed trades: prefer EA-reported deals (exact P/L), fallback to position diff
   if (payload.closedDeals && payload.closedDeals.length > 0) {
     const brokerOffset = payload.brokerTimeOffset ?? 7200;
@@ -257,6 +259,44 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
   res.json(response);
 };
 
+/**
+ * Write an account's live figures to the DB so they survive an API restart.
+ *
+ * The EA pushes every 2s; SQLite does not need that. One write per account
+ * per SNAPSHOT_INTERVAL_MS is enough to keep the stored copy close, and the
+ * heartbeat flushes a final one when the account drops offline so what we
+ * keep is the last thing the EA actually reported.
+ */
+const SNAPSHOT_INTERVAL_MS = 30_000;
+const lastSnapshotAt = new Map<string, number>();
+
+const persistSnapshot = (account: Account, force = false): void => {
+  const now = Date.now();
+  if (!force && now - (lastSnapshotAt.get(account.id) ?? 0) < SNAPSHOT_INTERVAL_MS) return;
+  lastSnapshotAt.set(account.id, now);
+
+  prisma.account.update({
+    where: { id: account.id },
+    data: {
+      balance: account.balance,
+      equity: account.equity,
+      margin: account.margin,
+      freeMargin: account.freeMargin,
+      marginLevel: account.marginLevel,
+      profit: account.profit,
+      drawdown: account.drawdown,
+      openLots: account.openLots,
+      buyLots: account.buyLots,
+      sellLots: account.sellLots,
+      pendingOrders: account.pendingOrders,
+      todayPnl: account.todayPnl ?? null,
+      closedOrdersToday: account.closedOrdersToday ?? null,
+      brokerTimeOffset: account.brokerTimeOffset ?? null,
+      lastPushAt: new Date(),
+    },
+  }).catch(err => console.error('[MT5] Failed to persist snapshot:', err.message));
+};
+
 const heartbeats = new Map<string, ReturnType<typeof setTimeout>>();
 
 const resetHeartbeat = (accountId: string, userId: string): void => {
@@ -270,6 +310,7 @@ const resetHeartbeat = (accountId: string, userId: string): void => {
       console.log(`[MT5] Account ${account.name} went offline (no push for 30s)`);
       const updated: Account = { ...account, status: 'offline' };
       runtimeStore.updateAccount(userId, updated);
+      persistSnapshot(updated, true);
       broadcastToUser(userId, runtimeStore.getAccountsByUser(userId));
       // Fire offline alert
       checkOfflineAlert(userId, updated)

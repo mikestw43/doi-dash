@@ -81,6 +81,25 @@ model Account {
   // Drawdown Protection
   protectionEnabled  Boolean  @default(false)
   protectionDrawdown Float?
+  // Last snapshot the EA pushed. Persisted so a restarted API shows the
+  // figures this account really had, instead of placeholder money — an
+  // account whose EA is offline used to come back reading 1,000.
+  balance           Float     @default(0)
+  equity            Float     @default(0)
+  margin            Float     @default(0)
+  freeMargin        Float     @default(0)
+  marginLevel       Float     @default(0)
+  profit            Float     @default(0)
+  drawdown          Float     @default(0)
+  openLots          Float     @default(0)
+  buyLots           Float     @default(0)
+  sellLots          Float     @default(0)
+  pendingOrders     Int       @default(0)
+  todayPnl          Float?
+  closedOrdersToday Int?
+  brokerTimeOffset  Int?
+  /// When that snapshot arrived — null means the EA has never connected.
+  lastPushAt        DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   equitySnapshots  EquitySnapshot[]
