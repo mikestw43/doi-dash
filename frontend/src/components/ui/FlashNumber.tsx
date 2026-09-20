@@ -34,9 +34,9 @@ export const FlashNumber = ({
     : 'var(--text)';
 
   const flashBg: CSSProperties = flash === 'green'
-    ? { backgroundColor: 'rgba(34,197,94,.3)', transition: 'background-color .6s' }
+    ? { backgroundColor: 'rgba(52,211,153,.3)', transition: 'background-color .6s' }
     : flash === 'red'
-    ? { backgroundColor: 'rgba(239,68,68,.3)', transition: 'background-color .6s' }
+    ? { backgroundColor: 'rgba(248,113,113,.3)', transition: 'background-color .6s' }
     : {};
 
   const computedStyle: CSSProperties = {

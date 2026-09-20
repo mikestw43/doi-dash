@@ -26,7 +26,6 @@ export const ToastContainer = () => {
               display: 'flex', alignItems: 'flex-start', gap: '10px',
               background: 'var(--bg-card)', border: `1px solid ${c}55`,
               padding: '11px 14px',
-              boxShadow: `4px 4px 0 ${c}33`,
               position: 'relative',
               pointerEvents: 'auto',
             }}

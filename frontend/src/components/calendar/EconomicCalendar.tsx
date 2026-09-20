@@ -20,10 +20,10 @@ interface ImpactCfg {
 }
 
 const IMPACT_CFG: Record<string, ImpactCfg> = {
-  High:           { label: 'HIGH', color: 'var(--red)',     bg: 'rgba(239,68,68,.12)',  border: 'rgba(239,68,68,.35)',  dot: 'var(--red)' },
-  Medium:         { label: 'MED',  color: 'var(--orange)',  bg: 'rgba(249,115,22,.12)', border: 'rgba(249,115,22,.35)', dot: 'var(--orange)' },
-  Low:            { label: 'LOW',  color: 'var(--warning)', bg: 'rgba(250,204,21,.12)', border: 'rgba(250,204,21,.35)', dot: 'var(--warning)' },
-  'Non-Economic': { label: 'N/E',  color: '#475569',        bg: 'rgba(71,85,105,.08)',  border: 'rgba(71,85,105,.2)',   dot: '#334155' },
+  High:           { label: 'HIGH', color: 'var(--red)',     bg: 'rgba(248,113,113,.12)',  border: 'rgba(248,113,113,.35)',  dot: 'var(--red)' },
+  Medium:         { label: 'MED',  color: 'var(--orange)',  bg: 'rgba(251,146,60,.12)', border: 'rgba(251,146,60,.35)', dot: 'var(--orange)' },
+  Low:            { label: 'LOW',  color: 'var(--warning)', bg: 'rgba(251,191,36,.12)', border: 'rgba(251,191,36,.35)', dot: 'var(--warning)' },
+  'Non-Economic': { label: 'N/E',  color: '#3a3e47',        bg: 'rgba(58,62,71,.08)',  border: 'rgba(58,62,71,.2)',   dot: '#2a2d34' },
 };
 
 const ALL_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF', 'CNY'];
@@ -50,7 +50,7 @@ const thR: React.CSSProperties = { ...thSt, textAlign: 'right' };
 const thC: React.CSSProperties = { ...thSt, textAlign: 'center' };
 
 const tdSt: React.CSSProperties = {
-  padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
+  padding: '7px 10px', borderBottom: '1px solid rgba(42,45,52,.3)',
   fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)',
   whiteSpace: 'nowrap',
 };
@@ -65,7 +65,6 @@ const EventTable = ({ events, now }: EventTableProps) => (
   <div className="evt-wrap" style={{
     background: 'var(--bg-card)',
     border: '2px solid var(--accent-blue)',
-    boxShadow: '4px 4px 0 rgba(56,189,248,.3), inset 0 0 20px rgba(56,189,248,.04)',
   }}>
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
       <thead>
@@ -101,7 +100,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
               style={{ opacity: rowOpacity }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLTableRowElement).style.background =
-                  isHigh && !past ? 'rgba(239,68,68,.05)' : 'rgba(45,64,96,.2)';
+                  isHigh && !past ? 'rgba(248,113,113,.05)' : 'rgba(42,45,52,.2)';
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
@@ -162,7 +161,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 fontSize: '17px',
                 lineHeight: 1,
                 color: !event.actual
-                  ? '#334155'
+                  ? '#2a2d34'
                   : event.actualSentiment === 'better'
                     ? 'var(--success)'
                     : event.actualSentiment === 'worse'
@@ -188,7 +187,7 @@ const EventTable = ({ events, now }: EventTableProps) => (
                 fontFamily: 'var(--ff-display)',
                 fontSize: '17px',
                 lineHeight: 1,
-                color: '#475569',
+                color: '#3a3e47',
               }}>
                 {event.previous || '—'}
               </td>
@@ -332,7 +331,7 @@ export const EconomicCalendar = () => {
           onClick={handleRefresh}
           style={{
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-            padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422',
+            padding: '9px 16px', background: 'var(--cyan)', color: '#16181c',
             border: '1px solid var(--cyan)', cursor: 'pointer',
           }}
         >
@@ -355,7 +354,7 @@ export const EconomicCalendar = () => {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '6px 12px', cursor: 'pointer',
     border: active ? '1px solid var(--success)' : '1px solid transparent',
-    background: active ? 'rgba(34,197,94,.08)' : 'none',
+    background: active ? 'rgba(52,211,153,.08)' : 'none',
     color: active ? 'var(--success)' : 'var(--text-dim)',
     transition: 'all .15s',
   });
@@ -364,7 +363,7 @@ export const EconomicCalendar = () => {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '5px 10px', cursor: 'pointer',
     border: active ? '1px solid var(--cyan)' : '1px solid var(--border2)',
-    background: active ? 'rgba(56,189,248,.1)' : 'none',
+    background: active ? 'rgba(96,165,250,.1)' : 'none',
     color: active ? 'var(--cyan)' : 'var(--text-dim)',
   });
 
@@ -372,8 +371,8 @@ export const EconomicCalendar = () => {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     display: 'inline-flex', alignItems: 'center', gap: '3px',
     padding: '4px 7px', cursor: 'pointer',
-    border: active ? '1px solid rgba(56,189,248,.6)' : '1px solid var(--border2)',
-    background: active ? 'rgba(56,189,248,.1)' : 'none',
+    border: active ? '1px solid rgba(96,165,250,.6)' : '1px solid var(--border2)',
+    background: active ? 'rgba(96,165,250,.1)' : 'none',
     color: active ? 'var(--cyan)' : 'var(--text-dim)',
   });
 
@@ -382,15 +381,15 @@ export const EconomicCalendar = () => {
       {/* ── Header — single row: dot, title, HIGH badge, refresh icon (right) ── */}
       <div style={{ marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-          <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+          <div style={{ width: '7px', height: '7px', background: 'var(--cyan)',flexShrink: 0 }} />
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>
             ECONOMIC CALENDAR
           </span>
           {todayHighCount > 0 && (
             <span style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
               display: 'inline-flex', alignItems: 'center', gap: '5px',
-              padding: '3px 8px', border: '1px solid rgba(239,68,68,.4)', color: 'var(--red)',
+              padding: '3px 8px', border: '1px solid rgba(248,113,113,.4)', color: 'var(--red)',
               flexShrink: 0,
             }}>
               <span style={{ width: '5px', height: '5px', background: 'var(--red)', display: 'inline-block' }} />
@@ -429,7 +428,6 @@ export const EconomicCalendar = () => {
         marginBottom: '14px', padding: '12px',
         background: 'var(--bg-card)',
         border: '2px solid var(--accent-blue)',
-        boxShadow: '4px 4px 0 rgba(56,189,248,.3), inset 0 0 20px rgba(56,189,248,.04)',
       }}>
         {/* Today / Week tabs */}
         <div style={{ display: 'flex', border: '1px solid var(--border2)', flexShrink: 0 }}>

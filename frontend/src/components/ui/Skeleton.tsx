@@ -1,5 +1,5 @@
 const skeletonStyle: React.CSSProperties = {
-  background: 'linear-gradient(90deg, var(--bg-card2) 25%, rgba(45,64,96,.4) 50%, var(--bg-card2) 75%)',
+  background: 'linear-gradient(90deg, var(--bg-card2) 25%, rgba(42,45,52,.4) 50%, var(--bg-card2) 75%)',
   backgroundSize: '200% 100%',
   animation: 'skeleton-shimmer 1.4s ease infinite',
 };

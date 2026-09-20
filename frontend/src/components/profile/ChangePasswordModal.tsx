@@ -62,7 +62,6 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
         style={{
           background: 'var(--bg-card)', border: '2px solid var(--border2)',
           padding: '22px 24px', maxWidth: '420px', width: '100%',
-          boxShadow: '4px 4px 0 rgba(56,189,248,.2)',
         }}
       >
         <div style={{
@@ -89,7 +88,7 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
           <div style={{
             fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--red)',
             marginBottom: '12px', padding: '7px 10px',
-            background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)',
+            background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.3)',
           }}>⚠ {err}</div>
         )}
 
@@ -109,7 +108,7 @@ export const ChangePasswordModal = ({ onClose }: Props) => {
             disabled={saving || !currentPw || !newPw || !confirmPw}
             style={{
               fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-              padding: '9px 16px', background: 'var(--yellow)', color: '#0c1422',
+              padding: '9px 16px', background: 'var(--yellow)', color: '#16181c',
               border: '1px solid var(--yellow)',
               cursor: (saving || !currentPw || !newPw || !confirmPw) ? 'not-allowed' : 'pointer',
               opacity: (saving || !currentPw || !newPw || !confirmPw) ? .5 : 1,

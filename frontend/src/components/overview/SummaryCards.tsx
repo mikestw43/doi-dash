@@ -31,11 +31,14 @@ function splitNum(val: number, dp = 2): [string, string] {
 
 type Modifier = 'cyan' | 'green' | 'red' | 'yellow';
 
-const COLORS: Record<Modifier, { border: string; shadow: string; text: string; rgb: string }> = {
-  cyan:   { border: 'var(--accent-blue)', shadow: '4px 4px 0 rgba(56,189,248,.3),  inset 0 0 20px rgba(56,189,248,.04)',  text: 'var(--accent-blue)', rgb: '56,189,248' },
-  green:  { border: 'var(--success)',     shadow: '4px 4px 0 rgba(34,197,94,.3),   inset 0 0 20px rgba(34,197,94,.04)',   text: 'var(--success)',     rgb: '34,197,94'  },
-  red:    { border: 'var(--danger)',      shadow: '4px 4px 0 rgba(239,68,68,.3),   inset 0 0 20px rgba(239,68,68,.04)',   text: 'var(--danger)',      rgb: '239,68,68'  },
-  yellow: { border: 'var(--warning)',     shadow: '4px 4px 0 rgba(250,204,21,.3),  inset 0 0 20px rgba(250,204,21,.04)',  text: 'var(--warning)',     rgb: '250,204,21' },
+// Only the number carries the state colour; the card keeps the neutral
+// surface and shows state on its left edge (.kpi-card[data-mod] in index.css).
+const COLORS: Record<Modifier, { text: string }> = {
+  cyan:   { text: 'var(--text-primary)' },
+  green:  { text: 'var(--success)' },
+  red:    { text: 'var(--danger)' },
+  // A warning state shows on the card's left edge; the number stays readable.
+  yellow: { text: 'var(--text-primary)' },
 };
 
 interface KpiCardProps {
@@ -49,11 +52,10 @@ interface KpiCardProps {
 
 const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: KpiCardProps) => {
   const flash = useFlash(watchValue ?? 0);
-  const c = COLORS[mod];
   const flashBg: CSSProperties = flash === 'up'
-    ? { backgroundColor: 'rgba(34,197,94,.25)', transition: 'background-color .6s' }
+    ? { backgroundColor: 'var(--success-bg)', transition: 'background-color .6s' }
     : flash === 'dn'
-    ? { backgroundColor: 'rgba(239,68,68,.25)', transition: 'background-color .6s' }
+    ? { backgroundColor: 'var(--danger-bg)', transition: 'background-color .6s' }
     : { transition: 'background-color .6s' };
 
   return (
@@ -61,19 +63,15 @@ const KpiCard = ({ label, icon = '◇', mod = 'cyan', value, sub, watchValue }: 
       className="kpi-card"
       data-mod={mod}
       style={{
-        background: 'var(--bg-card)',
-        border: `2px solid ${c.border}`,
-        boxShadow: c.shadow,
         padding: '18px 20px',
         position: 'relative',
         minWidth: 0,
-        transition: 'transform .15s, box-shadow .15s',
         ...flashBg,
       }}
     >
       {/* Label row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1.4 }}>{label}</span>
+        <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1.4 }}>{label}</span>
         <span style={{ fontSize: '18px', color: 'var(--text-muted)', opacity: 0.35, flexShrink: 0, marginLeft: '4px', lineHeight: 1 }}>{icon}</span>
       </div>
 
@@ -189,7 +187,7 @@ export const SummaryCards = ({ stats }: Props) => {
           icon="◇"
           mod="cyan"
           watchValue={stats.totalOpenLots}
-          value={<span style={{ color: 'var(--accent-blue)' }}>{formatLots(stats.totalOpenLots)}</span>}
+          value={<span style={{ color: 'var(--text-primary)' }}>{formatLots(stats.totalOpenLots)}</span>}
           sub={`B:${formatLots(stats.totalBuyLots)} / S:${formatLots(stats.totalSellLots)}`}
         />
 
@@ -207,10 +205,10 @@ export const SummaryCards = ({ stats }: Props) => {
       <style>{`
         /* Hover lift — pixel-art shadow grows + inner glow intensifies. !important
            required because the default shadow is set inline on each card. */
-        .kpi-card[data-mod="cyan"]:hover   { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(56,189,248,.35),  inset 0 0 20px rgba(56,189,248,.06)  !important; }
-        .kpi-card[data-mod="green"]:hover  { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(34,197,94,.35),   inset 0 0 20px rgba(34,197,94,.06)   !important; }
-        .kpi-card[data-mod="red"]:hover    { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(239,68,68,.35),   inset 0 0 20px rgba(239,68,68,.06)   !important; }
-        .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(250,204,21,.35),  inset 0 0 20px rgba(250,204,21,.06)  !important; }
+        .kpi-card[data-mod="cyan"]:hover   { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(96,165,250,.35),  inset 0 0 20px rgba(96,165,250,.06)  !important; }
+        .kpi-card[data-mod="green"]:hover  { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(52,211,153,.35),   inset 0 0 20px rgba(52,211,153,.06)   !important; }
+        .kpi-card[data-mod="red"]:hover    { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(248,113,113,.35),   inset 0 0 20px rgba(248,113,113,.06)   !important; }
+        .kpi-card[data-mod="yellow"]:hover { transform: translate(-3px, -3px); box-shadow: 6px 6px 0 rgba(251,191,36,.35),  inset 0 0 20px rgba(251,191,36,.06)  !important; }
 
         /* Mobile ≤768px: 2 cols, compact cards so all 6 fit one screen.
            Tighter padding + smaller display number + reduced gaps. */

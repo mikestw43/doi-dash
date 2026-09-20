@@ -15,7 +15,7 @@ const useFlashBg = (value: number): string | undefined => {
       return () => clearTimeout(t);
     }
   }, [value]);
-  return flash === 'up' ? 'rgba(34,197,94,.25)' : flash === 'dn' ? 'rgba(239,68,68,.25)' : undefined;
+  return flash === 'up' ? 'rgba(52,211,153,.25)' : flash === 'dn' ? 'rgba(248,113,113,.25)' : undefined;
 };
 
 /** Flash a green/red background on a <td> when `value` changes. */
@@ -128,9 +128,6 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
       style={{
         background: 'var(--bg-card)',
         border: `2px solid ${accentColor}`,
-        boxShadow: accent === 'yellow'
-          ? '4px 4px 0 rgba(250,204,21,.25), inset 0 0 20px rgba(250,204,21,.04)'
-          : '4px 4px 0 rgba(56,189,248,.3), inset 0 0 20px rgba(56,189,248,.04)',
         marginTop: '10px',
         overflowX: 'auto',
       }}
@@ -163,7 +160,6 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
                       display: 'inline-block',
                       width: '8px', height: '8px',
                       background: offline ? 'var(--danger)' : 'var(--success)',
-                      boxShadow: `0 0 6px ${offline ? 'var(--danger)' : 'var(--success)'}`,
                     }}
                   />
                 </td>
@@ -236,7 +232,7 @@ export const BotTable = ({ accounts, todayPnlMap, accent = 'blue' }: Props) => {
       </table>
 
       <style>{`
-        .bot-table-wrap .bot-row:hover { background: rgba(56,189,248,.04); }
+        .bot-table-wrap .bot-row:hover { background: rgba(96,165,250,.04); }
 
         /* Default (desktop): show full money, hide k-format */
         .bot-table-wrap .num-k { display: none; }

@@ -5,8 +5,8 @@ import { fetchGroups, createGroup, updateGroupApi, deleteGroupApi } from '../../
 import type { AccountGroup } from '../../types';
 
 const PRESET_COLORS = [
-  '#6b7280', '#ef4444', '#f97316', '#eab308', '#22c55e',
-  '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#38bdf8',
+  '#6b7280', '#f87171', '#fb923c', '#fbbf24', '#34d399',
+  '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899', '#60a5fa',
 ];
 
 interface Props {
@@ -27,7 +27,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
   const [loading, setLoading] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [color, setColor] = useState('#38bdf8');
+  const [color, setColor] = useState('#60a5fa');
 
   const load = async () => {
     setLoading(true);
@@ -43,7 +43,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
 
   useEffect(() => { if (open) load(); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const resetForm = () => { setEditId(null); setName(''); setColor('#38bdf8'); };
+  const resetForm = () => { setEditId(null); setName(''); setColor('#60a5fa'); };
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -71,7 +71,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
 
   const btnPrimary: React.CSSProperties = {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-    padding: '8px 12px', background: 'var(--cyan)', color: '#0c1422',
+    padding: '8px 12px', background: 'var(--cyan)', color: '#16181c',
     border: '1px solid var(--cyan)', cursor: name.trim() ? 'pointer' : 'not-allowed',
     opacity: name.trim() ? 1 : .4,
   };
@@ -107,7 +107,6 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
               style={{
                 width: '18px', height: '18px', background: c, border: `2px solid ${color === c ? '#fff' : 'transparent'}`,
                 cursor: 'pointer', padding: 0, flexShrink: 0,
-                boxShadow: color === c ? `0 0 6px ${c}` : 'none',
               }}
             />
           ))}
@@ -139,7 +138,7 @@ export const GroupManager = ({ open, onClose, onGroupsChanged }: Props) => {
                 >✎</button>
                 <button
                   onClick={() => handleDelete(g.id)}
-                  style={{ background: 'none', border: '1px solid rgba(239,68,68,.3)', color: 'var(--red)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
+                  style={{ background: 'none', border: '1px solid rgba(248,113,113,.3)', color: 'var(--red)', cursor: 'pointer', padding: '3px 7px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}
                   title="Delete"
                 >✕</button>
               </div>

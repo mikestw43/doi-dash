@@ -34,9 +34,9 @@ const inp: React.CSSProperties = {
 };
 const btnPrimary = (disabled = false): React.CSSProperties => ({
   fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-  padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422',
+  padding: '9px 16px', background: 'var(--cyan)', color: '#16181c',
   border: '1px solid var(--cyan)', cursor: disabled ? 'not-allowed' : 'pointer',
-  opacity: disabled ? .5 : 1, boxShadow: disabled ? 'none' : '0 0 8px rgba(56,189,248,.4)',
+  opacity: disabled ? .5 : 1,
 });
 const btnGhost: React.CSSProperties = {
   fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
@@ -71,8 +71,8 @@ export const SettingsPage = () => {
         >
           ‹ BACK
         </button>
-        <span style={{ width: '6px', height: '6px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)' }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+        <span style={{ width: '6px', height: '6px', background: 'var(--cyan)',}} />
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '2px',}}>
           SETTINGS
         </span>
         <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
@@ -102,7 +102,7 @@ export const SettingsPage = () => {
                   width: '100%', padding: '9px 12px',
                   fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body)',
                   color: active ? 'var(--cyan)' : 'var(--text-dim)',
-                  background: active ? 'rgba(56,189,248,.08)' : 'none',
+                  background: active ? 'rgba(96,165,250,.08)' : 'none',
                   border: `1px solid ${active ? 'var(--cyan)' : 'transparent'}`,
                   cursor: 'pointer', textAlign: 'left',
                   transition: 'all .15s',
@@ -185,7 +185,7 @@ const TelegramTab = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div style={cardTitle}>TELEGRAM ALERTS</div>
         {tgData?.configured && (
-          <span style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', padding: '3px 8px', border: '1px solid rgba(34,197,94,.4)', color: 'var(--green)' }}>✓ ACTIVE</span>
+          <span style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', padding: '3px 8px', border: '1px solid rgba(52,211,153,.4)', color: 'var(--green)' }}>✓ ACTIVE</span>
         )}
       </div>
       <p style={{ fontFamily: "'Share Tech Mono'", fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
@@ -279,7 +279,7 @@ const NotificationsTab = () => {
               <span style={{
                 fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px', flexShrink: 0,
                 padding: '2px 6px',
-                border: `1px solid ${log.success ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.3)'}`,
+                border: `1px solid ${log.success ? 'rgba(52,211,153,.3)' : 'rgba(248,113,113,.3)'}`,
                 color: log.success ? 'var(--green)' : 'var(--red)',
               }}>
                 {log.success ? 'OK' : 'ERR'}

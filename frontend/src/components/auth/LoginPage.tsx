@@ -14,7 +14,6 @@ const InfoModal = ({ title, message, onClose }: { title: string; message: string
     <div style={{
       background: 'var(--bg-card)',
       border: '2px solid var(--accent-blue)',
-      boxShadow: '4px 4px 0 rgba(56,189,248,.3)',
       padding: '24px 28px',
       maxWidth: '340px', width: '100%',
     }} onClick={e => e.stopPropagation()}>
@@ -99,11 +98,10 @@ export const LoginPage = () => {
               width: '38px', height: '38px',
               background: 'var(--accent-blue)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: 'var(--glow-cyan)',
               flexShrink: 0,
             }}
           >
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#0c1422' }}>D</span>
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#16181c' }}>D</span>
           </div>
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
@@ -208,7 +206,7 @@ export const LoginPage = () => {
           {/* Forgot password */}
           <div style={{ textAlign: 'right', margin: '-4px 0 10px', fontSize: 'var(--fs-body-sm)', fontFamily: 'var(--ff-body)', color: 'var(--text-muted)' }}>
             <span
-              style={{ color: 'rgba(56,189,248,.5)', cursor: 'pointer' }}
+              style={{ color: 'rgba(96,165,250,.5)', cursor: 'pointer' }}
               onClick={() => setModal({ title: 'FORGOT PASSWORD', message: 'Password reset is managed by your administrator. Please contact your admin to reset your password.' })}
             >Forgot password?</span>
           </div>
@@ -218,8 +216,8 @@ export const LoginPage = () => {
             <div style={{
               fontSize: '10px', color: 'var(--danger)',
               marginBottom: '10px', padding: '7px 10px',
-              background: 'rgba(239,68,68,.08)',
-              border: '1px solid rgba(239,68,68,.3)',
+              background: 'rgba(248,113,113,.08)',
+              border: '1px solid rgba(248,113,113,.3)',
               fontFamily: "'Share Tech Mono'",
             }}>
               ⚠ {error}
@@ -232,12 +230,11 @@ export const LoginPage = () => {
             disabled={loading}
             style={{
               width: '100%', padding: '11px',
-              background: loading ? 'rgba(56,189,248,.5)' : 'var(--accent-blue)',
-              color: '#050d18',
+              background: loading ? 'rgba(96,165,250,.5)' : 'var(--accent-blue)',
+              color: '#121316',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               letterSpacing: '1px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
               marginTop: '6px',
-              boxShadow: 'var(--glow-cyan)',
               transition: 'opacity .15s',
             }}
           >

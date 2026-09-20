@@ -65,7 +65,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
         {/* Warning */}
-        <div style={{ padding: '10px 12px', background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+        <div style={{ padding: '10px 12px', background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
           ⚠ คำสั่งจะถูกส่งไปยัง EA และดำเนินการใน MT5 จริง ตรวจสอบพารามิเตอร์ก่อนกด Confirm
         </div>
 
@@ -80,7 +80,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
             <div style={{ display: 'flex', border: '1px solid var(--border2)' }}>
               <button
                 onClick={() => setAction('BUY')}
-                style={{ flex: 1, padding: '7px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', background: action === 'BUY' ? 'var(--green)' : 'none', color: action === 'BUY' ? '#0c1422' : buyColor, border: 'none', letterSpacing: '.5px' }}
+                style={{ flex: 1, padding: '7px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', background: action === 'BUY' ? 'var(--green)' : 'none', color: action === 'BUY' ? '#16181c' : buyColor, border: 'none', letterSpacing: '.5px' }}
               >BUY</button>
               <button
                 onClick={() => setAction('SELL')}
@@ -135,8 +135,8 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
         {symbol && parseFloat(volume) > 0 && (
           <div style={{
             padding: '10px 12px',
-            background: action === 'BUY' ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)',
-            border: `1px solid ${action === 'BUY' ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.3)'}`,
+            background: action === 'BUY' ? 'rgba(52,211,153,.08)' : 'rgba(248,113,113,.08)',
+            border: `1px solid ${action === 'BUY' ? 'rgba(52,211,153,.3)' : 'rgba(248,113,113,.3)'}`,
             fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)',
           }}>
             <span style={{ color: action === 'BUY' ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>{action}</span>
@@ -161,7 +161,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '9px 16px', letterSpacing: '.5px',
               background: action === 'BUY' ? 'var(--green)' : 'var(--red)',
-              color: action === 'BUY' ? '#0c1422' : '#fff',
+              color: action === 'BUY' ? '#16181c' : '#fff',
               border: `1px solid ${action === 'BUY' ? 'var(--green)' : 'var(--red)'}`,
               cursor: (loading || !symbol || !parseFloat(volume)) ? 'not-allowed' : 'pointer',
               opacity: (loading || !symbol || !parseFloat(volume)) ? .5 : 1,

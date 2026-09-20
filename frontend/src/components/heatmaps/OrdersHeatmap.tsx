@@ -4,9 +4,9 @@ import type { HeatmapOrder } from '../../types';
 import { formatLots } from '../../utils/formatters';
 
 const getBlockStyle = (profit: number) => {
-  if (profit > 0)  return { border: 'rgba(34,197,94,.3)',  bg: 'rgba(34,197,94,.06)',  color: 'var(--green)' };
-  if (profit < 0)  return { border: 'rgba(239,68,68,.3)',  bg: 'rgba(239,68,68,.06)',  color: 'var(--red)' };
-  return               { border: 'rgba(250,204,21,.3)',  bg: 'rgba(250,204,21,.06)', color: 'var(--yellow)' };
+  if (profit > 0)  return { border: 'rgba(52,211,153,.3)',  bg: 'rgba(52,211,153,.06)',  color: 'var(--green)' };
+  if (profit < 0)  return { border: 'rgba(248,113,113,.3)',  bg: 'rgba(248,113,113,.06)',  color: 'var(--red)' };
+  return               { border: 'rgba(251,191,36,.3)',  bg: 'rgba(251,191,36,.06)', color: 'var(--yellow)' };
 };
 
 export const OrdersHeatmap = () => {

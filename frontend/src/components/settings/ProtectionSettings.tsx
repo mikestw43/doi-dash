@@ -59,7 +59,6 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
         background: 'var(--bg-card)', border: '1px solid var(--border2)',
         padding: '20px 22px', width: '100%', maxWidth: '400px',
         margin: '0 16px', position: 'relative',
-        boxShadow: '4px 4px 0 rgba(56,189,248,.3)',
       }}>
         {/* Corner brackets */}
         <div style={{ position: 'absolute', top: 5, left: 5, width: 12, height: 12, borderTop: '2px solid var(--cyan)', borderLeft: '2px solid var(--cyan)' }} />
@@ -82,7 +81,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
         {/* Warning */}
         <div style={{
           padding: '10px 12px', marginBottom: '14px',
-          background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.3)',
+          background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.3)',
           fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6,
         }}>
           {t('protection.description') || '⚠ When drawdown exceeds the threshold, all positions will be closed automatically.'}
@@ -133,7 +132,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
                 disabled={saving}
                 style={{
                   fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-                  padding: '9px 16px', background: 'var(--yellow)', color: '#0c1422',
+                  padding: '9px 16px', background: 'var(--yellow)', color: '#16181c',
                   border: '1px solid var(--yellow)', cursor: saving ? 'not-allowed' : 'pointer',
                   opacity: saving ? .6 : 1,
                 }}

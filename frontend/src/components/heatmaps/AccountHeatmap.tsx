@@ -4,15 +4,15 @@ import type { HeatmapAccount } from '../../types';
 
 const getTileStyle = (acc: HeatmapAccount) => {
   if (acc.status !== 'online') {
-    return { borderColor: 'rgba(100,116,139,.3)', background: 'rgba(100,116,139,.06)', color: 'var(--text-dim)' };
+    return { borderColor: 'rgba(107,114,128,.3)', background: 'rgba(107,114,128,.06)', color: 'var(--text-dim)' };
   }
   if (acc.drawdown < 10) {
-    return { borderColor: 'rgba(34,197,94,.3)', background: 'rgba(34,197,94,.06)', color: 'var(--green)' };
+    return { borderColor: 'rgba(52,211,153,.3)', background: 'rgba(52,211,153,.06)', color: 'var(--green)' };
   }
   if (acc.drawdown < 30) {
-    return { borderColor: 'rgba(250,204,21,.3)', background: 'rgba(250,204,21,.06)', color: 'var(--yellow)' };
+    return { borderColor: 'rgba(251,191,36,.3)', background: 'rgba(251,191,36,.06)', color: 'var(--yellow)' };
   }
-  return { borderColor: 'rgba(239,68,68,.3)', background: 'rgba(239,68,68,.06)', color: 'var(--red)' };
+  return { borderColor: 'rgba(248,113,113,.3)', background: 'rgba(248,113,113,.06)', color: 'var(--red)' };
 };
 
 export const AccountHeatmap = () => {

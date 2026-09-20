@@ -28,7 +28,7 @@ const ACTION_COLORS: Record<string, string> = {
 const selStyle: React.CSSProperties = { width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)', color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', padding: '8px 10px', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' };
 const lblStyle: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
 const thStyle: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', padding: '9px 10px', textAlign: 'left', borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap' };
-const tdStyle: React.CSSProperties = { padding: '7px 10px', borderBottom: '1px solid rgba(45,64,96,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
+const tdStyle: React.CSSProperties = { padding: '7px 10px', borderBottom: '1px solid rgba(42,45,52,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
 
 export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
@@ -107,8 +107,8 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
       {/* Header — hidden when embedded */}
       {!embedded && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-          <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>AUDIT LOG</span>
+          <div style={{ width: '7px', height: '7px', background: 'var(--cyan)',flexShrink: 0 }} />
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>AUDIT LOG</span>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
           <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', padding: '4px 10px', border: '1px solid var(--border2)' }}>{total}</span>
           <button
@@ -131,7 +131,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             border: activeFilterCount > 0 ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
             color: activeFilterCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)',
-            background: activeFilterCount > 0 ? 'rgba(56,189,248,.08)' : 'none',
+            background: activeFilterCount > 0 ? 'rgba(96,165,250,.08)' : 'none',
             cursor: 'pointer',
           }}
         >
@@ -168,7 +168,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
             ) : (
               logs.map(log => (
                 <tr key={log.id}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(42,45,52,.25)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
                   <td style={{ ...tdStyle, color: 'var(--cyan)' }} className="al-col-user">
@@ -252,7 +252,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
               flex: 1, padding: '9px',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               border: '1px solid var(--cyan)', color: 'var(--cyan)',
-              background: 'rgba(56,189,248,.1)', cursor: 'pointer', letterSpacing: '.5px',
+              background: 'rgba(96,165,250,.1)', cursor: 'pointer', letterSpacing: '.5px',
             }}
           >
             APPLY

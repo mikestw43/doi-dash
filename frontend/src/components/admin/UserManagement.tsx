@@ -25,8 +25,8 @@ const COUNTRY_CODES = [
 ];
 
 const ROLE_COLOR: Record<string, { border: string; color: string; bg: string }> = {
-  admin: { border: 'rgba(56,189,248,.4)',  color: 'var(--accent-blue)', bg: 'rgba(56,189,248,.08)' },
-  vip:   { border: 'rgba(250,204,21,.4)',  color: 'var(--warning)',     bg: 'rgba(250,204,21,.07)' },
+  admin: { border: 'rgba(96,165,250,.4)',  color: 'var(--accent-blue)', bg: 'rgba(96,165,250,.08)' },
+  vip:   { border: 'rgba(251,191,36,.4)',  color: 'var(--warning)',     bg: 'rgba(251,191,36,.07)' },
   user:  { border: 'var(--border2)',       color: 'var(--text-dim)',    bg: 'none' },
 };
 
@@ -168,7 +168,7 @@ export const UserManagement = () => {
     borderBottom: '2px solid var(--border2)', fontWeight: 400, whiteSpace: 'nowrap',
   };
   const tdStyle: React.CSSProperties = {
-    padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
+    padding: '8px 10px', borderBottom: '1px solid rgba(42,45,52,.3)',
     fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)',
   };
   const tabBtn = (active: boolean) => ({
@@ -191,8 +191,8 @@ export const UserManagement = () => {
 
       {/* Section title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>ADMIN</span>
+        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>ADMIN</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
 
@@ -225,7 +225,7 @@ export const UserManagement = () => {
             }}>
               <button
                 onClick={() => setShowAddDialog(true)}
-                style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(56,189,248,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
+                style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(96,165,250,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
               >
                 + CREATE USER
               </button>
@@ -238,7 +238,7 @@ export const UserManagement = () => {
                   fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                   border: activeFilterCount > 0 ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
                   color: activeFilterCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)',
-                  background: activeFilterCount > 0 ? 'rgba(56,189,248,.08)' : 'none',
+                  background: activeFilterCount > 0 ? 'rgba(96,165,250,.08)' : 'none',
                   cursor: 'pointer',
                 }}
               >
@@ -257,13 +257,13 @@ export const UserManagement = () => {
 
             {/* Pending approval section */}
             {pendingUsers.length > 0 && (
-              <div style={{ borderBottom: '1px solid var(--border2)', padding: '12px 14px', background: 'rgba(250,204,21,.04)' }}>
+              <div style={{ borderBottom: '1px solid var(--border2)', padding: '12px 14px', background: 'rgba(251,191,36,.04)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                  <div style={{ width: '6px', height: '6px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)' }} />
+                  <div style={{ width: '6px', height: '6px', background: 'var(--warning)',}} />
                   <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', letterSpacing: '1px' }}>
                     PENDING APPROVAL
                   </span>
-                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', padding: '3px 8px', border: '1px solid rgba(250,204,21,.4)' }}>
+                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', padding: '3px 8px', border: '1px solid rgba(251,191,36,.4)' }}>
                     {pendingUsers.length}
                   </span>
                 </div>
@@ -272,7 +272,7 @@ export const UserManagement = () => {
                     <div key={u.id} style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '8px 12px',
-                      background: 'rgba(250,204,21,.06)', border: '1px solid rgba(250,204,21,.2)',
+                      background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.2)',
                       flexWrap: 'wrap', gap: '8px',
                     }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -295,14 +295,14 @@ export const UserManagement = () => {
                         <button
                           onClick={() => statusMutation.mutate({ id: u.id, status: 'active' })}
                           disabled={statusMutation.isPending}
-                          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(34,197,94,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
+                          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(52,211,153,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
                         >
                           ✓ APPROVE
                         </button>
                         <button
                           onClick={() => statusMutation.mutate({ id: u.id, status: 'rejected' })}
                           disabled={statusMutation.isPending}
-                          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(239,68,68,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
+                          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(248,113,113,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
                         >
                           ✕ REJECT
                         </button>
@@ -345,7 +345,7 @@ export const UserManagement = () => {
                       return (
                         <tr key={user.id}
                           onClick={() => setViewId(user.id)}
-                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.25)')}
+                          onMouseEnter={e => (e.currentTarget.style.background = 'rgba(42,45,52,.25)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                           style={{ cursor: 'pointer' }}
                           title="Click to view details and manage user"
@@ -450,7 +450,7 @@ export const UserManagement = () => {
                 role: newRole,
               })}
               disabled={!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#16181c', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: (!newEmail || !newPassword || newPassword.length < 6 || createMutation.isPending) ? .5 : 1 }}
             >
               {createMutation.isPending ? '...' : 'CREATE'}
             </button>
@@ -481,7 +481,7 @@ export const UserManagement = () => {
             <button
               onClick={() => suspendId && statusMutation.mutate({ id: suspendId, status: 'suspended' })}
               disabled={statusMutation.isPending}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'rgba(250,204,21,.15)', color: 'var(--warning)', border: '1px solid rgba(250,204,21,.5)', cursor: 'pointer', opacity: statusMutation.isPending ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'rgba(251,191,36,.15)', color: 'var(--warning)', border: '1px solid rgba(251,191,36,.5)', cursor: 'pointer', opacity: statusMutation.isPending ? .5 : 1 }}
             >
               {statusMutation.isPending ? '...' : 'SUSPEND'}
             </button>
@@ -559,7 +559,7 @@ export const UserManagement = () => {
               flex: 1, padding: '9px',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               border: '1px solid var(--cyan)', color: 'var(--cyan)',
-              background: 'rgba(56,189,248,.1)', cursor: 'pointer', letterSpacing: '.5px',
+              background: 'rgba(96,165,250,.1)', cursor: 'pointer', letterSpacing: '.5px',
             }}
           >
             APPLY

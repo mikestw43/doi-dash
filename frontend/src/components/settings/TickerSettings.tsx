@@ -32,7 +32,6 @@ const CATALOG: { group: string; items: { sym: string; label: string }[] }[] = [
 const card: React.CSSProperties = {
   background: 'var(--bg-card)',
   border: '2px solid var(--accent-blue)',
-  boxShadow: '4px 4px 0 rgba(56,189,248,.3), inset 0 0 20px rgba(56,189,248,.04)',
   padding: '20px 22px',
 };
 const cardTitle: React.CSSProperties = {
@@ -60,7 +59,7 @@ const chip = (active: boolean): React.CSSProperties => ({
   fontSize: 'var(--fs-body-sm)',
   letterSpacing: '.5px',
   border: active ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
-  background: active ? 'rgba(56,189,248,.12)' : 'transparent',
+  background: active ? 'rgba(96,165,250,.12)' : 'transparent',
   color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
   cursor: 'pointer',
   transition: 'all .15s',
@@ -190,7 +189,7 @@ export const TickerSettings = () => {
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             padding: '8px 16px',
             background: !dirty || selected.size === 0 ? 'var(--border2)' : 'var(--accent-blue)',
-            color: '#0c1422',
+            color: '#16181c',
             border: 'none',
             cursor: !dirty || saving || selected.size === 0 ? 'not-allowed' : 'pointer',
             opacity: saving ? 0.6 : 1,

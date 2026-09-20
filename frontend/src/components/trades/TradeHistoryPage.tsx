@@ -37,7 +37,7 @@ const thL = (clickable = false): React.CSSProperties => ({
   ...thBase, cursor: clickable ? 'pointer' : 'default',
 });
 const tdBase: React.CSSProperties = {
-  padding: '7px 8px', borderBottom: '1px solid rgba(45,64,96,.3)',
+  padding: '7px 8px', borderBottom: '1px solid rgba(42,45,52,.3)',
   fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', whiteSpace: 'nowrap',
 };
 const tdR: React.CSSProperties = { ...tdBase, textAlign: 'right' };
@@ -205,7 +205,7 @@ export const TradeHistoryPage = () => {
     <div>
       {/* ── Section header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
+        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>TRADE HISTORY</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)' }}>
@@ -341,7 +341,7 @@ export const TradeHistoryPage = () => {
               trades.map(t => (
                 <tr
                   key={t.id}
-                  onMouseEnter={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'rgba(45,64,96,.25)')}
+                  onMouseEnter={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'rgba(42,45,52,.25)')}
                   onMouseLeave={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'transparent')}
                 >
                   <td style={{ ...tdBase, color: 'var(--text-dim)' }} className="th-col-ticket">#{t.ticket}</td>
@@ -350,9 +350,9 @@ export const TradeHistoryPage = () => {
                     <span style={{
                       fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                       padding: '3px 6px', letterSpacing: '.5px',
-                      border: `1px solid ${t.type === 'BUY' ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
+                      border: `1px solid ${t.type === 'BUY' ? 'rgba(52,211,153,.4)' : 'rgba(248,113,113,.4)'}`,
                       color: t.type === 'BUY' ? 'var(--success)' : 'var(--danger)',
-                      background: t.type === 'BUY' ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)',
+                      background: t.type === 'BUY' ? 'rgba(52,211,153,.08)' : 'rgba(248,113,113,.08)',
                     }}>
                       {t.type}
                     </span>

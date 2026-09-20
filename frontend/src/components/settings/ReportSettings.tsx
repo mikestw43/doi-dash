@@ -130,7 +130,7 @@ export const ReportSettings = () => {
         <button
           onClick={handleSave}
           disabled={saving}
-          style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? .6 : 1, boxShadow: saving ? 'none' : '0 0 8px rgba(56,189,248,.4)' }}
+          style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '9px 16px', background: 'var(--cyan)', color: '#16181c', border: '1px solid var(--cyan)', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? .6 : 1,}}
         >
           {saving ? 'SAVING...' : t('common.save') || 'SAVE'}
         </button>

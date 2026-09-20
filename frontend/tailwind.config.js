@@ -18,7 +18,7 @@ export default {
         success: 'var(--success)',
         danger:  'var(--danger)',
         warning: 'var(--warning)',
-        neutral: '#6b7280',
+        neutral: '#9ca3af',
         border2: 'var(--border2)',
         // DOI DASH aliases
         cyan:    'var(--accent-blue)',
@@ -27,11 +27,13 @@ export default {
         yellow:  'var(--warning)',
       },
       fontFamily: {
-        sans:    ['Inter', 'system-ui', 'sans-serif'],
+        // Kanit sits in every stack so Thai falls back to it automatically.
+        sans:    ['Archivo', 'Kanit', 'system-ui', 'sans-serif'],
         mono:    ['JetBrains Mono', 'Menlo', 'monospace'],
-        pixel:   ['"Press Start 2P"', 'monospace'],   // headings / labels
-        display: ['VT323', 'monospace'],               // large numbers
-        tech:    ['"Share Tech Mono"', 'monospace'],   // body data
+        pixel:   ['Archivo', 'Kanit', 'sans-serif'],   // headings / labels
+        display: ['Archivo', 'Kanit', 'sans-serif'],   // large numbers
+        tech:    ['Archivo', 'Kanit', 'sans-serif'],   // body data
+        thai:    ['Kanit', 'sans-serif'],
       },
       animation: {
         'flash-green': 'flashGreen 0.6s ease-out',

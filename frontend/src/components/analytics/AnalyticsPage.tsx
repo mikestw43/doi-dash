@@ -89,7 +89,7 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
   };
   const thR: React.CSSProperties = { ...thB, textAlign: 'right' };
   const td: React.CSSProperties = {
-    padding: '8px 10px', borderBottom: '1px solid rgba(45,64,96,.3)',
+    padding: '8px 10px', borderBottom: '1px solid rgba(42,45,52,.3)',
     fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', whiteSpace: 'nowrap',
   };
   const tdR: React.CSSProperties = { ...td, textAlign: 'right' };
@@ -129,7 +129,7 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
           {rows.map(r => (
             <tr
               key={r.symbol}
-              onMouseEnter={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'rgba(45,64,96,.25)')}
+              onMouseEnter={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'rgba(42,45,52,.25)')}
               onMouseLeave={e => ((e.currentTarget as HTMLTableRowElement).style.background = 'transparent')}
             >
               <td style={{ ...td, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', color: 'var(--text-primary)' }}>
@@ -173,7 +173,7 @@ export const AnalyticsPage = () => {
     letterSpacing: '.5px',
     border: active ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
     color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
-    background: active ? 'rgba(56,189,248,.08)' : 'none',
+    background: active ? 'rgba(96,165,250,.08)' : 'none',
     cursor: 'pointer',
     transition: 'all .15s',
   });
@@ -185,7 +185,7 @@ export const AnalyticsPage = () => {
     <div>
       {/* ── Section header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', boxShadow: '0 0 6px var(--accent-blue)', flexShrink: 0 }} />
+        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
           ANALYTICS
         </span>

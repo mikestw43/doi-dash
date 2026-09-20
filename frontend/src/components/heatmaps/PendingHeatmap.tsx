@@ -4,12 +4,12 @@ import type { HeatmapPending, PendingOrderType } from '../../types';
 import { formatLots } from '../../utils/formatters';
 
 const TYPE_COLORS: Record<PendingOrderType, { border: string; bg: string; color: string }> = {
-  BUY_LIMIT:       { border: 'rgba(56,189,248,.3)',  bg: 'rgba(56,189,248,.06)',  color: 'var(--cyan)' },
-  SELL_LIMIT:      { border: 'rgba(239,68,68,.3)',   bg: 'rgba(239,68,68,.06)',   color: 'var(--red)' },
-  BUY_STOP:        { border: 'rgba(56,189,248,.3)',  bg: 'rgba(56,189,248,.06)',  color: 'var(--cyan)' },
-  SELL_STOP:       { border: 'rgba(249,115,22,.3)',  bg: 'rgba(249,115,22,.06)', color: 'var(--orange)' },
-  BUY_STOP_LIMIT:  { border: 'rgba(56,189,248,.3)',  bg: 'rgba(56,189,248,.06)',  color: 'var(--cyan)' },
-  SELL_STOP_LIMIT: { border: 'rgba(249,115,22,.3)',  bg: 'rgba(249,115,22,.06)', color: 'var(--orange)' },
+  BUY_LIMIT:       { border: 'rgba(96,165,250,.3)',  bg: 'rgba(96,165,250,.06)',  color: 'var(--cyan)' },
+  SELL_LIMIT:      { border: 'rgba(248,113,113,.3)',   bg: 'rgba(248,113,113,.06)',   color: 'var(--red)' },
+  BUY_STOP:        { border: 'rgba(96,165,250,.3)',  bg: 'rgba(96,165,250,.06)',  color: 'var(--cyan)' },
+  SELL_STOP:       { border: 'rgba(251,146,60,.3)',  bg: 'rgba(251,146,60,.06)', color: 'var(--orange)' },
+  BUY_STOP_LIMIT:  { border: 'rgba(96,165,250,.3)',  bg: 'rgba(96,165,250,.06)',  color: 'var(--cyan)' },
+  SELL_STOP_LIMIT: { border: 'rgba(251,146,60,.3)',  bg: 'rgba(251,146,60,.06)', color: 'var(--orange)' },
 };
 
 export const PendingHeatmap = () => {

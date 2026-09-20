@@ -97,7 +97,7 @@ export const Layout = ({ children }: LayoutProps) => {
                   color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
                   cursor: 'pointer',
                   border: active ? '1px solid var(--border2)' : '1px solid transparent',
-                  background: active ? 'rgba(56,189,248,.08)' : 'none',
+                  background: active ? 'rgba(96,165,250,.08)' : 'none',
                   position: 'relative',
                   transition: 'all .15s',
                   flexShrink: 0,

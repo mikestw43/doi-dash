@@ -24,7 +24,6 @@ export const Dialog = ({ open, onClose, title, children }: DialogProps) => {
       <div style={{
         position: 'relative', background: 'var(--bg-card)',
         border: '2px solid var(--border2)',
-        boxShadow: '4px 4px 0 rgba(56,189,248,.3)',
         width: '100%', maxWidth: '440px',
       }}>
         {/* corner brackets */}

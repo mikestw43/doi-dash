@@ -36,7 +36,7 @@ export const CloseAllDialog = ({ accountId, accountName, onClose, onSuccess }: P
     <Dialog open onClose={onClose} title="CLOSE ALL ORDERS">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Warning box */}
-        <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)' }}>
+        <div style={{ display: 'flex', gap: '10px', padding: '12px', background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.3)' }}>
           <span style={{ color: 'var(--red)', fontSize: '16px', flexShrink: 0 }}>⚠</span>
           <div>
             <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', marginBottom: '6px', letterSpacing: '.5px' }}>

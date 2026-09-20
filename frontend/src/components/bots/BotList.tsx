@@ -23,7 +23,7 @@ const SORT_OPTIONS = [
 // ── Section header matching mockup ──────────────────────────────────────────
 const SecHdr = ({ title, count, dot = 'var(--accent-blue)' }: { title: string; count?: string; dot?: string }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-    <div style={{ width: '7px', height: '7px', background: dot, boxShadow: `0 0 6px ${dot}`, flexShrink: 0 }} />
+    <div style={{ width: '7px', height: '7px', background: dot,flexShrink: 0 }} />
     <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
       {title}
     </span>
@@ -130,7 +130,7 @@ export const BotList = () => {
     fontSize: 'var(--fs-section)',
     border: active ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
     color: active ? 'var(--accent-blue)' : 'var(--text-muted)',
-    background: active ? 'rgba(56,189,248,.08)' : 'none',
+    background: active ? 'rgba(96,165,250,.08)' : 'none',
     cursor: 'pointer',
     transition: 'all .15s',
   } as React.CSSProperties);
@@ -250,7 +250,7 @@ export const BotList = () => {
                 flex: 1, padding: '9px',
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 border: '1px solid var(--cyan)', color: 'var(--cyan)',
-                background: 'rgba(56,189,248,.1)', cursor: 'pointer', letterSpacing: '.5px',
+                background: 'rgba(96,165,250,.1)', cursor: 'pointer', letterSpacing: '.5px',
               }}
             >
               APPLY
@@ -289,17 +289,17 @@ export const BotList = () => {
         <div>
           {/* Demo section header — yellow dot + SANDBOX badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <div style={{ width: '7px', height: '7px', background: 'var(--warning)', boxShadow: '0 0 6px var(--warning)', flexShrink: 0 }} />
+            <div style={{ width: '7px', height: '7px', background: 'var(--warning)',flexShrink: 0 }} />
             <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', letterSpacing: '2px' }}>
               DEMO ACCOUNTS
             </span>
-            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(250,204,21,.3), transparent)' }} />
+            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(251,191,36,.3), transparent)' }} />
             <span style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
               color: 'var(--warning)',
               padding: '3px 8px',
-              border: '1px solid rgba(250,204,21,.4)',
-              background: 'rgba(250,204,21,.06)',
+              border: '1px solid rgba(251,191,36,.4)',
+              background: 'rgba(251,191,36,.06)',
               letterSpacing: '.5px',
             }}>SANDBOX</span>
             <span style={{

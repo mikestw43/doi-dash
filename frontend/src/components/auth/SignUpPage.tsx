@@ -103,9 +103,9 @@ export const SignUpPage = ({ onBack }: Props) => {
             width: '38px', height: '38px',
             background: 'var(--accent-blue)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: 'var(--glow-cyan)', flexShrink: 0,
+flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#0c1422' }}>D</span>
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#16181c' }}>D</span>
           </div>
           <div style={{ fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
             DOI DASH
@@ -297,7 +297,7 @@ export const SignUpPage = ({ onBack }: Props) => {
                     cursor: 'pointer', transition: 'all .15s',
                   }}
                 >
-                  {agreed && <span style={{ color: '#0c1422', fontSize: '11px', fontWeight: 'bold', lineHeight: 1 }}>✓</span>}
+                  {agreed && <span style={{ color: '#16181c', fontSize: '11px', fontWeight: 'bold', lineHeight: 1 }}>✓</span>}
                 </div>
                 <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                   I agree to the{' '}
@@ -317,8 +317,8 @@ export const SignUpPage = ({ onBack }: Props) => {
               <div style={{
                 fontSize: '10px', color: 'var(--danger)',
                 marginBottom: '10px', padding: '7px 10px',
-                background: 'rgba(239,68,68,.08)',
-                border: '1px solid rgba(239,68,68,.3)',
+                background: 'rgba(248,113,113,.08)',
+                border: '1px solid rgba(248,113,113,.3)',
                 fontFamily: "'Share Tech Mono'",
               }}>
                 ⚠ {error}
@@ -329,8 +329,8 @@ export const SignUpPage = ({ onBack }: Props) => {
             <div style={{
               fontSize: '10px', color: 'var(--text-muted)',
               marginBottom: '12px', padding: '7px 10px',
-              background: 'rgba(56,189,248,.04)',
-              border: '1px solid rgba(56,189,248,.15)',
+              background: 'rgba(96,165,250,.04)',
+              border: '1px solid rgba(96,165,250,.15)',
               fontFamily: "'Share Tech Mono'", lineHeight: 1.6,
             }}>
               ℹ Your account will be reviewed by an admin before activation.
@@ -342,12 +342,11 @@ export const SignUpPage = ({ onBack }: Props) => {
               disabled={loading || !agreed}
               style={{
                 width: '100%', padding: '11px',
-                background: (loading || !agreed) ? 'rgba(56,189,248,.4)' : 'var(--accent-blue)',
-                color: '#050d18',
+                background: (loading || !agreed) ? 'rgba(96,165,250,.4)' : 'var(--accent-blue)',
+                color: '#121316',
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 letterSpacing: '1px', border: 'none',
                 cursor: (loading || !agreed) ? 'not-allowed' : 'pointer',
-                boxShadow: agreed ? 'var(--glow-cyan)' : 'none',
                 transition: 'all .15s',
                 marginBottom: '10px',
               }}

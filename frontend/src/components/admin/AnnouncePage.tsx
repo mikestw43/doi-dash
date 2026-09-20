@@ -11,10 +11,10 @@ interface Announcement {
 }
 
 const TYPE_CFG = {
-  info:        { label: 'INFO',        color: 'var(--cyan)',   bg: 'rgba(56,189,248,.08)',  icon: '◈' },
-  warning:     { label: 'WARNING',     color: 'var(--yellow)', bg: 'rgba(250,204,21,.08)',  icon: '▲' },
-  update:      { label: 'UPDATE',      color: 'var(--green)',  bg: 'rgba(34,197,94,.08)',   icon: '▸' },
-  maintenance: { label: 'MAINTENANCE', color: 'var(--orange)', bg: 'rgba(249,115,22,.08)', icon: '⚙' },
+  info:        { label: 'INFO',        color: 'var(--cyan)',   bg: 'rgba(96,165,250,.08)',  icon: '◈' },
+  warning:     { label: 'WARNING',     color: 'var(--yellow)', bg: 'rgba(251,191,36,.08)',  icon: '▲' },
+  update:      { label: 'UPDATE',      color: 'var(--green)',  bg: 'rgba(52,211,153,.08)',   icon: '▸' },
+  maintenance: { label: 'MAINTENANCE', color: 'var(--orange)', bg: 'rgba(251,146,60,.08)', icon: '⚙' },
 };
 
 const INITIAL: Announcement[] = [
@@ -96,7 +96,7 @@ export const AnnouncePage = () => {
             onClick={() => setShowForm(p => !p)}
             style={{
               padding: '8px 16px',
-              background: showForm ? 'rgba(239,68,68,.1)' : 'rgba(56,189,248,.1)',
+              background: showForm ? 'rgba(248,113,113,.1)' : 'rgba(96,165,250,.1)',
               border: `1px solid ${showForm ? 'var(--red)' : 'var(--cyan)'}`,
               color: showForm ? 'var(--red)' : 'var(--cyan)',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
@@ -168,7 +168,7 @@ export const AnnouncePage = () => {
               onClick={handlePost}
               style={{
                 padding: '9px 20px',
-                background: 'rgba(34,197,94,.1)', border: '1px solid var(--green)',
+                background: 'rgba(52,211,153,.1)', border: '1px solid var(--green)',
                 color: 'var(--green)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 cursor: 'pointer', letterSpacing: '.5px',
               }}
@@ -219,7 +219,6 @@ export const AnnouncePage = () => {
           <div style={{
             background: 'var(--bg-card)', border: '1px solid var(--red)',
             padding: '24px 28px', minWidth: '320px',
-            boxShadow: '4px 4px 0 rgba(239,68,68,.2)',
           }}>
             <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', marginBottom: '12px' }}>
               DELETE ANNOUNCEMENT
@@ -233,7 +232,7 @@ export const AnnouncePage = () => {
                 color: 'var(--text-muted)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer',
               }}>CANCEL</button>
               <button onClick={() => handleDelete(deleteId)} style={{
-                padding: '8px 16px', background: 'rgba(239,68,68,.1)', border: '1px solid var(--red)',
+                padding: '8px 16px', background: 'rgba(248,113,113,.1)', border: '1px solid var(--red)',
                 color: 'var(--red)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer',
               }}>DELETE</button>
             </div>
@@ -266,7 +265,7 @@ const AnnCard = ({ ann, isAdmin, onDelete }: {
             {ann.pinned && (
               <span style={{
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '2px 6px',
-                border: '1px solid var(--yellow)', color: 'var(--yellow)', background: 'rgba(250,204,21,.06)',
+                border: '1px solid var(--yellow)', color: 'var(--yellow)', background: 'rgba(251,191,36,.06)',
               }}>PINNED</span>
             )}
             <span style={{
@@ -290,7 +289,7 @@ const AnnCard = ({ ann, isAdmin, onDelete }: {
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.color = 'var(--red)';
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(239,68,68,.3)';
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(248,113,113,.3)';
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';

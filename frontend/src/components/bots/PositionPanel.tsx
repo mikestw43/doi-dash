@@ -81,7 +81,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
     borderBottom: '1px solid var(--border2)', fontWeight: 400,
   };
   const thR: React.CSSProperties = { ...thStyle, textAlign: 'right' };
-  const tdStyle: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid rgba(45,64,96,.4)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
+  const tdStyle: React.CSSProperties = { padding: '6px 8px', borderBottom: '1px solid rgba(42,45,52,.4)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
   const tdR: React.CSSProperties = { ...tdStyle, textAlign: 'right' };
 
   const inputStyle: React.CSSProperties = {
@@ -114,7 +114,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
 
             return (
               <tr key={order.ticket} style={{ transition: 'background .12s' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(45,64,96,.3)')}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(42,45,52,.3)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <td style={tdStyle}>
@@ -124,9 +124,9 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                   <span style={{
                     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                     padding: '3px 6px', letterSpacing: '.5px',
-                    border: `1px solid ${isBuy ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
+                    border: `1px solid ${isBuy ? 'rgba(52,211,153,.4)' : 'rgba(248,113,113,.4)'}`,
                     color: isBuy ? 'var(--green)' : 'var(--red)',
-                    background: isBuy ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)',
+                    background: isBuy ? 'rgba(52,211,153,.08)' : 'rgba(248,113,113,.08)',
                   }}>
                     {order.type}
                   </span>
@@ -207,7 +207,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                           style={{
                             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                             padding: '3px 6px', letterSpacing: '.5px',
-                            color: 'var(--red)', border: '1px solid rgba(239,68,68,.4)',
+                            color: 'var(--red)', border: '1px solid rgba(248,113,113,.4)',
                             background: 'none', cursor: 'pointer', opacity: isLoading ? .4 : 1,
                           }}
                         >

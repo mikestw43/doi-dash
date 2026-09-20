@@ -66,7 +66,7 @@ export const EaRepository = () => {
             return (
               <div key={ea.filename} style={{
                 background: 'var(--bg-card)',
-                border: `1px solid ${expanded ? 'var(--border2)' : 'rgba(45,64,96,.5)'}`,
+                border: `1px solid ${expanded ? 'var(--border2)' : 'rgba(42,45,52,.5)'}`,
                 transition: 'border-color .15s',
               }}>
                 <button
@@ -124,7 +124,7 @@ export const EaRepository = () => {
                       </div>
                       <div style={{
                         marginTop: '12px', padding: '8px 12px',
-                        background: 'rgba(56,189,248,.04)', border: '1px solid rgba(56,189,248,.15)',
+                        background: 'rgba(96,165,250,.04)', border: '1px solid rgba(96,165,250,.15)',
                         fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)',
                       }}>
                         {ea.changelog}
@@ -137,7 +137,7 @@ export const EaRepository = () => {
                         style={{
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
                           padding: '9px 14px',
-                          background: 'rgba(56,189,248,.08)', border: '1px solid var(--cyan)',
+                          background: 'rgba(96,165,250,.08)', border: '1px solid var(--cyan)',
                           color: 'var(--cyan)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                           cursor: 'pointer', textDecoration: 'none', letterSpacing: '.5px',
                         }}

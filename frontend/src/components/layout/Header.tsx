@@ -162,16 +162,14 @@ export const Header = () => {
             width: '36px', height: '36px',
             background: 'var(--accent-blue)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: 'var(--glow-cyan)',
             flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#0c1422' }}>D</span>
+            <span style={{ fontFamily: "'Press Start 2P'", fontSize: '13px', color: '#16181c' }}>D</span>
           </div>
           <div className="header-logo-text">
             <div style={{
               fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
               color: 'var(--text-primary)', letterSpacing: '2px',
-              textShadow: '0 0 12px rgba(56,189,248,.8)',
             }}>DOI DASH</div>
             <div className="header-subtitle" style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
@@ -184,8 +182,8 @@ export const Header = () => {
         {/* Center: Clock + Sessions */}
         <div className="header-center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
           <div style={{
-            fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-md)', fontWeight: 400,
-            color: 'var(--warning)', letterSpacing: '2px', lineHeight: 1,
+            fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-md)', fontWeight: 600,
+            color: 'var(--text-primary)', letterSpacing: '1px', lineHeight: 1,
           }}>
             {time}
           </div>
@@ -205,7 +203,6 @@ export const Header = () => {
                     <span style={{
                       width: '5px', height: '5px', borderRadius: '50%',
                       background: 'currentColor',
-                      boxShadow: active ? '0 0 6px var(--success)' : 'none',
                       transition: 'box-shadow .4s',
                     }} />
                     {s.name}
@@ -238,7 +235,7 @@ export const Header = () => {
                 <div key={i} style={{
                   width: '4px', height: `${h}px`,
                   borderRadius: '1px 1px 0 0',
-                  background: wsConnected ? (i < 3 ? 'currentColor' : 'rgba(34,197,94,.3)') : (i < 1 ? 'currentColor' : 'rgba(239,68,68,.3)'),
+                  background: wsConnected ? (i < 3 ? 'currentColor' : 'rgba(52,211,153,.3)') : (i < 1 ? 'currentColor' : 'rgba(248,113,113,.3)'),
                 }} />
               ))}
             </div>
@@ -273,8 +270,8 @@ export const Header = () => {
               {/* Avatar */}
               <div style={{
                 width: '22px', height: '22px',
-                background: 'rgba(56,189,248,.08)',
-                border: '1px solid rgba(56,189,248,.5)',
+                background: 'rgba(96,165,250,.08)',
+                border: '1px solid rgba(96,165,250,.5)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                 color: 'var(--accent-blue)', flexShrink: 0,
@@ -295,13 +292,12 @@ export const Header = () => {
                 background: 'var(--bg-card)',
                 border: '1px solid var(--border2)',
                 minWidth: '220px',
-                boxShadow: '4px 4px 0 rgba(0,0,0,.5)',
               }}>
                 {/* User info */}
                 <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
                     width: '38px', height: '38px',
-                    background: 'rgba(56,189,248,.08)',
+                    background: 'rgba(96,165,250,.08)',
                     border: '1px solid var(--accent-blue)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
@@ -321,7 +317,7 @@ export const Header = () => {
                       padding: '2px 5px', display: 'inline-block', marginTop: '5px',
                       border: '1px solid var(--accent-blue)',
                       color: 'var(--accent-blue)',
-                      background: 'rgba(56,189,248,.08)',
+                      background: 'rgba(96,165,250,.08)',
                     }}>
                       {(user?.role || 'user').toUpperCase()}
                     </span>
@@ -416,7 +412,7 @@ export const Header = () => {
                     cursor: 'pointer', background: 'none', border: 'none',
                     transition: 'background .1s', textAlign: 'left',
                   }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,.08)')}
+                  onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(248,113,113,.08)')}
                   onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
                 >
                   <span style={{ fontSize: '13px', lineHeight: 1 }}>⏻</span>
@@ -454,7 +450,7 @@ export const Header = () => {
 
       {/* ══ TICKER BAR ══ */}
       <div style={{
-        background: '#040c16',
+        background: '#16181c',
         borderBottom: '1px solid var(--border-color)',
         height: '28px',
         overflow: 'hidden',

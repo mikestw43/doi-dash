@@ -37,7 +37,7 @@ export const EquityChart = ({ accountId }: Props) => {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
     padding: '5px 9px', cursor: 'pointer',
     border: active ? '1px solid var(--cyan)' : '1px solid var(--border2)',
-    background: active ? 'rgba(56,189,248,.1)' : 'none',
+    background: active ? 'rgba(96,165,250,.1)' : 'none',
     color: active ? 'var(--cyan)' : 'var(--text-dim)',
   });
 
@@ -63,22 +63,22 @@ export const EquityChart = ({ accountId }: Props) => {
       ) : (
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(45,64,96,.5)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(42,45,52,.5)" />
             <XAxis
               dataKey="timestamp"
               tickFormatter={(v) => formatDate(v, timeframe)}
-              tick={{ fontSize: 10, fill: '#64748b', fontFamily: "'Share Tech Mono'" }}
-              stroke="#2d4060"
+              tick={{ fontSize: 10, fill: '#6b7280', fontFamily: "'Share Tech Mono'" }}
+              stroke="#2a2d34"
             />
             <YAxis
-              tick={{ fontSize: 10, fill: '#64748b', fontFamily: "'Share Tech Mono'" }}
-              stroke="#2d4060"
+              tick={{ fontSize: 10, fill: '#6b7280', fontFamily: "'Share Tech Mono'" }}
+              stroke="#2a2d34"
               domain={['auto', 'auto']}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#1e293b',
-                border: '1px solid #2d4060',
+                backgroundColor: '#1a1c20',
+                border: '1px solid #2a2d34',
                 borderRadius: 0,
                 fontFamily: "'Share Tech Mono'",
                 fontSize: 11,
@@ -90,8 +90,8 @@ export const EquityChart = ({ accountId }: Props) => {
               ]) as never}
             />
             <Legend wrapperStyle={{ fontSize: 11, fontFamily: "'Share Tech Mono'" }} />
-            <Line type="monotone" dataKey="equity" stroke="#38bdf8" strokeWidth={2} dot={false} name="Equity" />
-            <Line type="monotone" dataKey="balance" stroke="#64748b" strokeWidth={1.5} dot={false} strokeDasharray="4 4" name="Balance" />
+            <Line type="monotone" dataKey="equity" stroke="#60a5fa" strokeWidth={2} dot={false} name="Equity" />
+            <Line type="monotone" dataKey="balance" stroke="#6b7280" strokeWidth={1.5} dot={false} strokeDasharray="4 4" name="Balance" />
           </LineChart>
         </ResponsiveContainer>
       )}

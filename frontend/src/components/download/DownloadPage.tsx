@@ -108,7 +108,7 @@ export const DownloadPage = () => {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '7px 12px',
-                    background: 'rgba(56,189,248,.06)',
+                    background: 'rgba(96,165,250,.06)',
                     border: '1px solid var(--cyan)',
                     color: 'var(--cyan)',
                     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
@@ -117,8 +117,8 @@ export const DownloadPage = () => {
                     cursor: 'pointer',
                     transition: 'background .15s',
                   }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(56,189,248,.12)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(56,189,248,.06)')}
+                  onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(96,165,250,.12)')}
+                  onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.background = 'rgba(96,165,250,.06)')}
                 >
                   <PixelDownloadIcon pixelSize={2} />
                   <span>{d.platform} {d.ext}</span>
@@ -154,8 +154,8 @@ export const DownloadPage = () => {
         <div style={{
           marginTop: '16px',
           padding: '10px 14px',
-          background: 'rgba(250,204,21,.05)',
-          border: '1px solid rgba(250,204,21,.25)',
+          background: 'rgba(251,191,36,.05)',
+          border: '1px solid rgba(251,191,36,.25)',
           fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-muted)',
         }}>
           <div style={{ color: 'var(--warning)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '1px', marginBottom: '6px' }}>
@@ -191,7 +191,7 @@ export const DownloadPage = () => {
               onClick={handleCopy}
               style={{
                 padding: '6px 12px',
-                background: copied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.08)',
+                background: copied ? 'rgba(52,211,153,.15)' : 'rgba(96,165,250,.08)',
                 border: `1px solid ${copied ? 'var(--green)' : 'var(--cyan)'}`,
                 color: copied ? 'var(--green)' : 'var(--cyan)',
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',

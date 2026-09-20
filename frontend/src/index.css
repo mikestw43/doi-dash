@@ -4,80 +4,95 @@
 
 @layer base {
   :root {
-    /* ── DOI DASH dark theme ── */
-    --bg-primary:   #0f172a;
-    --bg-secondary: #0c1422;
-    --bg-tertiary:  #162032;
-    --bg-card:      #1e293b;
-    --bg-input:     #162032;
-    --success:      #22c55e;
-    --danger:       #ef4444;
-    --warning:      #facc15;
-    --accent-blue:  #38bdf8;
-    --accent-purple:#a855f7;
-    --text-primary: #e5e7eb;
-    --text-secondary:#94a3b8;
-    --text-muted:   #64748b;
-    --border-color: #162032;
-    --border2:      #2d4060;
-    /* glow shortcuts */
-    --glow-cyan:  0 0 10px rgba(56,189,248,.6);
-    --glow-green: 0 0 8px rgba(34,197,94,.8);
-    --glow-red:   0 0 10px rgba(239,68,68,.6);
-    --glow-yellow:0 0 10px rgba(250,204,21,.5);
-    /* ── DOI DASH shorthand aliases (used by rebuilt components) ── */
-    --bg:         #0f172a;
-    --bg-nav:     #0c1422;
-    --bg-card2:   #162032;
-    --cyan:       #38bdf8;
-    --green:      #22c55e;
-    --red:        #ef4444;
-    --yellow:     #facc15;
-    --orange:     #f97316;
-    --text:       #e5e7eb;
-    --text-dim:   #64748b;
+    /* ── DOI DASH — institutional dark theme ──
+       Spec: design/UI-SPEC-INSTITUTIONAL-DARK.md */
+    --bg-primary:   #121316;
+    --bg-secondary: #16181c;
+    --bg-tertiary:  #1a1c20;
+    --bg-card:      #1a1c20;
+    --bg-input:     #202329;
+    --success:      #34d399;
+    --danger:       #f87171;
+    --warning:      #fbbf24;
+    --accent-blue:  #60a5fa;
+    --accent-purple:#a78bfa;
+    --text-primary: #ffffff;
+    --text-secondary:#8e95a2;
+    --text-muted:   #6b7280;
+    --border-color: #2a2d34;
+    --border2:      #2a2d34;
+
+    /* Badge fills — the semantic colour at ~12% over a card */
+    --success-bg: rgba(52,211,153,.12);
+    --danger-bg:  rgba(248,113,113,.12);
+    --warning-bg: rgba(251,191,36,.12);
+    --accent-bg:  rgba(96,165,250,.12);
+
+    --radius-card: 10px;
+    --radius-sm:   6px;
+
+    /* The theme is explicitly non-glare. Components still reference these,
+       so they stay defined — as no-ops. */
+    --glow-cyan:  none;
+    --glow-green: none;
+    --glow-red:   none;
+    --glow-yellow:none;
+
+    /* ── shorthand aliases (used by rebuilt components) ── */
+    --bg:         #121316;
+    --bg-nav:     #16181c;
+    --bg-card2:   #1a1c20;
+    --cyan:       #60a5fa;
+    --green:      #34d399;
+    --red:        #f87171;
+    --yellow:     #fbbf24;
+    --orange:     #fb923c;
+    --text:       #ffffff;
+    --text-dim:   #8e95a2;
 
     /* ── Typography scale (desktop ≥769px) ──
        Use these tokens instead of inline pixel values so the whole UI
        scales coherently. Each tier has a fixed semantic meaning. */
-    --fs-title:    10px; /* page titles: "PROFILE", "ANALYTICS" */
-    --fs-section:  8px;  /* card section headings: "PERSONAL INFO" */
-    --fs-label:    12px; /* form labels, table th, tab labels — uses VT323 */
-    --fs-micro:    10px; /* tiny badges, day numbers, weekday headers — uses VT323 */
-    --fs-body:     12px; /* body text, table td, values */
-    --fs-body-sm:  10px; /* secondary body, meta lines, "Last login..." */
-    --fs-input:    13px; /* form input fields (desktop) */
-    --fs-disp-sm:  22px; /* small display numbers: per-day P&L, bot equity */
-    --fs-disp-md:  34px; /* medium display numbers: KPI cards, clock */
-    --fs-disp-lg:  42px; /* large display numbers: hero clock, big KPI */
+    --fs-title:    18px; /* page titles: "PROFILE", "ANALYTICS" */
+    --fs-section:  13px; /* card section headings: "PERSONAL INFO" */
+    --fs-label:    11px; /* form labels, table th, tab labels */
+    --fs-micro:    10px; /* tiny badges, day numbers, weekday headers */
+    --fs-body:     13px; /* body text, table td, values */
+    --fs-body-sm:  11px; /* secondary body, meta lines, "Last login..." */
+    --fs-input:    14px; /* form input fields (desktop) */
+    --fs-disp-sm:  20px; /* small display numbers: per-day P&L, bot equity */
+    --fs-disp-md:  28px; /* medium display numbers: KPI cards, clock */
+    --fs-disp-lg:  36px; /* large display numbers: hero clock, big KPI */
 
     /* ── Font-family tokens — pair with --fs-* tier above ──
-       The label/micro tiers use VT323 (CRT terminal) instead of
-       Press Start 2P because it stays legible at small sizes while
-       keeping the retro theme. */
-    --ff-title:    'Press Start 2P', monospace;
-    --ff-section:  'Press Start 2P', monospace;
-    --ff-label:    'VT323', monospace;
-    --ff-micro:    'VT323', monospace;
-    --ff-body:     'Share Tech Mono', monospace;
-    --ff-input:    'Share Tech Mono', monospace;
-    --ff-display:  'VT323', monospace;
+       Archivo stands in for Termina and Lemon Milk until those are
+       licensed; swapping is a one-line change per token. Kanit sits in
+       every stack so Thai text falls back to it automatically — Archivo
+       carries no Thai glyphs. */
+    --ff-title:    'Archivo', 'Kanit', sans-serif;
+    --ff-section:  'Archivo', 'Kanit', sans-serif;
+    --ff-label:    'Archivo', 'Kanit', sans-serif;
+    --ff-micro:    'Archivo', 'Kanit', sans-serif;
+    --ff-body:     'Archivo', 'Kanit', sans-serif;
+    --ff-input:    'Archivo', 'Kanit', sans-serif;
+    --ff-display:  'Archivo', 'Kanit', sans-serif;
+    --ff-thai:     'Kanit', sans-serif;
   }
 
   @media (max-width: 768px) {
     :root {
       /* Mobile overrides — label/body bump UP for readability on small screens.
          --fs-input stays 16px to prevent iOS auto-zoom on input focus. */
-      --fs-title:    10px;
-      --fs-section:  8px;
-      --fs-label:    18px;
-      --fs-micro:    14px;
-      --fs-body:     15px;
-      --fs-body-sm:  13px;
+      --fs-title:    16px;
+      --fs-section:  12px;
+      --fs-label:    12px;
+      --fs-micro:    11px;
+      --fs-body:     14px;
+      --fs-body-sm:  12px;
       --fs-input:    16px;
       --fs-disp-sm:  20px;
-      --fs-disp-md:  28px;
-      --fs-disp-lg:  38px;
+      --fs-disp-md:  26px;
+      --fs-disp-lg:  32px;
     }
   }
 
@@ -121,8 +136,8 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border-radius: 0 !important;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");
+    border-radius: var(--radius-sm);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238e95a2'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 8px center;
     padding-right: 26px !important;
@@ -137,7 +152,7 @@
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
-    border-radius: 0 !important;
+    border-radius: 3px;
   }
   input[type="checkbox"]:checked {
     background: var(--cyan);
@@ -148,7 +163,7 @@
     position: absolute;
     left: 2px; top: 2px;
     width: 8px; height: 8px;
-    background: #050d18;
+    background: var(--bg-primary);
     clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
   }
 
@@ -156,30 +171,14 @@
     height: 100%;
   }
 
-  /* ── Background: subtle cyan grid painted directly on body so any solid
-     card/section background opaques it. Scanline stays on a top overlay. */
-  html::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9998;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent 0 2px,
-      rgba(0,0,0,.07) 2px 4px
-    );
-  }
-
+  /* No scanline overlay and no grid wash: the theme is flat and non-glare,
+     so depth comes from the card surface sitting above the page colour. */
   body {
     background-color: var(--bg-primary);
-    background-image:
-      linear-gradient(rgba(56,189,248,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(56,189,248,.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-attachment: fixed;
     color: var(--text-primary);
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--ff-body);
+    /* Financial columns must line up digit for digit. */
+    font-variant-numeric: tabular-nums;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     display: flex;
@@ -204,11 +203,11 @@
     background: var(--bg-secondary);
   }
   ::-webkit-scrollbar-thumb {
-    background: #374151;
+    background: #2a2d34;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #4b5563;
+    background: #3a3e47;
   }
   .light ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
@@ -221,116 +220,54 @@
 @layer components {
   .card {
     @apply bg-bg-card p-4;
-    border: 1px solid var(--border2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
     position: relative;
   }
-  /* DOI DASH corner brackets on cards */
-  .card::before, .card::after {
-    content: '';
-    position: absolute;
-    width: 10px; height: 10px;
-    border-color: rgba(56,189,248,.5);
-    border-style: solid;
-    pointer-events: none;
-    z-index: 1;
-  }
-  .card::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
-  .card::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
 
-  /* ── KPI card — pixel-art drop shadow + inner glow (lifts card off page bg) ── */
+  /* ── KPI card ──
+     Flat panel on the page colour, separated by a border rather than a
+     shadow. State is a 2px left edge; hover lifts the border only. */
   .kpi-card {
     background: var(--bg-card);
-    border: 2px solid var(--accent-blue);
-    box-shadow:
-      4px 4px 0 rgba(56,189,248,.3),
-      inset 0 0 20px rgba(56,189,248,.04);
+    border: 1px solid var(--border-color);
+    border-left: 2px solid var(--border-color);
+    border-radius: var(--radius-card);
     position: relative;
     overflow: visible;
     padding: 18px 20px;
-    transition: transform .15s, box-shadow .15s;
+    transition: border-color .15s, background-color .15s;
   }
   @media (hover: hover) {
     .kpi-card:hover {
-      transform: translate(-3px,-3px);
-      box-shadow:
-        6px 6px 0 rgba(56,189,248,.35),
-        inset 0 0 20px rgba(56,189,248,.06);
+      background: #1e2127;
     }
   }
-  .kpi-card.kpi-red {
-    border-color: var(--danger);
-    box-shadow:
-      4px 4px 0 rgba(239,68,68,.3),
-      inset 0 0 20px rgba(239,68,68,.04);
-  }
-  @media (hover: hover) {
-    .kpi-card.kpi-red:hover {
-      box-shadow:
-        6px 6px 0 rgba(239,68,68,.35),
-        inset 0 0 20px rgba(239,68,68,.06);
-    }
-  }
-  .kpi-card.kpi-yellow {
-    border-color: var(--warning);
-    box-shadow:
-      4px 4px 0 rgba(250,204,21,.3),
-      inset 0 0 20px rgba(250,204,21,.04);
-  }
-  @media (hover: hover) {
-    .kpi-card.kpi-yellow:hover {
-      box-shadow:
-        6px 6px 0 rgba(250,204,21,.35),
-        inset 0 0 20px rgba(250,204,21,.06);
-    }
-  }
+  .kpi-card.kpi-red,
+  .kpi-card[data-mod="red"]    { border-left-color: var(--danger); }
+  .kpi-card.kpi-yellow,
+  .kpi-card[data-mod="yellow"] { border-left-color: var(--warning); }
+  .kpi-card[data-mod="green"]  { border-left-color: var(--success); }
 
-  /* ── Bot card — pixel-art drop shadow + inner glow ── */
+  /* ── Bot card — same treatment as the KPI card ── */
   .bot-card {
     background: var(--bg-card);
-    border: 2px solid var(--accent-blue);
-    box-shadow:
-      4px 4px 0 rgba(56,189,248,.3),
-      inset 0 0 20px rgba(56,189,248,.04);
+    border: 1px solid var(--border-color);
+    border-left: 2px solid var(--border-color);
+    border-radius: var(--radius-card);
     position: relative;
     overflow: visible; /* allow group picker dropdown & position panel to escape */
     display: flex;
     flex-direction: column;
-    transition: transform .15s, box-shadow .15s;
+    transition: border-color .15s, background-color .15s;
   }
   @media (hover: hover) {
     .bot-card:hover {
-      transform: translate(-3px,-3px);
-      box-shadow:
-        6px 6px 0 rgba(56,189,248,.35),
-        inset 0 0 20px rgba(56,189,248,.06);
+      background: #1e2127;
     }
   }
-  .bot-card.bc-offline {
-    border-color: var(--danger);
-    box-shadow:
-      4px 4px 0 rgba(239,68,68,.3),
-      inset 0 0 20px rgba(239,68,68,.04);
-  }
-  @media (hover: hover) {
-    .bot-card.bc-offline:hover {
-      box-shadow:
-        6px 6px 0 rgba(239,68,68,.35),
-        inset 0 0 20px rgba(239,68,68,.06);
-    }
-  }
-  .bot-card.bc-demo {
-    border-color: var(--warning);
-    box-shadow:
-      4px 4px 0 rgba(250,204,21,.25),
-      inset 0 0 20px rgba(250,204,21,.04);
-  }
-  @media (hover: hover) {
-    .bot-card.bc-demo:hover {
-      box-shadow:
-        6px 6px 0 rgba(250,204,21,.35),
-        inset 0 0 20px rgba(250,204,21,.06);
-    }
-  }
+  .bot-card.bc-offline { border-left-color: var(--danger); }
+  .bot-card.bc-demo    { border-left-color: var(--warning); }
 
   /* ── Bot card internal typography — match remixed mockup ──
      Labels: Share Tech Mono 10px (slight 11px bump on mobile for readability).
@@ -338,45 +275,44 @@
      Action buttons: tighter padding + 10px font so the footer row stays low.
      All use !important because BotCard renders inline fontSize fallbacks. */
   .bc-label {
-    font-family: var(--ff-body) !important;
-    font-size: 10px !important;
-    color: var(--text-muted);
+    font-family: var(--ff-label) !important;
+    font-size: var(--fs-micro) !important;
+    color: var(--text-secondary);
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    font-weight: 500;
   }
   .bc-value {
     font-family: var(--ff-display) !important;
-    font-size: 22px !important;
-    font-weight: 400;
-    line-height: 1.1;
+    font-size: var(--fs-disp-sm) !important;
+    font-weight: 600;
+    line-height: 1.2;
   }
-  /* Emphasized P/L numbers — bigger than regular stats, like mockup .pnl-value */
+  /* Emphasized P/L numbers — one step up from a regular stat */
   .bc-value-lg {
     font-family: var(--ff-display) !important;
-    font-size: 26px !important;
-    font-weight: 400;
-    line-height: 1.05;
+    font-size: 24px !important;
+    font-weight: 600;
+    line-height: 1.15;
   }
   .bc-chip {
     font-family: var(--ff-body) !important;
-    font-size: 10px !important;
+    font-size: var(--fs-micro) !important;
+    font-weight: 500;
     letter-spacing: 0.3px;
   }
-  /* Action button — comfortable click target ~20px tall (padding 5/4). */
+  /* Action button — comfortable click target */
   .bc-action {
     font-family: var(--ff-body) !important;
-    font-size: 9px !important;
-    padding: 5px 4px !important;
+    font-size: var(--fs-micro) !important;
+    font-weight: 500;
+    padding: 7px 6px !important;
+    border-radius: var(--radius-sm);
     letter-spacing: 0.5px;
     line-height: 1.2;
   }
   @media (max-width: 768px) {
-    .bc-label    { font-size: 11px !important; }
-    .bc-value    { font-size: 22px !important; }
-    .bc-value-lg { font-size: 26px !important; }
-    .bc-chip     { font-size: 11px !important; }
-    /* Mobile: same padding (height matches desktop), font +1px for legibility. */
-    .bc-action   { font-size: 10px !important; padding: 5px 4px !important; }
+    .bc-value-lg { font-size: 22px !important; }
   }
 
   /* ── Auth box ── */
@@ -384,26 +320,10 @@
     width: 100%; max-width: 400px;
     margin: auto;
     background: var(--bg-card);
-    border: 1px solid var(--accent-blue);
-    box-shadow: var(--glow-cyan);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
     padding: 28px 24px;
     position: relative;
-  }
-  .auth-box::before {
-    content: '';
-    position: absolute;
-    top: 6px; left: 6px;
-    width: 13px; height: 13px;
-    border-top: 2px solid var(--accent-blue);
-    border-left: 2px solid var(--accent-blue);
-  }
-  .auth-box::after {
-    content: '';
-    position: absolute;
-    bottom: 6px; right: 6px;
-    width: 13px; height: 13px;
-    border-bottom: 2px solid var(--accent-blue);
-    border-right: 2px solid var(--accent-blue);
   }
 
   /* ── Sidebar button active left-bar ── */
@@ -413,7 +333,6 @@
     left: -1px; top: 20%;
     height: 60%; width: 2px;
     background: var(--accent-blue);
-    box-shadow: 0 0 6px var(--accent-blue);
   }
   @media (max-width: 900px) {
     .sb-btn-active::before {
@@ -426,16 +345,16 @@
   /* ── Status dot pulse ── */
   @keyframes sdot-pulse { 50% { opacity: .4; } }
   .sdot-on {
-    width: 9px; height: 9px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
     background: var(--success);
-    box-shadow: 0 0 6px var(--success);
     animation: sdot-pulse 2s ease-in-out infinite;
     flex-shrink: 0;
   }
   .sdot-off {
-    width: 9px; height: 9px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
     background: var(--danger);
-    box-shadow: 0 0 4px var(--danger);
     flex-shrink: 0;
   }
 
@@ -452,27 +371,32 @@
   .btn-primary {
     @apply font-pixel text-xs px-4 py-2 transition-all duration-150;
     background: var(--accent-blue);
-    color: var(--bg-secondary);
+    color: var(--bg-primary);
     border: none;
+    border-radius: var(--radius-sm);
     letter-spacing: .5px;
+    font-weight: 600;
   }
-  .btn-primary:hover { box-shadow: var(--glow-cyan); }
+  .btn-primary:hover { filter: brightness(1.1); }
 
   .btn-danger {
     @apply font-pixel text-xs px-4 py-2 transition-all duration-150;
     background: var(--danger);
-    color: #fff;
+    color: var(--bg-primary);
     border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
   }
-  .btn-danger:hover { box-shadow: var(--glow-red); }
+  .btn-danger:hover { filter: brightness(1.1); }
 
   .btn-ghost {
     @apply font-pixel text-xs px-4 py-2 transition-all duration-150;
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
   }
-  .btn-ghost:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+  .btn-ghost:hover { border-color: var(--text-secondary); color: var(--text-primary); }
 
   .mono {
     @apply font-mono;
@@ -624,12 +548,12 @@
 .hud ::-webkit-scrollbar-track { background: var(--bg-secondary); }
 
 @keyframes flashGreen {
-  0% { background-color: rgba(34, 197, 94, 0.35); border-radius: 4px; }
+  0% { background-color: rgba(52, 211, 153, 0.28); border-radius: var(--radius-sm); }
   100% { background-color: transparent; }
 }
 
 @keyframes flashRed {
-  0% { background-color: rgba(239, 68, 68, 0.35); border-radius: 4px; }
+  0% { background-color: rgba(248, 113, 113, 0.28); border-radius: var(--radius-sm); }
   100% { background-color: transparent; }
 }
 
@@ -650,13 +574,6 @@
   }
 
   /* KPI cards on mobile now use inline styles — no overrides needed here */
-
-  /* Bot cards: smaller shadow */
-  .bot-card {
-    box-shadow: 2px 2px 0 rgba(56,189,248,.3) !important;
-  }
-  .bot-card.bc-offline { box-shadow: 2px 2px 0 rgba(239,68,68,.3) !important; }
-  .bot-card.bc-demo    { box-shadow: 2px 2px 0 rgba(250,204,21,.25) !important; }
 
   /* Auth box: tighter padding on small screens */
   .auth-box {

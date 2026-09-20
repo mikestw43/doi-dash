@@ -87,7 +87,7 @@ export const NotificationBell = () => {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: open ? 'var(--accent-blue)' : 'var(--text-muted)',
           fontSize: '13px', cursor: 'pointer',
-          background: open ? 'rgba(56,189,248,.08)' : 'none',
+          background: open ? 'rgba(96,165,250,.08)' : 'none',
           transition: 'all .15s',
           position: 'relative',
           flexShrink: 0,
@@ -125,7 +125,6 @@ export const NotificationBell = () => {
           background: 'var(--bg-card)',
           border: '1px solid var(--border2)',
           width: '290px',
-          boxShadow: '4px 4px 0 rgba(0,0,0,.5)',
           maxHeight: '360px',
           display: 'flex', flexDirection: 'column',
         }}>
@@ -176,9 +175,9 @@ export const NotificationBell = () => {
                       <span style={{
                         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
                         padding: '2px 4px',
-                        border: `1px solid ${log.success ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)'}`,
+                        border: `1px solid ${log.success ? 'rgba(52,211,153,.4)' : 'rgba(248,113,113,.4)'}`,
                         color: log.success ? 'var(--success)' : 'var(--danger)',
-                        background: log.success ? 'rgba(34,197,94,.06)' : 'rgba(239,68,68,.06)',
+                        background: log.success ? 'rgba(52,211,153,.06)' : 'rgba(248,113,113,.06)',
                         flexShrink: 0,
                       }}>
                         {log.type.replace(/_/g, ' ')}

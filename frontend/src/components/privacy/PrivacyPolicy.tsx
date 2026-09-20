@@ -80,8 +80,8 @@ export const PrivacyPolicy = () => {
     <div style={{ maxWidth: '720px', margin: '0 auto' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)', flexShrink: 0 }} />
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+        <div style={{ width: '7px', height: '7px', background: 'var(--cyan)',flexShrink: 0 }} />
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>
           PRIVACY POLICY & PDPA
         </span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
@@ -158,7 +158,7 @@ export const PrivacyPolicy = () => {
             disabled={exporting}
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-              padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422',
+              padding: '8px 14px', background: 'var(--cyan)', color: '#16181c',
               border: '1px solid var(--cyan)', cursor: exporting ? 'not-allowed' : 'pointer',
               opacity: exporting ? .6 : 1, flexShrink: 0,
             }}
@@ -168,7 +168,7 @@ export const PrivacyPolicy = () => {
         </div>
 
         {/* Delete account */}
-        <div style={{ padding: '12px 14px', background: 'rgba(239,68,68,.05)', border: '1px solid rgba(239,68,68,.3)' }}>
+        <div style={{ padding: '12px 14px', background: 'rgba(248,113,113,.05)', border: '1px solid rgba(248,113,113,.3)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', letterSpacing: '.5px', marginBottom: '4px' }}>DELETE MY ACCOUNT</div>
@@ -179,7 +179,7 @@ export const PrivacyPolicy = () => {
               style={{
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                 padding: '8px 12px', background: 'none',
-                border: '1px solid rgba(239,68,68,.5)', color: 'var(--red)',
+                border: '1px solid rgba(248,113,113,.5)', color: 'var(--red)',
                 cursor: 'pointer', flexShrink: 0, marginLeft: '12px',
               }}
             >
@@ -188,7 +188,7 @@ export const PrivacyPolicy = () => {
           </div>
 
           {showDeleteConfirm && (
-            <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.3)' }}>
+            <div style={{ marginTop: '14px', padding: '12px', background: 'rgba(248,113,113,.08)', border: '1px solid rgba(248,113,113,.3)' }}>
               <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--red)', letterSpacing: '.5px', marginBottom: '8px' }}>
                 ⚠ THIS ACTION IS PERMANENT AND IRREVERSIBLE
               </div>
@@ -210,7 +210,7 @@ export const PrivacyPolicy = () => {
                   style={{
                     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                     padding: '8px 14px',
-                    background: deleteText === 'DELETE' && !deleting ? 'var(--red)' : 'rgba(100,116,139,.3)',
+                    background: deleteText === 'DELETE' && !deleting ? 'var(--red)' : 'rgba(107,114,128,.3)',
                     color: deleteText === 'DELETE' && !deleting ? '#fff' : 'var(--text-dim)',
                     border: '1px solid var(--red)',
                     cursor: deleteText === 'DELETE' && !deleting ? 'pointer' : 'not-allowed',

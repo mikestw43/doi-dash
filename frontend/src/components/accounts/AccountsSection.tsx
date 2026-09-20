@@ -117,7 +117,7 @@ const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: str
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: '40px', height: '32px',
           padding: 0,
-          background: justCopied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.08)',
+          background: justCopied ? 'rgba(52,211,153,.15)' : 'rgba(96,165,250,.08)',
           border: `1px solid ${justCopied ? 'var(--green)' : 'var(--cyan)'}`,
           color: justCopied ? 'var(--green)' : 'var(--cyan)',
           fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
@@ -266,7 +266,7 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
               CANCEL
             </button>
             <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: mutation.isPending ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: mutation.isPending ? .6 : 1 }}>
+              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--cyan)', color: '#16181c', border: '1px solid var(--cyan)', cursor: mutation.isPending ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: mutation.isPending ? .6 : 1 }}>
               {mutation.isPending ? 'SAVING...' : 'SAVE'}
             </button>
           </div>
@@ -294,7 +294,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
         {/* Warning banner */}
         <div style={{
           padding: '12px 14px',
-          background: 'rgba(250,204,21,.08)', border: '2px solid rgba(250,204,21,.5)',
+          background: 'rgba(251,191,36,.08)', border: '2px solid rgba(251,191,36,.5)',
           fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', lineHeight: 1.8, letterSpacing: '.5px',
           textAlign: 'center',
         }}>
@@ -329,7 +329,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
               style={{
                 flexShrink: 0,
                 fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 12px',
-                background: copied ? 'rgba(34,197,94,.15)' : 'rgba(56,189,248,.12)',
+                background: copied ? 'rgba(52,211,153,.15)' : 'rgba(96,165,250,.12)',
                 border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`,
                 color: copied ? 'var(--success)' : 'var(--accent-blue)',
                 cursor: 'pointer', letterSpacing: '.5px',
@@ -362,7 +362,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
             style={{
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px 18px',
               background: copied ? 'var(--success)' : 'var(--accent-blue)',
-              color: '#0c1422',
+              color: '#16181c',
               border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`,
               cursor: 'pointer', letterSpacing: '.5px',
             }}
@@ -407,7 +407,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
         {/* Info banner */}
-        <div style={{ padding: '8px 10px', background: 'rgba(56,189,248,.06)', border: '1px solid rgba(56,189,248,.2)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
+        <div style={{ padding: '8px 10px', background: 'rgba(96,165,250,.06)', border: '1px solid rgba(96,165,250,.2)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
           ℹ Broker, account number, server &amp; currency will be filled automatically when your MT5 EA connects.
         </div>
 
@@ -428,8 +428,8 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
         <label style={{
           display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
           padding: '10px 12px',
-          border: isDemo ? '1px solid rgba(250,204,21,.4)' : '1px solid var(--border2)',
-          background: isDemo ? 'rgba(250,204,21,.06)' : 'rgba(34,197,94,.04)',
+          border: isDemo ? '1px solid rgba(251,191,36,.4)' : '1px solid var(--border2)',
+          background: isDemo ? 'rgba(251,191,36,.06)' : 'rgba(52,211,153,.04)',
           transition: 'all .15s',
         }}>
           <input
@@ -456,7 +456,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
             CANCEL
           </button>
           <button type="submit" disabled={loading || !name.trim()}
-            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
+            style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--accent-blue)', color: '#16181c', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
             {loading ? 'ADDING...' : 'ADD ACCOUNT'}
           </button>
         </div>
@@ -500,7 +500,7 @@ export const AccountsSection = () => {
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#0c1422', border: '1px solid var(--cyan)', cursor: 'pointer' }}
+          style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#16181c', border: '1px solid var(--cyan)', cursor: 'pointer' }}
         >
           + ADD ACCOUNT
         </button>
@@ -522,8 +522,8 @@ export const AccountsSection = () => {
                 <div
                   key={acc.id}
                   style={{
-                    background: isDemo ? 'rgba(250,204,21,.04)' : 'var(--bg-card2)',
-                    border: `1px solid ${isDemo ? 'rgba(250,204,21,.3)' : 'var(--border2)'}`,
+                    background: isDemo ? 'rgba(251,191,36,.04)' : 'var(--bg-card2)',
+                    border: `1px solid ${isDemo ? 'rgba(251,191,36,.3)' : 'var(--border2)'}`,
                     padding: '12px 14px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -540,7 +540,7 @@ export const AccountsSection = () => {
                         fontFamily: 'var(--ff-section)', fontSize: '10px',
                         padding: '2px 6px', letterSpacing: '.5px',
                         border: '1px solid var(--warning)',
-                        background: 'rgba(250,204,21,.1)',
+                        background: 'rgba(251,191,36,.1)',
                         color: 'var(--warning)',
                       }}>DEMO</span>
                     )}
@@ -550,7 +550,7 @@ export const AccountsSection = () => {
                       fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                       color: online ? 'var(--green)' : 'var(--text-dim)',
                     }}>
-                      <span style={{ width: '6px', height: '6px', background: online ? 'var(--green)' : '#475569', boxShadow: online ? '0 0 6px var(--green)' : 'none', display: 'inline-block' }} />
+                      <span style={{ width: '6px', height: '6px', background: online ? 'var(--green)' : '#3a3e47',display: 'inline-block' }} />
                       {acc.status}
                     </span>
                   </div>
@@ -587,7 +587,7 @@ export const AccountsSection = () => {
                       onClick={() => setDeleteTarget(acc)}
                       title="Delete account"
                       style={{
-                        background: 'none', border: '1px solid rgba(239,68,68,.3)',
+                        background: 'none', border: '1px solid rgba(248,113,113,.3)',
                         color: 'var(--red)', cursor: 'pointer',
                         padding: '5px 10px',
                         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',

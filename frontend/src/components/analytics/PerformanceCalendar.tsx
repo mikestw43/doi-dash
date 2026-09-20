@@ -46,19 +46,19 @@ const heatClass = (pnl: number): string => {
 
 const heatBg = (cls: string): string => {
   switch (cls) {
-    case 'pcal-p1': return 'rgba(34,197,94,.05)';
-    case 'pcal-p2': return 'rgba(34,197,94,.12)';
-    case 'pcal-p3': return 'rgba(34,197,94,.22)';
-    case 'pcal-l1': return 'rgba(239,68,68,.05)';
-    case 'pcal-l2': return 'rgba(239,68,68,.12)';
-    case 'pcal-l3': return 'rgba(239,68,68,.22)';
+    case 'pcal-p1': return 'rgba(52,211,153,.05)';
+    case 'pcal-p2': return 'rgba(52,211,153,.12)';
+    case 'pcal-p3': return 'rgba(52,211,153,.22)';
+    case 'pcal-l1': return 'rgba(248,113,113,.05)';
+    case 'pcal-l2': return 'rgba(248,113,113,.12)';
+    case 'pcal-l3': return 'rgba(248,113,113,.22)';
     default: return 'transparent';
   }
 };
 
 const heatBorder = (cls: string): string => {
-  if (cls === 'pcal-p3') return 'rgba(34,197,94,.18)';
-  if (cls === 'pcal-l3') return 'rgba(239,68,68,.18)';
+  if (cls === 'pcal-p3') return 'rgba(52,211,153,.18)';
+  if (cls === 'pcal-l3') return 'rgba(248,113,113,.18)';
   return 'var(--border)';
 };
 
@@ -247,7 +247,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                     // Highlight the weekday header that matches today's
                     // day-of-week (only when today falls inside the viewed month).
                     color: todayDow === i ? 'var(--accent-blue)' : thStyle.color,
-                    background: todayDow === i ? 'rgba(56,189,248,.08)' : undefined,
+                    background: todayDow === i ? 'rgba(96,165,250,.08)' : undefined,
                   }}
                 >
                   {d}
@@ -292,7 +292,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                       padding: isToday ? '0 5px' : 0,
                       borderRadius: isToday ? '50%' : 0,
                       background: isToday ? 'var(--accent-blue)' : 'transparent',
-                      color: isToday ? '#0c1422' : 'var(--text-dim)',
+                      color: isToday ? '#16181c' : 'var(--text-dim)',
                       fontWeight: isToday ? 700 : 400,
                     }}>
                       {day}

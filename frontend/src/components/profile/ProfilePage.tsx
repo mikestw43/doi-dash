@@ -60,9 +60,8 @@ const inp: React.CSSProperties = {
 const sel: React.CSSProperties = { ...inp, cursor: 'pointer' };
 const btnPrimary: React.CSSProperties = {
   fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-  padding: '9px 16px', background: 'var(--cyan)', color: '#0c1422',
+  padding: '9px 16px', background: 'var(--cyan)', color: '#16181c',
   border: '1px solid var(--cyan)', cursor: 'pointer',
-  boxShadow: '0 0 8px rgba(56,189,248,.4)',
 };
 const btnGhost: React.CSSProperties = {
   fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-section)', letterSpacing: '.5px',
@@ -70,7 +69,7 @@ const btnGhost: React.CSSProperties = {
   border: '1px solid var(--border2)', cursor: 'pointer',
 };
 const btnDanger: React.CSSProperties = {
-  ...btnGhost, color: 'var(--red)', borderColor: 'rgba(239,68,68,.4)',
+  ...btnGhost, color: 'var(--red)', borderColor: 'rgba(248,113,113,.4)',
 };
 
 const fmtDate = (iso?: string | null) => {
@@ -224,8 +223,8 @@ export const ProfilePage = () => {
         >
           ‹ BACK
         </button>
-        <span style={{ width: '6px', height: '6px', background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)' }} />
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '2px', textShadow: '0 0 12px rgba(56,189,248,.8)' }}>
+        <span style={{ width: '6px', height: '6px', background: 'var(--cyan)',}} />
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 'var(--fs-title)', color: 'var(--cyan)', letterSpacing: '2px',}}>
           PROFILE
         </span>
         <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
@@ -235,9 +234,8 @@ export const ProfilePage = () => {
       <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{
           width: '60px', height: '60px',
-          background: 'rgba(56,189,248,.08)',
+          background: 'rgba(96,165,250,.08)',
           border: '2px solid var(--cyan)',
-          boxShadow: '0 0 10px rgba(56,189,248,.6)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: "'Press Start 2P'", fontSize: '16px',
           color: 'var(--cyan)', flexShrink: 0,
@@ -255,9 +253,9 @@ export const ProfilePage = () => {
             <span style={{
               fontFamily: 'var(--ff-micro)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
               padding: '2px 6px', marginRight: '8px',
-              border: `1px solid ${isAdmin ? 'rgba(56,189,248,.4)' : 'var(--border2)'}`,
+              border: `1px solid ${isAdmin ? 'rgba(96,165,250,.4)' : 'var(--border2)'}`,
               color: isAdmin ? 'var(--cyan)' : 'var(--text-dim)',
-              background: isAdmin ? 'rgba(56,189,248,.08)' : 'none',
+              background: isAdmin ? 'rgba(96,165,250,.08)' : 'none',
               verticalAlign: 'middle',
             }}>
               {(user?.role || 'user').toUpperCase()}
@@ -341,9 +339,9 @@ export const ProfilePage = () => {
           <span style={{
             fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', letterSpacing: '.5px',
             padding: '3px 8px', display: 'inline-block',
-            border: `1px solid ${isAdmin ? 'rgba(56,189,248,.4)' : 'var(--border2)'}`,
+            border: `1px solid ${isAdmin ? 'rgba(96,165,250,.4)' : 'var(--border2)'}`,
             color: isAdmin ? 'var(--cyan)' : 'var(--text-dim)',
-            background: isAdmin ? 'rgba(56,189,248,.08)' : 'none',
+            background: isAdmin ? 'rgba(96,165,250,.08)' : 'none',
             width: 'fit-content',
           }}>
             {(user?.role || 'user').toUpperCase()}

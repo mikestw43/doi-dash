@@ -15,8 +15,8 @@ interface Props {
 }
 
 const ROLE_COLOR: Record<string, { border: string; color: string; bg: string; label: string }> = {
-  admin: { border: 'rgba(56,189,248,.4)',  color: 'var(--accent-blue)', bg: 'rgba(56,189,248,.08)', label: 'ADMIN' },
-  vip:   { border: 'rgba(250,204,21,.4)',  color: 'var(--warning)',     bg: 'rgba(250,204,21,.07)', label: 'VIP'   },
+  admin: { border: 'rgba(96,165,250,.4)',  color: 'var(--accent-blue)', bg: 'rgba(96,165,250,.08)', label: 'ADMIN' },
+  vip:   { border: 'rgba(251,191,36,.4)',  color: 'var(--warning)',     bg: 'rgba(251,191,36,.07)', label: 'VIP'   },
   user:  { border: 'var(--border2)',       color: 'var(--text-dim)',    bg: 'none',                 label: 'USER'  },
 };
 
@@ -201,7 +201,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
                     <button
                       onClick={() => statusMutation.mutate({ id: user.id, status: 'active' })}
                       disabled={statusMutation.isPending}
-                      style={btn('var(--success)', 'rgba(34,197,94,.08)')}
+                      style={btn('var(--success)', 'rgba(52,211,153,.08)')}
                     >
                       ACTIVATE
                     </button>
@@ -209,7 +209,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
                     <button
                       onClick={() => statusMutation.mutate({ id: user.id, status: 'suspended' })}
                       disabled={statusMutation.isPending}
-                      style={btn('var(--warning)', 'rgba(250,204,21,.08)')}
+                      style={btn('var(--warning)', 'rgba(251,191,36,.08)')}
                     >
                       SUSPEND
                     </button>
@@ -224,7 +224,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
                   <button
                     onClick={() => setResetConfirm(true)}
                     disabled={resetMutation.isPending}
-                    style={btn('var(--accent-blue)', 'rgba(56,189,248,.08)')}
+                    style={btn('var(--accent-blue)', 'rgba(96,165,250,.08)')}
                   >
                     {resetMutation.isPending ? 'RESETTING...' : 'RESET PASSWORD'}
                   </button>
@@ -237,7 +237,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
                 <div>
                   <button
                     onClick={() => onDelete(user.id)}
-                    style={btn('var(--danger)', 'rgba(239,68,68,.08)')}
+                    style={btn('var(--danger)', 'rgba(248,113,113,.08)')}
                   >
                     DELETE USER
                   </button>
@@ -250,7 +250,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
             <div style={{
               fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               color: 'var(--text-dim)', padding: '10px',
-              background: 'rgba(45,64,96,.2)', border: '1px solid var(--border2)',
+              background: 'rgba(42,45,52,.2)', border: '1px solid var(--border2)',
             }}>
               ⓘ This is your own account. Use Profile page to manage your own settings.
             </div>
@@ -275,7 +275,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
             <button
               onClick={() => resetMutation.mutate(user.id)}
               disabled={resetMutation.isPending}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#0c1422', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: resetMutation.isPending ? .5 : 1 }}
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: 'var(--accent-blue)', color: '#16181c', border: '1px solid var(--accent-blue)', cursor: 'pointer', opacity: resetMutation.isPending ? .5 : 1 }}
             >
               {resetMutation.isPending ? '...' : 'GENERATE'}
             </button>
@@ -303,7 +303,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
           </p>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={handleCopy}
-              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: copied ? 'var(--success)' : 'var(--accent-blue)', color: '#0c1422', border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`, cursor: 'pointer' }}>
+              style={{ flex: 1, fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '10px', background: copied ? 'var(--success)' : 'var(--accent-blue)', color: '#16181c', border: `1px solid ${copied ? 'var(--success)' : 'var(--accent-blue)'}`, cursor: 'pointer' }}>
               {copied ? '✓ COPIED' : '📋 COPY'}
             </button>
             <button onClick={handleCloseReset}
