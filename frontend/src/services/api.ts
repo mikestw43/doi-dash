@@ -3,6 +3,9 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: (import.meta.env.VITE_API_URL || '') + '/api',
   headers: { 'Content-Type': 'application/json' },
+  // Without this a stalled backend leaves requests pending forever, and the
+  // startup profile check never settles — the app renders a blank page.
+  timeout: 20000,
 });
 
 // Attach token

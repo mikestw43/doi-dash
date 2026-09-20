@@ -68,10 +68,32 @@ const Dashboard = () => {
   );
 };
 
+/** Shown while the persisted token is being validated. Anything is better
+ *  than a blank page — a white screen gives the user nothing to report. */
+const Booting = ({ slow }: { slow: boolean }) => (
+  <div style={{
+    minHeight: '100vh', display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center', gap: '14px',
+    fontFamily: 'var(--ff-body)', color: 'var(--text-secondary)',
+  }}>
+    <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--accent-blue)' }}>
+      DOI DASH
+    </div>
+    <div style={{ fontSize: 'var(--fs-body)' }}>Loading…</div>
+    {slow && (
+      <div style={{ fontSize: 'var(--fs-body-sm)', color: 'var(--warning)', textAlign: 'center', maxWidth: '320px' }}>
+        The server is not responding. Check that the backend is running,
+        then reload this page.
+      </div>
+    )}
+  </div>
+);
+
 function App() {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const logout = useAuthStore(s => s.logout);
   const [ready, setReady] = useState(false);
+  const [slow, setSlow] = useState(false);
 
   // Validate persisted token on startup
   useEffect(() => {
@@ -79,15 +101,27 @@ function App() {
       setReady(true);
       return;
     }
+    // Say something if the check drags on, and never let it block forever:
+    // an unreachable backend used to leave the app stuck rendering nothing.
+    const slowTimer = setTimeout(() => setSlow(true), 4000);
+    const giveUp = setTimeout(() => setReady(true), 25000);
     getProfile()
       .then(() => setReady(true))
       .catch(() => {
         logout();
         setReady(true);
+      })
+      .finally(() => {
+        clearTimeout(slowTimer);
+        clearTimeout(giveUp);
       });
+    return () => {
+      clearTimeout(slowTimer);
+      clearTimeout(giveUp);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!ready) return null;
+  if (!ready) return <Booting slow={slow} />;
   if (!isAuthenticated) return <LoginPage />;
   return <Dashboard />;
 }
