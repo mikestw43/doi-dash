@@ -7,17 +7,86 @@ import prisma from '../lib/prisma';
 const router = Router();
 router.use(authMiddleware);
 
-router.get('/overview', (req: AuthRequest, res: Response) => {
+type StoreAccount = ReturnType<typeof runtimeStore.getAccountsByUser>[number];
+
+/**
+ * Today's realized P/L per account, in each account's own currency.
+ *
+ * Prefers the EA-reported `todayPnl` (computed straight from MT5 history) and
+ * falls back to summing the closedTrade rows we already hold. The fallback is
+ * what keeps the number alive across an API restart: the in-memory store comes
+ * back with no todayPnl, so without it every account would read 0 until its EA
+ * pushed again.
+ */
+const resolveTodayPnl = async (accounts: StoreAccount[]): Promise<Record<string, number>> => {
+  const pnlMap: Record<string, number> = {};
+
+  const accountsNeedingFallback: StoreAccount[] = [];
+  for (const a of accounts) {
+    if (typeof a.todayPnl === 'number') {
+      pnlMap[a.id] = parseFloat(a.todayPnl.toFixed(2));
+    } else {
+      accountsNeedingFallback.push(a);
+    }
+  }
+
+  if (accountsNeedingFallback.length === 0) return pnlMap;
+
+  const offsetMap = new Map<string, number>();
+  for (const a of accountsNeedingFallback) {
+    offsetMap.set(a.id, a.brokerTimeOffset ?? 7200);
+  }
+
+  const brokerStartOfDay = (offset: number): Date => {
+    const offsetMs = offset * 1000;
+    const brokerNow = new Date(Date.now() + offsetMs);
+    const brokerMidnight = new Date(Date.UTC(
+      brokerNow.getUTCFullYear(), brokerNow.getUTCMonth(), brokerNow.getUTCDate()
+    ));
+    return new Date(brokerMidnight.getTime() - offsetMs);
+  };
+
+  // One query for every account: start from the earliest broker midnight in
+  // play, then re-check each trade against its own account's cutoff.
+  let earliestStart = new Date();
+  for (const offset of new Set(offsetMap.values())) {
+    const start = brokerStartOfDay(offset);
+    if (start < earliestStart) earliestStart = start;
+  }
+
+  const trades = await prisma.closedTrade.findMany({
+    where: {
+      closeTime: { gte: earliestStart },
+      accountId: { in: accountsNeedingFallback.map(a => a.id) },
+    },
+    select: { accountId: true, profit: true, swap: true, commission: true, closeTime: true },
+  });
+
+  for (const t of trades) {
+    if (t.closeTime >= brokerStartOfDay(offsetMap.get(t.accountId) ?? 7200)) {
+      pnlMap[t.accountId] = (pnlMap[t.accountId] || 0) + t.profit + t.swap + t.commission;
+    }
+  }
+
+  for (const a of accountsNeedingFallback) {
+    pnlMap[a.id] = parseFloat((pnlMap[a.id] || 0).toFixed(2));
+  }
+
+  return pnlMap;
+};
+
+router.get('/overview', async (req: AuthRequest, res: Response) => {
   const allAccounts = runtimeStore.getAccountsByUser(req.user!.id);
   // Exclude demo/sandbox accounts from KPI summary
   const accounts = allAccounts.filter(a => !a.isDemo);
+  const todayPnlMap = await resolveTodayPnl(accounts);
   const online = accounts.filter(a => a.status === 'online');
   const offline = accounts.filter(a => a.status === 'offline');
 
   const totalBalance = accounts.reduce((s, a) => s + toUsd(a.balance, a.currency), 0);
   const totalEquity = accounts.reduce((s, a) => s + toUsd(a.equity, a.currency), 0);
   const totalProfit = accounts.reduce((s, a) => s + toUsd(a.profit, a.currency), 0);
-  const totalTodayPnl = accounts.reduce((s, a) => s + toUsd(a.todayPnl ?? 0, a.currency), 0);
+  const totalTodayPnl = accounts.reduce((s, a) => s + toUsd(todayPnlMap[a.id] ?? 0, a.currency), 0);
   const totalOpenLots = accounts.reduce((s, a) => s + a.openLots, 0);
   const totalBuyLots = accounts.reduce((s, a) => s + a.buyLots, 0);
   const totalSellLots = accounts.reduce((s, a) => s + a.sellLots, 0);
@@ -92,75 +161,11 @@ router.get('/heatmap/pending', (req: AuthRequest, res: Response) => {
 });
 
 // Today's closed P/L per account.
-// Prefer EA-reported `todayPnl` (v1.3+ computes it from MT5 history directly).
-// Fall back to DB-summed closedTrade rows for accounts that haven't reported one yet
-// (older EA builds, or accounts offline since last server restart).
 router.get('/today-pnl', async (req: AuthRequest, res: Response) => {
   // Per-account map — demos included so the DEMO section can show its own
   // today P/L. Demo exclusion belongs at the aggregate KPI layer (/overview),
   // not here.
-  const accounts = runtimeStore.getAccountsByUser(req.user!.id);
-
-  const pnlMap: Record<string, number> = {};
-
-  // 1) Trust EA-reported todayPnl when present
-  const accountsNeedingFallback: typeof accounts = [];
-  for (const a of accounts) {
-    if (typeof a.todayPnl === 'number') {
-      pnlMap[a.id] = parseFloat(a.todayPnl.toFixed(2));
-    } else {
-      accountsNeedingFallback.push(a);
-    }
-  }
-
-  // 2) DB fallback for accounts without an EA-reported value
-  if (accountsNeedingFallback.length > 0) {
-    const offsetMap = new Map<string, number>();
-    for (const a of accountsNeedingFallback) {
-      offsetMap.set(a.id, a.brokerTimeOffset ?? 7200);
-    }
-
-    const offsets = [...new Set(offsetMap.values())];
-    const now = new Date();
-    let earliestStart = now;
-    for (const offset of offsets) {
-      const offsetMs = offset * 1000;
-      const brokerNow = new Date(now.getTime() + offsetMs);
-      const brokerMidnight = new Date(Date.UTC(
-        brokerNow.getUTCFullYear(), brokerNow.getUTCMonth(), brokerNow.getUTCDate()
-      ));
-      const startUtc = new Date(brokerMidnight.getTime() - offsetMs);
-      if (startUtc < earliestStart) earliestStart = startUtc;
-    }
-
-    const trades = await prisma.closedTrade.findMany({
-      where: {
-        closeTime: { gte: earliestStart },
-        accountId: { in: accountsNeedingFallback.map(a => a.id) },
-      },
-      select: { accountId: true, profit: true, swap: true, commission: true, closeTime: true },
-    });
-
-    for (const t of trades) {
-      const offset = offsetMap.get(t.accountId) ?? 7200;
-      const offsetMs = offset * 1000;
-      const brokerNow = new Date(now.getTime() + offsetMs);
-      const brokerMidnight = new Date(Date.UTC(
-        brokerNow.getUTCFullYear(), brokerNow.getUTCMonth(), brokerNow.getUTCDate()
-      ));
-      const accountStartOfDay = new Date(brokerMidnight.getTime() - offsetMs);
-
-      if (t.closeTime >= accountStartOfDay) {
-        pnlMap[t.accountId] = (pnlMap[t.accountId] || 0) + t.profit + t.swap + t.commission;
-      }
-    }
-
-    for (const a of accountsNeedingFallback) {
-      pnlMap[a.id] = parseFloat((pnlMap[a.id] || 0).toFixed(2));
-    }
-  }
-
-  res.json(pnlMap);
+  res.json(await resolveTodayPnl(runtimeStore.getAccountsByUser(req.user!.id)));
 });
 
 // ─── Economic Calendar (Investing.com proxy) ────────────────────────────────
