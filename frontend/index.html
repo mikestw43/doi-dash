@@ -14,7 +14,10 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#212327" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- "black" (not translucent): translucent reports a top inset yet still
+         sizes the view to screen-minus-status-bar, wasting an equal band at
+         the bottom. Measured 402x812 in a 402x874 screen, insets 62/34. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="OnlyFunds" />
     <meta name="mobile-web-app-capable" content="yes" />
 
