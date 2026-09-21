@@ -1,5 +1,6 @@
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
+import { IconLanguages } from '../icons';
 
 interface Props {
   /** 'pill' floats over the login screen; 'row' sits inside the account menu. */
@@ -62,14 +63,23 @@ export const LanguageToggle = ({ variant = 'pill' }: Props) => {
     return (
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '6px 14px',
+        padding: '7px 14px',
       }}>
         {/* One language, not both: the EN|TH buttons already say what the
-            choice is, so the label only has to name the setting. */}
+            choice is, so the label only has to name the setting. The icon and
+            its 18px box match the rows above, so this line starts where they
+            do instead of half a character to the left. */}
         <span style={{
-          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-          color: 'var(--text-dim)',
+          display: 'flex', alignItems: 'center', gap: '11px',
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+          color: 'var(--text-primary)',
         }}>
+          <span style={{
+            width: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--text-secondary)', flexShrink: 0,
+          }}>
+            <IconLanguages size={17} />
+          </span>
           {t('preferences.language')}
         </span>
         {buttons}

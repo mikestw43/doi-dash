@@ -259,5 +259,12 @@
   "ea.close": "ปิด",
   "ea.tags": "แท็ก",
   "ea.all_tags": "ทุกแท็ก",
-  "ea.discard_confirm": "ทิ้งข้อมูลที่กรอกไว้?"
+  "ea.discard_confirm": "ทิ้งข้อมูลที่กรอกไว้?",
+  "menu.profile": "โปรไฟล์",
+  "menu.settings": "ตั้งค่า",
+  "menu.download_ea": "ดาวน์โหลด EA",
+  "menu.user_management": "จัดการผู้ใช้",
+  "menu.ea_repository": "คลัง EA",
+  "menu.announce": "ประกาศ",
+  "menu.logout": "ออกจากระบบ"
 }

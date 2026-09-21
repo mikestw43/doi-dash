@@ -259,5 +259,12 @@
   "ea.close": "CLOSE",
   "ea.tags": "Tags",
   "ea.all_tags": "All tags",
-  "ea.discard_confirm": "Discard what you have entered?"
+  "ea.discard_confirm": "Discard what you have entered?",
+  "menu.profile": "Profile",
+  "menu.settings": "Settings",
+  "menu.download_ea": "Download EA",
+  "menu.user_management": "User Management",
+  "menu.ea_repository": "EA Repository",
+  "menu.announce": "Announce",
+  "menu.logout": "Logout"
 }

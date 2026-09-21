@@ -1,13 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAccountStore } from '../../stores/accountStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { NotificationBell } from './NotificationBell';
+import {
+  IconUser, IconGear, IconDownload, IconUsers, IconPackage, IconMegaphone, IconPower,
+} from '../icons';
+import type { IconProps } from '../icons';
 import { fetchMarketQuotes, fetchTickerSymbols } from '../../services/api';
 import type { MarketQuote } from '../../services/api';
 import { Logo } from '../ui/Logo';
 import { LanguageToggle } from '../ui/LanguageToggle';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Clock + session logic ───────────────────────────────────────────────────
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -69,6 +75,51 @@ const TICKER_FALLBACK: TickerItem[] = DEFAULT_TICKER_SYMBOLS.map(sym => ({
 }));
 
 // ── Header ──────────────────────────────────────────────────────────────────
+/**
+ * One line of the account menu: an outline icon, then the label.
+ *
+ * Every row used to carry its own copy of this markup and its own typographic
+ * glyph, so the icons sat at seven different sizes and baselines. One row
+ * component keeps the column of icons aligned and the hover identical.
+ */
+type Page = ReturnType<typeof useUIStore.getState>['currentPage'];
+
+const MenuRow = ({
+  Icon, label, onSelect, tone = 'normal',
+}: {
+  Icon: (props: IconProps) => ReactNode;
+  label: string;
+  onSelect: () => void;
+  tone?: 'normal' | 'danger';
+}) => {
+  const danger = tone === 'danger';
+  const hover = danger ? 'rgba(248,113,113,.08)' : 'rgba(255,255,255,.04)';
+  return (
+    <button
+      onClick={onSelect}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '11px',
+        width: '100%', padding: '9px 14px',
+        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+        color: danger ? 'var(--danger)' : 'var(--text-primary)',
+        cursor: 'pointer', background: 'none', border: 'none',
+        transition: 'background .1s', textAlign: 'left',
+      }}
+      onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = hover)}
+      onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
+    >
+      {/* Fixed box so the labels line up whatever the glyph's own width */}
+      <span style={{
+        width: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: danger ? 'var(--danger)' : 'var(--text-secondary)', flexShrink: 0,
+      }}>
+        <Icon size={17} />
+      </span>
+      {label}
+    </button>
+  );
+};
+
 export const Header = () => {
   const [time, setTime] = useState(getLocalTime);
   const [activeSessions, setActiveSessions] = useState(getActiveSessions);
@@ -83,6 +134,10 @@ export const Header = () => {
     staleTime: 60_000,
   });
   const menuRef = useRef<HTMLDivElement>(null);
+  const t = useTranslation();
+
+  /** Every menu row does the same two things: navigate, then get out of the way. */
+  const go = (page: Page) => { setCurrentPage(page); setShowMenu(false); };
 
   /**
    * What iOS actually hands the page, printed under the build stamp.
@@ -323,110 +378,57 @@ export const Header = () => {
                 border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
                 minWidth: '220px',
               }}>
-                {/* User info */}
-                <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {/* Who is signed in. Name, address and role stack in one
+                    column with nothing to their left — the avatar is already
+                    on the button that opened this, and repeating it here only
+                    pushed the three lines into a narrow ragged strip. */}
+                <div style={{ padding: '13px 14px 11px' }}>
                   <div style={{
-                    width: '38px', height: '38px',
-                    background: 'rgba(96,165,250,.08)',
-                    border: '1px solid var(--accent-blue)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
-                    color: 'var(--accent-blue)', flexShrink: 0,
+                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+                    color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.25,
                   }}>
-                    {initials}
+                    {user?.name || 'User'}
                   </div>
-                  <div>
-                    <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)', fontWeight: 600, lineHeight: 1.2 }}>
-                      {user?.name || 'User'}
-                    </div>
-                    <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginTop: '2px' }}>
-                      {user?.email}
-                    </div>
-                    <span style={{
-                      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-                      padding: '2px 5px', display: 'inline-block', marginTop: '5px',
-                      border: '1px solid var(--accent-blue)',
-                      color: 'var(--accent-blue)',
-                      background: 'rgba(96,165,250,.08)',
-                    }}>
-                      {(user?.role || 'user').toUpperCase()}
-                    </span>
+                  <div style={{
+                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                    color: 'var(--text-muted)', marginTop: '3px', lineHeight: 1.3,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>
+                    {user?.email}
                   </div>
+                  <span style={{
+                    fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                    letterSpacing: '.6px',
+                    padding: '3px 9px', display: 'inline-block', marginTop: '9px',
+                    borderRadius: '999px',
+                    border: '1px solid transparent',
+                    color: 'var(--accent-blue)',
+                    background: 'var(--accent-bg)',
+                  }}>
+                    {(user?.role || 'user').toUpperCase()}
+                  </span>
                 </div>
 
                 <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
 
-                {/* User menu items */}
-                {([
-                  { symbol: '◈', label: 'Profile', page: 'profile' as const },
-                  { symbol: '⚙', label: 'Settings', page: 'settings' as const },
-                ] as { symbol: string; label: string; page: ReturnType<typeof useUIStore.getState>['currentPage'] }[]).map(({ symbol, label, page }) => (
-                  <button
-                    key={label}
-                    onClick={() => { setCurrentPage(page); setShowMenu(false); }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '9px',
-                      width: '100%', padding: '8px 14px',
-                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer', background: 'none', border: 'none',
-                      transition: 'background .1s', textAlign: 'left',
-                    }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,.04)')}
-                    onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
-                  >
-                    <span style={{ fontSize: '13px', lineHeight: 1 }}>{symbol}</span>
-                    {label}
-                  </button>
-                ))}
-
-                {/* Download EA — navigates to the public Download page (MT4 + MT5) */}
-                <button
-                  onClick={() => { setCurrentPage('download'); setShowMenu(false); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '9px',
-                    width: '100%', padding: '8px 14px',
-                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer', background: 'none', border: 'none',
-                    transition: 'background .1s', textAlign: 'left',
-                  }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,.04)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
-                >
-                  <span style={{ fontSize: '13px', lineHeight: 1 }}>⬇</span>
-                  Download EA
-                </button>
+                {/* Everyone's items */}
+                <MenuRow Icon={IconUser}     label={t('menu.profile')}     onSelect={() => go('profile')} />
+                <MenuRow Icon={IconGear}     label={t('menu.settings')}    onSelect={() => go('settings')} />
+                <MenuRow Icon={IconDownload} label={t('menu.download_ea')} onSelect={() => go('download')} />
 
                 {user?.role === 'admin' && (
                   <>
                     <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
-                    <div style={{ padding: '5px 14px 2px', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', letterSpacing: '1px' }}>
+                    <div style={{
+                      padding: '5px 14px 2px',
+                      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
+                      color: 'var(--text-muted)', letterSpacing: '1px',
+                    }}>
                       ADMIN
                     </div>
-                    {([
-                      { symbol: '◫', label: 'User Management', page: 'admin' as const },
-                      { symbol: '▦', label: 'EA Repository', page: 'ea-repository' as const },
-                      { symbol: '▣', label: 'Announce', page: 'announce' as const },
-                    ] as { symbol: string; label: string; page: ReturnType<typeof useUIStore.getState>['currentPage'] }[]).map(({ symbol, label, page }) => (
-                      <button
-                        key={label}
-                        onClick={() => { setCurrentPage(page); setShowMenu(false); }}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '9px',
-                          width: '100%', padding: '8px 14px',
-                          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-                          color: 'var(--text-primary)',
-                          cursor: 'pointer', background: 'none', border: 'none',
-                          transition: 'background .1s', textAlign: 'left',
-                        }}
-                        onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,.04)')}
-                        onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
-                      >
-                        <span style={{ fontSize: '13px', lineHeight: 1 }}>{symbol}</span>
-                        {label}
-                      </button>
-                    ))}
+                    <MenuRow Icon={IconUsers}     label={t('menu.user_management')} onSelect={() => go('admin')} />
+                    <MenuRow Icon={IconPackage}   label={t('menu.ea_repository')}   onSelect={() => go('ea-repository')} />
+                    <MenuRow Icon={IconMegaphone} label={t('menu.announce')}        onSelect={() => go('announce')} />
                   </>
                 )}
 
@@ -437,22 +439,12 @@ export const Header = () => {
 
                 <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
 
-                <button
-                  onClick={() => { logout(); setShowMenu(false); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '9px',
-                    width: '100%', padding: '8px 14px',
-                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-                    color: 'var(--danger)',
-                    cursor: 'pointer', background: 'none', border: 'none',
-                    transition: 'background .1s', textAlign: 'left',
-                  }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'rgba(248,113,113,.08)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'none')}
-                >
-                  <span style={{ fontSize: '13px', lineHeight: 1 }}>⏻</span>
-                  Logout
-                </button>
+                <MenuRow
+                  Icon={IconPower}
+                  label={t('menu.logout')}
+                  tone="danger"
+                  onSelect={() => logout()}
+                />
 
                 {/* Which bundle is actually running. A phone — an installed
                     web app especially — can hold on to an old one long after

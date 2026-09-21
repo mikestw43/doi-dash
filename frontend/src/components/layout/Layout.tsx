@@ -2,57 +2,24 @@ import type { ReactNode } from 'react';
 import { Header } from './Header';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
-
-// SVG icons matching the mockup exactly
-const IconHome = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <rect x="1" y="1" width="6.5" height="6.5"/>
-    <rect x="10.5" y="1" width="6.5" height="6.5"/>
-    <rect x="1" y="10.5" width="6.5" height="6.5"/>
-    <rect x="10.5" y="10.5" width="6.5" height="6.5"/>
-  </svg>
-);
-
-const IconTrades = () => (
-  <svg width="17" height="13" viewBox="0 0 17 13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square">
-    <line x1="0" y1="1" x2="17" y2="1"/>
-    <line x1="0" y1="6.5" x2="17" y2="6.5"/>
-    <line x1="0" y1="12" x2="17" y2="12"/>
-  </svg>
-);
-
-const IconCalendar = () => (
-  <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <rect x="1" y="3" width="15" height="13"/>
-    <line x1="1" y1="7" x2="16" y2="7"/>
-    <line x1="5" y1="1" x2="5" y2="5"/>
-    <line x1="12" y1="1" x2="12" y2="5"/>
-  </svg>
-);
-
-const IconStats = () => (
-  <svg width="17" height="15" viewBox="0 0 17 15" fill="currentColor">
-    <rect x="0" y="9" width="4" height="6"/>
-    <rect x="6.5" y="4" width="4" height="11"/>
-    <rect x="13" y="0" width="4" height="15"/>
-  </svg>
-);
+import { IconHome, IconCandles, IconCalendar, IconBars } from '../icons';
+import type { IconProps } from '../icons';
 
 type Page = ReturnType<typeof useUIStore.getState>['currentPage'];
 
 interface NavItem {
   page: Page;
   labelKey: string;
-  Icon: () => ReactNode;
+  Icon: (props: IconProps) => ReactNode;
 }
 
 // labelKey, not label: the bar is the one piece of chrome on every screen,
 // so it is the first thing that has to speak the reader's language.
 const NAV_ITEMS: NavItem[] = [
   { page: 'dashboard',     labelKey: 'nav.home',           Icon: IconHome },
-  { page: 'trade-history', labelKey: 'nav.trades_short',   Icon: IconTrades },
+  { page: 'trade-history', labelKey: 'nav.trades_short',   Icon: IconCandles },
   { page: 'calendar',      labelKey: 'nav.calendar_short', Icon: IconCalendar },
-  { page: 'analytics',     labelKey: 'nav.stats',          Icon: IconStats },
+  { page: 'analytics',     labelKey: 'nav.stats',          Icon: IconBars },
 ];
 
 interface LayoutProps {
@@ -147,6 +114,7 @@ export const Layout = ({ children }: LayoutProps) => {
           border-right: 1px solid var(--border-color);
         }
         .sidebar-nav .nav-btn { width: 34px; height: 34px; }
+        .sidebar-nav .nav-btn svg { width: 19px; height: 19px; }
         .sidebar-nav .sb-label { display: none; }
 
         .bottom-nav { display: none; }
@@ -174,6 +142,7 @@ export const Layout = ({ children }: LayoutProps) => {
             border: none !important;
             border-radius: 0;
           }
+          .bottom-nav .nav-btn svg { width: 21px; height: 21px; }
           .bottom-nav .sb-label {
             display: block;
             font-size: var(--fs-micro);
