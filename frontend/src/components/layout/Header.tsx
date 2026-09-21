@@ -83,6 +83,39 @@ export const Header = () => {
   });
   const menuRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * What iOS actually hands the page, printed under the build stamp.
+   *
+   * A strip of black under the bottom nav means the web view is shorter than
+   * the screen, but nothing on screen says by how much or whether the safe
+   * areas are being reported at all — and guessing at it from screenshots has
+   * been wrong repeatedly. window vs screen shows whether we get the whole
+   * display; the insets show whether viewport-fit=cover took effect.
+   */
+  const [geometry, setGeometry] = useState('');
+  useEffect(() => {
+    const read = () => {
+      const probeEl = document.createElement('div');
+      probeEl.style.cssText =
+        'position:fixed;visibility:hidden;pointer-events:none;' +
+        'padding:env(safe-area-inset-top) env(safe-area-inset-right)' +
+        ' env(safe-area-inset-bottom) env(safe-area-inset-left)';
+      document.body.appendChild(probeEl);
+      const cs = getComputedStyle(probeEl);
+      const px = (v: string) => Math.round(parseFloat(v) || 0);
+      const insets = `${px(cs.paddingTop)}/${px(cs.paddingBottom)}`;
+      probeEl.remove();
+      setGeometry(
+        `${window.innerWidth}x${window.innerHeight}` +
+        ` · screen ${window.screen.width}x${window.screen.height}` +
+        ` · safe ${insets}`
+      );
+    };
+    read();
+    window.addEventListener('resize', read);
+    return () => window.removeEventListener('resize', read);
+  }, []);
+
   const wsConnected = useAccountStore(s => s.wsConnected);
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
@@ -423,8 +456,10 @@ export const Header = () => {
                   padding: '6px 14px 2px',
                   fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
                   color: 'var(--text-dim)', letterSpacing: '.3px',
+                  lineHeight: 1.5,
                 }}>
-                  build {__BUILD_ID__}
+                  <div>build {__BUILD_ID__}</div>
+                  <div>{geometry}</div>
                 </div>
               </div>
             )}
