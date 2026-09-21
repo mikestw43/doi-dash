@@ -129,11 +129,12 @@
     padding: 0;
   }
 
-  /* Prevent any element from causing whole-page horizontal scroll.
-     If a specific child needs internal scrolling, opt-in with its
-     own overflow rule. */
+  /* The document itself must never scroll — only .main-content does. Setting
+     overflow-x alone was the bug: CSS will not leave one axis visible while
+     the other is not, so overflow-y became `auto` and the whole page could
+     scroll, carrying the header and the bottom nav with it. */
   html, body {
-    overflow-x: hidden;
+    overflow: hidden;
     max-width: 100%;
   }
 
@@ -194,17 +195,17 @@
     -moz-osx-font-smoothing: grayscale;
     display: flex;
     flex-direction: column;
-    /* On iOS, 100vh is the LARGE viewport — the height the page would have if
-       Safari's toolbar were hidden. With overflow:hidden that makes the app
-       taller than what you can see, so the last rows sit under the toolbar and
-       dragging only rubber-bands the page back. 100dvh is the height actually
-       on screen; the 100vh line stays as the fallback for older browsers. */
-    height: 100vh;
-    height: 100dvh;
-    /* --app-height is set from window.innerHeight in main.tsx and wins over
-       both of the above; dvh alone updated too late on the first paint of the
-       installed app. The static units stay as the pre-script fallback. */
-    height: var(--app-height, 100dvh);
+    /* Pinned to the viewport rather than given a height. Every height iOS
+       offers is unreliable in an installed web app — 100vh is the large
+       viewport, dvh resolves a paint late, and window.innerHeight disagrees
+       with the visible area by the safe areas. Any mismatch either hid the
+       last rows or left a strip of background below the nav. Four insets at
+       zero need no height at all: the viewport is the height. */
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     overflow: hidden;
   }
 
