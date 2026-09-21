@@ -414,6 +414,18 @@ export const Header = () => {
                   <span style={{ fontSize: '13px', lineHeight: 1 }}>⏻</span>
                   Logout
                 </button>
+
+                {/* Which bundle is actually running. A phone — an installed
+                    web app especially — can hold on to an old one long after
+                    the server has moved on, and without this there is no way
+                    to tell from the screen. */}
+                <div style={{
+                  padding: '6px 14px 2px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+                  color: 'var(--text-dim)', letterSpacing: '.3px',
+                }}>
+                  build {__BUILD_ID__}
+                </div>
               </div>
             )}
           </div>
