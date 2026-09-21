@@ -256,5 +256,7 @@
   "ea.view_only": "ดูอย่างเดียว",
   "ea.admin_only": "แอดมิน",
   "ea.no_images": "ไม่มีรูป",
-  "ea.close": "ปิด"
+  "ea.close": "ปิด",
+  "ea.tags": "แท็ก",
+  "ea.all_tags": "ทุกแท็ก"
 }

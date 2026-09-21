@@ -256,5 +256,7 @@
   "ea.view_only": "View only",
   "ea.admin_only": "Admin",
   "ea.no_images": "No images",
-  "ea.close": "CLOSE"
+  "ea.close": "CLOSE",
+  "ea.tags": "Tags",
+  "ea.all_tags": "All tags"
 }

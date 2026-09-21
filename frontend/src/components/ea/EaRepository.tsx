@@ -33,6 +33,9 @@ interface EaItem {
   name: string;
   type: EaType;
   description: string;
+  /** Free-form labels. Type says what a thing is; tags say what it is for,
+   *  which is what people actually search by once there are more than a few. */
+  tags: string[];
   images: EaImage[];
   files: EaFile[];
   updatedAt: string;
@@ -58,6 +61,7 @@ const MOCK: EaItem[] = [
     description:
       'Reports balance, equity, open positions and realized P/L to the OnlyFunds dashboard every 2 seconds. '
       + 'Needs the dashboard URL in the WebRequest whitelist.',
+    tags: ['reporter', 'dashboard', 'production'],
     images: [
       { id: 'i1', url: '', caption: 'Inputs tab' },
       { id: 'i2', url: '', caption: 'Experts log' },
@@ -75,6 +79,7 @@ const MOCK: EaItem[] = [
     name: 'HoldBro',
     type: 'MT5 EA',
     description: 'Grid / recovery EA. Presets per account size are attached below.',
+    tags: ['grid', 'gold', 'live'],
     images: [{ id: 'i3', url: '', caption: 'Panel on XAUUSD' }],
     files: [
       { id: 'f5', filename: 'HoldBro_v6.2.0.ex5', label: 'Current build', size: '412 KB', uploadedAt: '2026-09-14' },
@@ -88,6 +93,7 @@ const MOCK: EaItem[] = [
     name: 'Session Marker',
     type: 'Indicator',
     description: 'Shades the Tokyo / London / New York sessions on any timeframe.',
+    tags: ['sessions', 'chart'],
     images: [],
     files: [
       { id: 'f8', filename: 'SessionMarker.ex5', label: 'Current build', size: '38 KB', uploadedAt: '2026-08-30' },
@@ -105,6 +111,19 @@ const TypeBadge = ({ type }: { type: EaType }) => (
     border: `1px solid ${TYPE_COLORS[type]}`, borderRadius: 'var(--radius-sm)',
     color: TYPE_COLORS[type],
   }}>{type}</span>
+);
+
+const TagChip = ({ tag, onClick }: { tag: string; onClick?: () => void }) => (
+  <span
+    onClick={onClick ? e => { e.stopPropagation(); onClick(); } : undefined}
+    style={{
+      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+      padding: '1px 6px', whiteSpace: 'nowrap',
+      background: 'var(--bg-input)', border: '1px solid var(--border-color)',
+      borderRadius: '999px', color: 'var(--text-dim)',
+      cursor: onClick ? 'pointer' : 'default',
+    }}
+  >{tag}</span>
 );
 
 /** Placeholder tile. The real one renders the uploaded image. */
@@ -190,6 +209,12 @@ const DetailModal = ({ item, isAdmin, onClose }: {
             fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
             color: 'var(--text-primary)', lineHeight: 1.6, margin: 0,
           }}>{item.description}</p>
+
+          {item.tags.length > 0 && (
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+              {item.tags.map(tag => <TagChip key={tag} tag={tag} />)}
+            </div>
+          )}
 
           <section>
             <SectionLabel>{t('ea.images')} · {item.images.length}</SectionLabel>
@@ -278,16 +303,22 @@ export const EaRepository = () => {
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | EaType>('all');
+  const [tagFilter, setTagFilter] = useState<'all' | string>('all');
   const [open, setOpen] = useState<EaItem | null>(null);
 
   const items = MOCK;
   const filtered = useMemo(() => items.filter(i => {
     if (typeFilter !== 'all' && i.type !== typeFilter) return false;
+    if (tagFilter !== 'all' && !i.tags.includes(tagFilter)) return false;
     const q = search.trim().toLowerCase();
-    return !q || i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q);
-  }), [items, search, typeFilter]);
+    return !q
+      || i.name.toLowerCase().includes(q)
+      || i.description.toLowerCase().includes(q)
+      || i.tags.some(tag => tag.toLowerCase().includes(q));
+  }), [items, search, typeFilter, tagFilter]);
 
   const types = [...new Set(items.map(i => i.type))];
+  const tags = [...new Set(items.flatMap(i => i.tags))].sort();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -343,6 +374,19 @@ export const EaRepository = () => {
           <option value="all">{t('ea.all_types')}</option>
           {types.map(ty => <option key={ty} value={ty}>{ty}</option>)}
         </select>
+        <select
+          value={tagFilter}
+          onChange={e => setTagFilter(e.target.value)}
+          style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
+            padding: '6px 10px',
+            background: 'var(--bg-input)', color: 'var(--text-primary)',
+            border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+          }}
+        >
+          <option value="all">{t('ea.all_tags')}</option>
+          {tags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
+        </select>
         <Btn
           label={viewMode === 'card' ? `▤ ${t('filter.table')}` : `▦ ${t('filter.cards')}`}
           onClick={() => setViewMode(viewMode === 'card' ? 'table' : 'card')}
@@ -389,6 +433,7 @@ const TableView = ({ items, onOpen }: ViewProps) => {
             <th className="ea-col-name">{t('ea.name')}</th>
             <th className="ea-col-type">{t('ea.type')}</th>
             <th className="ea-col-desc">{t('ea.description')}</th>
+            <th className="ea-col-tags">{t('ea.tags')}</th>
             <th className="ea-col-count">{t('ea.files')}</th>
             <th className="ea-col-count">{t('ea.images')}</th>
             <th className="ea-col-date">{t('ea.updated')}</th>
@@ -400,6 +445,11 @@ const TableView = ({ items, onOpen }: ViewProps) => {
               <td className="ea-col-name">{item.name}</td>
               <td className="ea-col-type"><TypeBadge type={item.type} /></td>
               <td className="ea-col-desc"><span className="ea-desc">{item.description}</span></td>
+              <td className="ea-col-tags">
+                <span style={{ display: 'inline-flex', gap: '4px' }}>
+                  {item.tags.map(tag => <TagChip key={tag} tag={tag} />)}
+                </span>
+              </td>
               <td className="ea-col-count">{item.files.length}</td>
               <td className="ea-col-count">{item.images.length}</td>
               <td className="ea-col-date">{item.updatedAt}</td>
@@ -433,16 +483,19 @@ const TableView = ({ items, onOpen }: ViewProps) => {
         .ea-wrap .ea-row:hover td { background: rgba(42,45,52,.25); }
         .ea-wrap .ea-desc { color: var(--text-dim); }
 
-        .ea-wrap .ea-col-name  { width: 22%; }
-        .ea-wrap .ea-col-type  { width: 14%; }
-        .ea-wrap .ea-col-desc  { width: 38%; }
-        .ea-wrap .ea-col-count { width: 8%; text-align: right; }
-        .ea-wrap .ea-col-date  { width: 14%; color: var(--text-dim); }
+        .ea-wrap .ea-col-name  { width: 20%; }
+        .ea-wrap .ea-col-type  { width: 12%; }
+        .ea-wrap .ea-col-desc  { width: 28%; }
+        .ea-wrap .ea-col-tags  { width: 18%; }
+        .ea-wrap .ea-col-count { width: 7%; text-align: right; }
+        .ea-wrap .ea-col-date  { width: 12%; color: var(--text-dim); }
 
         @media (max-width: 768px) {
           /* Description and the counts are what a phone can afford to lose;
              the name, its type and when it last moved are what you scan for. */
-          .ea-wrap .ea-col-desc, .ea-wrap .ea-col-count { display: none; }
+          .ea-wrap .ea-col-desc,
+          .ea-wrap .ea-col-tags,
+          .ea-wrap .ea-col-count { display: none; }
           .ea-wrap th, .ea-wrap td { padding: 7px 8px; }
           .ea-wrap .ea-col-name { width: 46%; }
           .ea-wrap .ea-col-type { width: 28%; }
@@ -472,6 +525,12 @@ const CardView = ({ items, onOpen }: ViewProps) => {
           </div>
 
           <p className="ea-card-desc">{item.description}</p>
+
+          {item.tags.length > 0 && (
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              {item.tags.map(tag => <TagChip key={tag} tag={tag} />)}
+            </div>
+          )}
 
           <div style={{
             display: 'flex', alignItems: 'center', gap: '10px',
