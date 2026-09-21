@@ -1,4 +1,5 @@
 import { useUIStore } from '../../stores/uiStore';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface Props {
   /** 'pill' floats over the login screen; 'row' sits inside the account menu. */
@@ -18,6 +19,7 @@ const LANGS = [
  * they cannot reach Profile at all.
  */
 export const LanguageToggle = ({ variant = 'pill' }: Props) => {
+  const t = useTranslation();
   const language = useUIStore(s => s.language);
   const setLanguage = useUIStore(s => s.setLanguage);
 
@@ -62,11 +64,13 @@ export const LanguageToggle = ({ variant = 'pill' }: Props) => {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '6px 14px',
       }}>
+        {/* One language, not both: the EN|TH buttons already say what the
+            choice is, so the label only has to name the setting. */}
         <span style={{
           fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
           color: 'var(--text-dim)',
         }}>
-          ภาษา / Language
+          {t('preferences.language')}
         </span>
         {buttons}
       </div>
