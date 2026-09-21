@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { SignUpPage } from './SignUpPage';
 import { GoogleAuth, googleEnabled } from './googleAuth';
 import { Logo } from '../ui/Logo';
+import { LanguageToggle } from '../ui/LanguageToggle';
 
 const InfoModal = ({ title, message, onClose }: { title: string; message: string; onClose: () => void }) => (
   <div style={{
@@ -92,6 +93,10 @@ export const LoginPage = () => {
       }}
     >
       <div className="auth-box">
+        {/* Language — first thing on the page for anyone who cannot read the
+            rest of it. Before signing in there is no Profile to go to. */}
+        <LanguageToggle />
+
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
           <Logo size={38} />

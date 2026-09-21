@@ -7,6 +7,7 @@ import { NotificationBell } from './NotificationBell';
 import { fetchMarketQuotes, fetchTickerSymbols } from '../../services/api';
 import type { MarketQuote } from '../../services/api';
 import { Logo } from '../ui/Logo';
+import { LanguageToggle } from '../ui/LanguageToggle';
 
 // ── Clock + session logic ───────────────────────────────────────────────────
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -428,6 +429,11 @@ export const Header = () => {
                     ))}
                   </>
                 )}
+
+                <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
+
+                {/* Reachable from any page, instead of only from inside Profile. */}
+                <LanguageToggle variant="row" />
 
                 <div style={{ height: '1px', background: 'var(--border-color)', margin: '4px 0' }} />
 
