@@ -19,6 +19,7 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "@types/multer": "^2.2.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -26,6 +27,7 @@
     "google-auth-library": "^9.14.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.4.0",
     "prisma": "^6.16.2",
     "ws": "^8.19.0"
   },

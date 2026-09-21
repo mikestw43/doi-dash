@@ -1,7 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  fetchEaItems, createEaItem, updateEaItem, deleteEaItem,
+  fetchEaImageUrl, downloadEaFile,
+  type EaItemDto, type EaImageDto,
+} from '../../services/api';
 
 // ─── Shape ───────────────────────────────────────────────────────────────────
 //
@@ -10,38 +16,10 @@ import { useTranslation } from '../../i18n/useTranslation';
 // what keeps "version 1.1 of the reporter" and "the preset that goes with it"
 // in the same place instead of two unrelated uploads.
 
-type EaType = 'MT5 EA' | 'MT4 EA' | 'Indicator' | 'Script' | 'Source' | 'Other';
+const EA_TYPES = ['MT5 EA', 'MT4 EA', 'Indicator', 'Script', 'Source', 'Other'] as const;
+type EaType = typeof EA_TYPES[number];
 
-interface EaImage {
-  id: string;
-  /** Empty in the mock — the real one gets an uploaded URL. */
-  url: string;
-  caption: string;
-}
-
-interface EaFile {
-  id: string;
-  filename: string;
-  /** What this file is for: the build itself, a preset, an older version. */
-  label: string;
-  size: string;
-  uploadedAt: string;
-}
-
-interface EaItem {
-  id: string;
-  name: string;
-  type: EaType;
-  description: string;
-  /** Free-form labels. Type says what a thing is; tags say what it is for,
-   *  which is what people actually search by once there are more than a few. */
-  tags: string[];
-  images: EaImage[];
-  files: EaFile[];
-  updatedAt: string;
-}
-
-const TYPE_COLORS: Record<EaType, string> = {
+const TYPE_COLORS: Record<string, string> = {
   'MT5 EA':    'var(--accent-blue)',
   'MT4 EA':    'var(--cyan)',
   'Indicator': 'var(--success)',
@@ -50,66 +28,17 @@ const TYPE_COLORS: Record<EaType, string> = {
   'Other':     'var(--text-muted)',
 };
 
-// ─── Mock data ───────────────────────────────────────────────────────────────
-// Stand-in content so the layout can be judged before the backend exists.
-// Delete this block when the API lands.
-const MOCK: EaItem[] = [
-  {
-    id: '1',
-    name: 'OnlyFunds Reporter',
-    type: 'MT5 EA',
-    description:
-      'Reports balance, equity, open positions and realized P/L to the OnlyFunds dashboard every 2 seconds. '
-      + 'Needs the dashboard URL in the WebRequest whitelist.',
-    tags: ['reporter', 'dashboard', 'production'],
-    images: [
-      { id: 'i1', url: '', caption: 'Inputs tab' },
-      { id: 'i2', url: '', caption: 'Experts log' },
-    ],
-    files: [
-      { id: 'f1', filename: 'OnlyFunds_Reporter_v1.1.ex5', label: 'Current build',   size: '20.5 KB', uploadedAt: '2026-09-21' },
-      { id: 'f2', filename: 'OnlyFunds_Reporter_v1.1.mq5', label: 'Source',          size: '15.8 KB', uploadedAt: '2026-09-21' },
-      { id: 'f3', filename: 'default.set',                 label: 'Preset',          size: '0.4 KB',  uploadedAt: '2026-09-21' },
-      { id: 'f4', filename: 'OnlyFunds_Reporter_v1.0.ex5', label: 'Previous build',  size: '20.1 KB', uploadedAt: '2026-09-20' },
-    ],
-    updatedAt: '2026-09-21',
-  },
-  {
-    id: '2',
-    name: 'HoldBro',
-    type: 'MT5 EA',
-    description: 'Grid / recovery EA. Presets per account size are attached below.',
-    tags: ['grid', 'gold', 'live'],
-    images: [{ id: 'i3', url: '', caption: 'Panel on XAUUSD' }],
-    files: [
-      { id: 'f5', filename: 'HoldBro_v6.2.0.ex5', label: 'Current build', size: '412 KB', uploadedAt: '2026-09-14' },
-      { id: 'f6', filename: 'cent_5k.set',        label: 'Preset · cent 5k', size: '1.1 KB', uploadedAt: '2026-09-14' },
-      { id: 'f7', filename: 'cent_50k.set',       label: 'Preset · cent 50k', size: '1.1 KB', uploadedAt: '2026-09-14' },
-    ],
-    updatedAt: '2026-09-14',
-  },
-  {
-    id: '3',
-    name: 'Session Marker',
-    type: 'Indicator',
-    description: 'Shades the Tokyo / London / New York sessions on any timeframe.',
-    tags: ['sessions', 'chart'],
-    images: [],
-    files: [
-      { id: 'f8', filename: 'SessionMarker.ex5', label: 'Current build', size: '38 KB', uploadedAt: '2026-08-30' },
-    ],
-    updatedAt: '2026-08-30',
-  },
-];
+const fmtSize = (bytes: number): string =>
+  bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 // ─── Small pieces ────────────────────────────────────────────────────────────
 
-const TypeBadge = ({ type }: { type: EaType }) => (
+const TypeBadge = ({ type }: { type: string }) => (
   <span style={{
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
     padding: '2px 7px', whiteSpace: 'nowrap',
-    border: `1px solid ${TYPE_COLORS[type]}`, borderRadius: 'var(--radius-sm)',
-    color: TYPE_COLORS[type],
+    border: `1px solid ${TYPE_COLORS[type] ?? 'var(--text-muted)'}`, borderRadius: 'var(--radius-sm)',
+    color: TYPE_COLORS[type] ?? 'var(--text-muted)',
   }}>{type}</span>
 );
 
@@ -126,22 +55,42 @@ const TagChip = ({ tag, onClick }: { tag: string; onClick?: () => void }) => (
   >{tag}</span>
 );
 
-/** Placeholder tile. The real one renders the uploaded image. */
-const Thumb = ({ image, size = 44 }: { image?: EaImage; size?: number }) => (
-  <div
-    title={image?.caption}
-    style={{
-      width: size, height: size, flexShrink: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg-input)',
-      border: '1px solid var(--border-color)',
-      borderRadius: 'var(--radius-sm)',
-      color: 'var(--text-dim)', fontSize: `${Math.round(size / 2.6)}px`,
-    }}
-  >
-    {image ? '▤' : '·'}
-  </div>
-);
+/** Renders the uploaded image. The bytes come through axios so the login
+ *  check applies, which means a blob URL rather than a plain src. */
+const Thumb = ({ image, size = 44 }: { image?: EaImageDto; size?: number }) => {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!image) return;
+    let revoked: string | null = null;
+    let alive = true;
+    fetchEaImageUrl(image.id)
+      .then(u => {
+        if (alive) { revoked = u; setUrl(u); } else URL.revokeObjectURL(u);
+      })
+      .catch(() => {/* leave the placeholder in place */});
+    return () => { alive = false; if (revoked) URL.revokeObjectURL(revoked); };
+  }, [image]);
+
+  return (
+    <div
+      title={image?.caption || image?.filename}
+      style={{
+        width: size, height: size, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--bg-input)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius-sm)',
+        color: 'var(--text-dim)', fontSize: `${Math.round(size / 2.6)}px`,
+        overflow: 'hidden',
+      }}
+    >
+      {url
+        ? <img src={url} alt={image?.caption ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        : (image ? '▤' : '·')}
+    </div>
+  );
+};
 
 const Btn = ({ label, onClick, tone = 'ghost' }: {
   label: string; onClick: () => void; tone?: 'ghost' | 'primary' | 'danger';
@@ -166,8 +115,9 @@ const Btn = ({ label, onClick, tone = 'ghost' }: {
 
 // ─── Detail ──────────────────────────────────────────────────────────────────
 
-const DetailModal = ({ item, isAdmin, onClose }: {
-  item: EaItem; isAdmin: boolean; onClose: () => void;
+const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
+  item: EaItemDto; isAdmin: boolean;
+  onClose: () => void; onEdit: () => void; onDelete: () => void;
 }) => {
   const t = useTranslation();
   return (
@@ -180,6 +130,7 @@ const DetailModal = ({ item, isAdmin, onClose }: {
       }}
     >
       <div
+        className="ea-detail-modal"
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--bg-card)', border: '1px solid var(--border-color)',
@@ -254,9 +205,9 @@ const DetailModal = ({ item, isAdmin, onClose }: {
                     <div style={{
                       fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
                       color: 'var(--text-dim)', marginTop: '2px',
-                    }}>{f.label} · {f.size} · {f.uploadedAt}</div>
+                    }}>{f.label || '—'} · {fmtSize(f.size)} · {f.createdAt}</div>
                   </div>
-                  <Btn label={t('ea.download')} onClick={() => {}} />
+                  <Btn label={t('ea.download')} onClick={() => { void downloadEaFile(f.id, f.filename); }} />
                 </div>
               ))}
             </div>
@@ -269,8 +220,13 @@ const DetailModal = ({ item, isAdmin, onClose }: {
             padding: '10px 16px', borderTop: '1px solid var(--border-color)',
             display: 'flex', gap: '8px',
           }}>
-            <Btn label={t('ea.edit')} onClick={() => {}} tone="primary" />
-            <Btn label={t('ea.delete')} onClick={() => {}} tone="danger" />
+            <Btn label={t('ea.edit')} onClick={onEdit} tone="primary" />
+            {/* Deleting takes the files with it, so make them say so. */}
+            <Btn
+              label={t('ea.delete')}
+              onClick={() => { if (window.confirm(`${t('ea.delete')} — ${item.name}?`)) onDelete(); }}
+              tone="danger"
+            />
           </div>
         )}
       </div>
@@ -291,6 +247,198 @@ const Muted = ({ children }: { children: React.ReactNode }) => (
   }}>{children}</div>
 );
 
+// ─── Add / edit form ─────────────────────────────────────────────────────────
+
+const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void }) => {
+  const t = useTranslation();
+  const qc = useQueryClient();
+
+  const [name, setName] = useState(item?.name ?? '');
+  const [type, setType] = useState<string>(item?.type ?? EA_TYPES[0]);
+  const [description, setDescription] = useState(item?.description ?? '');
+  const [tags, setTags] = useState((item?.tags ?? []).join(', '));
+  const [images, setImages] = useState<File[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
+  /** Labels live beside the picked files so labels[i] describes files[i] —
+   *  the same pairing the API expects. */
+  const [fileLabels, setFileLabels] = useState<string[]>([]);
+  const [removeFileIds, setRemoveFileIds] = useState<string[]>([]);
+  const [removeImageIds, setRemoveImageIds] = useState<string[]>([]);
+  const [error, setError] = useState('');
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('type', type);
+      fd.append('description', description);
+      fd.append('tags', tags);
+      images.forEach(f => fd.append('images', f));
+      files.forEach(f => fd.append('files', f));
+      fd.append('fileLabels', JSON.stringify(fileLabels));
+      if (item) {
+        fd.append('removeFileIds', JSON.stringify(removeFileIds));
+        fd.append('removeImageIds', JSON.stringify(removeImageIds));
+        return updateEaItem(item.id, fd);
+      }
+      return createEaItem(fd);
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['ea-items'] }); onClose(); },
+    onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Save failed'),
+  });
+
+  const pickFiles = (picked: FileList | null) => {
+    const list = Array.from(picked ?? []);
+    setFiles(list);
+    setFileLabels(list.map(() => ''));
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 600, background: 'rgba(0,0,0,.6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+      }}
+    >
+      <div
+        className="ea-form-modal"
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-card)', width: '100%', maxWidth: '560px', maxHeight: '100%',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}
+      >
+        <div style={{
+          padding: '12px 16px', borderBottom: '1px solid var(--border-color)',
+          display: 'flex', alignItems: 'center', gap: '10px',
+        }}>
+          <div style={{ flex: 1, fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)' }}>
+            {item ? t('ea.edit') : t('ea.add')}
+          </div>
+          <Btn label={t('ea.close')} onClick={onClose} />
+        </div>
+
+        <div style={{ padding: '14px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Field label={t('ea.name')}>
+            <input value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
+          </Field>
+
+          <Field label={t('ea.type')}>
+            <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
+              {EA_TYPES.map(ty => <option key={ty} value={ty}>{ty}</option>)}
+            </select>
+          </Field>
+
+          <Field label={t('ea.description')}>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={4}
+              style={{ ...inputStyle, resize: 'vertical' }}
+            />
+          </Field>
+
+          <Field label={`${t('ea.tags')} — reporter, gold, production`}>
+            <input value={tags} onChange={e => setTags(e.target.value)} style={inputStyle} />
+          </Field>
+
+          <Field label={t('ea.images')}>
+            <input type="file" multiple accept="image/*" onChange={e => setImages(Array.from(e.target.files ?? []))} style={inputStyle} />
+          </Field>
+
+          <Field label={t('ea.files')}>
+            <input type="file" multiple onChange={e => pickFiles(e.target.files)} style={inputStyle} />
+            {files.map((f, i) => (
+              <div key={f.name + i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                <span style={{
+                  flex: 1, minWidth: 0, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                  color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>{f.name}</span>
+                <input
+                  value={fileLabels[i] ?? ''}
+                  onChange={e => setFileLabels(prev => prev.map((l, j) => (j === i ? e.target.value : l)))}
+                  placeholder="Current build / Preset"
+                  style={{ ...inputStyle, flex: '0 0 170px' }}
+                />
+              </div>
+            ))}
+          </Field>
+
+          {/* Existing attachments, removable one at a time. */}
+          {item && (item.files.length > 0 || item.images.length > 0) && (
+            <Field label={t('ea.sub_files')}>
+              {item.images.map(img => (
+                <ExistingRow
+                  key={img.id}
+                  text={`▦ ${img.filename}`}
+                  removed={removeImageIds.includes(img.id)}
+                  onToggle={() => setRemoveImageIds(p => p.includes(img.id) ? p.filter(x => x !== img.id) : [...p, img.id])}
+                />
+              ))}
+              {item.files.map(f => (
+                <ExistingRow
+                  key={f.id}
+                  text={`▤ ${f.filename}${f.label ? ` · ${f.label}` : ''}`}
+                  removed={removeFileIds.includes(f.id)}
+                  onToggle={() => setRemoveFileIds(p => p.includes(f.id) ? p.filter(x => x !== f.id) : [...p, f.id])}
+                />
+              ))}
+            </Field>
+          )}
+
+          {error && (
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--danger)' }}>{error}</div>
+          )}
+        </div>
+
+        <div style={{
+          padding: '10px 16px', borderTop: '1px solid var(--border-color)',
+          display: 'flex', gap: '8px', justifyContent: 'flex-end',
+        }}>
+          <Btn label={t('common.cancel')} onClick={onClose} />
+          <Btn
+            label={save.isPending ? t('common.loading') : t('common.save')}
+            onClick={() => { if (name.trim()) save.mutate(); else setError('name'); }}
+            tone="primary"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
+  padding: '7px 10px',
+  background: 'var(--bg-input)', color: 'var(--text-primary)',
+  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+};
+
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div>
+    <div style={{
+      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)',
+      color: 'var(--text-dim)', letterSpacing: '.5px', marginBottom: '5px',
+    }}>{label}</div>
+    {children}
+  </div>
+);
+
+const ExistingRow = ({ text, removed, onToggle }: { text: string; removed: boolean; onToggle: () => void }) => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px',
+    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+    color: removed ? 'var(--text-dim)' : 'var(--text-primary)',
+    textDecoration: removed ? 'line-through' : 'none',
+  }}>
+    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text}</span>
+    <Btn label={removed ? '↺' : '✕'} onClick={onToggle} tone={removed ? 'ghost' : 'danger'} />
+  </div>
+);
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export const EaRepository = () => {
@@ -304,9 +452,21 @@ export const EaRepository = () => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | EaType>('all');
   const [tagFilter, setTagFilter] = useState<'all' | string>('all');
-  const [open, setOpen] = useState<EaItem | null>(null);
+  const [open, setOpen] = useState<EaItemDto | null>(null);
+  /** undefined = closed, null = adding, an item = editing it. */
+  const [editing, setEditing] = useState<EaItemDto | null | undefined>(undefined);
 
-  const items = MOCK;
+  const qc = useQueryClient();
+  const { data, isLoading, error } = useQuery<EaItemDto[]>({
+    queryKey: ['ea-items'],
+    queryFn: fetchEaItems,
+  });
+  const remove = useMutation({
+    mutationFn: deleteEaItem,
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['ea-items'] }); setOpen(null); },
+  });
+
+  const items = data ?? [];
   const filtered = useMemo(() => items.filter(i => {
     if (typeFilter !== 'all' && i.type !== typeFilter) return false;
     if (tagFilter !== 'all' && !i.tags.includes(tagFilter)) return false;
@@ -339,7 +499,7 @@ export const EaRepository = () => {
             color: isAdmin ? 'var(--accent-blue)' : 'var(--text-dim)',
           }}>{isAdmin ? t('ea.admin_only') : t('ea.view_only')}</span>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-          {isAdmin && <Btn label={t('ea.add')} onClick={() => {}} tone="primary" />}
+          {isAdmin && <Btn label={t('ea.add')} onClick={() => setEditing(null)} tone="primary" />}
         </div>
         <p style={{
           fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
@@ -394,7 +554,13 @@ export const EaRepository = () => {
       </div>
 
       {/* ── List ── */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <Muted>{t('common.loading')}</Muted>
+      ) : error ? (
+        <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--danger)' }}>
+          {(error as Error).message}
+        </div>
+      ) : filtered.length === 0 ? (
         <div style={{
           background: 'var(--bg-card)', border: '1px dashed var(--border2)',
           borderRadius: 'var(--radius-card)', padding: '36px 20px', textAlign: 'center',
@@ -411,7 +577,16 @@ export const EaRepository = () => {
         <CardView items={filtered} onOpen={setOpen} />
       )}
 
-      {open && <DetailModal item={open} isAdmin={isAdmin} onClose={() => setOpen(null)} />}
+      {open && (
+        <DetailModal
+          item={open}
+          isAdmin={isAdmin}
+          onClose={() => setOpen(null)}
+          onEdit={() => { setEditing(open); setOpen(null); }}
+          onDelete={() => remove.mutate(open.id)}
+        />
+      )}
+      {editing !== undefined && <EaForm item={editing} onClose={() => setEditing(undefined)} />}
     </div>
   );
 };
@@ -419,8 +594,8 @@ export const EaRepository = () => {
 // ─── Views ───────────────────────────────────────────────────────────────────
 
 interface ViewProps {
-  items: EaItem[];
-  onOpen: (item: EaItem) => void;
+  items: EaItemDto[];
+  onOpen: (item: EaItemDto) => void;
 }
 
 const TableView = ({ items, onOpen }: ViewProps) => {

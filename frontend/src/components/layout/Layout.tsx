@@ -43,7 +43,7 @@ type Page = ReturnType<typeof useUIStore.getState>['currentPage'];
 interface NavItem {
   page: Page;
   labelKey: string;
-  Icon: () => JSX.Element;
+  Icon: () => ReactNode;
 }
 
 // labelKey, not label: the bar is the one piece of chrome on every screen,

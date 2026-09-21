@@ -174,3 +174,53 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([action])
 }
+
+/// A thing in the repository — an EA, an indicator, a script. Its screenshots,
+/// presets and older builds hang off it, so a preset is never orphaned from the
+/// build it belongs to.
+model EaItem {
+  id          String   @id @default(uuid())
+  name        String
+  /// MT5 EA | MT4 EA | Indicator | Script | Source | Other
+  type        String
+  description String   @default("")
+  /// Free-form labels, comma separated. A join table buys nothing while the
+  /// list is small enough to filter in memory, and costs a migration to add.
+  tags        String   @default("")
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images EaImage[]
+  files  EaFile[]
+}
+
+/// Screenshot. `storedName` is the name on disk; the original is kept for
+/// display and for the download filename.
+model EaImage {
+  id         String   @id @default(uuid())
+  itemId     String
+  item       EaItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  storedName String
+  filename   String
+  caption    String   @default("")
+  mimeType   String
+  size       Int
+  createdAt  DateTime @default(now())
+
+  @@index([itemId])
+}
+
+model EaFile {
+  id         String   @id @default(uuid())
+  itemId     String
+  item       EaItem   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  storedName String
+  filename   String
+  /// What this file is: "Current build", "Preset", "Previous build".
+  label      String   @default("")
+  size       Int
+  createdAt  DateTime @default(now())
+
+  @@index([itemId])
+}

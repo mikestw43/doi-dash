@@ -15,3 +15,6 @@ logs/
 deploy/migrate-data/railway-dump.json
 backend/prisma/schema.postgres.prisma
 *.log
+
+# Uploaded EA files live on disk, never in git.
+uploads/

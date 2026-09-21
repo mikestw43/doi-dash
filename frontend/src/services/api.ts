@@ -442,3 +442,53 @@ export const deleteMyAccount = async () => {
 };
 
 export default api;
+
+// ─── EA repository ───────────────────────────────────────────────────────────
+
+export interface EaImageDto { id: string; filename: string; caption: string; size: number }
+export interface EaFileDto { id: string; filename: string; label: string; size: number; createdAt: string }
+export interface EaItemDto {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  tags: string[];
+  images: EaImageDto[];
+  files: EaFileDto[];
+  updatedAt: string;
+}
+
+export const fetchEaItems = async (): Promise<EaItemDto[]> => (await api.get('/ea')).data;
+
+export const createEaItem = async (form: FormData): Promise<EaItemDto> =>
+  (await api.post('/ea', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120_000 })).data;
+
+export const updateEaItem = async (id: string, form: FormData): Promise<EaItemDto> =>
+  (await api.put(`/ea/${id}`, form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120_000 })).data;
+
+export const deleteEaItem = async (id: string): Promise<void> => {
+  await api.delete(`/ea/${id}`);
+};
+
+/**
+ * Fetch bytes through axios so the Authorization header goes with them.
+ *
+ * The repository is login-only, and <img src> / <a href> cannot carry a header
+ * — putting the token in the query string instead would leak it into logs and
+ * referrers. Blob URLs keep it in the header where it belongs.
+ */
+const fetchBlobUrl = async (url: string): Promise<string> =>
+  URL.createObjectURL((await api.get(url, { responseType: 'blob', timeout: 60_000 })).data);
+
+export const fetchEaImageUrl = (imageId: string) => fetchBlobUrl(`/ea/images/${imageId}/raw`);
+
+export const downloadEaFile = async (fileId: string, filename: string): Promise<void> => {
+  const href = await fetchBlobUrl(`/ea/files/${fileId}/download`);
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(href);
+};

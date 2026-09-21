@@ -53,6 +53,24 @@ pm2 restart onlyfunds-api
 # deploy/nginx.conf over the top of it and losing HTTPS. Idempotent: the grep
 # skips it once the header is there.
 SITE=/etc/nginx/sites-available/onlyfunds
+
+# The EA repository accepts files far larger than the original 5m cap, and
+# nginx rejects an oversized body before Express ever sees it. Same in-place
+# patch as below: certbot owns this file after the first HTTPS run.
+if [ -f "$SITE" ] && grep -q 'client_max_body_size 5m;' "$SITE"; then
+  echo ""
+  echo "[nginx] Raising the upload limit for the EA repository..."
+  cp "$SITE" "$SITE.size.bak"
+  sed -i 's|client_max_body_size 5m;|client_max_body_size 64m;|' "$SITE"
+  if nginx -t >/dev/null 2>&1; then
+    systemctl reload nginx
+    echo "        done — uploads up to 64MB per request"
+  else
+    mv "$SITE.size.bak" "$SITE"
+    echo "        config did not validate; reverted, nothing changed"
+  fi
+fi
+
 if [ -f "$SITE" ] && ! grep -q 'no-store' "$SITE"; then
   echo ""
   echo "[nginx] Teaching nginx not to cache index.html..."
