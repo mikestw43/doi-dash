@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import type { EconomicEvent } from '../../types';
 import { fetchEconomicCalendar } from '../../services/api';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -48,22 +49,24 @@ interface EventTableProps { groups: DayGroup[]; now: Date }
  * (what this did before) turned a week into a stack of boxes that pushed
  * the actual events off a phone screen.
  */
-const EventTable = ({ groups, now }: EventTableProps) => (
+const EventTable = ({ groups, now }: EventTableProps) => {
+  const t = useTranslation();
+  return (
   <div className="evt-wrap">
     <table>
       <thead>
         <tr>
-          <th className="evcol-time">TIME</th>
-          <th className="evcol-ccy">CCY</th>
+          <th className="evcol-time">{t('calendar.time')}</th>
+          <th className="evcol-ccy">{t('calendar.ccy')}</th>
           <th className="evcol-imp" aria-label="Impact" />
-          <th className="evcol-event">EVENT</th>
+          <th className="evcol-event">{t('calendar.event')}</th>
           <th className="evcol-actual">
-            <span className="lbl-full">ACTUAL</span><span className="lbl-short">ACT</span>
+            <span className="lbl-full">{t('calendar.actual')}</span><span className="lbl-short">{t('calendar.actual_short')}</span>
           </th>
           <th className="evcol-forecast">
-            <span className="lbl-full">FORECAST</span><span className="lbl-short">FCST</span>
+            <span className="lbl-full">{t('calendar.forecast')}</span><span className="lbl-short">{t('calendar.forecast_short')}</span>
           </th>
-          <th className="evcol-prev">PREV</th>
+          <th className="evcol-prev">{t('calendar.previous')}</th>
         </tr>
       </thead>
       {groups.map(({ label, events }) => (
@@ -74,7 +77,7 @@ const EventTable = ({ groups, now }: EventTableProps) => (
                 {label}
                 {events.some(e => e.impact === 'High') && (
                   <span className="evt-day-high">
-                    {events.filter(e => e.impact === 'High').length} HIGH
+                    {events.filter(e => e.impact === 'High').length} {t('calendar.high')}
                   </span>
                 )}
               </td>
@@ -236,11 +239,13 @@ const EventTable = ({ groups, now }: EventTableProps) => (
       }
     `}</style>
   </div>
-);
+  );
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export const EconomicCalendar = () => {
+  const t = useTranslation();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery<EconomicEvent[]>({
     queryKey: ['economic-calendar'],
@@ -316,7 +321,7 @@ export const EconomicCalendar = () => {
           borderRadius: '50%', margin: '0 auto 12px', animation: 'spin 0.8s linear infinite',
         }} />
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>
-          Loading economic calendar...
+          {t('calendar.loading')}
         </p>
       </div>
     </div>
@@ -391,7 +396,7 @@ export const EconomicCalendar = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <div style={{ width: '7px', height: '7px', background: 'var(--cyan)',flexShrink: 0 }} />
           <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>
-            ECONOMIC CALENDAR
+            {t('calendar.title')}
           </span>
           {todayHighCount > 0 && (
             <span style={{
@@ -401,7 +406,7 @@ export const EconomicCalendar = () => {
               flexShrink: 0,
             }}>
               <span style={{ width: '5px', height: '5px', background: 'var(--red)', display: 'inline-block' }} />
-              {todayHighCount} HIGH TODAY
+              {todayHighCount} {t('calendar.high_today')}
             </span>
           )}
           {/* Refresh — icon-only, pushed to the far right of the title row. */}
@@ -426,7 +431,7 @@ export const EconomicCalendar = () => {
           </button>
         </div>
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '15px' }}>
-          ForexFactory · cached 30min · local timezone
+          {t('calendar.source')}
         </p>
       </div>
 
@@ -434,11 +439,11 @@ export const EconomicCalendar = () => {
       <div style={{ marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', flexShrink: 0 }}>
-            <button onClick={() => setViewMode('today')} style={tabBtn(viewMode === 'today')}>TODAY</button>
+            <button onClick={() => setViewMode('today')} style={tabBtn(viewMode === 'today')}>{t('calendar.today')}</button>
             <button
               onClick={() => setViewMode('week')}
               style={{ ...tabBtn(viewMode === 'week'), borderLeft: '1px solid var(--border2)' }}
-            >WEEK</button>
+            >{t('calendar.week')}</button>
           </div>
 
           {/* What's active, so the folded panel still tells you what you're seeing. */}
@@ -446,8 +451,8 @@ export const EconomicCalendar = () => {
             fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>
-            {selected.length === 0 ? 'ALL CCY' : selected.join(' ')}
-            {minImpact !== 'all' && ` · ${minImpact === 'medium' ? 'MED+' : 'HIGH'}`}
+            {selected.length === 0 ? t('calendar.all_ccy') : selected.join(' ')}
+            {minImpact !== 'all' && ` · ${minImpact === 'medium' ? t('calendar.med') : t('calendar.high')}`}
             {` · ${filtered.length}`}
           </span>
 
@@ -455,7 +460,7 @@ export const EconomicCalendar = () => {
             onClick={() => setShowFilters(v => !v)}
             style={{ ...impactBtn(showFilters), marginLeft: 'auto', flexShrink: 0 }}
           >
-            FILTER {showFilters ? '\u25B4' : '\u25BE'}
+            {t('filter.filter')} {showFilters ? '\u25B4' : '\u25BE'}
           </button>
         </div>
 
@@ -469,7 +474,7 @@ export const EconomicCalendar = () => {
           }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
-                CUR
+                {t('calendar.currency')}
               </span>
               {ALL_CURRENCIES.map(cur => (
                 <button
@@ -485,18 +490,18 @@ export const EconomicCalendar = () => {
                   onClick={() => setSelected([])}
                   style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '.5px' }}
                 >
-                  ✕ CLEAR
+                  ✕ {t('calendar.clear')}
                 </button>
               )}
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
               <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', letterSpacing: '.5px', marginRight: '2px' }}>
-                IMPACT
+                {t('calendar.impact')}
               </span>
               {(['all', 'medium', 'high'] as const).map(key => (
                 <button key={key} onClick={() => setMinImpact(key)} style={impactBtn(minImpact === key)}>
-                  {key === 'all' ? 'ALL' : key === 'medium' ? 'MED+' : 'HIGH'}
+                  {key === 'all' ? t('calendar.all') : key === 'medium' ? t('calendar.med') : t('calendar.high')}
                 </button>
               ))}
             </div>
@@ -509,7 +514,7 @@ export const EconomicCalendar = () => {
         <div style={{ textAlign: 'center', padding: '48px 0' }}>
           <div style={{ fontSize: '24px', marginBottom: '10px', color: 'var(--text-dim)' }}>📅</div>
           <p style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
-            NO EVENTS MATCH FILTERS
+            {t('calendar.no_events')}
           </p>
         </div>
       ) : (

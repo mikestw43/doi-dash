@@ -3,6 +3,7 @@ import { useAccountStore } from '../../stores/accountStore';
 import { fetchTradeHistory } from '../../services/api';
 import { exportToCSV } from '../../utils/export';
 import type { ClosedTrade } from '../../types';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -81,6 +82,7 @@ const SumCard = ({ label, value, color, sub }: SumCardProps) => (
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export const TradeHistoryPage = () => {
+  const t = useTranslation();
   const accounts = useAccountStore(s => s.accounts);
 
   // Filters
@@ -209,10 +211,10 @@ export const TradeHistoryPage = () => {
       {/* ── Section header ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>TRADE HISTORY</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>{t('trades.title').toUpperCase()}</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-muted)', padding: '4px 10px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>
-          {total} TRADES
+          {total} {t('trades.count')}
         </span>
       </div>
 
@@ -226,28 +228,28 @@ export const TradeHistoryPage = () => {
         className="th-summary-grid"
       >
         <SumCard
-          label="TOTAL TRADES"
+          label={t('analytics.total_trades').toUpperCase()}
           value={statsLoading ? '...' : String(total)}
           color="var(--text-primary)"
-          sub={`${stats.wins} wins`}
+          sub={`${stats.wins} ${t('trades.wins')}`}
         />
         <SumCard
-          label="WIN RATE"
+          label={t('analytics.win_rate').toUpperCase()}
           value={statsLoading ? '...' : `${stats.winRate.toFixed(1)}%`}
           color={winRateColor}
-          sub={`${allTrades.length} trades analyzed`}
+          sub={`${allTrades.length} ${t('trades.analyzed')}`}
         />
         <SumCard
-          label="TOTAL PROFIT"
+          label={t('trades.total_profit').toUpperCase()}
           value={statsLoading ? '...' : `${stats.totalProfit >= 0 ? '+' : '-'}${fmtNum(stats.totalProfit)}`}
           color={profitColor}
-          sub="USD · all filtered trades"
+          sub={`USD · ${t('trades.all_filtered')}`}
         />
         <SumCard
-          label="MAX DRAWDOWN"
+          label={t('analytics.max_drawdown').toUpperCase()}
           value={statsLoading ? '...' : stats.maxDD > 0 ? `-${fmtNum(stats.maxDD)}` : '0.00'}
           color={stats.maxDD > 0 ? 'var(--danger)' : 'var(--text-dim)'}
-          sub="peak-to-trough"
+          sub={t('trades.peak_to_trough')}
         />
       </div>
 
@@ -255,28 +257,28 @@ export const TradeHistoryPage = () => {
       <div className="th-filter-bar" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
         {/* Row 1: Account + Symbol + Type + Export */}
         <select value={accountId} onChange={e => { setAccountId(e.target.value); setPage(1); }} style={selStyle}>
-          <option value="">All Accounts</option>
+          <option value="">{t('filter.all_accounts')}</option>
           {accounts.filter(a => !a.isDemo).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
 
         <input
-          type="text" placeholder="Symbol..." value={symbol}
+          type="text" placeholder={t('filter.symbol')} value={symbol}
           onChange={e => { setSymbol(e.target.value.toUpperCase()); setPage(1); }}
           style={{ ...selStyle, cursor: 'text', width: '90px' }}
           className="th-symbol-input"
         />
 
         <select value={type} onChange={e => { setType(e.target.value); setPage(1); }} style={selStyle}>
-          <option value="">All Types</option>
-          <option value="BUY">BUY</option>
-          <option value="SELL">SELL</option>
+          <option value="">{t('filter.all_types')}</option>
+          <option value="BUY">{t('trades.buy')}</option>
+          <option value="SELL">{t('trades.sell')}</option>
         </select>
 
         {/* Date range */}
         <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>FROM</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.from')}</span>
           <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} style={dateInputStyle} />
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>TO</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.to')}</span>
           <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} style={dateInputStyle} />
           {(dateFrom || dateTo) && (
             <button
@@ -315,15 +317,15 @@ export const TradeHistoryPage = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
-              <th style={thL(true)} className="th-col-ticket" onClick={() => handleSort('ticket')}>TICKET{sortIcon('ticket')}</th>
-              <th style={thL(true)} onClick={() => handleSort('symbol')}>SYMBOL{sortIcon('symbol')}</th>
-              <th style={thL()}>TYPE</th>
-              <th style={thR()} className="th-col-lots">LOTS</th>
-              <th style={thR()} className="th-col-price">OPEN</th>
-              <th style={thR()} className="th-col-price">CLOSE</th>
-              <th style={thR(true)} onClick={() => handleSort('profit')}>PROFIT{sortIcon('profit')}</th>
-              <th style={thL(true)} onClick={() => handleSort('closeTime')}>CLOSE TIME{sortIcon('closeTime')}</th>
-              <th style={thL()} className="th-col-account">ACCOUNT</th>
+              <th style={thL(true)} className="th-col-ticket" onClick={() => handleSort('ticket')}>{t('trades.ticket').toUpperCase()}{sortIcon('ticket')}</th>
+              <th style={thL(true)} onClick={() => handleSort('symbol')}>{t('trades.symbol').toUpperCase()}{sortIcon('symbol')}</th>
+              <th style={thL()}>{t('trades.type').toUpperCase()}</th>
+              <th style={thR()} className="th-col-lots">{t('trades.lots').toUpperCase()}</th>
+              <th style={thR()} className="th-col-price">{t('trades.open_price').toUpperCase()}</th>
+              <th style={thR()} className="th-col-price">{t('trades.close_price').toUpperCase()}</th>
+              <th style={thR(true)} onClick={() => handleSort('profit')}>{t('trades.profit').toUpperCase()}{sortIcon('profit')}</th>
+              <th style={thL(true)} onClick={() => handleSort('closeTime')}>{t('trades.close_time').toUpperCase()}{sortIcon('closeTime')}</th>
+              <th style={thL()} className="th-col-account">{t('trades.account').toUpperCase()}</th>
             </tr>
           </thead>
           <tbody>
@@ -336,8 +338,8 @@ export const TradeHistoryPage = () => {
             ) : trades.length === 0 ? (
               <tr>
                 <td colSpan={9} style={{ ...tdBase, textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>
-                  <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', marginBottom: '8px' }}>NO TRADES FOUND</div>
-                  <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>Try adjusting your filters</div>
+                  <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', marginBottom: '8px' }}>{t('trades.no_trades_found')}</div>
+                  <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>{t('trades.adjust_filters')}</div>
                 </td>
               </tr>
             ) : (

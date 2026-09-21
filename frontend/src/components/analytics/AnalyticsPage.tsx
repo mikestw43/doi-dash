@@ -5,14 +5,15 @@ import { EquityChart } from './EquityChart';
 import { PerformanceCalendar } from './PerformanceCalendar';
 import { PerformanceCards } from './PerformanceCards';
 import type { ClosedTrade } from '../../types';
+import { useTranslation } from '../../i18n/useTranslation';
 
 type Tab = 'performance' | 'equity' | 'stats' | 'symbol';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'performance', label: 'PERFORMANCE' },
-  { key: 'equity',      label: 'EQUITY CURVE' },
-  { key: 'stats',       label: 'STATS' },
-  { key: 'symbol',      label: 'BY SYMBOL' },
+const TABS: { key: Tab; labelKey: string }[] = [
+  { key: 'performance', labelKey: 'analytics.performance' },
+  { key: 'equity',      labelKey: 'analytics.equity_chart' },
+  { key: 'stats',       labelKey: 'nav.stats' },
+  { key: 'symbol',      labelKey: 'analytics.by_symbol' },
 ];
 
 // ── By-Symbol breakdown ─────────────────────────────────────────────────────
@@ -162,6 +163,7 @@ const BySymbolTab = ({ accountId }: { accountId?: string }) => {
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export const AnalyticsPage = () => {
+  const t = useTranslation();
   const accounts = useAccountStore(s => s.accounts);
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [tab, setTab] = useState<Tab>('performance');
@@ -187,7 +189,7 @@ export const AnalyticsPage = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>
-          ANALYTICS
+          {t('analytics.title').toUpperCase()}
         </span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
@@ -195,9 +197,9 @@ export const AnalyticsPage = () => {
       {/* ── Toolbar: tabs + account selector ── */}
       <div className="an-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
         <div className="an-tabs" style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-          {TABS.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} style={tabStyle(tab === t.key)}>
-              {t.label}
+          {TABS.map(item => (
+            <button key={item.key} onClick={() => setTab(item.key)} style={tabStyle(tab === item.key)}>
+              {t(item.labelKey).toUpperCase()}
             </button>
           ))}
         </div>
