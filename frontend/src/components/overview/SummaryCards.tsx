@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { OverviewStats } from '../../types';
 import { formatLots } from '../../utils/formatters';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface Props {
   stats: OverviewStats;
@@ -104,6 +105,7 @@ const CurrencyValue = ({ val, color }: { val: number; color: string }) => {
 };
 
 export const SummaryCards = ({ stats }: Props) => {
+  const t = useTranslation();
   const equityChange = ((stats.totalEquity - stats.totalBalance) / Math.max(stats.totalBalance, 1)) * 100;
   const offlineCount = stats.offlineAccounts ?? (stats.totalAccounts - stats.onlineAccounts);
   const hasOffline   = offlineCount > 0;
@@ -124,7 +126,7 @@ export const SummaryCards = ({ stats }: Props) => {
 
         {/* 1 ACCOUNTS */}
         <KpiCard
-          label="ACCOUNTS"
+          label={t('dashboard.accounts').toUpperCase()}
           icon="◇"
           mod={acctMod}
           watchValue={stats.onlineAccounts}
@@ -135,44 +137,44 @@ export const SummaryCards = ({ stats }: Props) => {
             </span>
           }
           sub={hasOffline
-            ? <span style={{ color: 'var(--danger)' }}>■ {offlineCount} offline</span>
-            : 'All online'}
+            ? <span style={{ color: 'var(--danger)' }}>■ {offlineCount} {t('dashboard.offline_suffix')}</span>
+            : t('dashboard.all_online')}
         />
 
         {/* 2 TOTAL BALANCE */}
         <KpiCard
-          label="TOTAL BALANCE"
+          label={t('dashboard.total_balance').toUpperCase()}
           icon="$"
           mod="cyan"
           watchValue={stats.totalBalance}
           value={<CurrencyValue val={stats.totalBalance} color="var(--text-primary)" />}
-          sub="incl. all accounts"
+          sub={t('dashboard.incl_all')}
         />
 
         {/* 3 TOTAL EQUITY */}
         <KpiCard
-          label="TOTAL EQUITY"
+          label={t('dashboard.total_equity').toUpperCase()}
           icon="○"
           mod={equityMod}
           watchValue={stats.totalEquity}
           value={<CurrencyValue val={stats.totalEquity} color={COLORS[equityMod].text} />}
           sub={
             <span style={{ color: equityChange >= 0 ? 'var(--success)' : 'var(--danger)' }}>
-              {equityChange >= 0 ? '▲' : '▼'} {equityChange >= 0 ? '+' : ''}{equityChange.toFixed(2)}% vs balance
+              {equityChange >= 0 ? '▲' : '▼'} {equityChange >= 0 ? '+' : ''}{equityChange.toFixed(2)}% {t('dashboard.vs_balance')}
             </span>
           }
         />
 
         {/* 4 TODAY P/L (main) + Floating (sub) */}
         <KpiCard
-          label="TODAY P/L"
+          label={t('dashboard.today_pl').toUpperCase()}
           icon={<span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: COLORS[todayMod].text, opacity: 0.8 }}>P/L</span>}
           mod={todayMod}
           watchValue={todayPnl}
           value={<CurrencyValue val={todayPnl} color={COLORS[todayMod].text} />}
           sub={
             <span>
-              <span style={{ color: 'var(--text-muted)' }}>Floating </span>
+              <span style={{ color: 'var(--text-muted)' }}>{t('dashboard.floating')} </span>
               <span style={{ color: floatColor }}>
                 {stats.totalProfit >= 0 ? '+$' : '-$'}
                 {Math.abs(stats.totalProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -183,7 +185,7 @@ export const SummaryCards = ({ stats }: Props) => {
 
         {/* 5 OPEN LOTS */}
         <KpiCard
-          label="OPEN LOTS"
+          label={t('dashboard.open_lots').toUpperCase()}
           icon="◇"
           mod="cyan"
           watchValue={stats.totalOpenLots}
@@ -193,12 +195,12 @@ export const SummaryCards = ({ stats }: Props) => {
 
         {/* 6 PENDING ORDERS */}
         <KpiCard
-          label="PENDING ORDERS"
+          label={t('dashboard.pending_orders').toUpperCase()}
           icon={<span style={{ color: COLORS[pendingMod].text, opacity: 0.7 }}>□</span>}
           mod={pendingMod}
           watchValue={stats.totalPendingOrders}
           value={<span style={{ color: COLORS[pendingMod].text }}>{stats.totalPendingOrders}</span>}
-          sub="total pending"
+          sub={t('dashboard.total_pending')}
         />
       </div>
 

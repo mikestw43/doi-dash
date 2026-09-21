@@ -8,6 +8,7 @@ import { BotCard } from './BotCard';
 import { BotTable } from './BotTable';
 import { GroupManager } from '../groups/GroupManager';
 import { Dialog } from '../ui/Dialog';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DEFAULT_FILTER = { status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' };
 type BotFilter = typeof DEFAULT_FILTER;
@@ -40,6 +41,7 @@ const SecHdr = ({ title, count, dot = 'var(--accent-blue)' }: { title: string; c
 );
 
 export const BotList = () => {
+  const t = useTranslation();
   const accounts = useAccountStore(s => s.accounts);
   const { botFilter, setBotFilter, botViewMode, setBotViewMode } = useUIStore();
   const [groups, setGroups] = useState<AccountGroup[]>([]);
@@ -140,16 +142,16 @@ export const BotList = () => {
 
       {/* ── MY ACCOUNTS — no wrapper box, cards fill width (matches mockup) ── */}
       <div>
-        <SecHdr title="MY ACCOUNTS" count={`${onlineCount} / ${liveAccounts.length}`} />
+        <SecHdr title={t('dashboard.my_accounts')} count={`${onlineCount} / ${liveAccounts.length}`} />
 
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          {/* ⚙ FILTER — opens the modal; badge shows # of active filter/sort fields */}
+          {/* ⚙ ${t('filter.filter')} — opens the modal; badge shows # of active filter/sort fields */}
           <button
             onClick={() => setShowFilter(true)}
             style={{ ...ftabStyle(activeFilterCount > 0), display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            ⚙ FILTER
+            ⚙ {t('filter.filter')}
             {activeFilterCount > 0 && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -168,7 +170,7 @@ export const BotList = () => {
             title={botViewMode === 'card' ? 'Switch to table view' : 'Switch to card view'}
             style={{ ...ftabStyle(false), marginLeft: 'auto' }}
           >
-            {botViewMode === 'card' ? '▤ TABLE' : '▦ CARDS'}
+            {botViewMode === 'card' ? `▤ ${t('filter.table')}` : `▦ ${t('filter.cards')}`}
           </button>
         </div>
 

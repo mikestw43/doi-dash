@@ -35,11 +35,21 @@ const useThemeSync = () => {
   }, [theme]);
 };
 
+/** Keep <html lang> honest — it drives font selection, hyphenation and
+ *  screen readers, and gives CSS a hook for per-language typography. */
+const useLanguageSync = () => {
+  const language = useUIStore(s => s.language);
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+};
+
 const Dashboard = () => {
   const token = useAuthStore(s => s.token);
   const currentPage = useUIStore(s => s.currentPage);
   useWebSocket(token);
   useThemeSync();
+  useLanguageSync();
 
   return (
     <Layout>

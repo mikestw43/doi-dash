@@ -138,6 +138,16 @@
     max-width: 100%;
   }
 
+  /* Thai sets no space between letters — the tracking tuned for the Latin
+     small-caps headings reads as broken words. Only the class-driven labels
+     can be reached from here; the inline ones keep their spacing. */
+  html[lang="th"] .sb-label,
+  html[lang="th"] .bc-label,
+  html[lang="th"] .bc-chip,
+  html[lang="th"] .bc-action {
+    letter-spacing: normal !important;
+  }
+
   /* ── OnlyFunds: strip all native form chrome ── */
   select {
     -webkit-appearance: none;

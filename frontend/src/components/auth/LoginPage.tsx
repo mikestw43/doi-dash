@@ -5,6 +5,7 @@ import { SignUpPage } from './SignUpPage';
 import { GoogleAuth, googleEnabled } from './googleAuth';
 import { Logo } from '../ui/Logo';
 import { LanguageToggle } from '../ui/LanguageToggle';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const InfoModal = ({ title, message, onClose }: { title: string; message: string; onClose: () => void }) => (
   <div style={{
@@ -36,6 +37,7 @@ const InfoModal = ({ title, message, onClose }: { title: string; message: string
 );
 
 export const LoginPage = () => {
+  const t = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -121,7 +123,7 @@ export const LoginPage = () => {
           color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '3px',
           textAlign: 'center', marginBottom: '18px',
         }}>
-          LOGIN
+          {t('auth.login')}
         </div>
 
         <form onSubmit={handleSubmit} autoComplete="off">
@@ -131,7 +133,7 @@ export const LoginPage = () => {
               fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)',
               color: 'var(--text-secondary)', fontWeight: 500, display: 'block',
               marginBottom: '4px', letterSpacing: '1px',
-            }}>EMAIL</label>
+            }}>{t('auth.email')}</label>
             <input
               type="email"
               value={email}
@@ -161,7 +163,7 @@ export const LoginPage = () => {
               fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)',
               color: 'var(--text-secondary)', fontWeight: 500, display: 'block',
               marginBottom: '4px', letterSpacing: '1px',
-            }}>PASSWORD</label>
+            }}>{t('auth.password')}</label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPw ? 'text' : 'password'}
@@ -205,7 +207,7 @@ export const LoginPage = () => {
             <span
               style={{ color: 'rgba(96,165,250,.5)', cursor: 'pointer' }}
               onClick={() => setModal({ title: 'FORGOT PASSWORD', message: 'Password reset is managed by your administrator. Please contact your admin to reset your password.' })}
-            >Forgot password?</span>
+            >{t('auth.forgot_password')}</span>
           </div>
 
           {/* Error */}
@@ -235,7 +237,7 @@ export const LoginPage = () => {
               transition: 'opacity .15s',
             }}
           >
-            {loading ? 'CONNECTING...' : 'LOGIN'}
+            {loading ? t('auth.connecting') : t('auth.login')}
           </button>
 
           {googleEnabled && (
@@ -299,11 +301,11 @@ export const LoginPage = () => {
           color: 'var(--text-muted)', marginTop: '14px',
           fontFamily: 'var(--ff-body)',
         }}>
-          No account?{' '}
+          {t('auth.no_account')}{' '}
           <span
             style={{ color: 'var(--accent-blue)', cursor: 'pointer' }}
             onClick={() => setShowSignUp(true)}
-          >SIGN UP</span>
+          >{t('auth.sign_up')}</span>
         </div>
       </div>
     </div>

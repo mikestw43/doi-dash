@@ -6,15 +6,17 @@ import { SummaryCards } from './SummaryCards';
 import { AccountHeatmap } from '../heatmaps/AccountHeatmap';
 import { OrdersHeatmap } from '../heatmaps/OrdersHeatmap';
 import { PendingHeatmap } from '../heatmaps/PendingHeatmap';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const TABS = [
-  { id: 'overview', label: 'OVERVIEW' },
-  { id: 'accounts', label: 'HEALTH' },
-  { id: 'orders',   label: 'ORDERS' },
-  { id: 'pending',  label: 'PENDING' },
+  { id: 'overview', labelKey: 'overview.tab_overview' },
+  { id: 'accounts', labelKey: 'overview.tab_health' },
+  { id: 'orders',   labelKey: 'overview.tab_orders' },
+  { id: 'pending',  labelKey: 'overview.tab_pending' },
 ];
 
 export const OverviewTabs = () => {
+  const t = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
 
   const { data: stats, isLoading } = useQuery<OverviewStats>({
@@ -28,7 +30,7 @@ export const OverviewTabs = () => {
       {/* Section header — OUTSIDE the box (matches mockup) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>PORTFOLIO</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', letterSpacing: '2px' }}>{t('dashboard.portfolio')}</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
 
@@ -54,7 +56,7 @@ export const OverviewTabs = () => {
               transition: 'all .15s',
             }}
           >
-            {tab.label}
+            {t(tab.labelKey).toUpperCase()}
           </button>
         ))}
       </div>

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Header } from './Header';
 import { useUIStore } from '../../stores/uiStore';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // SVG icons matching the mockup exactly
 const IconHome = () => (
@@ -41,15 +42,17 @@ type Page = ReturnType<typeof useUIStore.getState>['currentPage'];
 
 interface NavItem {
   page: Page;
-  label: string;
+  labelKey: string;
   Icon: () => JSX.Element;
 }
 
+// labelKey, not label: the bar is the one piece of chrome on every screen,
+// so it is the first thing that has to speak the reader's language.
 const NAV_ITEMS: NavItem[] = [
-  { page: 'dashboard',     label: 'HOME',     Icon: IconHome },
-  { page: 'trade-history', label: 'TRADES',   Icon: IconTrades },
-  { page: 'calendar',      label: 'CALENDAR', Icon: IconCalendar },
-  { page: 'analytics',     label: 'STATS',    Icon: IconStats },
+  { page: 'dashboard',     labelKey: 'nav.home',           Icon: IconHome },
+  { page: 'trade-history', labelKey: 'nav.trades_short',   Icon: IconTrades },
+  { page: 'calendar',      labelKey: 'nav.calendar_short', Icon: IconCalendar },
+  { page: 'analytics',     labelKey: 'nav.stats',          Icon: IconStats },
 ];
 
 interface LayoutProps {
@@ -59,11 +62,13 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const currentPage = useUIStore(s => s.currentPage);
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
+  const t = useTranslation();
 
   // Same buttons in both shells — the sidebar on desktop, the bottom bar on
   // phones. Only one shell is displayed at a time.
-  const navButtons = NAV_ITEMS.map(({ page, label, Icon }) => {
+  const navButtons = NAV_ITEMS.map(({ page, labelKey, Icon }) => {
     const active = currentPage === page;
+    const label = t(labelKey);
     return (
       <button
         key={page}

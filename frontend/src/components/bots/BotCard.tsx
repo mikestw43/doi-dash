@@ -9,6 +9,7 @@ import { NewTradeDialog } from './NewTradeDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
 import { fetchGroups, assignAccountGroup } from '../../services/api';
+import { useTranslation } from '../../i18n/useTranslation';
 
 interface Props {
   account: Account;
@@ -46,6 +47,7 @@ const getDdBadgeStyle = (dd: number, offline: boolean) => {
 };
 
 export const BotCard = ({ account, todayPnl = 0 }: Props) => {
+  const t = useTranslation();
   const [showCloseAll, setShowCloseAll] = useState(false);
   const [showProtection, setShowProtection] = useState(false);
   const [showGroupPicker, setShowGroupPicker] = useState(false);
@@ -219,9 +221,9 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           {/* Row 1: Balance | Equity | Orders */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {[
-              { label: 'Balance', value: fmtPrice(account.balance), color: 'var(--text-primary)' },
-              { label: 'Equity',  value: fmtPrice(account.equity),  color: account.equity >= account.balance ? 'var(--text-primary)' : 'var(--danger)' },
-              { label: 'Orders',  value: `${orderCount} open`,      color: orderCount > 0 ? 'var(--text-primary)' : 'var(--text-muted)' },
+              { label: t('bot.balance'), value: fmtPrice(account.balance), color: 'var(--text-primary)' },
+              { label: t('bot.equity'),  value: fmtPrice(account.equity),  color: account.equity >= account.balance ? 'var(--text-primary)' : 'var(--danger)' },
+              { label: t('bot.orders'),  value: `${orderCount} ${t('bot.open_suffix')}`,      color: orderCount > 0 ? 'var(--text-primary)' : 'var(--text-muted)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
                 <div className="bc-label" style={{ marginBottom: '2px' }}>{label}</div>
@@ -233,8 +235,8 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           {/* Row 2: Margin | Margin Level */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {[
-              { label: 'Margin', value: isOnline ? fmtPrice(account.margin ?? 0) : '—', color: 'var(--text-primary)' },
-              { label: 'Margin Level', value: isOnline && (account.marginLevel ?? 0) > 0 ? `${(account.marginLevel ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : '—', color: 'var(--text-primary)' },
+              { label: t('bot.margin'), value: isOnline ? fmtPrice(account.margin ?? 0) : '—', color: 'var(--text-primary)' },
+              { label: t('bot.margin_level'), value: isOnline && (account.marginLevel ?? 0) > 0 ? `${(account.marginLevel ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%` : '—', color: 'var(--text-primary)' },
             ].map(({ label, value, color }) => (
               <div key={label}>
                 <div className="bc-label" style={{ marginBottom: '2px' }}>{label}</div>
@@ -248,7 +250,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {/* Today P/L */}
             <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}>
-              <div className="bc-label" style={{ marginBottom: '3px' }}>TODAY</div>
+              <div className="bc-label" style={{ marginBottom: '3px' }}>{t('bot.today')}</div>
               <div
                 className="bc-value-lg"
                 style={{
@@ -260,7 +262,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
             </div>
             {/* Floating P/L */}
             <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '8px 10px' }}>
-              <div className="bc-label" style={{ marginBottom: '3px' }}>FLOATING P/L</div>
+              <div className="bc-label" style={{ marginBottom: '3px' }}>{t('bot.floating_pl')}</div>
               <FlashNumber
                 value={account.profit}
                 format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(Math.abs(v))}`}
@@ -272,7 +274,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
 
           {/* Lot exposure + broker on the same row (broker pushed right). */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="bc-label">Lot Exposure</span>
+            <span className="bc-label">{t('bot.lot_exposure')}</span>
             <span className="bc-chip" style={{ padding: '3px 7px', fontWeight: 700, background: 'rgba(96,165,250,.12)', color: 'var(--accent-blue)', border: '1px solid rgba(96,165,250,.3)' }}>
               B:{formatLots(account.buyLots)}
             </span>
@@ -310,7 +312,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#93c5fd'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#93c5fd'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; }}
               >
-                {showPositions ? '▾ DETAILS' : 'DETAILS'}
+                {showPositions ? `▾ ${t('bot.details')}` : t('bot.details')}
               </button>
 
               {/* ORDERS */}
@@ -328,7 +330,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(96,165,250,.08)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
               >
-                ORDERS
+                {t('bot.orders')}
               </button>
 
               {/* + TRADE */}
@@ -346,7 +348,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(96,165,250,.08)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
               >
-                + TRADE
+                {t('bot.trade')}
               </button>
 
               {/* Close all — ✕ (uses bc-action so height matches the other 3) */}
@@ -383,7 +385,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                   cursor: 'default', textAlign: 'center',
                 }}
               >
-                RECONNECT
+                {t('bot.reconnect')}
               </button>
               <button
                 onClick={() => setShowPositions(p => !p)}
@@ -396,7 +398,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                   cursor: 'pointer', textAlign: 'center',
                 }}
               >
-                ORDERS
+                {t('bot.orders')}
               </button>
               <button
                 onClick={() => setShowCloseAll(true)}
