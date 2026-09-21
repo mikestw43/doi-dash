@@ -293,9 +293,27 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
     setFileLabels(list.map(() => ''));
   };
 
+  const dirty = Boolean(
+    name || description || tags || images.length || files.length
+    || removeFileIds.length || removeImageIds.length,
+  ) && (!item || name !== item.name || description !== item.description
+        || tags !== item.tags.join(', ') || images.length > 0 || files.length > 0
+        || removeFileIds.length > 0 || removeImageIds.length > 0);
+
+  /** Closing throws away whatever has been typed, so ask first — and never
+   *  let a stray click on the backdrop do it silently. */
+  const requestClose = () => {
+    if (!dirty || window.confirm(t('ea.discard_confirm'))) onClose();
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   return (
     <div
-      onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 600, background: 'rgba(0,0,0,.6)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
@@ -303,7 +321,6 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
     >
       <div
         className="ea-form-modal"
-        onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--bg-card)', border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-card)', width: '100%', maxWidth: '560px', maxHeight: '100%',
@@ -317,7 +334,7 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
           <div style={{ flex: 1, fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)' }}>
             {item ? t('ea.edit') : t('ea.add')}
           </div>
-          <Btn label={t('ea.close')} onClick={onClose} />
+          <Btn label={t('ea.close')} onClick={requestClose} />
         </div>
 
         <div style={{ padding: '14px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -397,7 +414,7 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
           padding: '10px 16px', borderTop: '1px solid var(--border-color)',
           display: 'flex', gap: '8px', justifyContent: 'flex-end',
         }}>
-          <Btn label={t('common.cancel')} onClick={onClose} />
+          <Btn label={t('common.cancel')} onClick={requestClose} />
           <Btn
             label={save.isPending ? t('common.loading') : t('common.save')}
             onClick={() => { if (name.trim()) save.mutate(); else setError('name'); }}

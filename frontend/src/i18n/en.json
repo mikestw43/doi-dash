@@ -258,5 +258,6 @@
   "ea.no_images": "No images",
   "ea.close": "CLOSE",
   "ea.tags": "Tags",
-  "ea.all_tags": "All tags"
+  "ea.all_tags": "All tags",
+  "ea.discard_confirm": "Discard what you have entered?"
 }

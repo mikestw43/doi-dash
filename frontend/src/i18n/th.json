@@ -258,5 +258,6 @@
   "ea.no_images": "ไม่มีรูป",
   "ea.close": "ปิด",
   "ea.tags": "แท็ก",
-  "ea.all_tags": "ทุกแท็ก"
+  "ea.all_tags": "ทุกแท็ก",
+  "ea.discard_confirm": "ทิ้งข้อมูลที่กรอกไว้?"
 }
