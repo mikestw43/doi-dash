@@ -317,9 +317,11 @@ const InlineText = ({
 /** Set once, in English, because it is a mouse tooltip on a desktop only. */
 const t_editHint = 'Click to edit';
 
-const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
+const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
   item: EaItemDto; isAdmin: boolean;
   onClose: () => void; onEdit: () => void; onDelete: () => void;
+  /** True while a form is layered over this, so Escape belongs to the form. */
+  keysBusy?: boolean;
 }) => {
   const t = useTranslation();
   const qc = useQueryClient();
@@ -376,9 +378,23 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
     if (window.confirm(`${t('ea.delete')} — ${label}?`)) void after(run());
   };
 
+  /**
+   * Escape closes it. A click on the dark surround does not.
+   *
+   * This stopped being somewhere you only look the moment captions, notes and
+   * uploads moved onto it: dismissing a working screen on a click that landed
+   * a few pixels wide is the kind of thing that only ever happens by mistake.
+   * The lightbox and any form layered over this take the key first.
+   */
+  useEffect(() => {
+    if (keysBusy || zoom !== null) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [keysBusy, zoom, onClose]);
+
   return (
     <div
-      onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 500,
         background: 'rgba(0,0,0,.6)',
@@ -387,7 +403,6 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
     >
       <div
         className="ea-detail-modal"
-        onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--bg-card)', border: '1px solid var(--border-color)',
           borderRadius: 'var(--radius-card)',
@@ -1319,6 +1334,7 @@ export const EaRepository = () => {
           item={open}
           isAdmin={isAdmin}
           onClose={() => setOpenId(null)}
+          keysBusy={Boolean(editingTextOf)}
           onEdit={() => setEditingTextOf(open)}
           onDelete={() => remove.mutate(open.id)}
         />
