@@ -446,12 +446,19 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
           display: 'flex', alignItems: 'flex-start', gap: '10px',
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Status belongs with the name — it says how this one is doing.
+                The types are a classification, so they get their own line. */}
             <div style={{
-              fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
-              color: 'var(--text-primary)', marginBottom: '6px',
-            }}>{item.name}</div>
-            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+              display: 'flex', alignItems: 'center', gap: '9px',
+              flexWrap: 'wrap', marginBottom: '6px',
+            }}>
+              <div style={{
+                fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
+                color: 'var(--text-primary)',
+              }}>{item.name}</div>
               <StatusBadge status={item.status} />
+            </div>
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
               <TypeBadges types={item.type} />
             </div>
           </div>
@@ -1470,6 +1477,7 @@ const TableView = ({ items, onOpen }: ViewProps) => {
         <thead>
           <tr>
             <th className="ea-col-name">{t('ea.name')}</th>
+            <th className="ea-col-status">{t('ea.status')}</th>
             <th className="ea-col-type">{t('ea.type')}</th>
             <th className="ea-col-desc">{t('ea.description')}</th>
             <th className="ea-col-tags">{t('ea.tags')}</th>
@@ -1482,9 +1490,9 @@ const TableView = ({ items, onOpen }: ViewProps) => {
           {items.map(item => (
             <tr key={item.id} className="ea-row" onClick={() => onOpen(item)}>
               <td className="ea-col-name">{item.name}</td>
+              <td className="ea-col-status"><StatusBadge status={item.status} /></td>
               <td className="ea-col-type">
                 <span style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <StatusBadge status={item.status} />
                   <TypeBadges types={item.type} />
                 </span>
               </td>
@@ -1527,10 +1535,14 @@ const TableView = ({ items, onOpen }: ViewProps) => {
         .ea-wrap .ea-row:hover td { background: rgba(42,45,52,.25); }
         .ea-wrap .ea-desc { color: var(--text-dim); }
 
-        .ea-wrap .ea-col-name  { width: 20%; }
-        .ea-wrap .ea-col-type  { width: 12%; }
-        .ea-wrap .ea-col-desc  { width: 28%; }
-        .ea-wrap .ea-col-tags  { width: 18%; }
+        /* Status has its own column on purpose: it answers "how is this one
+           doing", which is a different question from "what is this one", and
+           a column of its own is what makes it scannable straight down. */
+        .ea-wrap .ea-col-name   { width: 19%; }
+        .ea-wrap .ea-col-status { width: 9%; }
+        .ea-wrap .ea-col-type   { width: 13%; }
+        .ea-wrap .ea-col-desc   { width: 24%; }
+        .ea-wrap .ea-col-tags   { width: 14%; }
         .ea-wrap .ea-col-count { width: 7%; text-align: right; }
         .ea-wrap .ea-col-date  { width: 12%; color: var(--text-dim); }
 
@@ -1541,9 +1553,10 @@ const TableView = ({ items, onOpen }: ViewProps) => {
           .ea-wrap .ea-col-tags,
           .ea-wrap .ea-col-count { display: none; }
           .ea-wrap th, .ea-wrap td { padding: 7px 8px; }
-          .ea-wrap .ea-col-name { width: 46%; }
-          .ea-wrap .ea-col-type { width: 28%; }
-          .ea-wrap .ea-col-date { width: 26%; }
+          .ea-wrap .ea-col-name   { width: 36%; }
+          .ea-wrap .ea-col-status { width: 18%; }
+          .ea-wrap .ea-col-type   { width: 24%; }
+          .ea-wrap .ea-col-date   { width: 22%; }
         }
       `}</style>
     </div>
@@ -1559,13 +1572,20 @@ const CardView = ({ items, onOpen }: ViewProps) => {
           <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <Thumb image={item.images[0]} size={52} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-                color: 'var(--text-primary)', fontWeight: 600,
-                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-              }}>{item.name}</div>
-              <div style={{ marginTop: '5px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              {/* Status rides the top-right corner of every card, so it sits in
+                  the same place on all of them and reads at a glance. A flex
+                  sibling rather than an absolute badge: the name keeps its
+                  ellipsis and can never run underneath it. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  flex: 1, minWidth: 0,
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+                  color: 'var(--text-primary)', fontWeight: 600,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>{item.name}</div>
                 <StatusBadge status={item.status} />
+              </div>
+              <div style={{ marginTop: '5px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                 <TypeBadges types={item.type} />
               </div>
             </div>
