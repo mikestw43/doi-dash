@@ -460,11 +460,28 @@ export interface EaItemDto {
 
 export const fetchEaItems = async (): Promise<EaItemDto[]> => (await api.get('/ea')).data;
 
-export const createEaItem = async (form: FormData): Promise<EaItemDto> =>
-  (await api.post('/ea', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120_000 })).data;
+/**
+ * Progress, 0..1, as the bytes go up.
+ *
+ * `total` is absent on some browsers and proxies, and a bar that never moves
+ * is worse than none — callers get undefined then and show a busy state.
+ */
+export type UploadProgress = (fraction: number | undefined) => void;
 
-export const updateEaItem = async (id: string, form: FormData): Promise<EaItemDto> =>
-  (await api.put(`/ea/${id}`, form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120_000 })).data;
+const uploadConfig = (onProgress?: UploadProgress) => ({
+  headers: { 'Content-Type': 'multipart/form-data' },
+  timeout: 120_000,
+  onUploadProgress: onProgress
+    ? (e: { loaded: number; total?: number }) =>
+        onProgress(e.total ? Math.min(1, e.loaded / e.total) : undefined)
+    : undefined,
+});
+
+export const createEaItem = async (form: FormData, onProgress?: UploadProgress): Promise<EaItemDto> =>
+  (await api.post('/ea', form, uploadConfig(onProgress))).data;
+
+export const updateEaItem = async (id: string, form: FormData, onProgress?: UploadProgress): Promise<EaItemDto> =>
+  (await api.put(`/ea/${id}`, form, uploadConfig(onProgress))).data;
 
 export const deleteEaItem = async (id: string): Promise<void> => {
   await api.delete(`/ea/${id}`);

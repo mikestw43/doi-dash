@@ -272,5 +272,11 @@
   "ea.drop_files_hint": ".ex5, .mq5, .set, .zip — any file · as many as you like",
   "ea.file_label_ph": "Current build / Preset",
   "ea.too_big": "Over 20 MB, not added:",
-  "ea.too_many": "At most 20 files per save."
+  "ea.too_many": "At most 20 files per save.",
+  "ea.uploading": "Uploading…",
+  "ea.finishing": "Finishing…",
+  "ea.saved_new": "Entry added",
+  "ea.saved_edit": "Changes saved",
+  "ea.uploaded_suffix": "files uploaded",
+  "ea.zoom_hint": "Click to enlarge"
 }

@@ -92,6 +92,113 @@ const Thumb = ({ image, size = 44 }: { image?: EaImageDto; size?: number }) => {
   );
 };
 
+/**
+ * A screenshot at its own size.
+ *
+ * The 92px thumbnails in the detail view are enough to tell two screenshots
+ * apart and nothing else — a settings panel or an equity curve is unreadable
+ * at that size, which is the only reason the screenshot is there. Tapping one
+ * opens it here; arrows walk the entry's other images without going back.
+ */
+const Lightbox = ({
+  images, index, onClose, onStep,
+}: {
+  images: EaImageDto[];
+  index: number;
+  onClose: () => void;
+  onStep: (next: number) => void;
+}) => {
+  const image = images[index];
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    let made: string | null = null;
+    setUrl(null);
+    fetchEaImageUrl(image.id)
+      .then(u => { if (alive) { made = u; setUrl(u); } else URL.revokeObjectURL(u); })
+      .catch(() => {/* the spinner stays; the caption still names the file */});
+    return () => { alive = false; if (made) URL.revokeObjectURL(made); };
+  }, [image.id]);
+
+  const step = (d: number) => onStep((index + d + images.length) % images.length);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft') step(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  return (
+    <div
+      className="ea-lightbox"
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 700,
+        background: 'rgba(0,0,0,.88)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '16px', gap: '12px',
+      }}
+    >
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '12px',
+        width: '100%', maxWidth: '1100px', justifyContent: 'center',
+      }}>
+        {images.length > 1 && (
+          <button
+            onClick={e => { e.stopPropagation(); step(-1); }}
+            style={arrowStyle}
+          >{'‹'}</button>
+        )}
+
+        {/* Clicking the picture itself must not close it — only the backdrop. */}
+        <div onClick={e => e.stopPropagation()} style={{
+          flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {url
+            ? <img
+                src={url}
+                alt={image.caption || image.filename}
+                style={{ maxWidth: '100%', maxHeight: '76vh', objectFit: 'contain', borderRadius: 'var(--radius-sm)' }}
+              />
+            : <span style={{ fontFamily: 'var(--ff-body)', color: 'var(--text-dim)' }}>{'…'}</span>}
+        </div>
+
+        {images.length > 1 && (
+          <button
+            onClick={e => { e.stopPropagation(); step(1); }}
+            style={arrowStyle}
+          >{'›'}</button>
+        )}
+      </div>
+
+      <div onClick={e => e.stopPropagation()} style={{
+        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+        color: 'var(--text-dim)', textAlign: 'center', maxWidth: '90%',
+      }}>
+        {image.caption || image.filename}
+        {images.length > 1 && <span> · {index + 1}/{images.length}</span>}
+      </div>
+
+      <button onClick={onClose} style={{ ...arrowStyle, width: 'auto', padding: '6px 16px', fontSize: 'var(--fs-body-sm)' }}>
+        {'✕'}
+      </button>
+    </div>
+  );
+};
+
+const arrowStyle: React.CSSProperties = {
+  flexShrink: 0,
+  width: '38px', height: '38px', lineHeight: 1,
+  fontSize: '22px', cursor: 'pointer',
+  background: 'rgba(255,255,255,.07)', color: 'var(--text-primary)',
+  border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+};
+
 const Btn = ({ label, onClick, tone = 'ghost' }: {
   label: string; onClick: () => void; tone?: 'ghost' | 'primary' | 'danger';
 }) => {
@@ -120,6 +227,9 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
   onClose: () => void; onEdit: () => void; onDelete: () => void;
 }) => {
   const t = useTranslation();
+  /** Which screenshot is open full size, or null. */
+  const [zoom, setZoom] = useState<number | null>(null);
+
   return (
     <div
       onClick={onClose}
@@ -173,8 +283,13 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
               <Muted>{t('ea.no_images')}</Muted>
             ) : (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {item.images.map(img => (
-                  <div key={img.id} style={{ textAlign: 'center' }}>
+                {item.images.map((img, i) => (
+                  <div
+                    key={img.id}
+                    onClick={() => setZoom(i)}
+                    title={t('ea.zoom_hint')}
+                    style={{ textAlign: 'center', cursor: 'zoom-in' }}
+                  >
                     <Thumb image={img} size={92} />
                     <div style={{
                       fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
@@ -230,6 +345,15 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
           </div>
         )}
       </div>
+
+      {zoom !== null && item.images[zoom] && (
+        <Lightbox
+          images={item.images}
+          index={zoom}
+          onStep={setZoom}
+          onClose={() => setZoom(null)}
+        />
+      )}
     </div>
   );
 };
@@ -402,6 +526,7 @@ const PickedThumb = ({ file, onRemove }: { file: File; onRemove: () => void }) =
 const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void }) => {
   const t = useTranslation();
   const qc = useQueryClient();
+  const addToast = useUIStore(s => s.addToast);
 
   const [name, setName] = useState(item?.name ?? '');
   const [type, setType] = useState<string>(item?.type ?? EA_TYPES[0]);
@@ -412,6 +537,13 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
   const [removeFileIds, setRemoveFileIds] = useState<string[]>([]);
   const [removeImageIds, setRemoveImageIds] = useState<string[]>([]);
   const [error, setError] = useState('');
+  /** 0..1 while bytes are going up, undefined when the browser won't say how
+   *  many there are in total, null when nothing is in flight. */
+  const [progress, setProgress] = useState<number | null | undefined>(null);
+  /** Descriptions edited on files that are already stored, by file id. */
+  const [storedLabels, setStoredLabels] = useState<Record<string, string>>(
+    () => Object.fromEntries((item?.files ?? []).map(f => [f.id, f.label])),
+  );
 
   /**
    * Add to what is already picked, refusing what the API would refuse anyway.
@@ -453,23 +585,43 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
       files.forEach(p => fd.append('files', p.file));
       // Parallel to the uploads above: labels[i] describes files[i].
       fd.append('fileLabels', JSON.stringify(files.map(p => p.label)));
+      setProgress(0);
       if (item) {
         fd.append('removeFileIds', JSON.stringify(removeFileIds));
         fd.append('removeImageIds', JSON.stringify(removeImageIds));
-        return updateEaItem(item.id, fd);
+        fd.append('fileMeta', JSON.stringify(
+          item.files.map(f => ({ id: f.id, label: storedLabels[f.id] ?? f.label })),
+        ));
+        return updateEaItem(item.id, fd, setProgress);
       }
-      return createEaItem(fd);
+      return createEaItem(fd, setProgress);
     },
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['ea-items'] }); onClose(); },
-    onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Save failed'),
+    onSuccess: () => {
+      setProgress(null);
+      void qc.invalidateQueries({ queryKey: ['ea-items'] });
+      // The modal is about to close, so the confirmation has to outlive it.
+      const n = images.length + files.length;
+      addToast({
+        type: 'success',
+        title: item ? t('ea.saved_edit') : t('ea.saved_new'),
+        message: n ? `${n} ${t('ea.uploaded_suffix')}` : undefined,
+      });
+      onClose();
+    },
+    onError: (e: unknown) => {
+      setProgress(null);
+      setError(e instanceof Error ? e.message : 'Save failed');
+    },
   });
+
+  const labelsEdited = (item?.files ?? []).some(f => (storedLabels[f.id] ?? f.label) !== f.label);
 
   const dirty = Boolean(
     name || description || tags || images.length || files.length
-    || removeFileIds.length || removeImageIds.length,
+    || removeFileIds.length || removeImageIds.length || labelsEdited,
   ) && (!item || name !== item.name || description !== item.description
         || tags !== item.tags.join(', ') || images.length > 0 || files.length > 0
-        || removeFileIds.length > 0 || removeImageIds.length > 0);
+        || removeFileIds.length > 0 || removeImageIds.length > 0 || labelsEdited);
 
   /** Closing throws away whatever has been typed, so ask first — and never
    *  let a stray click on the backdrop do it silently. */
@@ -605,14 +757,43 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
                   onToggle={() => setRemoveImageIds(p => p.includes(img.id) ? p.filter(x => x !== img.id) : [...p, img.id])}
                 />
               ))}
-              {item.files.map(f => (
-                <ExistingRow
-                  key={f.id}
-                  text={`▤ ${f.filename}${f.label ? ` · ${f.label}` : ''}`}
-                  removed={removeFileIds.includes(f.id)}
-                  onToggle={() => setRemoveFileIds(p => p.includes(f.id) ? p.filter(x => x !== f.id) : [...p, f.id])}
-                />
-              ))}
+              {/* A stored file's description stays editable: it is the part
+                  most likely to be wrong later — "v6.2" once v6.3 exists —
+                  and re-uploading a file to fix a word is absurd. */}
+              {item.files.map(f => {
+                const removed = removeFileIds.includes(f.id);
+                return (
+                  <div key={f.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    marginBottom: '6px', flexWrap: 'wrap',
+                  }}>
+                    <span style={{
+                      flex: '1 1 130px', minWidth: 0,
+                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                      color: removed ? 'var(--text-dim)' : 'var(--text-primary)',
+                      textDecoration: removed ? 'line-through' : 'none',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>
+                      {'\u25a4'} {f.filename}
+                    </span>
+                    <input
+                      value={storedLabels[f.id] ?? f.label}
+                      onChange={e => setStoredLabels(prev => ({ ...prev, [f.id]: e.target.value }))}
+                      disabled={removed}
+                      placeholder={t('ea.file_label_ph')}
+                      style={{
+                        ...inputStyle, flex: '1 1 165px', width: 'auto',
+                        opacity: removed ? .4 : 1,
+                      }}
+                    />
+                    <Btn
+                      label={removed ? '\u21ba' : '\u2715'}
+                      onClick={() => setRemoveFileIds(p => removed ? p.filter(x => x !== f.id) : [...p, f.id])}
+                      tone={removed ? 'ghost' : 'danger'}
+                    />
+                  </div>
+                );
+              })}
             </Field>
           )}
 
@@ -621,16 +802,54 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
           )}
         </div>
 
-        <div style={{
-          padding: '10px 16px', borderTop: '1px solid var(--border-color)',
-          display: 'flex', gap: '8px', justifyContent: 'flex-end',
-        }}>
-          <Btn label={t('common.cancel')} onClick={requestClose} />
-          <Btn
-            label={save.isPending ? t('common.loading') : t('common.save')}
-            onClick={() => { if (name.trim()) save.mutate(); else setError('name'); }}
-            tone="primary"
-          />
+        <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-color)' }}>
+          {/* Uploading a few MB over a phone connection is slow enough that a
+              still "Saving…" reads as a hang. This says how far it has got —
+              and, where the browser will not say how many bytes there are, at
+              least that something is still moving. */}
+          {save.isPending && (
+            <div style={{ marginBottom: '9px' }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', marginBottom: '4px',
+                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+              }}>
+                <span>
+                  {(progress ?? 0) >= 1 ? t('ea.finishing') : t('ea.uploading')}
+                </span>
+                {typeof progress === 'number' && <span>{Math.round(progress * 100)}%</span>}
+              </div>
+              <div style={{
+                height: '4px', borderRadius: '999px', overflow: 'hidden',
+                background: 'var(--bg-input)',
+              }}>
+                <div
+                  className={typeof progress === 'number' ? undefined : 'ea-progress-idle'}
+                  style={{
+                    height: '100%', background: 'var(--accent-blue)',
+                    width: typeof progress === 'number' ? `${Math.round(progress * 100)}%` : '35%',
+                    transition: 'width .2s linear',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <Btn label={t('common.cancel')} onClick={requestClose} />
+            <Btn
+              label={save.isPending ? t('common.loading') : t('common.save')}
+              onClick={() => { if (!save.isPending && name.trim()) save.mutate(); else if (!name.trim()) setError('name'); }}
+              tone="primary"
+            />
+          </div>
+
+          <style>{`
+            @keyframes ea-progress-slide {
+              0%   { transform: translateX(-100%); }
+              100% { transform: translateX(300%); }
+            }
+            .ea-progress-idle { animation: ea-progress-slide 1.1s ease-in-out infinite; }
+          `}</style>
         </div>
       </div>
     </div>

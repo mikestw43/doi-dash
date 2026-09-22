@@ -65,6 +65,29 @@ const labelsFrom = (raw: unknown): string[] => {
   }
 };
 
+/**
+ * Descriptions the form edited on files that are already stored, as
+ * [{ id, label }]. Anything malformed is dropped rather than failing the save:
+ * the uploads in the same request are the part that cannot be redone.
+ */
+const metaFrom = (raw: unknown): { id: string; label: string }[] => {
+  if (typeof raw !== 'string') return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.flatMap(entry =>
+      entry && typeof entry === 'object'
+      && typeof (entry as { id?: unknown }).id === 'string'
+        ? [{
+            id: (entry as { id: string }).id,
+            label: String((entry as { label?: unknown }).label ?? ''),
+          }]
+        : []);
+  } catch {
+    return [];
+  }
+};
+
 /** Express 5 types a param as string | string[]; narrow it the way the other
  *  routers in this codebase do. */
 const param = (value: string | string[] | undefined): string =>
@@ -240,6 +263,15 @@ router.put('/:id', uploadFields, async (req: AuthRequest, res: Response) => {
       }),
     },
   });
+
+  // A description edited on a file that is already stored. Scoped to this
+  // item's own files, so an id from another entry cannot be relabelled.
+  for (const { id, label } of metaFrom(req.body.fileMeta)) {
+    const file = await prisma.eaFile.findUnique({ where: { id } });
+    if (file?.itemId === existing.id && file.label !== label) {
+      await prisma.eaFile.update({ where: { id }, data: { label: label.trim() } });
+    }
+  }
 
   // Removals are ids the form no longer shows; new uploads simply append.
   for (const id of labelsFrom(req.body.removeImageIds)) {
