@@ -287,5 +287,10 @@
   "ea.manage": "✎ จัดการ",
   "ea.manage_done": "✓ เสร็จ",
   "ea.managing_off": "กำลังดู — แก้หรือลบอะไรไม่ได้",
-  "ea.managing_on": "กำลังจัดการ — ปุ่ม ✕ ลบได้ คำอธิบายแก้ได้"
+  "ea.managing_on": "กำลังจัดการ — ปุ่ม ✕ ลบได้ คำอธิบายแก้ได้",
+  "ea.status": "สถานะ",
+  "ea.all_statuses": "ทุกสถานะ",
+  "ea.type_multi_hint": "เลือกได้หลายอัน",
+  "ea.name_required": "ต้องใส่ชื่อ",
+  "ea.type_required": "เลือกชนิดอย่างน้อย 1 อัน"
 }

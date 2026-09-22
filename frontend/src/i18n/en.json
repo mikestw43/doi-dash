@@ -287,5 +287,10 @@
   "ea.manage": "✎ MANAGE",
   "ea.manage_done": "✓ DONE",
   "ea.managing_off": "Viewing — nothing here can be changed",
-  "ea.managing_on": "Managing — ✕ deletes, notes are editable"
+  "ea.managing_on": "Managing — ✕ deletes, notes are editable",
+  "ea.status": "Status",
+  "ea.all_statuses": "All statuses",
+  "ea.type_multi_hint": "pick one or more",
+  "ea.name_required": "A name is required.",
+  "ea.type_required": "Pick at least one type."
 }

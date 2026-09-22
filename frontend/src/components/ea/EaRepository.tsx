@@ -20,6 +20,17 @@ import {
 const EA_TYPES = ['MT5 EA', 'MT4 EA', 'Indicator', 'Script', 'Source', 'Other'] as const;
 type EaType = typeof EA_TYPES[number];
 
+/** Where an entry stands. Short on purpose: three states people will actually
+ *  keep up to date beat seven nobody maintains. */
+const EA_STATUSES = ['OK', 'Waiting', 'Other'] as const;
+type EaStatus = typeof EA_STATUSES[number];
+
+const STATUS_COLORS: Record<string, string> = {
+  OK:      'var(--success)',
+  Waiting: 'var(--warning)',
+  Other:   'var(--text-muted)',
+};
+
 const TYPE_COLORS: Record<string, string> = {
   'MT5 EA':    'var(--accent-blue)',
   'MT4 EA':    'var(--cyan)',
@@ -41,6 +52,23 @@ const TypeBadge = ({ type }: { type: string }) => (
     border: `1px solid ${TYPE_COLORS[type] ?? 'var(--text-muted)'}`, borderRadius: 'var(--radius-sm)',
     color: TYPE_COLORS[type] ?? 'var(--text-muted)',
   }}>{type}</span>
+);
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const c = STATUS_COLORS[status] ?? 'var(--text-muted)';
+  return (
+    <span style={{
+      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+      padding: '2px 8px', whiteSpace: 'nowrap', borderRadius: '999px',
+      color: c, background: `color-mix(in srgb, ${c} 14%, transparent)`,
+      border: `1px solid color-mix(in srgb, ${c} 40%, transparent)`,
+    }}>{status.toUpperCase()}</span>
+  );
+};
+
+/** A row of type badges — an entry can be more than one thing. */
+const TypeBadges = ({ types }: { types: string[] }) => (
+  <>{types.map(ty => <TypeBadge key={ty} type={ty} />)}</>
 );
 
 const TagChip = ({ tag, onClick }: { tag: string; onClick?: () => void }) => (
@@ -422,7 +450,10 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
               color: 'var(--text-primary)', marginBottom: '6px',
             }}>{item.name}</div>
-            <TypeBadge type={item.type} />
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <StatusBadge status={item.status} />
+              <TypeBadges types={item.type} />
+            </div>
           </div>
           <Btn label={t('ea.close')} onClick={onClose} />
         </div>
@@ -831,7 +862,8 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
   const addToast = useUIStore(s => s.addToast);
 
   const [name, setName] = useState('');
-  const [type, setType] = useState<string>(EA_TYPES[0]);
+  const [type, setType] = useState<string[]>([EA_TYPES[0]]);
+  const [status, setStatus] = useState<string>(EA_STATUSES[0]);
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const [images, setImages] = useState<Picked[]>([]);
@@ -872,7 +904,8 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
     mutationFn: async () => {
       const fd = new FormData();
       fd.append('name', name);
-      fd.append('type', type);
+      fd.append('type', type.join(','));
+      fd.append('status', status);
       fd.append('description', description);
       fd.append('tags', tags);
       images.forEach(p => fd.append('images', p.file));
@@ -962,9 +995,13 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
             <input value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
           </Field>
 
-          <Field label={t('ea.type')}>
-            <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
-              {EA_TYPES.map(ty => <option key={ty} value={ty}>{ty}</option>)}
+          <Field label={`${t('ea.type')} — ${t('ea.type_multi_hint')}`}>
+            <MultiPick options={EA_TYPES} value={type} onChange={setType} />
+          </Field>
+
+          <Field label={t('ea.status')}>
+            <select value={status} onChange={e => setStatus(e.target.value)} style={inputStyle}>
+              {EA_STATUSES.map(st => <option key={st} value={st}>{st}</option>)}
             </select>
           </Field>
 
@@ -1037,7 +1074,12 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
             <Btn label={t('common.cancel')} onClick={requestClose} />
             <Btn
               label={save.isPending ? t('common.loading') : t('common.save')}
-              onClick={() => { if (!save.isPending && name.trim()) save.mutate(); else if (!name.trim()) setError('name'); }}
+              onClick={() => {
+                if (save.isPending) return;
+                if (!name.trim()) { setError(t('ea.name_required')); return; }
+                if (!type.length) { setError(t('ea.type_required')); return; }
+                save.mutate();
+              }}
               tone="primary"
             />
           </div>
@@ -1063,13 +1105,14 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const addToast = useUIStore(s => s.addToast);
 
   const [name, setName] = useState(item.name);
-  const [type, setType] = useState(item.type);
+  const [type, setType] = useState<string[]>(item.type);
+  const [status, setStatus] = useState(item.status);
   const [description, setDescription] = useState(item.description);
   const [tags, setTags] = useState(item.tags.join(', '));
   const [error, setError] = useState('');
 
   const save = useMutation({
-    mutationFn: () => patchEaItem(item.id, { name, type, description, tags }),
+    mutationFn: () => patchEaItem(item.id, { name, type, status, description, tags }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ea-items'] });
       addToast({ type: 'success', title: t('ea.saved_edit') });
@@ -1078,7 +1121,8 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
     onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Save failed'),
   });
 
-  const dirty = name !== item.name || type !== item.type
+  const dirty = name !== item.name || type.join(',') !== item.type.join(',')
+    || status !== item.status
     || description !== item.description || tags !== item.tags.join(', ');
 
   const requestClose = () => {
@@ -1118,9 +1162,13 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
           <Field label={t('ea.name')}>
             <input value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
           </Field>
-          <Field label={t('ea.type')}>
-            <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
-              {EA_TYPES.map(ty => <option key={ty} value={ty}>{ty}</option>)}
+          <Field label={`${t('ea.type')} — ${t('ea.type_multi_hint')}`}>
+            <MultiPick options={EA_TYPES} value={type} onChange={setType} />
+          </Field>
+
+          <Field label={t('ea.status')}>
+            <select value={status} onChange={e => setStatus(e.target.value)} style={inputStyle}>
+              {EA_STATUSES.map(st => <option key={st} value={st}>{st}</option>)}
             </select>
           </Field>
           <Field label={t('ea.description')}>
@@ -1156,7 +1204,12 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
           <Btn label={t('common.cancel')} onClick={requestClose} />
           <Btn
             label={save.isPending ? t('common.loading') : t('common.save')}
-            onClick={() => { if (!save.isPending && name.trim()) save.mutate(); else if (!name.trim()) setError('name'); }}
+            onClick={() => {
+              if (save.isPending) return;
+              if (!name.trim()) { setError(t('ea.name_required')); return; }
+              if (!type.length) { setError(t('ea.type_required')); return; }
+              save.mutate();
+            }}
             tone="primary"
           />
         </div>
@@ -1172,6 +1225,43 @@ const inputStyle: React.CSSProperties = {
   background: 'var(--bg-input)', color: 'var(--text-primary)',
   border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
 };
+
+/**
+ * Pick one or more.
+ *
+ * A row of toggles rather than a <select multiple>: that control needs a
+ * ctrl-click to add a second value, which nobody discovers, and on a phone it
+ * is barely operable at all. Here what is on is visibly on.
+ */
+const MultiPick = ({ options, value, onChange }: {
+  options: readonly string[];
+  value: string[];
+  onChange: (next: string[]) => void;
+}) => (
+  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+    {options.map(opt => {
+      const on = value.includes(opt);
+      return (
+        <button
+          key={opt}
+          type="button"
+          aria-pressed={on}
+          onClick={() => onChange(on ? value.filter(v => v !== opt) : [...value, opt])}
+          style={{
+            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+            padding: '5px 11px', cursor: 'pointer', borderRadius: '999px', whiteSpace: 'nowrap',
+            border: `1px solid ${on ? (TYPE_COLORS[opt] ?? 'var(--accent-blue)') : 'var(--border2)'}`,
+            color: on ? (TYPE_COLORS[opt] ?? 'var(--accent-blue)') : 'var(--text-dim)',
+            background: on ? 'rgba(255,255,255,.05)' : 'transparent',
+            transition: 'all .12s',
+          }}
+        >
+          {on ? '✓ ' : ''}{opt}
+        </button>
+      );
+    })}
+  </div>
+);
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div>
@@ -1195,6 +1285,7 @@ export const EaRepository = () => {
 
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | EaType>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | EaStatus>('all');
   const [tagFilter, setTagFilter] = useState<'all' | string>('all');
   /**
    * The open entry is held by id, not by value.
@@ -1220,16 +1311,17 @@ export const EaRepository = () => {
   const items = data ?? [];
   const open = items.find(i => i.id === openId) ?? null;
   const filtered = useMemo(() => items.filter(i => {
-    if (typeFilter !== 'all' && i.type !== typeFilter) return false;
+    if (typeFilter !== 'all' && !i.type.includes(typeFilter)) return false;
+    if (statusFilter !== 'all' && i.status !== statusFilter) return false;
     if (tagFilter !== 'all' && !i.tags.includes(tagFilter)) return false;
     const q = search.trim().toLowerCase();
     return !q
       || i.name.toLowerCase().includes(q)
       || i.description.toLowerCase().includes(q)
       || i.tags.some(tag => tag.toLowerCase().includes(q));
-  }), [items, search, typeFilter, tagFilter]);
+  }), [items, search, typeFilter, statusFilter, tagFilter]);
 
-  const types = [...new Set(items.map(i => i.type))];
+  const types = [...new Set(items.flatMap(i => i.type))];
   const tags = [...new Set(items.flatMap(i => i.tags))].sort();
 
   return (
@@ -1285,6 +1377,20 @@ export const EaRepository = () => {
         >
           <option value="all">{t('ea.all_types')}</option>
           {types.map(ty => <option key={ty} value={ty}>{ty}</option>)}
+        </select>
+        {/* A status nobody can filter by is a label, not a status. */}
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value as 'all' | EaStatus)}
+          style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
+            padding: '6px 10px',
+            background: 'var(--bg-input)', color: 'var(--text-primary)',
+            border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+          }}
+        >
+          <option value="all">{t('ea.all_statuses')}</option>
+          {EA_STATUSES.map(st => <option key={st} value={st}>{st}</option>)}
         </select>
         <select
           value={tagFilter}
@@ -1376,7 +1482,12 @@ const TableView = ({ items, onOpen }: ViewProps) => {
           {items.map(item => (
             <tr key={item.id} className="ea-row" onClick={() => onOpen(item)}>
               <td className="ea-col-name">{item.name}</td>
-              <td className="ea-col-type"><TypeBadge type={item.type} /></td>
+              <td className="ea-col-type">
+                <span style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <StatusBadge status={item.status} />
+                  <TypeBadges types={item.type} />
+                </span>
+              </td>
               <td className="ea-col-desc"><span className="ea-desc">{item.description}</span></td>
               <td className="ea-col-tags">
                 <span style={{ display: 'inline-flex', gap: '4px' }}>
@@ -1453,7 +1564,10 @@ const CardView = ({ items, onOpen }: ViewProps) => {
                 color: 'var(--text-primary)', fontWeight: 600,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>{item.name}</div>
-              <div style={{ marginTop: '5px' }}><TypeBadge type={item.type} /></div>
+              <div style={{ marginTop: '5px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                <StatusBadge status={item.status} />
+                <TypeBadges types={item.type} />
+              </div>
             </div>
           </div>
 

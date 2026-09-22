@@ -450,7 +450,10 @@ export interface EaFileDto { id: string; filename: string; label: string; size: 
 export interface EaItemDto {
   id: string;
   name: string;
-  type: string;
+  /** One or more — an entry is often an EA and its source at once. */
+  type: string[];
+  /** OK | Waiting | Other */
+  status: string;
   description: string;
   tags: string[];
   images: EaImageDto[];
@@ -484,7 +487,8 @@ export const createEaItem = async (form: FormData, onProgress?: UploadProgress):
  *  cannot cost an upload. */
 export const patchEaItem = async (
   id: string,
-  fields: Partial<Pick<EaItemDto, 'name' | 'type' | 'description'>> & { tags?: string },
+  fields: Partial<Pick<EaItemDto, 'name' | 'status' | 'description'>>
+    & { type?: string[]; tags?: string },
 ): Promise<EaItemDto> => (await api.patch(`/ea/${id}`, fields)).data;
 
 /** Add attachments to an entry that already exists. */

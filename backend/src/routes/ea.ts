@@ -70,17 +70,26 @@ const labelsFrom = (raw: unknown): string[] => {
 const param = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? value[0] : (value ?? '');
 
+/** Both `type` and `tags` are comma-separated lists in one column. */
+const asList = (raw: string): string[] =>
+  raw ? raw.split(',').map(v => v.trim()).filter(Boolean) : [];
+
+const toCsv = (raw: unknown): string =>
+  (Array.isArray(raw) ? raw.map(String) : String(raw ?? '').split(','))
+    .map(v => v.trim()).filter(Boolean).join(',');
+
 const serialize = (item: {
-  id: string; name: string; type: string; description: string; tags: string;
+  id: string; name: string; type: string; status: string; description: string; tags: string;
   createdAt: Date; updatedAt: Date;
   images: { id: string; filename: string; caption: string; size: number }[];
   files: { id: string; filename: string; label: string; size: number; createdAt: Date }[];
 }) => ({
   id: item.id,
   name: item.name,
-  type: item.type,
+  type: asList(item.type),
+  status: item.status,
   description: item.description,
-  tags: item.tags ? item.tags.split(',').map(s => s.trim()).filter(Boolean) : [],
+  tags: asList(item.tags),
   images: item.images,
   files: item.files.map(f => ({ ...f, createdAt: f.createdAt.toISOString().slice(0, 10) })),
   updatedAt: item.updatedAt.toISOString().slice(0, 10),
@@ -194,18 +203,20 @@ const attachUploads = async (
 };
 
 router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
-  const { name, type, description, tags } = req.body as Record<string, string>;
-  if (!name?.trim() || !type?.trim()) {
-    res.status(400).json({ error: 'name and type are required' });
+  const { name, type, status, description, tags } = req.body as Record<string, string>;
+  const types = toCsv(type);
+  if (!name?.trim() || !types) {
+    res.status(400).json({ error: 'name and at least one type are required' });
     return;
   }
 
   const item = await prisma.eaItem.create({
     data: {
       name: name.trim(),
-      type: type.trim(),
+      type: types,
+      ...(status?.trim() && { status: status.trim() }),
       description: description?.trim() ?? '',
-      tags: (tags ?? '').split(',').map(s => s.trim()).filter(Boolean).join(','),
+      tags: toCsv(tags),
       createdBy: req.user?.id,
     },
   });
@@ -235,9 +246,15 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  const { name, type, description, tags } = req.body as Record<string, unknown>;
+  const { name, type, status, description, tags } = req.body as Record<string, unknown>;
   if (name !== undefined && !String(name).trim()) {
     res.status(400).json({ error: 'name cannot be empty' });
+    return;
+  }
+  // An entry with no type at all would fall out of every filter, so a request
+  // that clears the list is refused rather than silently losing the entry.
+  if (type !== undefined && !toCsv(type)) {
+    res.status(400).json({ error: 'at least one type is required' });
     return;
   }
 
@@ -245,11 +262,10 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
     where: { id: existing.id },
     data: {
       ...(name !== undefined && { name: String(name).trim() }),
-      ...(type !== undefined && { type: String(type).trim() }),
+      ...(type !== undefined && { type: toCsv(type) }),
+      ...(status !== undefined && { status: String(status).trim() }),
       ...(description !== undefined && { description: String(description).trim() }),
-      ...(tags !== undefined && {
-        tags: String(tags).split(',').map(t => t.trim()).filter(Boolean).join(','),
-      }),
+      ...(tags !== undefined && { tags: toCsv(tags) }),
     },
   });
 

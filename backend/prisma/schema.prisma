@@ -181,8 +181,13 @@ model AuditLog {
 model EaItem {
   id          String   @id @default(uuid())
   name        String
-  /// MT5 EA | MT4 EA | Indicator | Script | Source | Other
+  /// One or more of: MT5 EA | MT4 EA | Indicator | Script | Source | Other,
+  /// comma separated. Stored the way tags are — an entry is often two things
+  /// at once (an EA and its source), and the single value could not say so.
+  /// Rows written before this held exactly one, which parses as a list of one.
   type        String
+  /// OK | Waiting | Other — where this entry stands, at a glance.
+  status      String   @default("OK")
   description String   @default("")
   /// Free-form labels, comma separated. A join table buys nothing while the
   /// list is small enough to filter in memory, and costs a migration to add.
