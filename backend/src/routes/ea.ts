@@ -65,29 +65,6 @@ const labelsFrom = (raw: unknown): string[] => {
   }
 };
 
-/**
- * Descriptions the form edited on files that are already stored, as
- * [{ id, label }]. Anything malformed is dropped rather than failing the save:
- * the uploads in the same request are the part that cannot be redone.
- */
-const metaFrom = (raw: unknown): { id: string; label: string }[] => {
-  if (typeof raw !== 'string') return [];
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.flatMap(entry =>
-      entry && typeof entry === 'object'
-      && typeof (entry as { id?: unknown }).id === 'string'
-        ? [{
-            id: (entry as { id: string }).id,
-            label: String((entry as { label?: unknown }).label ?? ''),
-          }]
-        : []);
-  } catch {
-    return [];
-  }
-};
-
 /** Express 5 types a param as string | string[]; narrow it the way the other
  *  routers in this codebase do. */
 const param = (value: string | string[] | undefined): string =>
@@ -244,60 +221,114 @@ router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
   res.status(201).json(serialize(full!));
 });
 
-router.put('/:id', uploadFields, async (req: AuthRequest, res: Response) => {
+/**
+ * Edit the text.
+ *
+ * One entry, four fields, no files: a description or a tag is fixed without
+ * the request being able to touch an upload, so a mistyped edit can never cost
+ * a file. What the form sends is what changes — an absent field is left alone.
+ */
+router.patch('/:id', async (req: AuthRequest, res: Response) => {
   const existing = await prisma.eaItem.findUnique({ where: { id: param(req.params.id) } });
   if (!existing) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
 
-  const { name, type, description, tags } = req.body as Record<string, string>;
+  const { name, type, description, tags } = req.body as Record<string, unknown>;
+  if (name !== undefined && !String(name).trim()) {
+    res.status(400).json({ error: 'name cannot be empty' });
+    return;
+  }
+
   await prisma.eaItem.update({
     where: { id: existing.id },
     data: {
-      ...(name !== undefined && { name: name.trim() }),
-      ...(type !== undefined && { type: type.trim() }),
-      ...(description !== undefined && { description: description.trim() }),
+      ...(name !== undefined && { name: String(name).trim() }),
+      ...(type !== undefined && { type: String(type).trim() }),
+      ...(description !== undefined && { description: String(description).trim() }),
       ...(tags !== undefined && {
-        tags: tags.split(',').map(s => s.trim()).filter(Boolean).join(','),
+        tags: String(tags).split(',').map(t => t.trim()).filter(Boolean).join(','),
       }),
     },
   });
 
-  // A description edited on a file that is already stored. Scoped to this
-  // item's own files, so an id from another entry cannot be relabelled.
-  for (const { id, label } of metaFrom(req.body.fileMeta)) {
-    const file = await prisma.eaFile.findUnique({ where: { id } });
-    if (file?.itemId === existing.id && file.label !== label) {
-      await prisma.eaFile.update({ where: { id }, data: { label: label.trim() } });
-    }
-  }
+  res.json(serialize((await prisma.eaItem.findUnique({
+    where: { id: existing.id }, include: withChildren,
+  }))!));
+});
 
-  // Removals are ids the form no longer shows; new uploads simply append.
-  for (const id of labelsFrom(req.body.removeImageIds)) {
-    const img = await prisma.eaImage.findUnique({ where: { id } });
-    if (img?.itemId === existing.id) {
-      await prisma.eaImage.delete({ where: { id } });
-      removeFromDisk(img.storedName);
-    }
-  }
-  for (const id of labelsFrom(req.body.removeFileIds)) {
-    const file = await prisma.eaFile.findUnique({ where: { id } });
-    if (file?.itemId === existing.id) {
-      await prisma.eaFile.delete({ where: { id } });
-      removeFromDisk(file.storedName);
-    }
-  }
+// ─── One attachment at a time ────────────────────────────────────────────────
+//
+// A description, a deletion and an upload are three separate requests against
+// three separate URLs. Each is small enough to apply the moment it happens, so
+// there is nothing held in a form waiting on a Save that a stray click could
+// throw away — and a failure loses only the one thing that failed.
 
+/** Add files to an entry that already exists. */
+router.post('/:id/files', uploadFields, async (req: AuthRequest, res: Response) => {
+  const existing = await prisma.eaItem.findUnique({ where: { id: param(req.params.id) } });
+  if (!existing) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
   await attachUploads(
     existing.id,
     req.files as MulterFiles,
     labelsFrom(req.body.imageCaptions),
     labelsFrom(req.body.fileLabels),
   );
+  res.json(serialize((await prisma.eaItem.findUnique({
+    where: { id: existing.id }, include: withChildren,
+  }))!));
+});
 
-  const full = await prisma.eaItem.findUnique({ where: { id: existing.id }, include: withChildren });
-  res.json(serialize(full!));
+router.patch('/files/:fileId', async (req: AuthRequest, res: Response) => {
+  const file = await prisma.eaFile.findUnique({ where: { id: param(req.params.fileId) } });
+  if (!file) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+  await prisma.eaFile.update({
+    where: { id: file.id },
+    data: { label: String(req.body.label ?? '').trim() },
+  });
+  res.json({ ok: true });
+});
+
+router.patch('/images/:imageId', async (req: AuthRequest, res: Response) => {
+  const image = await prisma.eaImage.findUnique({ where: { id: param(req.params.imageId) } });
+  if (!image) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+  await prisma.eaImage.update({
+    where: { id: image.id },
+    data: { caption: String(req.body.caption ?? '').trim() },
+  });
+  res.json({ ok: true });
+});
+
+router.delete('/files/:fileId', async (req: AuthRequest, res: Response) => {
+  const file = await prisma.eaFile.findUnique({ where: { id: param(req.params.fileId) } });
+  if (!file) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+  await prisma.eaFile.delete({ where: { id: file.id } });
+  removeFromDisk(file.storedName);
+  res.json({ ok: true });
+});
+
+router.delete('/images/:imageId', async (req: AuthRequest, res: Response) => {
+  const image = await prisma.eaImage.findUnique({ where: { id: param(req.params.imageId) } });
+  if (!image) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+  await prisma.eaImage.delete({ where: { id: image.id } });
+  removeFromDisk(image.storedName);
+  res.json({ ok: true });
 });
 
 router.delete('/:id', async (req: AuthRequest, res: Response) => {

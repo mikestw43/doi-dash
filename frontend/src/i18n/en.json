@@ -278,5 +278,10 @@
   "ea.saved_new": "Entry added",
   "ea.saved_edit": "Changes saved",
   "ea.uploaded_suffix": "files uploaded",
-  "ea.zoom_hint": "Click to enlarge"
+  "ea.zoom_hint": "Click to enlarge",
+  "ea.edit_text": "EDIT TEXT",
+  "ea.add_caption": "+ add a caption",
+  "ea.add_note": "+ add a note",
+  "ea.add_image": "add image",
+  "ea.files_moved_hint": "Images and files are managed on the entry itself — close this and use the ✕ and drop zones there."
 }

@@ -4,7 +4,8 @@ import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  fetchEaItems, createEaItem, updateEaItem, deleteEaItem,
+  fetchEaItems, createEaItem, patchEaItem, deleteEaItem,
+  addEaUploads, setEaFileLabel, setEaImageCaption, deleteEaFile, deleteEaImage,
   fetchEaImageUrl, downloadEaFile,
   type EaItemDto, type EaImageDto,
 } from '../../services/api';
@@ -191,6 +192,10 @@ const Lightbox = ({
   );
 };
 
+const INLINE_CSS = `
+  .ea-inline:hover { border-color: #4a4e58 !important; background: rgba(255,255,255,.03); }
+`;
+
 const arrowStyle: React.CSSProperties = {
   flexShrink: 0,
   width: '38px', height: '38px', lineHeight: 1,
@@ -199,8 +204,11 @@ const arrowStyle: React.CSSProperties = {
   border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
 };
 
-const Btn = ({ label, onClick, tone = 'ghost' }: {
+const Btn = ({ label, onClick, tone = 'ghost', title }: {
   label: string; onClick: () => void; tone?: 'ghost' | 'primary' | 'danger';
+  /** Names the button when the label is a bare glyph. Several ✕ in one list
+   *  are otherwise the same button to a tooltip and to a screen reader. */
+  title?: string;
 }) => {
   const colors = {
     ghost:   { fg: 'var(--text-dim)',    bd: 'var(--border2)',            bg: 'transparent' },
@@ -210,6 +218,8 @@ const Btn = ({ label, onClick, tone = 'ghost' }: {
   return (
     <button
       onClick={onClick}
+      title={title}
+      aria-label={title ?? label}
       style={{
         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
         padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap',
@@ -222,13 +232,137 @@ const Btn = ({ label, onClick, tone = 'ghost' }: {
 
 // ─── Detail ──────────────────────────────────────────────────────────────────
 
+/**
+ * A word you can change where it is written.
+ *
+ * Reads as plain text until it is clicked; then it is an input, and leaving it
+ * saves. There is no Save button because there is nothing else in flight to
+ * save with it — one field, one request. Escape puts the old text back.
+ */
+const InlineText = ({
+  value, placeholder, onSave, style, multiline,
+}: {
+  value: string;
+  placeholder: string;
+  onSave: (next: string) => Promise<unknown>;
+  style?: React.CSSProperties;
+  multiline?: boolean;
+}) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const [saved, setSaved] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  // A change made elsewhere (another field's save refetches the entry) must
+  // not be overwritten by a stale draft sitting in a field nobody is using.
+  useEffect(() => { if (!editing) setDraft(value); }, [value, editing]);
+
+  const commit = async () => {
+    setEditing(false);
+    const next = draft.trim();
+    if (next === value) return;
+    setBusy(true);
+    try {
+      await onSave(next);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 2200);
+    } catch {
+      setDraft(value);   // the server did not take it; show what it still has
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (editing) {
+    const props = {
+      autoFocus: true,
+      value: draft,
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDraft(e.target.value),
+      onBlur: () => { void commit(); },
+      onKeyDown: (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape') { setDraft(value); setEditing(false); }
+        if (e.key === 'Enter' && !multiline) (e.target as HTMLElement).blur();
+      },
+      style: { ...inputStyle, ...style, width: '100%' },
+    };
+    return multiline
+      ? <textarea {...props} rows={3} style={{ ...props.style, resize: 'vertical' }} />
+      : <input {...props} />;
+  }
+
+  return (
+    <span
+      onClick={() => setEditing(true)}
+      title={t_editHint}
+      className="ea-inline"
+      style={{
+        display: 'inline-block', maxWidth: '100%',
+        padding: '2px 6px', margin: '-2px -6px',
+        borderRadius: 'var(--radius-sm)',
+        border: '1px dashed transparent',
+        cursor: 'text', whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
+        overflow: 'hidden', textOverflow: 'ellipsis',
+        color: value ? undefined : 'var(--text-dim)',
+        fontStyle: value ? undefined : 'italic',
+        opacity: busy ? .5 : 1,
+        ...style,
+      }}
+    >
+      {value || placeholder}
+      {saved && <span style={{ color: 'var(--success)', fontSize: 'var(--fs-micro)', marginLeft: '7px' }}>{'✓'}</span>}
+    </span>
+  );
+};
+
+/** Set once, in English, because it is a mouse tooltip on a desktop only. */
+const t_editHint = 'Click to edit';
+
 const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
   item: EaItemDto; isAdmin: boolean;
   onClose: () => void; onEdit: () => void; onDelete: () => void;
 }) => {
   const t = useTranslation();
+  const qc = useQueryClient();
+  const addToast = useUIStore(s => s.addToast);
   /** Which screenshot is open full size, or null. */
   const [zoom, setZoom] = useState<number | null>(null);
+  const [progress, setProgress] = useState<number | null | undefined>(null);
+  const [error, setError] = useState('');
+
+  const refresh = () => qc.invalidateQueries({ queryKey: ['ea-items'] });
+
+  /** Every change here is its own request; this is what turns each one into a
+   *  fresh list without a page the reader has to reload. */
+  const after = async <T,>(p: Promise<T>): Promise<T> => {
+    const out = await p;
+    await refresh();
+    return out;
+  };
+
+  const upload = async (field: 'images' | 'files', picked: File[]) => {
+    const tooBig = picked.filter(f => f.size > MAX_FILE_BYTES);
+    const ok = picked.filter(f => f.size <= MAX_FILE_BYTES).slice(0, MAX_FILES_PER_SAVE);
+    setError(tooBig.length ? `${t('ea.too_big')} ${tooBig.map(f => f.name).join(', ')}` : '');
+    if (!ok.length) return;
+
+    const fd = new FormData();
+    ok.forEach(f => fd.append(field, f));
+    setProgress(0);
+    try {
+      await after(addEaUploads(item.id, fd, setProgress));
+      addToast({ type: 'success', title: t('ea.saved_edit'), message: `${ok.length} ${t('ea.uploaded_suffix')}` });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setProgress(null);
+    }
+  };
+
+  /** Deleting a file takes the bytes with it and there is no Cancel to fall
+   *  back on any more, so each one asks. */
+  const confirmRemove = (label: string, run: () => Promise<unknown>) => {
+    if (window.confirm(`${t('ea.delete')} — ${label}?`)) void after(run());
+  };
 
   return (
     <div
@@ -249,6 +383,8 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
       >
+        <style>{INLINE_CSS}</style>
+
         {/* header */}
         <div style={{
           padding: '14px 16px', borderBottom: '1px solid var(--border-color)',
@@ -277,30 +413,60 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
             </div>
           )}
 
+          {/* ── Images ──
+              Admins manage them here rather than in a form: a thumbnail you
+              can see is the only safe thing to aim a delete at, and a caption
+              is worth nothing if it cannot be fixed after the fact. */}
           <section>
             <SectionLabel>{t('ea.images')} · {item.images.length}</SectionLabel>
-            {item.images.length === 0 ? (
+            {item.images.length === 0 && !isAdmin ? (
               <Muted>{t('ea.no_images')}</Muted>
             ) : (
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 {item.images.map((img, i) => (
-                  <div
-                    key={img.id}
-                    onClick={() => setZoom(i)}
-                    title={t('ea.zoom_hint')}
-                    style={{ textAlign: 'center', cursor: 'zoom-in' }}
-                  >
-                    <Thumb image={img} size={92} />
+                  <div key={img.id} style={{ width: '104px', position: 'relative' }}>
+                    <div onClick={() => setZoom(i)} title={t('ea.zoom_hint')} style={{ cursor: 'zoom-in' }}>
+                      <Thumb image={img} size={104} />
+                    </div>
+                    {isAdmin && (
+                      <button
+                        onClick={() => confirmRemove(img.filename, () => deleteEaImage(img.id))}
+                        title={`${t('ea.delete')} ${img.filename}`}
+                        aria-label={`${t('ea.delete')} ${img.filename}`}
+                        style={{
+                          position: 'absolute', top: '-7px', right: '-7px',
+                          width: '20px', height: '20px', lineHeight: 1, padding: 0,
+                          borderRadius: '50%', cursor: 'pointer', fontSize: '11px',
+                          border: '1px solid var(--border2)', background: 'var(--bg-card)',
+                          color: 'var(--danger)',
+                        }}
+                      >{'✕'}</button>
+                    )}
                     <div style={{
                       fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
-                      color: 'var(--text-dim)', marginTop: '4px', maxWidth: '92px',
-                    }}>{img.caption}</div>
+                      color: 'var(--text-dim)', marginTop: '6px', textAlign: 'center',
+                    }}>
+                      {isAdmin
+                        ? <InlineText
+                            value={img.caption}
+                            placeholder={t('ea.add_caption')}
+                            onSave={next => after(setEaImageCaption(img.id, next))}
+                          />
+                        : img.caption}
+                    </div>
                   </div>
                 ))}
+
+                {isAdmin && (
+                  <div style={{ width: '104px' }}>
+                    <DropZone images compact accept="image/*" hint="" onAdd={f => { void upload('images', f); }} />
+                  </div>
+                )}
               </div>
             )}
           </section>
 
+          {/* ── Files ── */}
           <section>
             <SectionLabel>{t('ea.files')} · {item.files.length}</SectionLabel>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -319,14 +485,40 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
                     }}>{f.filename}</div>
                     <div style={{
                       fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
-                      color: 'var(--text-dim)', marginTop: '2px',
-                    }}>{f.label || '—'} · {fmtSize(f.size)} · {f.createdAt}</div>
+                      color: 'var(--text-dim)', marginTop: '3px',
+                    }}>
+                      {isAdmin
+                        ? <InlineText
+                            value={f.label}
+                            placeholder={t('ea.add_note')}
+                            onSave={next => after(setEaFileLabel(f.id, next))}
+                          />
+                        : (f.label || '—')}
+                      {' · '}{fmtSize(f.size)} · {f.createdAt}
+                    </div>
                   </div>
                   <Btn label={t('ea.download')} onClick={() => { void downloadEaFile(f.id, f.filename); }} />
+                  {isAdmin && (
+                    <Btn
+                      label={'✕'}
+                      tone="danger"
+                      title={`${t('ea.delete')} ${f.filename}`}
+                      onClick={() => confirmRemove(f.filename, () => deleteEaFile(f.id))}
+                    />
+                  )}
                 </div>
               ))}
+
+              {isAdmin && (
+                <DropZone hint={t('ea.drop_files_hint')} onAdd={f => { void upload('files', f); }} />
+              )}
             </div>
           </section>
+
+          {progress !== null && <ProgressBar progress={progress} t={t} />}
+          {error && (
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--danger)' }}>{error}</div>
+          )}
         </div>
 
         {/* admin footer */}
@@ -335,8 +527,9 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
             padding: '10px 16px', borderTop: '1px solid var(--border-color)',
             display: 'flex', gap: '8px',
           }}>
-            <Btn label={t('ea.edit')} onClick={onEdit} tone="primary" />
-            {/* Deleting takes the files with it, so make them say so. */}
+            {/* Text only. Files are handled above, one at a time, so nothing
+                in this form can lose an upload. */}
+            <Btn label={t('ea.edit_text')} onClick={onEdit} tone="primary" />
             <Btn
               label={t('ea.delete')}
               onClick={() => { if (window.confirm(`${t('ea.delete')} — ${item.name}?`)) onDelete(); }}
@@ -357,6 +550,36 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
     </div>
   );
 };
+
+/** Shared by the create form and the detail view — both upload. */
+const ProgressBar = ({ progress, t }: { progress: number | undefined; t: (k: string) => string }) => (
+  <div>
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', marginBottom: '4px',
+      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+    }}>
+      <span>{(progress ?? 0) >= 1 ? t('ea.finishing') : t('ea.uploading')}</span>
+      {typeof progress === 'number' && <span>{Math.round(progress * 100)}%</span>}
+    </div>
+    <div style={{ height: '4px', borderRadius: '999px', overflow: 'hidden', background: 'var(--bg-input)' }}>
+      <div
+        className={typeof progress === 'number' ? undefined : 'ea-progress-idle'}
+        style={{
+          height: '100%', background: 'var(--accent-blue)',
+          width: typeof progress === 'number' ? `${Math.round(progress * 100)}%` : '35%',
+          transition: 'width .2s linear',
+        }}
+      />
+    </div>
+    <style>{`
+      @keyframes ea-progress-slide {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(300%); }
+      }
+      .ea-progress-idle { animation: ea-progress-slide 1.1s ease-in-out infinite; }
+    `}</style>
+  </div>
+);
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   <div style={{
@@ -416,12 +639,14 @@ const sameFile = (a: File, b: File) => a.name === b.name && a.size === b.size;
  * useful — you can drag in a folder's worth, then drag in one more.
  */
 const DropZone = ({
-  accept, hint, images, onAdd,
+  accept, hint, images, compact, onAdd,
 }: {
   accept?: string;
   hint: string;
-  /** Renders a thumbnail strip rather than a list of names. */
+  /** Marks it as the images zone — only changes the glyph. */
   images?: boolean;
+  /** Thumbnail-sized, for sitting at the end of a row of pictures. */
+  compact?: boolean;
   onAdd: (files: File[]) => void;
 }) => {
   const t = useTranslation();
@@ -447,7 +672,12 @@ const DropZone = ({
       }}
       onDrop={e => { e.preventDefault(); setOver(false); take(e.dataTransfer.files); }}
       style={{
-        padding: '16px 12px',
+        padding: compact ? '8px 6px' : '16px 12px',
+        height: compact ? '104px' : undefined,
+        display: compact ? 'flex' : undefined,
+        flexDirection: compact ? 'column' : undefined,
+        alignItems: compact ? 'center' : undefined,
+        justifyContent: compact ? 'center' : undefined,
         border: `1px dashed ${over ? 'var(--accent-blue)' : 'var(--border2)'}`,
         borderRadius: 'var(--radius-sm)',
         background: over ? 'var(--accent-bg)' : 'var(--bg-input)',
@@ -466,16 +696,18 @@ const DropZone = ({
         style={{ display: 'none' }}
       />
       <div style={{
-        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+        fontFamily: 'var(--ff-body)',
+        fontSize: compact ? '17px' : 'var(--fs-body-sm)',
         color: over ? 'var(--accent-blue)' : 'var(--text-secondary)',
+        lineHeight: compact ? 1.1 : undefined,
       }}>
-        {images ? '▦' : '▤'}  {t('ea.drop_hint')}
+        {compact ? '＋' : `${images ? '▦' : '▤'}  ${t('ea.drop_hint')}`}
       </div>
       <div style={{
         fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
         color: 'var(--text-dim)', marginTop: '4px',
       }}>
-        {hint}
+        {compact ? t('ea.add_image') : hint}
       </div>
     </div>
   );
@@ -523,27 +755,29 @@ const PickedThumb = ({ file, onRemove }: { file: File; onRemove: () => void }) =
 
 // ─── Add / edit form ─────────────────────────────────────────────────────────
 
-const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void }) => {
+// ─── New entry ───────────────────────────────────────────────────────────────
+
+/**
+ * The only form left.
+ *
+ * Creating an entry is the one moment a form earns its place: nothing exists
+ * yet, so the name, the type and the first uploads genuinely do belong to one
+ * transaction with one Save. Everything after creation is edited in place on
+ * the detail view, a field at a time.
+ */
+const EaForm = ({ onClose }: { onClose: () => void }) => {
   const t = useTranslation();
   const qc = useQueryClient();
   const addToast = useUIStore(s => s.addToast);
 
-  const [name, setName] = useState(item?.name ?? '');
-  const [type, setType] = useState<string>(item?.type ?? EA_TYPES[0]);
-  const [description, setDescription] = useState(item?.description ?? '');
-  const [tags, setTags] = useState((item?.tags ?? []).join(', '));
+  const [name, setName] = useState('');
+  const [type, setType] = useState<string>(EA_TYPES[0]);
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState('');
   const [images, setImages] = useState<Picked[]>([]);
   const [files, setFiles] = useState<Picked[]>([]);
-  const [removeFileIds, setRemoveFileIds] = useState<string[]>([]);
-  const [removeImageIds, setRemoveImageIds] = useState<string[]>([]);
   const [error, setError] = useState('');
-  /** 0..1 while bytes are going up, undefined when the browser won't say how
-   *  many there are in total, null when nothing is in flight. */
   const [progress, setProgress] = useState<number | null | undefined>(null);
-  /** Descriptions edited on files that are already stored, by file id. */
-  const [storedLabels, setStoredLabels] = useState<Record<string, string>>(
-    () => Object.fromEntries((item?.files ?? []).map(f => [f.id, f.label])),
-  );
 
   /**
    * Add to what is already picked, refusing what the API would refuse anyway.
@@ -586,24 +820,15 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
       // Parallel to the uploads above: labels[i] describes files[i].
       fd.append('fileLabels', JSON.stringify(files.map(p => p.label)));
       setProgress(0);
-      if (item) {
-        fd.append('removeFileIds', JSON.stringify(removeFileIds));
-        fd.append('removeImageIds', JSON.stringify(removeImageIds));
-        fd.append('fileMeta', JSON.stringify(
-          item.files.map(f => ({ id: f.id, label: storedLabels[f.id] ?? f.label })),
-        ));
-        return updateEaItem(item.id, fd, setProgress);
-      }
       return createEaItem(fd, setProgress);
     },
     onSuccess: () => {
       setProgress(null);
       void qc.invalidateQueries({ queryKey: ['ea-items'] });
-      // The modal is about to close, so the confirmation has to outlive it.
       const n = images.length + files.length;
       addToast({
         type: 'success',
-        title: item ? t('ea.saved_edit') : t('ea.saved_new'),
+        title: t('ea.saved_new'),
         message: n ? `${n} ${t('ea.uploaded_suffix')}` : undefined,
       });
       onClose();
@@ -614,14 +839,7 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
     },
   });
 
-  const labelsEdited = (item?.files ?? []).some(f => (storedLabels[f.id] ?? f.label) !== f.label);
-
-  const dirty = Boolean(
-    name || description || tags || images.length || files.length
-    || removeFileIds.length || removeImageIds.length || labelsEdited,
-  ) && (!item || name !== item.name || description !== item.description
-        || tags !== item.tags.join(', ') || images.length > 0 || files.length > 0
-        || removeFileIds.length > 0 || removeImageIds.length > 0 || labelsEdited);
+  const dirty = Boolean(name || description || tags || images.length || files.length);
 
   /** Closing throws away whatever has been typed, so ask first — and never
    *  let a stray click on the backdrop do it silently. */
@@ -674,7 +892,7 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
           display: 'flex', alignItems: 'center', gap: '10px',
         }}>
           <div style={{ flex: 1, fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)' }}>
-            {item ? t('ea.edit') : t('ea.add')}
+            {t('ea.add')}
           </div>
           <Btn label={t('ea.close')} onClick={requestClose} />
         </div>
@@ -703,7 +921,7 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
             <input value={tags} onChange={e => setTags(e.target.value)} style={inputStyle} />
           </Field>
 
-          <Field label={`${t('ea.images')}${images.length ? ` \u00b7 ${images.length}` : ''}`}>
+          <Field label={`${t('ea.images')}${images.length ? ` · ${images.length}` : ''}`}>
             <DropZone
               images
               accept="image/*"
@@ -719,11 +937,8 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
             )}
           </Field>
 
-          <Field label={`${t('ea.files')}${files.length ? ` \u00b7 ${files.length}` : ''}`}>
-            <DropZone
-              hint={t('ea.drop_files_hint')}
-              onAdd={addTo(setFiles, images)}
-            />
+          <Field label={`${t('ea.files')}${files.length ? ` · ${files.length}` : ''}`}>
+            <DropZone hint={t('ea.drop_files_hint')} onAdd={addTo(setFiles, images)} />
             {files.map(p => (
               <div key={p.key} style={{
                 display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap',
@@ -741,61 +956,15 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
                   placeholder={t('ea.file_label_ph')}
                   style={{ ...inputStyle, flex: '1 1 165px', width: 'auto' }}
                 />
-                <Btn label={'\u2715'} onClick={() => removeAt(setFiles, p.key)} tone="danger" />
+                <Btn
+                  label={'✕'}
+                  onClick={() => removeAt(setFiles, p.key)}
+                  tone="danger"
+                  title={`${t('common.cancel')} ${p.file.name}`}
+                />
               </div>
             ))}
           </Field>
-
-          {/* Existing attachments, removable one at a time. */}
-          {item && (item.files.length > 0 || item.images.length > 0) && (
-            <Field label={t('ea.sub_files')}>
-              {item.images.map(img => (
-                <ExistingRow
-                  key={img.id}
-                  text={`▦ ${img.filename}`}
-                  removed={removeImageIds.includes(img.id)}
-                  onToggle={() => setRemoveImageIds(p => p.includes(img.id) ? p.filter(x => x !== img.id) : [...p, img.id])}
-                />
-              ))}
-              {/* A stored file's description stays editable: it is the part
-                  most likely to be wrong later — "v6.2" once v6.3 exists —
-                  and re-uploading a file to fix a word is absurd. */}
-              {item.files.map(f => {
-                const removed = removeFileIds.includes(f.id);
-                return (
-                  <div key={f.id} style={{
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    marginBottom: '6px', flexWrap: 'wrap',
-                  }}>
-                    <span style={{
-                      flex: '1 1 130px', minWidth: 0,
-                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-                      color: removed ? 'var(--text-dim)' : 'var(--text-primary)',
-                      textDecoration: removed ? 'line-through' : 'none',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {'\u25a4'} {f.filename}
-                    </span>
-                    <input
-                      value={storedLabels[f.id] ?? f.label}
-                      onChange={e => setStoredLabels(prev => ({ ...prev, [f.id]: e.target.value }))}
-                      disabled={removed}
-                      placeholder={t('ea.file_label_ph')}
-                      style={{
-                        ...inputStyle, flex: '1 1 165px', width: 'auto',
-                        opacity: removed ? .4 : 1,
-                      }}
-                    />
-                    <Btn
-                      label={removed ? '\u21ba' : '\u2715'}
-                      onClick={() => setRemoveFileIds(p => removed ? p.filter(x => x !== f.id) : [...p, f.id])}
-                      tone={removed ? 'ghost' : 'danger'}
-                    />
-                  </div>
-                );
-              })}
-            </Field>
-          )}
 
           {error && (
             <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--danger)' }}>{error}</div>
@@ -803,37 +972,7 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
         </div>
 
         <div style={{ padding: '10px 16px', borderTop: '1px solid var(--border-color)' }}>
-          {/* Uploading a few MB over a phone connection is slow enough that a
-              still "Saving…" reads as a hang. This says how far it has got —
-              and, where the browser will not say how many bytes there are, at
-              least that something is still moving. */}
-          {save.isPending && (
-            <div style={{ marginBottom: '9px' }}>
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', marginBottom: '4px',
-                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
-              }}>
-                <span>
-                  {(progress ?? 0) >= 1 ? t('ea.finishing') : t('ea.uploading')}
-                </span>
-                {typeof progress === 'number' && <span>{Math.round(progress * 100)}%</span>}
-              </div>
-              <div style={{
-                height: '4px', borderRadius: '999px', overflow: 'hidden',
-                background: 'var(--bg-input)',
-              }}>
-                <div
-                  className={typeof progress === 'number' ? undefined : 'ea-progress-idle'}
-                  style={{
-                    height: '100%', background: 'var(--accent-blue)',
-                    width: typeof progress === 'number' ? `${Math.round(progress * 100)}%` : '35%',
-                    transition: 'width .2s linear',
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
+          {save.isPending && <div style={{ marginBottom: '9px' }}><ProgressBar progress={progress ?? undefined} t={t} /></div>}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
             <Btn label={t('common.cancel')} onClick={requestClose} />
             <Btn
@@ -842,14 +981,124 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
               tone="primary"
             />
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-          <style>{`
-            @keyframes ea-progress-slide {
-              0%   { transform: translateX(-100%); }
-              100% { transform: translateX(300%); }
-            }
-            .ea-progress-idle { animation: ea-progress-slide 1.1s ease-in-out infinite; }
-          `}</style>
+// ─── Edit the text ───────────────────────────────────────────────────────────
+
+/**
+ * Four fields, and no way to reach a file from here.
+ *
+ * The form this replaces held the uploads too, which is what made a stray
+ * click expensive: closing it lost the typing, and one wrong ✕ lost a file.
+ * With the attachments managed on the detail view, Cancel here means only
+ * "forget what I typed", which is what a Cancel should mean.
+ */
+const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void }) => {
+  const t = useTranslation();
+  const qc = useQueryClient();
+  const addToast = useUIStore(s => s.addToast);
+
+  const [name, setName] = useState(item.name);
+  const [type, setType] = useState(item.type);
+  const [description, setDescription] = useState(item.description);
+  const [tags, setTags] = useState(item.tags.join(', '));
+  const [error, setError] = useState('');
+
+  const save = useMutation({
+    mutationFn: () => patchEaItem(item.id, { name, type, description, tags }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['ea-items'] });
+      addToast({ type: 'success', title: t('ea.saved_edit') });
+      onClose();
+    },
+    onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Save failed'),
+  });
+
+  const dirty = name !== item.name || type !== item.type
+    || description !== item.description || tags !== item.tags.join(', ');
+
+  const requestClose = () => {
+    if (!dirty || window.confirm(t('ea.discard_confirm'))) onClose();
+  };
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 600, background: 'rgba(0,0,0,.6)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+    }}>
+      <div
+        className="ea-form-modal"
+        style={{
+          background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-card)', width: '100%', maxWidth: '460px', maxHeight: '100%',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        }}
+      >
+        <div style={{
+          padding: '12px 16px', borderBottom: '1px solid var(--border-color)',
+          display: 'flex', alignItems: 'center', gap: '10px',
+        }}>
+          <div style={{ flex: 1, fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)' }}>
+            {t('ea.edit_text')}
+          </div>
+          <Btn label={t('ea.close')} onClick={requestClose} />
+        </div>
+
+        <div style={{ padding: '14px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Field label={t('ea.name')}>
+            <input value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
+          </Field>
+          <Field label={t('ea.type')}>
+            <select value={type} onChange={e => setType(e.target.value)} style={inputStyle}>
+              {EA_TYPES.map(ty => <option key={ty} value={ty}>{ty}</option>)}
+            </select>
+          </Field>
+          <Field label={t('ea.description')}>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={4}
+              style={{ ...inputStyle, resize: 'vertical' }}
+            />
+          </Field>
+          <Field label={`${t('ea.tags')} — reporter, gold, production`}>
+            <input value={tags} onChange={e => setTags(e.target.value)} style={inputStyle} />
+          </Field>
+
+          {/* Says where the files went, so the first visit after the change is
+              not spent hunting for them. */}
+          <div style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+            color: 'var(--text-dim)', lineHeight: 1.6,
+          }}>
+            {t('ea.files_moved_hint')}
+          </div>
+
+          {error && (
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--danger)' }}>{error}</div>
+          )}
+        </div>
+
+        <div style={{
+          padding: '10px 16px', borderTop: '1px solid var(--border-color)',
+          display: 'flex', gap: '8px', justifyContent: 'flex-end',
+        }}>
+          <Btn label={t('common.cancel')} onClick={requestClose} />
+          <Btn
+            label={save.isPending ? t('common.loading') : t('common.save')}
+            onClick={() => { if (!save.isPending && name.trim()) save.mutate(); else if (!name.trim()) setError('name'); }}
+            tone="primary"
+          />
         </div>
       </div>
     </div>
@@ -874,18 +1123,6 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
   </div>
 );
 
-const ExistingRow = ({ text, removed, onToggle }: { text: string; removed: boolean; onToggle: () => void }) => (
-  <div style={{
-    display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px',
-    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-    color: removed ? 'var(--text-dim)' : 'var(--text-primary)',
-    textDecoration: removed ? 'line-through' : 'none',
-  }}>
-    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{text}</span>
-    <Btn label={removed ? '↺' : '✕'} onClick={onToggle} tone={removed ? 'ghost' : 'danger'} />
-  </div>
-);
-
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export const EaRepository = () => {
@@ -899,9 +1136,16 @@ export const EaRepository = () => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | EaType>('all');
   const [tagFilter, setTagFilter] = useState<'all' | string>('all');
-  const [open, setOpen] = useState<EaItemDto | null>(null);
-  /** undefined = closed, null = adding, an item = editing it. */
-  const [editing, setEditing] = useState<EaItemDto | null | undefined>(undefined);
+  /**
+   * The open entry is held by id, not by value.
+   *
+   * Every inline edit on the detail view refetches the list; a snapshot taken
+   * when the row was clicked would keep showing the caption, the file or the
+   * name as they were before the change that was just made.
+   */
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [editingTextOf, setEditingTextOf] = useState<EaItemDto | null>(null);
 
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery<EaItemDto[]>({
@@ -910,10 +1154,11 @@ export const EaRepository = () => {
   });
   const remove = useMutation({
     mutationFn: deleteEaItem,
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['ea-items'] }); setOpen(null); },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['ea-items'] }); setOpenId(null); },
   });
 
   const items = data ?? [];
+  const open = items.find(i => i.id === openId) ?? null;
   const filtered = useMemo(() => items.filter(i => {
     if (typeFilter !== 'all' && i.type !== typeFilter) return false;
     if (tagFilter !== 'all' && !i.tags.includes(tagFilter)) return false;
@@ -946,7 +1191,7 @@ export const EaRepository = () => {
             color: isAdmin ? 'var(--accent-blue)' : 'var(--text-dim)',
           }}>{isAdmin ? t('ea.admin_only') : t('ea.view_only')}</span>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
-          {isAdmin && <Btn label={t('ea.add')} onClick={() => setEditing(null)} tone="primary" />}
+          {isAdmin && <Btn label={t('ea.add')} onClick={() => setAdding(true)} tone="primary" />}
         </div>
         <p style={{
           fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
@@ -1019,21 +1264,26 @@ export const EaRepository = () => {
           {items.length === 0 && <Muted>{t('ea.empty_hint')}</Muted>}
         </div>
       ) : viewMode === 'table' ? (
-        <TableView items={filtered} onOpen={setOpen} />
+        <TableView items={filtered} onOpen={item => setOpenId(item.id)} />
       ) : (
-        <CardView items={filtered} onOpen={setOpen} />
+        <CardView items={filtered} onOpen={item => setOpenId(item.id)} />
       )}
 
       {open && (
         <DetailModal
           item={open}
           isAdmin={isAdmin}
-          onClose={() => setOpen(null)}
-          onEdit={() => { setEditing(open); setOpen(null); }}
+          onClose={() => setOpenId(null)}
+          onEdit={() => setEditingTextOf(open)}
           onDelete={() => remove.mutate(open.id)}
         />
       )}
-      {editing !== undefined && <EaForm item={editing} onClose={() => setEditing(undefined)} />}
+      {/* Layered over the detail view rather than replacing it: the four
+          fields are a detour, and coming back should land where you were. */}
+      {editingTextOf && (
+        <EaTextForm item={editingTextOf} onClose={() => setEditingTextOf(null)} />
+      )}
+      {adding && <EaForm onClose={() => setAdding(false)} />}
     </div>
   );
 };

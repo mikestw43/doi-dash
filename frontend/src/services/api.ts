@@ -480,8 +480,30 @@ const uploadConfig = (onProgress?: UploadProgress) => ({
 export const createEaItem = async (form: FormData, onProgress?: UploadProgress): Promise<EaItemDto> =>
   (await api.post('/ea', form, uploadConfig(onProgress))).data;
 
-export const updateEaItem = async (id: string, form: FormData, onProgress?: UploadProgress): Promise<EaItemDto> =>
-  (await api.put(`/ea/${id}`, form, uploadConfig(onProgress))).data;
+/** The four text fields. Files are never part of this, so a mistyped edit
+ *  cannot cost an upload. */
+export const patchEaItem = async (
+  id: string,
+  fields: Partial<Pick<EaItemDto, 'name' | 'type' | 'description'>> & { tags?: string },
+): Promise<EaItemDto> => (await api.patch(`/ea/${id}`, fields)).data;
+
+/** Add attachments to an entry that already exists. */
+export const addEaUploads = async (
+  id: string, form: FormData, onProgress?: UploadProgress,
+): Promise<EaItemDto> => (await api.post(`/ea/${id}/files`, form, uploadConfig(onProgress))).data;
+
+export const setEaFileLabel = async (fileId: string, label: string): Promise<void> => {
+  await api.patch(`/ea/files/${fileId}`, { label });
+};
+export const setEaImageCaption = async (imageId: string, caption: string): Promise<void> => {
+  await api.patch(`/ea/images/${imageId}`, { caption });
+};
+export const deleteEaFile = async (fileId: string): Promise<void> => {
+  await api.delete(`/ea/files/${fileId}`);
+};
+export const deleteEaImage = async (imageId: string): Promise<void> => {
+  await api.delete(`/ea/images/${imageId}`);
+};
 
 export const deleteEaItem = async (id: string): Promise<void> => {
   await api.delete(`/ea/${id}`);
