@@ -329,6 +329,18 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
   const [progress, setProgress] = useState<number | null | undefined>(null);
   const [error, setError] = useState('');
 
+  /**
+   * Deleting is off until it is asked for.
+   *
+   * This screen is mostly read: open the entry, look at a screenshot, take a
+   * file. A row of ✕ live through all of that is a thumb-width away from
+   * losing an upload on a phone — and the reader who only wanted to look had
+   * no use for them anyway. The controls appear when MANAGE is pressed and go
+   * away again when it is pressed a second time or the entry is closed.
+   */
+  const [managing, setManaging] = useState(false);
+  const canEdit = isAdmin && managing;
+
   const refresh = () => qc.invalidateQueries({ queryKey: ['ea-items'] });
 
   /** Every change here is its own request; this is what turns each one into a
@@ -413,13 +425,39 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
             </div>
           )}
 
+          {/* The switch between reading and changing. Named for what it
+              turns on, and coloured while it is on, so there is never a doubt
+              about which of the two states the screen is in. */}
+          {isAdmin && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: managing ? '8px 10px' : 0,
+              margin: managing ? '0 -10px' : 0,
+              borderRadius: 'var(--radius-sm)',
+              background: managing ? 'var(--accent-bg)' : 'none',
+              border: `1px solid ${managing ? 'rgba(96,165,250,.35)' : 'transparent'}`,
+            }}>
+              <span style={{
+                flex: 1, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                color: managing ? 'var(--accent-blue)' : 'var(--text-dim)',
+              }}>
+                {managing ? t('ea.managing_on') : t('ea.managing_off')}
+              </span>
+              <Btn
+                label={managing ? t('ea.manage_done') : t('ea.manage')}
+                onClick={() => setManaging(m => !m)}
+                tone={managing ? 'primary' : 'ghost'}
+              />
+            </div>
+          )}
+
           {/* ── Images ──
-              Admins manage them here rather than in a form: a thumbnail you
-              can see is the only safe thing to aim a delete at, and a caption
-              is worth nothing if it cannot be fixed after the fact. */}
+              Managed here rather than in a form: a thumbnail you can see is
+              the only safe thing to aim a delete at, and a caption is worth
+              nothing if it cannot be fixed after the fact. */}
           <section>
             <SectionLabel>{t('ea.images')} · {item.images.length}</SectionLabel>
-            {item.images.length === 0 && !isAdmin ? (
+            {item.images.length === 0 && !canEdit ? (
               <Muted>{t('ea.no_images')}</Muted>
             ) : (
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -428,7 +466,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
                     <div onClick={() => setZoom(i)} title={t('ea.zoom_hint')} style={{ cursor: 'zoom-in' }}>
                       <Thumb image={img} size={104} />
                     </div>
-                    {isAdmin && (
+                    {canEdit && (
                       <button
                         onClick={() => confirmRemove(img.filename, () => deleteEaImage(img.id))}
                         title={`${t('ea.delete')} ${img.filename}`}
@@ -446,7 +484,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
                       fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
                       color: 'var(--text-dim)', marginTop: '6px', textAlign: 'center',
                     }}>
-                      {isAdmin
+                      {canEdit
                         ? <InlineText
                             value={img.caption}
                             placeholder={t('ea.add_caption')}
@@ -457,7 +495,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
                   </div>
                 ))}
 
-                {isAdmin && (
+                {canEdit && (
                   <div style={{ width: '104px' }}>
                     <DropZone images compact accept="image/*" hint="" onAdd={f => { void upload('images', f); }} />
                   </div>
@@ -487,7 +525,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
                       fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
                       color: 'var(--text-dim)', marginTop: '3px',
                     }}>
-                      {isAdmin
+                      {canEdit
                         ? <InlineText
                             value={f.label}
                             placeholder={t('ea.add_note')}
@@ -498,7 +536,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
                     </div>
                   </div>
                   <Btn label={t('ea.download')} onClick={() => { void downloadEaFile(f.id, f.filename); }} />
-                  {isAdmin && (
+                  {canEdit && (
                     <Btn
                       label={'✕'}
                       tone="danger"
@@ -509,7 +547,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
                 </div>
               ))}
 
-              {isAdmin && (
+              {canEdit && (
                 <DropZone hint={t('ea.drop_files_hint')} onAdd={f => { void upload('files', f); }} />
               )}
             </div>
@@ -528,13 +566,20 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete }: {
             display: 'flex', gap: '8px',
           }}>
             {/* Text only. Files are handled above, one at a time, so nothing
-                in this form can lose an upload. */}
+                in this form can lose an upload. Safe to leave out on its own:
+                it opens a form with a Cancel. */}
             <Btn label={t('ea.edit_text')} onClick={onEdit} tone="primary" />
-            <Btn
-              label={t('ea.delete')}
-              onClick={() => { if (window.confirm(`${t('ea.delete')} — ${item.name}?`)) onDelete(); }}
-              tone="danger"
-            />
+            {/* Throwing away the entry and every file on it is the largest
+                thing this screen can do, so it keeps behind the same switch
+                as the ✕ beside each one. */}
+            {managing && (
+              <Btn
+                label={t('ea.delete')}
+                title={`${t('ea.delete')} ${item.name}`}
+                onClick={() => { if (window.confirm(`${t('ea.delete')} — ${item.name}?`)) onDelete(); }}
+                tone="danger"
+              />
+            )}
           </div>
         )}
       </div>

@@ -283,5 +283,9 @@
   "ea.add_caption": "+ add a caption",
   "ea.add_note": "+ add a note",
   "ea.add_image": "add image",
-  "ea.files_moved_hint": "Images and files are managed on the entry itself — close this and use the ✕ and drop zones there."
+  "ea.files_moved_hint": "Images and files are managed on the entry itself — close this and use the ✕ and drop zones there.",
+  "ea.manage": "✎ MANAGE",
+  "ea.manage_done": "✓ DONE",
+  "ea.managing_off": "Viewing — nothing here can be changed",
+  "ea.managing_on": "Managing — ✕ deletes, notes are editable"
 }
