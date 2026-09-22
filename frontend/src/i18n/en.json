@@ -266,5 +266,11 @@
   "menu.user_management": "User Management",
   "menu.ea_repository": "EA Repository",
   "menu.announce": "Announce",
-  "menu.logout": "Logout"
+  "menu.logout": "Logout",
+  "ea.drop_hint": "Drag files here, or click to choose",
+  "ea.drop_images_hint": "PNG, JPG, WEBP or GIF · as many as you like",
+  "ea.drop_files_hint": ".ex5, .mq5, .set, .zip — any file · as many as you like",
+  "ea.file_label_ph": "Current build / Preset",
+  "ea.too_big": "Over 20 MB, not added:",
+  "ea.too_many": "At most 20 files per save."
 }

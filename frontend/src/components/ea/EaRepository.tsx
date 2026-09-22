@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -247,6 +247,156 @@ const Muted = ({ children }: { children: React.ReactNode }) => (
   }}>{children}</div>
 );
 
+// ─── Picking files ───────────────────────────────────────────────────────────
+
+/** Mirrors the API's own limits, so an over-size pick is refused here with a
+ *  readable message instead of coming back as a 500 after the upload. */
+const MAX_FILE_BYTES = 20 * 1024 * 1024;
+const MAX_FILES_PER_SAVE = 20;
+
+/**
+ * A file waiting to be uploaded.
+ *
+ * `key` is generated once and never reused: rows are removed one at a time,
+ * and keying on the name would make two same-named files from different
+ * folders collide and swap their labels.
+ */
+interface Picked {
+  key: string;
+  file: File;
+  /** Only files carry one — "Current build", "Preset · gold". Images do not. */
+  label: string;
+}
+
+let pickSeq = 0;
+const toPicked = (file: File): Picked => ({ key: `p${++pickSeq}`, file, label: '' });
+
+/**
+ * Same file twice — dropped once, then picked again — is one file.
+ *
+ * Name and size only. lastModified looks like the stronger test but is not
+ * one: a File built from a copy, a download or a drag out of an archive gets
+ * the time it was built, so the same bytes dropped twice can disagree — and
+ * two genuinely different files sharing a name *and* a byte count would be
+ * indistinguishable in the list anyway.
+ */
+const sameFile = (a: File, b: File) => a.name === b.name && a.size === b.size;
+
+/**
+ * Drop a file on it, or click it and choose.
+ *
+ * The plain <input type=file multiple> it replaces could only ever hold one
+ * pick: choosing a second time replaced everything chosen the first time, so
+ * an entry's screenshots had to be selected in a single trip through the file
+ * dialog or not at all. This one appends, which is also what makes dropping
+ * useful — you can drag in a folder's worth, then drag in one more.
+ */
+const DropZone = ({
+  accept, hint, images, onAdd,
+}: {
+  accept?: string;
+  hint: string;
+  /** Renders a thumbnail strip rather than a list of names. */
+  images?: boolean;
+  onAdd: (files: File[]) => void;
+}) => {
+  const t = useTranslation();
+  const [over, setOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const take = (list: FileList | null) => {
+    const picked = Array.from(list ?? []);
+    if (picked.length) onAdd(picked);
+    // Let the same file be chosen again after it has been removed: without
+    // this the input still holds it and fires no change event.
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div
+      onClick={() => inputRef.current?.click()}
+      onDragEnter={e => { e.preventDefault(); setOver(true); }}
+      onDragOver={e => { e.preventDefault(); setOver(true); }}
+      onDragLeave={e => {
+        // Moving over a child fires dragleave on the parent; ignore those.
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(false);
+      }}
+      onDrop={e => { e.preventDefault(); setOver(false); take(e.dataTransfer.files); }}
+      style={{
+        padding: '16px 12px',
+        border: `1px dashed ${over ? 'var(--accent-blue)' : 'var(--border2)'}`,
+        borderRadius: 'var(--radius-sm)',
+        background: over ? 'var(--accent-bg)' : 'var(--bg-input)',
+        color: over ? 'var(--accent-blue)' : 'var(--text-dim)',
+        textAlign: 'center', cursor: 'pointer',
+        transition: 'border-color .15s, background .15s, color .15s',
+      }}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept={accept}
+        onChange={e => take(e.target.files)}
+        onClick={e => e.stopPropagation()}
+        style={{ display: 'none' }}
+      />
+      <div style={{
+        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+        color: over ? 'var(--accent-blue)' : 'var(--text-secondary)',
+      }}>
+        {images ? '▦' : '▤'}  {t('ea.drop_hint')}
+      </div>
+      <div style={{
+        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+        color: 'var(--text-dim)', marginTop: '4px',
+      }}>
+        {hint}
+      </div>
+    </div>
+  );
+};
+
+/** A picked image, shown as what it actually is. */
+const PickedThumb = ({ file, onRemove }: { file: File; onRemove: () => void }) => {
+  const [url, setUrl] = useState('');
+  useEffect(() => {
+    const u = URL.createObjectURL(file);
+    setUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [file]);
+
+  return (
+    <div style={{ position: 'relative', width: '62px' }}>
+      <div style={{
+        width: '62px', height: '62px', borderRadius: 'var(--radius-sm)', overflow: 'hidden',
+        border: '1px solid var(--border2)', background: 'var(--bg-tertiary)',
+      }}>
+        {url && <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+      </div>
+      <button
+        onClick={onRemove}
+        title={file.name}
+        style={{
+          position: 'absolute', top: '-6px', right: '-6px',
+          width: '19px', height: '19px', lineHeight: 1,
+          borderRadius: '50%', cursor: 'pointer',
+          border: '1px solid var(--border2)', background: 'var(--bg-card)',
+          color: 'var(--danger)', fontSize: '11px', padding: 0,
+        }}
+      >
+        {'✕'}
+      </button>
+      <div style={{
+        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+        marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {fmtSize(file.size)}
+      </div>
+    </div>
+  );
+};
+
 // ─── Add / edit form ─────────────────────────────────────────────────────────
 
 const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void }) => {
@@ -257,14 +407,40 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
   const [type, setType] = useState<string>(item?.type ?? EA_TYPES[0]);
   const [description, setDescription] = useState(item?.description ?? '');
   const [tags, setTags] = useState((item?.tags ?? []).join(', '));
-  const [images, setImages] = useState<File[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
-  /** Labels live beside the picked files so labels[i] describes files[i] —
-   *  the same pairing the API expects. */
-  const [fileLabels, setFileLabels] = useState<string[]>([]);
+  const [images, setImages] = useState<Picked[]>([]);
+  const [files, setFiles] = useState<Picked[]>([]);
   const [removeFileIds, setRemoveFileIds] = useState<string[]>([]);
   const [removeImageIds, setRemoveImageIds] = useState<string[]>([]);
   const [error, setError] = useState('');
+
+  /**
+   * Add to what is already picked, refusing what the API would refuse anyway.
+   *
+   * Dropping is a two-second gesture, so it is the one people repeat — which
+   * makes silently swallowing a duplicate, or an over-size file that only
+   * fails on Save, much worse here than in a file dialog.
+   */
+  const addTo = (
+    set: React.Dispatch<React.SetStateAction<Picked[]>>,
+    other: Picked[],
+  ) => (incoming: File[]) => {
+    const tooBig = incoming.filter(f => f.size > MAX_FILE_BYTES);
+    set(prev => {
+      const room = MAX_FILES_PER_SAVE - prev.length - other.length;
+      const fresh = incoming
+        .filter(f => f.size <= MAX_FILE_BYTES)
+        .filter(f => !prev.some(p => sameFile(p.file, f)));
+      setError(
+        tooBig.length ? `${t('ea.too_big')} ${tooBig.map(f => f.name).join(', ')}`
+        : fresh.length > room ? t('ea.too_many')
+        : '',
+      );
+      return [...prev, ...fresh.slice(0, Math.max(0, room)).map(toPicked)];
+    });
+  };
+
+  const removeAt = (set: React.Dispatch<React.SetStateAction<Picked[]>>, key: string) =>
+    set(prev => prev.filter(p => p.key !== key));
 
   const save = useMutation({
     mutationFn: async () => {
@@ -273,9 +449,10 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
       fd.append('type', type);
       fd.append('description', description);
       fd.append('tags', tags);
-      images.forEach(f => fd.append('images', f));
-      files.forEach(f => fd.append('files', f));
-      fd.append('fileLabels', JSON.stringify(fileLabels));
+      images.forEach(p => fd.append('images', p.file));
+      files.forEach(p => fd.append('files', p.file));
+      // Parallel to the uploads above: labels[i] describes files[i].
+      fd.append('fileLabels', JSON.stringify(files.map(p => p.label)));
       if (item) {
         fd.append('removeFileIds', JSON.stringify(removeFileIds));
         fd.append('removeImageIds', JSON.stringify(removeImageIds));
@@ -286,12 +463,6 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['ea-items'] }); onClose(); },
     onError: (e: unknown) => setError(e instanceof Error ? e.message : 'Save failed'),
   });
-
-  const pickFiles = (picked: FileList | null) => {
-    const list = Array.from(picked ?? []);
-    setFiles(list);
-    setFileLabels(list.map(() => ''));
-  };
 
   const dirty = Boolean(
     name || description || tags || images.length || files.length
@@ -311,6 +482,25 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
+
+  /**
+   * A file dropped anywhere but the drop zone is swallowed.
+   *
+   * A browser's default for a dropped file is to open it, which navigates away
+   * from the page — so one miss by a few pixels while the form is filled in
+   * would throw the whole entry away. Cancelling both events is what makes a
+   * miss a no-op; a drop that lands on the zone is handled there first and
+   * only reaches this as an already-cancelled event.
+   */
+  useEffect(() => {
+    const swallow = (e: DragEvent) => e.preventDefault();
+    window.addEventListener('dragover', swallow);
+    window.addEventListener('drop', swallow);
+    return () => {
+      window.removeEventListener('dragover', swallow);
+      window.removeEventListener('drop', swallow);
+    };
+  }, []);
 
   return (
     <div
@@ -361,24 +551,45 @@ const EaForm = ({ item, onClose }: { item: EaItemDto | null; onClose: () => void
             <input value={tags} onChange={e => setTags(e.target.value)} style={inputStyle} />
           </Field>
 
-          <Field label={t('ea.images')}>
-            <input type="file" multiple accept="image/*" onChange={e => setImages(Array.from(e.target.files ?? []))} style={inputStyle} />
+          <Field label={`${t('ea.images')}${images.length ? ` \u00b7 ${images.length}` : ''}`}>
+            <DropZone
+              images
+              accept="image/*"
+              hint={t('ea.drop_images_hint')}
+              onAdd={addTo(setImages, files)}
+            />
+            {images.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
+                {images.map(p => (
+                  <PickedThumb key={p.key} file={p.file} onRemove={() => removeAt(setImages, p.key)} />
+                ))}
+              </div>
+            )}
           </Field>
 
-          <Field label={t('ea.files')}>
-            <input type="file" multiple onChange={e => pickFiles(e.target.files)} style={inputStyle} />
-            {files.map((f, i) => (
-              <div key={f.name + i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+          <Field label={`${t('ea.files')}${files.length ? ` \u00b7 ${files.length}` : ''}`}>
+            <DropZone
+              hint={t('ea.drop_files_hint')}
+              onAdd={addTo(setFiles, images)}
+            />
+            {files.map(p => (
+              <div key={p.key} style={{
+                display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap',
+              }}>
                 <span style={{
-                  flex: 1, minWidth: 0, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-                  color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>{f.name}</span>
+                  flex: '1 1 130px', minWidth: 0, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                  color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {p.file.name}
+                  <span style={{ color: 'var(--text-dim)' }}> · {fmtSize(p.file.size)}</span>
+                </span>
                 <input
-                  value={fileLabels[i] ?? ''}
-                  onChange={e => setFileLabels(prev => prev.map((l, j) => (j === i ? e.target.value : l)))}
-                  placeholder="Current build / Preset"
-                  style={{ ...inputStyle, flex: '0 0 170px' }}
+                  value={p.label}
+                  onChange={e => setFiles(prev => prev.map(q => (q.key === p.key ? { ...q, label: e.target.value } : q)))}
+                  placeholder={t('ea.file_label_ph')}
+                  style={{ ...inputStyle, flex: '1 1 165px', width: 'auto' }}
                 />
+                <Btn label={'\u2715'} onClick={() => removeAt(setFiles, p.key)} tone="danger" />
               </div>
             ))}
           </Field>
