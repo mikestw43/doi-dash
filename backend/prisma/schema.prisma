@@ -193,9 +193,12 @@ model EaItem {
   url         String   @default("")
   /// A second link — the vendor page and the download are rarely one URL.
   url2        String   @default("")
-  /// Flagged by hand as one to keep an eye on. Shown as a red mark in front
-  /// of the name everywhere the entry is listed.
+  /// Flagged by hand as one to keep an eye on. Shown as a red bookmark in
+  /// front of the name everywhere the entry is listed.
   important   Boolean  @default(false)
+  /// How well it does, 1–5. Zero is not "bad" but "not rated yet": an entry
+  /// nobody has run has no score, and must not read as the worst one.
+  rating      Int      @default(0)
   /// Who wrote it. Free text — most of these are handles, not companies.
   developer   String   @default("")
   /// Free-form labels, comma separated. A join table buys nothing while the

@@ -461,8 +461,10 @@ export interface EaItemDto {
   url2: string;
   /** Who wrote it. Free text. */
   developer: string;
-  /** Flagged by hand: shown as a red mark in front of the name. */
+  /** Flagged by hand: shown as a red bookmark in front of the name. */
   important: boolean;
+  /** 1–5, or 0 for "not rated yet" — which is not the same as a bad score. */
+  rating: number;
   tags: string[];
   images: EaImageDto[];
   files: EaFileDto[];
@@ -496,7 +498,7 @@ export const createEaItem = async (form: FormData, onProgress?: UploadProgress):
 export const patchEaItem = async (
   id: string,
   fields: Partial<Pick<EaItemDto,
-    'name' | 'status' | 'description' | 'url' | 'url2' | 'developer' | 'important'>>
+    'name' | 'status' | 'description' | 'url' | 'url2' | 'developer' | 'important' | 'rating'>>
     & { type?: string[]; tags?: string },
 ): Promise<EaItemDto> => (await api.patch(`/ea/${id}`, fields)).data;
 

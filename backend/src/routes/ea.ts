@@ -71,6 +71,13 @@ const param = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? value[0] : (value ?? '');
 
 /** Both `type` and `tags` are comma-separated lists in one column. */
+/** 0 means "not rated yet", so anything unparseable or out of range lands there
+ *  rather than inventing a score. */
+const clampRating = (raw: unknown): number => {
+  const n = Math.round(Number(raw));
+  return Number.isFinite(n) && n >= 1 && n <= 5 ? n : 0;
+};
+
 const asList = (raw: string): string[] =>
   raw ? raw.split(',').map(v => v.trim()).filter(Boolean) : [];
 
@@ -80,7 +87,7 @@ const toCsv = (raw: unknown): string =>
 
 const serialize = (item: {
   id: string; name: string; type: string; status: string; description: string; tags: string;
-  url: string; url2: string; developer: string; important: boolean;
+  url: string; url2: string; developer: string; important: boolean; rating: number;
   createdAt: Date; updatedAt: Date;
   images: { id: string; filename: string; caption: string; size: number }[];
   files: { id: string; filename: string; label: string; size: number; createdAt: Date }[];
@@ -94,6 +101,7 @@ const serialize = (item: {
   url2: item.url2,
   developer: item.developer,
   important: item.important,
+  rating: item.rating,
   tags: asList(item.tags),
   images: item.images,
   files: item.files.map(f => ({ ...f, createdAt: f.createdAt.toISOString().slice(0, 10) })),
@@ -208,7 +216,7 @@ const attachUploads = async (
 };
 
 router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
-  const { name, type, status, description, tags, url, url2, developer, important } =
+  const { name, type, status, description, tags, url, url2, developer, important, rating } =
     req.body as Record<string, string>;
   const types = toCsv(type);
   if (!name?.trim() || !types) {
@@ -227,6 +235,7 @@ router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
       developer: developer?.trim() ?? '',
       // multipart carries no booleans: the form sends the string "true".
       important: important === 'true',
+      rating: clampRating(rating),
       tags: toCsv(tags),
       createdBy: req.user?.id,
     },
@@ -257,7 +266,7 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  const { name, type, status, description, tags, url, url2, developer, important } =
+  const { name, type, status, description, tags, url, url2, developer, important, rating } =
     req.body as Record<string, unknown>;
   if (name !== undefined && !String(name).trim()) {
     res.status(400).json({ error: 'name cannot be empty' });
@@ -281,6 +290,7 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
       ...(url2 !== undefined && { url2: String(url2).trim() }),
       ...(developer !== undefined && { developer: String(developer).trim() }),
       ...(important !== undefined && { important: Boolean(important) }),
+      ...(rating !== undefined && { rating: clampRating(rating) }),
       ...(tags !== undefined && { tags: toCsv(tags) }),
     },
   });

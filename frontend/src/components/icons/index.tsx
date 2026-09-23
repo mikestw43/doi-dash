@@ -144,3 +144,28 @@ export const IconPower = ({ size }: IconProps) => (
     <path d="M18.1 7a8.4 8.4 0 1 1-12.2 0" />
   </Svg>
 );
+
+/**
+ * The mark on an entry worth coming back to.
+ *
+ * A bookmark rather than a star: the repository now rates entries out of five
+ * stars, and one glyph cannot mean both "I flagged this" and "this scored 1".
+ * Filled when the entry is marked, outlined when it is not, so the toggle
+ * reads without its label.
+ */
+export const IconBookmark = ({ size = 18, filled }: IconProps & { filled?: boolean }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={filled ? 'currentColor' : 'none'}
+    stroke="currentColor"
+    strokeWidth={1.75}
+    strokeLinejoin="round"
+    aria-hidden="true"
+    focusable="false"
+    style={{ flexShrink: 0, display: 'block' }}
+  >
+    <path d="M6 3h12a1.5 1.5 0 0 1 1.5 1.5V21l-7.5-4.3L4.5 21V4.5A1.5 1.5 0 0 1 6 3z" />
+  </svg>
+);

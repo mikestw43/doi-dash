@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { IconBookmark } from '../icons';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -208,20 +209,82 @@ const ConfirmTarget = ({ children }: { children: React.ReactNode }) => (
  * to read at a glance from across the list. The title carries the meaning for
  * anyone hovering or using a screen reader.
  */
-const ImportantMark = ({ label }: { label: string }) => (
+const ImportantMark = ({ label, size = 14 }: { label: string; size?: number }) => (
   <span
     title={label}
     aria-label={label}
     role="img"
+    style={{ flexShrink: 0, display: 'inline-flex', color: 'var(--danger)' }}
+  >
+    <IconBookmark size={size} filled />
+  </span>
+);
+
+const EA_MAX_STARS = 5;
+
+/** The score in words, for a tooltip and a screen reader — the stars alone are
+ *  a picture, and a picture has no name. */
+const ratingLabel = (t: (k: string) => string, value: number): string =>
+  value ? `${t('ea.rating')} ${value}/${EA_MAX_STARS}` : t('ea.not_rated');
+
+/**
+ * The score, read-only.
+ *
+ * Nothing rated shows five hollow stars rather than nothing at all: a blank
+ * cell reads as a rendering fault, while five empty stars say plainly that
+ * there is a score to give and nobody has given it.
+ */
+const Stars = ({ value, size = 13, label }: { value: number; size?: number; label: string }) => (
+  <span
+    role="img"
+    aria-label={label}
+    title={label}
     style={{
-      flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      width: '16px', height: '16px', borderRadius: '50%',
-      fontSize: '10px', lineHeight: 1,
-      color: 'var(--danger)',
-      background: 'color-mix(in srgb, var(--danger) 16%, transparent)',
-      border: '1px solid color-mix(in srgb, var(--danger) 45%, transparent)',
+      display: 'inline-flex', gap: '1px', lineHeight: 1,
+      fontSize: `${size}px`, letterSpacing: '1px', whiteSpace: 'nowrap',
     }}
-  >{'★'}</span>
+  >
+    {Array.from({ length: EA_MAX_STARS }, (_, i) => (
+      <span key={i} style={{ color: i < value ? 'var(--warning)' : '#4a4e58' }}>{'★'}</span>
+    ))}
+  </span>
+);
+
+/**
+ * The score, set by hand.
+ *
+ * Pressing the star already at the end of the run clears it. Without that
+ * there is no way back to "not rated" once a star has been pressed by
+ * accident, and the entry carries a score nobody meant to give it.
+ */
+const StarPicker = ({ value, onChange, labelFor, clearLabel }: {
+  value: number;
+  onChange: (next: number) => void;
+  labelFor: (n: number) => string;
+  clearLabel: string;
+}) => (
+  <div style={{ display: 'flex', gap: '2px' }}>
+    {Array.from({ length: EA_MAX_STARS }, (_, i) => {
+      const n = i + 1;
+      const on = n <= value;
+      const clears = n === value;
+      return (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(clears ? 0 : n)}
+          title={clears ? clearLabel : labelFor(n)}
+          aria-label={clears ? clearLabel : labelFor(n)}
+          aria-pressed={on}
+          style={{
+            background: 'none', border: 'none', padding: '1px 2px', cursor: 'pointer',
+            fontSize: '21px', lineHeight: 1,
+            color: on ? 'var(--warning)' : '#4a4e58',
+          }}
+        >{'★'}</button>
+      );
+    })}
+  </div>
 );
 
 /** One labelled link. A long URL clips rather than wrapping the row. */
@@ -423,10 +486,13 @@ const arrowStyle: React.CSSProperties = {
 };
 
 const Btn = ({ label, onClick, tone = 'ghost', title }: {
-  label: string; onClick: () => void;
+  /** Text, or an icon for a button that carries no words. */
+  label: React.ReactNode;
+  onClick: () => void;
   tone?: 'ghost' | 'primary' | 'danger' | 'destroy' | 'warn';
-  /** Names the button when the label is a bare glyph. Several ✕ in one list
-   *  are otherwise the same button to a tooltip and to a screen reader. */
+  /** Names the button when the label is a bare glyph or an icon. Several ✕ in
+   *  one list are otherwise the same button to a tooltip and a screen reader,
+   *  and an icon alone has no name at all. */
   title?: string;
 }) => {
   const colors = {
@@ -442,10 +508,11 @@ const Btn = ({ label, onClick, tone = 'ghost', title }: {
     <button
       onClick={onClick}
       title={title}
-      aria-label={title ?? label}
+      aria-label={title ?? (typeof label === 'string' ? label : undefined)}
       style={{
         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
         padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         border: `1px solid ${colors.bd}`, borderRadius: 'var(--radius-sm)',
         background: colors.bg, color: colors.fg,
       }}
@@ -719,12 +786,13 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               display: 'flex', alignItems: 'center', gap: '9px',
               flexWrap: 'wrap', marginBottom: '6px',
             }}>
-              {item.important && <ImportantMark label={t('ea.important')} />}
+              {item.important && <ImportantMark label={t('ea.important')} size={17} />}
               <div style={{
                 fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
                 color: 'var(--text-primary)',
               }}>{item.name}</div>
               <StatusBadge status={item.status} />
+              <Stars value={item.rating} size={15} label={ratingLabel(t, item.rating)} />
             </div>
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
               <TypeBadges types={item.type} />
@@ -735,7 +803,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               click puts it back. */}
           {isAdmin && (
             <Btn
-              label={item.important ? `★ ${t('ea.unmark')}` : `☆ ${t('ea.mark')}`}
+              label={<IconBookmark size={15} filled={item.important} />}
               title={item.important ? t('ea.unmark_hint') : t('ea.mark_hint')}
               onClick={() => { void after(patchEaItem(item.id, { important: !item.important })); }}
               tone={item.important ? 'danger' : 'ghost'}
@@ -1246,6 +1314,7 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
   const [url, setUrl] = useState('');
   const [url2, setUrl2] = useState('');
   const [important, setImportant] = useState(false);
+  const [rating, setRating] = useState(0);
   const [tags, setTags] = useState('');
   const [images, setImages] = useState<Picked[]>([]);
   const [files, setFiles] = useState<Picked[]>([]);
@@ -1293,6 +1362,7 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
       fd.append('url', url);
       fd.append('url2', url2);
       fd.append('important', String(important));
+      fd.append('rating', String(rating));
       fd.append('tags', tags);
       images.forEach(p => fd.append('images', p.file));
       files.forEach(p => fd.append('files', p.file));
@@ -1421,6 +1491,15 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
               onChange={e => setDescription(e.target.value)}
               rows={4}
               style={{ ...inputStyle, resize: 'vertical' }}
+            />
+          </Field>
+
+          <Field label={t('ea.rating')}>
+            <StarPicker
+              value={rating}
+              onChange={setRating}
+              labelFor={n => `${t('ea.rating')} ${n}/${EA_MAX_STARS}`}
+              clearLabel={t('ea.clear_rating')}
             />
           </Field>
 
@@ -1574,13 +1653,16 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const [url, setUrl] = useState(item.url);
   const [url2, setUrl2] = useState(item.url2);
   const [important, setImportant] = useState(item.important);
+  const [rating, setRating] = useState(item.rating);
   const [tags, setTags] = useState(item.tags.join(', '));
   const [error, setError] = useState('');
   const { confirmNode, ask, asking } = useConfirm();
 
   const save = useMutation({
     mutationFn: () =>
-      patchEaItem(item.id, { name, type, status, description, developer, url, url2, important, tags }),
+      patchEaItem(item.id, {
+        name, type, status, description, developer, url, url2, important, rating, tags,
+      }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ea-items'] });
       addToast({ type: 'success', title: t('ea.saved_edit') });
@@ -1592,7 +1674,7 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const dirty = name !== item.name || type.join(',') !== item.type.join(',')
     || status !== item.status || description !== item.description
     || developer !== item.developer || url !== item.url || url2 !== item.url2
-    || important !== item.important
+    || important !== item.important || rating !== item.rating
     || tags !== item.tags.join(', ');
 
   const requestClose = () => {
@@ -1665,6 +1747,15 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
               style={{ ...inputStyle, resize: 'vertical' }}
             />
           </Field>
+          <Field label={t('ea.rating')}>
+            <StarPicker
+              value={rating}
+              onChange={setRating}
+              labelFor={n => `${t('ea.rating')} ${n}/${EA_MAX_STARS}`}
+              clearLabel={t('ea.clear_rating')}
+            />
+          </Field>
+
           <Field label={t('ea.developer')}>
             <input
               value={developer}
@@ -1828,6 +1919,8 @@ export const EaRepository = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | EaStatus>('all');
   const [tagFilter, setTagFilter] = useState<'all' | string>('all');
   const [onlyImportant, setOnlyImportant] = useState(false);
+  /** '' = any, 'none' = not rated yet, or a floor like '4' for four and up. */
+  const [ratingFilter, setRatingFilter] = useState('');
   /**
    * The open entry is held by id, not by value.
    *
@@ -1856,13 +1949,15 @@ export const EaRepository = () => {
     if (statusFilter !== 'all' && i.status !== statusFilter) return false;
     if (tagFilter !== 'all' && !i.tags.includes(tagFilter)) return false;
     if (onlyImportant && !i.important) return false;
+    if (ratingFilter === 'none' && i.rating !== 0) return false;
+    if (ratingFilter && ratingFilter !== 'none' && i.rating < Number(ratingFilter)) return false;
     const q = search.trim().toLowerCase();
     return !q
       || i.name.toLowerCase().includes(q)
       || i.description.toLowerCase().includes(q)
       || i.developer.toLowerCase().includes(q)
       || i.tags.some(tag => tag.toLowerCase().includes(q));
-  }), [items, search, typeFilter, statusFilter, tagFilter, onlyImportant]);
+  }), [items, search, typeFilter, statusFilter, tagFilter, onlyImportant, ratingFilter]);
 
   const types = [...new Set(items.flatMap(i => i.type))];
   const tags = [...new Set(items.flatMap(i => i.tags))].sort();
@@ -1926,17 +2021,19 @@ export const EaRepository = () => {
         <button
           onClick={() => setOnlyImportant(v => !v)}
           title={t('ea.only_important')}
+          aria-label={t('ea.only_important')}
           aria-pressed={onlyImportant}
           style={{
             fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
-            padding: '6px 10px', cursor: 'pointer', whiteSpace: 'nowrap',
+            padding: '7px 11px', cursor: 'pointer', whiteSpace: 'nowrap',
+            display: 'inline-flex', alignItems: 'center',
             background: onlyImportant ? 'color-mix(in srgb, var(--danger) 16%, transparent)' : 'var(--bg-input)',
             color: onlyImportant ? 'var(--danger)' : 'var(--text-dim)',
             border: `1px solid ${onlyImportant ? 'color-mix(in srgb, var(--danger) 45%, transparent)' : 'var(--border2)'}`,
             borderRadius: 'var(--radius-sm)',
           }}
         >
-          {onlyImportant ? '★' : '☆'} {t('ea.important')}
+          <IconBookmark size={15} filled={onlyImportant} />
         </button>
         {/* A status nobody can filter by is a label, not a status. */}
         <select
@@ -1951,6 +2048,24 @@ export const EaRepository = () => {
         >
           <option value="all">{t('ea.all_statuses')}</option>
           {EA_STATUSES.map(st => <option key={st} value={st}>{st}</option>)}
+        </select>
+        {/* A score you cannot filter by only helps on the page already open. */}
+        <select
+          value={ratingFilter}
+          onChange={e => setRatingFilter(e.target.value)}
+          aria-label={t('ea.rating')}
+          style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
+            padding: '6px 10px',
+            background: 'var(--bg-input)', color: 'var(--text-primary)',
+            border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+          }}
+        >
+          <option value="">{t('ea.all_ratings')}</option>
+          <option value="5">{'★★★★★'}</option>
+          <option value="4">{'★★★★+'}</option>
+          <option value="3">{'★★★+'}</option>
+          <option value="none">{t('ea.not_rated')}</option>
         </select>
         <select
           value={tagFilter}
@@ -2031,6 +2146,7 @@ const TableView = ({ items, onOpen }: ViewProps) => {
           <tr>
             <th className="ea-col-name">{t('ea.name')}</th>
             <th className="ea-col-status">{t('ea.status')}</th>
+            <th className="ea-col-perf">{t('ea.rating')}</th>
             <th className="ea-col-type">{t('ea.type')}</th>
             <th className="ea-col-desc">{t('ea.description')}</th>
             <th className="ea-col-tags">{t('ea.tags')}</th>
@@ -2051,6 +2167,9 @@ const TableView = ({ items, onOpen }: ViewProps) => {
                 </span>
               </td>
               <td className="ea-col-status"><StatusBadge status={item.status} /></td>
+              <td className="ea-col-perf">
+                <Stars value={item.rating} label={ratingLabel(t, item.rating)} />
+              </td>
               <td className="ea-col-type">
                 <span style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
                   <TypeBadges types={item.type} />
@@ -2098,19 +2217,21 @@ const TableView = ({ items, onOpen }: ViewProps) => {
         /* Status has its own column on purpose: it answers "how is this one
            doing", which is a different question from "what is this one", and
            a column of its own is what makes it scannable straight down. */
-        .ea-wrap .ea-col-name   { width: 19%; }
-        .ea-wrap .ea-col-status { width: 9%; }
-        .ea-wrap .ea-col-type   { width: 13%; }
-        .ea-wrap .ea-col-desc   { width: 24%; }
-        .ea-wrap .ea-col-tags   { width: 14%; }
-        .ea-wrap .ea-col-count { width: 7%; text-align: right; }
-        .ea-wrap .ea-col-date  { width: 12%; color: var(--text-dim); }
+        .ea-wrap .ea-col-name   { width: 18%; }
+        .ea-wrap .ea-col-status { width: 8%; }
+        .ea-wrap .ea-col-perf   { width: 9%; }
+        .ea-wrap .ea-col-type   { width: 12%; }
+        .ea-wrap .ea-col-desc   { width: 21%; }
+        .ea-wrap .ea-col-tags   { width: 12%; }
+        .ea-wrap .ea-col-count { width: 6%; text-align: right; }
+        .ea-wrap .ea-col-date  { width: 11%; color: var(--text-dim); }
 
         @media (max-width: 768px) {
           /* Description and the counts are what a phone can afford to lose;
              the name, its type and when it last moved are what you scan for. */
           .ea-wrap .ea-col-desc,
           .ea-wrap .ea-col-tags,
+          .ea-wrap .ea-col-perf,
           .ea-wrap .ea-col-count { display: none; }
           .ea-wrap th, .ea-wrap td { padding: 7px 8px; }
           .ea-wrap .ea-col-name   { width: 36%; }
@@ -2146,7 +2267,8 @@ const CardView = ({ items, onOpen }: ViewProps) => {
                 }}>{item.name}</div>
                 <StatusBadge status={item.status} />
               </div>
-              <div style={{ marginTop: '5px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+              <div style={{ marginTop: '5px', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <Stars value={item.rating} label={ratingLabel(t, item.rating)} />
                 <TypeBadges types={item.type} />
               </div>
             </div>
