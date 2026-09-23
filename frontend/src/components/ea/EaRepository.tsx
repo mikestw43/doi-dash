@@ -485,7 +485,7 @@ const arrowStyle: React.CSSProperties = {
   border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
 };
 
-const Btn = ({ label, onClick, tone = 'ghost', title }: {
+const Btn = ({ label, onClick, tone = 'ghost', title, pressed }: {
   /** Text, or an icon for a button that carries no words. */
   label: React.ReactNode;
   onClick: () => void;
@@ -494,6 +494,9 @@ const Btn = ({ label, onClick, tone = 'ghost', title }: {
    *  one list are otherwise the same button to a tooltip and a screen reader,
    *  and an icon alone has no name at all. */
   title?: string;
+  /** For a toggle whose state is shown elsewhere on screen: assistive tech
+   *  cannot see "elsewhere". */
+  pressed?: boolean;
 }) => {
   const colors = {
     ghost:   { fg: 'var(--text-dim)',    bd: 'var(--border2)',       bg: 'transparent' },
@@ -509,6 +512,7 @@ const Btn = ({ label, onClick, tone = 'ghost', title }: {
       onClick={onClick}
       title={title}
       aria-label={title ?? (typeof label === 'string' ? label : undefined)}
+      aria-pressed={pressed}
       style={{
         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
         padding: '5px 10px', cursor: 'pointer', whiteSpace: 'nowrap',
@@ -798,15 +802,24 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               <TypeBadges types={item.type} />
             </div>
           </div>
-          {/* Outside the MANAGE gate on purpose: that gate exists because a
-              stray ✕ destroys a file, and this only toggles a mark — one more
-              click puts it back. */}
+          {/*
+            Outside the MANAGE gate on purpose: that gate exists because a
+            stray ✕ destroys a file, and this only toggles a mark — one more
+            click puts it back.
+
+            Always the hollow outline, never the filled red one. The filled
+            bookmark in front of the name is where the state is read, and two
+            red bookmarks a few pixels apart in the same row read as two
+            different things when they are one. This is the control; the mark
+            beside the name is the answer. aria-pressed carries the state for
+            anyone who cannot see that the mark is there.
+          */}
           {isAdmin && (
             <Btn
-              label={<IconBookmark size={15} filled={item.important} />}
+              label={<IconBookmark size={15} />}
               title={item.important ? t('ea.unmark_hint') : t('ea.mark_hint')}
+              pressed={item.important}
               onClick={() => { void after(patchEaItem(item.id, { important: !item.important })); }}
-              tone={item.important ? 'danger' : 'ghost'}
             />
           )}
           <Btn label={t('ea.close')} onClick={onClose} />
