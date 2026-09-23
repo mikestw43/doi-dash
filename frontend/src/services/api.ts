@@ -452,9 +452,13 @@ export interface EaItemDto {
   name: string;
   /** One or more — an entry is often an EA and its source at once. */
   type: string[];
-  /** OK | Waiting | Other */
+  /** Untest | Waiting | OK | Other */
   status: string;
   description: string;
+  /** Where it came from. Empty when it was never filled in. */
+  url: string;
+  /** Who wrote it. Free text. */
+  developer: string;
   tags: string[];
   images: EaImageDto[];
   files: EaFileDto[];
@@ -483,11 +487,11 @@ const uploadConfig = (onProgress?: UploadProgress) => ({
 export const createEaItem = async (form: FormData, onProgress?: UploadProgress): Promise<EaItemDto> =>
   (await api.post('/ea', form, uploadConfig(onProgress))).data;
 
-/** The four text fields. Files are never part of this, so a mistyped edit
+/** The text fields only. Files are never part of this, so a mistyped edit
  *  cannot cost an upload. */
 export const patchEaItem = async (
   id: string,
-  fields: Partial<Pick<EaItemDto, 'name' | 'status' | 'description'>>
+  fields: Partial<Pick<EaItemDto, 'name' | 'status' | 'description' | 'url' | 'developer'>>
     & { type?: string[]; tags?: string },
 ): Promise<EaItemDto> => (await api.patch(`/ea/${id}`, fields)).data;
 

@@ -186,9 +186,13 @@ model EaItem {
   /// at once (an EA and its source), and the single value could not say so.
   /// Rows written before this held exactly one, which parses as a list of one.
   type        String
-  /// OK | Waiting | Other — where this entry stands, at a glance.
+  /// Untest | Waiting | OK | Other — where this entry stands, at a glance.
   status      String   @default("OK")
   description String   @default("")
+  /// Where it came from: a vendor page, a forum thread, a repo. Optional.
+  url         String   @default("")
+  /// Who wrote it. Free text — most of these are handles, not companies.
+  developer   String   @default("")
   /// Free-form labels, comma separated. A join table buys nothing while the
   /// list is small enough to filter in memory, and costs a migration to add.
   tags        String   @default("")

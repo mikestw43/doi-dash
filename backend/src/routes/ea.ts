@@ -80,6 +80,7 @@ const toCsv = (raw: unknown): string =>
 
 const serialize = (item: {
   id: string; name: string; type: string; status: string; description: string; tags: string;
+  url: string; developer: string;
   createdAt: Date; updatedAt: Date;
   images: { id: string; filename: string; caption: string; size: number }[];
   files: { id: string; filename: string; label: string; size: number; createdAt: Date }[];
@@ -89,6 +90,8 @@ const serialize = (item: {
   type: asList(item.type),
   status: item.status,
   description: item.description,
+  url: item.url,
+  developer: item.developer,
   tags: asList(item.tags),
   images: item.images,
   files: item.files.map(f => ({ ...f, createdAt: f.createdAt.toISOString().slice(0, 10) })),
@@ -203,7 +206,7 @@ const attachUploads = async (
 };
 
 router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
-  const { name, type, status, description, tags } = req.body as Record<string, string>;
+  const { name, type, status, description, tags, url, developer } = req.body as Record<string, string>;
   const types = toCsv(type);
   if (!name?.trim() || !types) {
     res.status(400).json({ error: 'name and at least one type are required' });
@@ -216,6 +219,8 @@ router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
       type: types,
       ...(status?.trim() && { status: status.trim() }),
       description: description?.trim() ?? '',
+      url: url?.trim() ?? '',
+      developer: developer?.trim() ?? '',
       tags: toCsv(tags),
       createdBy: req.user?.id,
     },
@@ -246,7 +251,7 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  const { name, type, status, description, tags } = req.body as Record<string, unknown>;
+  const { name, type, status, description, tags, url, developer } = req.body as Record<string, unknown>;
   if (name !== undefined && !String(name).trim()) {
     res.status(400).json({ error: 'name cannot be empty' });
     return;
@@ -265,6 +270,8 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
       ...(type !== undefined && { type: toCsv(type) }),
       ...(status !== undefined && { status: String(status).trim() }),
       ...(description !== undefined && { description: String(description).trim() }),
+      ...(url !== undefined && { url: String(url).trim() }),
+      ...(developer !== undefined && { developer: String(developer).trim() }),
       ...(tags !== undefined && { tags: toCsv(tags) }),
     },
   });

@@ -22,12 +22,18 @@ type EaType = typeof EA_TYPES[number];
 
 /** Where an entry stands. Short on purpose: three states people will actually
  *  keep up to date beat seven nobody maintains. */
-const EA_STATUSES = ['OK', 'Waiting', 'Other'] as const;
+/** In the order an entry actually moves through them. */
+const EA_STATUSES = ['Untest', 'Waiting', 'OK', 'Other'] as const;
 type EaStatus = typeof EA_STATUSES[number];
 
+/** What a new entry starts as. Deliberately not EA_STATUSES[0]: the list is
+ *  ordered for reading, and reordering it must not quietly change the default. */
+const EA_STATUS_DEFAULT: EaStatus = 'OK';
+
 const STATUS_COLORS: Record<string, string> = {
-  OK:      'var(--success)',
+  Untest:  'var(--accent-purple)',   // the one accent nothing else in the app uses
   Waiting: 'var(--warning)',
+  OK:      'var(--success)',
   Other:   'var(--text-muted)',
 };
 
@@ -69,6 +75,14 @@ const StatusBadge = ({ status }: { status: string }) => {
 /** A row of type badges — an entry can be more than one thing. */
 const TypeBadges = ({ types }: { types: string[] }) => (
   <>{types.map(ty => <TypeBadge key={ty} type={ty} />)}</>
+);
+
+/** A dim label and a value beside it, for the one-line facts about an entry. */
+const MetaRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div style={{ display: 'flex', gap: '8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>
+    <span style={{ flex: '0 0 74px', color: 'var(--text-dim)' }}>{label}</span>
+    <span style={{ flex: 1, minWidth: 0, color: 'var(--text-dim)' }}>{children}</span>
+  </div>
 );
 
 const TagChip = ({ tag, onClick }: { tag: string; onClick?: () => void }) => (
@@ -205,12 +219,23 @@ const Lightbox = ({
         )}
       </div>
 
-      <div onClick={e => e.stopPropagation()} style={{
-        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-        color: 'var(--text-dim)', textAlign: 'center', maxWidth: '90%',
-      }}>
-        {image.caption || image.filename}
-        {images.length > 1 && <span> · {index + 1}/{images.length}</span>}
+      {/* Blown up is where the caption is read: the tile below only has room
+          for one clipped line, so here it wraps and shows whole, with the
+          filename under it for when the caption does not identify the file. */}
+      <div onClick={e => e.stopPropagation()} style={{ textAlign: 'center', maxWidth: '90%' }}>
+        {image.caption && (
+          <div style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+            color: 'var(--text-primary)', whiteSpace: 'pre-wrap', lineHeight: 1.45,
+          }}>{image.caption}</div>
+        )}
+        <div style={{
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+          color: 'var(--text-dim)', marginTop: image.caption ? '4px' : 0,
+        }}>
+          {image.filename}
+          {images.length > 1 && <span> · {index + 1}/{images.length}</span>}
+        </div>
       </div>
 
       <button onClick={onClose} style={{ ...arrowStyle, width: 'auto', padding: '6px 16px', fontSize: 'var(--fs-body-sm)' }}>
@@ -472,6 +497,35 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
             color: 'var(--text-primary)', lineHeight: 1.6, margin: 0,
           }}>{item.description}</p>
 
+          {/* Provenance: who wrote it and where it came from. Both optional,
+              and a row only appears once there is something in it. */}
+          {(item.developer || item.url) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {item.developer && (
+                <MetaRow label={t('ea.developer')}>
+                  <span style={{ color: 'var(--text-primary)' }}>{item.developer}</span>
+                </MetaRow>
+              )}
+              {item.url && (
+                <MetaRow label={t('ea.url')}>
+                  {/* noreferrer as well as noopener: the repository is behind a
+                      login, and its URL has no business reaching the vendor. */}
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={item.url}
+                    style={{
+                      color: 'var(--accent-blue)', textDecoration: 'none',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      display: 'block',
+                    }}
+                  >{item.url}</a>
+                </MetaRow>
+              )}
+            </div>
+          )}
+
           {item.tags.length > 0 && (
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
               {item.tags.map(tag => <TagChip key={tag} tag={tag} />)}
@@ -533,17 +587,22 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                         }}
                       >{'✕'}</button>
                     )}
-                    <div style={{
-                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
-                      color: 'var(--text-dim)', marginTop: '6px', textAlign: 'center',
-                    }}>
+                    <div
+                      className="ea-cap"
+                      title={img.caption || img.filename}
+                      style={{
+                        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+                        color: 'var(--text-dim)', marginTop: '6px', textAlign: 'center',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}
+                    >
                       {canEdit
                         ? <InlineText
                             value={img.caption}
                             placeholder={t('ea.add_caption')}
                             onSave={next => after(setEaImageCaption(img.id, next))}
                           />
-                        : img.caption}
+                        : (img.caption || <span style={{ color: 'var(--text-muted)' }}>{img.filename}</span>)}
                     </div>
                   </div>
                 ))}
@@ -709,7 +768,8 @@ const MAX_FILES_PER_SAVE = 20;
 interface Picked {
   key: string;
   file: File;
-  /** Only files carry one — "Current build", "Preset · gold". Images do not. */
+  /** What it is: a file's label ("Current build"), or an image's caption.
+   *  Typed while picking, optional, and editable afterwards either way. */
   label: string;
 }
 
@@ -812,7 +872,24 @@ const DropZone = ({
 };
 
 /** A picked image, shown as what it actually is. */
-const PickedThumb = ({ file, onRemove }: { file: File; onRemove: () => void }) => {
+/**
+ * One picked image, with its caption box underneath.
+ *
+ * The caption is typed here, while the picture is still on screen and you can
+ * still remember which one it is — an hour later "screenshot_04.png" tells you
+ * nothing. It stays optional: left blank, the entry falls back to the filename.
+ *
+ * The box is narrow, so what is typed will not fit in it. That is fine here:
+ * the caption is read in full in the lightbox, and the tile only has to prove
+ * that something was written.
+ */
+const PickedThumb = ({ file, caption, onCaption, onRemove }: {
+  file: File;
+  caption: string;
+  onCaption: (next: string) => void;
+  onRemove: () => void;
+}) => {
+  const t = useTranslation();
   const [url, setUrl] = useState('');
   useEffect(() => {
     const u = URL.createObjectURL(file);
@@ -821,16 +898,17 @@ const PickedThumb = ({ file, onRemove }: { file: File; onRemove: () => void }) =
   }, [file]);
 
   return (
-    <div style={{ position: 'relative', width: '62px' }}>
+    <div style={{ position: 'relative', width: '112px' }}>
       <div style={{
-        width: '62px', height: '62px', borderRadius: 'var(--radius-sm)', overflow: 'hidden',
+        width: '112px', height: '84px', borderRadius: 'var(--radius-sm)', overflow: 'hidden',
         border: '1px solid var(--border2)', background: 'var(--bg-tertiary)',
       }}>
         {url && <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
       </div>
       <button
         onClick={onRemove}
-        title={file.name}
+        title={`${t('common.cancel')} ${file.name}`}
+        aria-label={`${t('common.cancel')} ${file.name}`}
         style={{
           position: 'absolute', top: '-6px', right: '-6px',
           width: '19px', height: '19px', lineHeight: 1,
@@ -841,12 +919,23 @@ const PickedThumb = ({ file, onRemove }: { file: File; onRemove: () => void }) =
       >
         {'✕'}
       </button>
-      <div style={{
-        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
-        marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-      }}>
+      <div
+        title={file.name}
+        style={{
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+          marginTop: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}
+      >
         {fmtSize(file.size)}
       </div>
+      <input
+        value={caption}
+        onChange={e => onCaption(e.target.value)}
+        placeholder={t('ea.add_caption')}
+        title={caption || t('ea.add_caption')}
+        aria-label={`${t('ea.add_caption')} — ${file.name}`}
+        style={{ ...inputStyle, width: '100%', marginTop: '4px', padding: '4px 6px', fontSize: 'var(--fs-micro)' }}
+      />
     </div>
   );
 };
@@ -870,8 +959,10 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
 
   const [name, setName] = useState('');
   const [type, setType] = useState<string[]>([EA_TYPES[0]]);
-  const [status, setStatus] = useState<string>(EA_STATUSES[0]);
+  const [status, setStatus] = useState<string>(EA_STATUS_DEFAULT);
   const [description, setDescription] = useState('');
+  const [developer, setDeveloper] = useState('');
+  const [url, setUrl] = useState('');
   const [tags, setTags] = useState('');
   const [images, setImages] = useState<Picked[]>([]);
   const [files, setFiles] = useState<Picked[]>([]);
@@ -914,10 +1005,14 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
       fd.append('type', type.join(','));
       fd.append('status', status);
       fd.append('description', description);
+      fd.append('developer', developer);
+      fd.append('url', url);
       fd.append('tags', tags);
       images.forEach(p => fd.append('images', p.file));
       files.forEach(p => fd.append('files', p.file));
-      // Parallel to the uploads above: labels[i] describes files[i].
+      // Parallel to the uploads above: captions[i] describes images[i], and
+      // labels[i] describes files[i].
+      fd.append('imageCaptions', JSON.stringify(images.map(p => p.label)));
       fd.append('fileLabels', JSON.stringify(files.map(p => p.label)));
       setProgress(0);
       return createEaItem(fd, setProgress);
@@ -1021,6 +1116,25 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
             />
           </Field>
 
+          <Field label={t('ea.developer')}>
+            <input
+              value={developer}
+              onChange={e => setDeveloper(e.target.value)}
+              placeholder={t('ea.developer_ph')}
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label={t('ea.url')}>
+            <input
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              placeholder={t('ea.url_ph')}
+              inputMode="url"
+              style={inputStyle}
+            />
+          </Field>
+
           <Field label={`${t('ea.tags')} — reporter, gold, production`}>
             <input value={tags} onChange={e => setTags(e.target.value)} style={inputStyle} />
           </Field>
@@ -1035,7 +1149,13 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
             {images.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
                 {images.map(p => (
-                  <PickedThumb key={p.key} file={p.file} onRemove={() => removeAt(setImages, p.key)} />
+                  <PickedThumb
+                    key={p.key}
+                    file={p.file}
+                    caption={p.label}
+                    onCaption={next => setImages(prev => prev.map(q => (q.key === p.key ? { ...q, label: next } : q)))}
+                    onRemove={() => removeAt(setImages, p.key)}
+                  />
                 ))}
               </div>
             )}
@@ -1115,11 +1235,13 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const [type, setType] = useState<string[]>(item.type);
   const [status, setStatus] = useState(item.status);
   const [description, setDescription] = useState(item.description);
+  const [developer, setDeveloper] = useState(item.developer);
+  const [url, setUrl] = useState(item.url);
   const [tags, setTags] = useState(item.tags.join(', '));
   const [error, setError] = useState('');
 
   const save = useMutation({
-    mutationFn: () => patchEaItem(item.id, { name, type, status, description, tags }),
+    mutationFn: () => patchEaItem(item.id, { name, type, status, description, developer, url, tags }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ea-items'] });
       addToast({ type: 'success', title: t('ea.saved_edit') });
@@ -1129,8 +1251,9 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   });
 
   const dirty = name !== item.name || type.join(',') !== item.type.join(',')
-    || status !== item.status
-    || description !== item.description || tags !== item.tags.join(', ');
+    || status !== item.status || description !== item.description
+    || developer !== item.developer || url !== item.url
+    || tags !== item.tags.join(', ');
 
   const requestClose = () => {
     if (!dirty || window.confirm(t('ea.discard_confirm'))) onClose();
@@ -1186,6 +1309,25 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
               style={{ ...inputStyle, resize: 'vertical' }}
             />
           </Field>
+          <Field label={t('ea.developer')}>
+            <input
+              value={developer}
+              onChange={e => setDeveloper(e.target.value)}
+              placeholder={t('ea.developer_ph')}
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label={t('ea.url')}>
+            <input
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              placeholder={t('ea.url_ph')}
+              inputMode="url"
+              style={inputStyle}
+            />
+          </Field>
+
           <Field label={`${t('ea.tags')} — reporter, gold, production`}>
             <input value={tags} onChange={e => setTags(e.target.value)} style={inputStyle} />
           </Field>
@@ -1325,6 +1467,7 @@ export const EaRepository = () => {
     return !q
       || i.name.toLowerCase().includes(q)
       || i.description.toLowerCase().includes(q)
+      || i.developer.toLowerCase().includes(q)
       || i.tags.some(tag => tag.toLowerCase().includes(q));
   }), [items, search, typeFilter, statusFilter, tagFilter]);
 
