@@ -2225,7 +2225,10 @@ const TableView = ({ items, onOpen }: ViewProps) => {
         }
         .ea-wrap .ea-row { cursor: pointer; }
         .ea-wrap .ea-row:hover td { background: rgba(42,45,52,.25); }
-        .ea-wrap .ea-desc { color: var(--text-dim); }
+        /* Full strength, not the dim grey the other secondary text uses: this
+           is the one cell you actually read to tell two entries apart, and at
+           11px over a dark row the dim grey was hard work. */
+        .ea-wrap .ea-desc { color: var(--text-primary); }
 
         /* Status has its own column on purpose: it answers "how is this one
            doing", which is a different question from "what is this one", and
