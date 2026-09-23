@@ -7,7 +7,7 @@ import {
   fetchEaItems, createEaItem, patchEaItem, deleteEaItem,
   addEaUploads, setEaFileLabel, setEaImageCaption, deleteEaFile, deleteEaImage,
   fetchEaImageUrl, downloadEaFile,
-  type EaItemDto, type EaImageDto,
+  type EaItemDto, type EaImageDto, type EaFileDto,
 } from '../../services/api';
 
 // ─── Shape ───────────────────────────────────────────────────────────────────
@@ -75,6 +75,129 @@ const StatusBadge = ({ status }: { status: string }) => {
 /** A row of type badges — an entry can be more than one thing. */
 const TypeBadges = ({ types }: { types: string[] }) => (
   <>{types.map(ty => <TypeBadge key={ty} type={ty} />)}</>
+);
+
+/**
+ * The question asked before something is destroyed.
+ *
+ * Replaces window.confirm, which could only put one line of text next to the
+ * site's own hostname: it could not show the picture about to go, could not
+ * say that the bytes leave the server for good, and labelled the destructive
+ * button "OK" in the same blue as every safe button in the browser.
+ *
+ * Every way out that is not a deliberate press of the one button is a cancel:
+ * Escape, the backdrop, and the focus the dialog opens with.
+ */
+type ConfirmRequest = {
+  tone: 'danger' | 'warning';
+  title: string;
+  /** What is at stake — a thumbnail, a count, a name. */
+  body: React.ReactNode;
+  confirmLabel: string;
+  cancelLabel: string;
+  onConfirm: () => void;
+};
+
+const ConfirmDialog = ({ req, onClose }: { req: ConfirmRequest; onClose: () => void }) => {
+  const cancelRef = useRef<HTMLDivElement>(null);
+  const danger = req.tone === 'danger';
+  const accent = danger ? 'var(--danger)' : 'var(--warning)';
+
+  // Capture phase, and the event stops here: the panel and the form underneath
+  // both close on Escape, and one keypress must not dismiss two things.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      onClose();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [onClose]);
+
+  // Focus lands on Cancel, so a stray Enter or Space cancels rather than destroys.
+  useEffect(() => { cancelRef.current?.querySelector('button')?.focus(); }, []);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 800, background: 'rgba(0,0,0,.62)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+      }}
+    >
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-card)', width: '100%', maxWidth: '400px',
+          overflow: 'hidden', boxShadow: '0 14px 40px rgba(0,0,0,.55)',
+        }}
+      >
+        <div style={{
+          padding: '12px 14px', borderBottom: '1px solid var(--border-color)',
+          display: 'flex', alignItems: 'center', gap: '9px',
+        }}>
+          <span
+            aria-hidden="true"
+            style={{
+              flexShrink: 0, width: '26px', height: '26px', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px',
+              color: accent,
+              background: `color-mix(in srgb, ${accent} 16%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${accent} 42%, transparent)`,
+            }}
+          >{danger ? '\u{1F5D1}' : '!'}</span>
+          <span style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 600, color: accent,
+          }}>{req.title}</span>
+        </div>
+
+        <div style={{
+          padding: '13px 14px',
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+          color: 'var(--text-dim)', lineHeight: 1.6,
+        }}>{req.body}</div>
+
+        <div style={{
+          padding: '11px 14px', borderTop: '1px solid var(--border-color)',
+          background: 'rgba(0,0,0,.14)',
+          display: 'flex', justifyContent: 'flex-end', gap: '9px',
+        }}>
+          {/* Cancel first, the way every other footer in the app reads. */}
+          <div ref={cancelRef}><Btn label={req.cancelLabel} onClick={onClose} /></div>
+          <Btn
+            label={req.confirmLabel}
+            tone={danger ? 'destroy' : 'warn'}
+            onClick={() => { onClose(); req.onConfirm(); }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/** Holds at most one pending question, and the dialog that asks it. */
+const useConfirm = () => {
+  const [req, setReq] = useState<ConfirmRequest | null>(null);
+  const node = req ? <ConfirmDialog req={req} onClose={() => setReq(null)} /> : null;
+  return { confirmNode: node, ask: setReq, asking: req !== null };
+};
+
+/** The line that says the bytes are gone, in the colour that means it. */
+const Permanent = ({ text }: { text: string }) => (
+  <div style={{ color: 'var(--danger)', marginTop: '9px' }}>{text}</div>
+);
+
+/** What is about to be destroyed, shown rather than named. */
+const ConfirmTarget = ({ children }: { children: React.ReactNode }) => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: '10px',
+    background: 'var(--bg-input)', border: '1px solid var(--border-color)',
+    borderRadius: 'var(--radius-sm)', padding: '8px 10px',
+  }}>{children}</div>
 );
 
 /**
@@ -300,15 +423,20 @@ const arrowStyle: React.CSSProperties = {
 };
 
 const Btn = ({ label, onClick, tone = 'ghost', title }: {
-  label: string; onClick: () => void; tone?: 'ghost' | 'primary' | 'danger';
+  label: string; onClick: () => void;
+  tone?: 'ghost' | 'primary' | 'danger' | 'destroy' | 'warn';
   /** Names the button when the label is a bare glyph. Several ✕ in one list
    *  are otherwise the same button to a tooltip and to a screen reader. */
   title?: string;
 }) => {
   const colors = {
-    ghost:   { fg: 'var(--text-dim)',    bd: 'var(--border2)',            bg: 'transparent' },
-    primary: { fg: 'var(--accent-blue)', bd: 'var(--accent-blue)',        bg: 'rgba(96,165,250,.1)' },
-    danger:  { fg: 'var(--danger)',      bd: 'rgba(248,113,113,.5)',      bg: 'transparent' },
+    ghost:   { fg: 'var(--text-dim)',    bd: 'var(--border2)',       bg: 'transparent' },
+    primary: { fg: 'var(--accent-blue)', bd: 'var(--accent-blue)',   bg: 'rgba(96,165,250,.1)' },
+    danger:  { fg: 'var(--danger)',      bd: 'rgba(248,113,113,.5)', bg: 'transparent' },
+    // Filled, dark text: the button that actually destroys something must not
+    // look like the ones around it, or a fast hand will treat it as one.
+    destroy: { fg: '#1b1c1f',            bd: 'var(--danger)',        bg: 'var(--danger)' },
+    warn:    { fg: 'var(--warning)',     bd: 'rgba(251,191,36,.5)',  bg: 'transparent' },
   }[tone];
   return (
     <button
@@ -343,6 +471,7 @@ const InlineText = ({
   style?: React.CSSProperties;
   multiline?: boolean;
 }) => {
+  const t = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const [saved, setSaved] = useState(false);
@@ -368,27 +497,54 @@ const InlineText = ({
     }
   };
 
+  const cancel = () => { setDraft(value); setEditing(false); };
+
   if (editing) {
     const props = {
       autoFocus: true,
       value: draft,
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDraft(e.target.value),
-      onBlur: () => { void commit(); },
       onKeyDown: (e: React.KeyboardEvent) => {
-        if (e.key === 'Escape') { setDraft(value); setEditing(false); }
-        if (e.key === 'Enter' && !multiline) (e.target as HTMLElement).blur();
+        if (e.key === 'Escape') { e.stopPropagation(); cancel(); }
+        if (e.key === 'Enter' && !multiline) { e.preventDefault(); void commit(); }
       },
       style: { ...inputStyle, ...style, width: '100%' },
     };
-    return multiline
-      ? <textarea {...props} rows={3} style={{ ...props.style, resize: 'vertical' }} />
-      : <input {...props} />;
+    return (
+      <span style={{ display: 'block' }}>
+        {multiline
+          ? <textarea {...props} rows={3} style={{ ...props.style, resize: 'vertical' }} />
+          : <input {...props} />}
+        {/*
+          Saving is a press, not a side effect of clicking elsewhere.
+          onBlur used to commit, which meant a click anywhere on the panel
+          wrote to the server without being asked to — and left nothing to
+          press if you changed your mind halfway through typing.
+          onMouseDown fires before the input loses focus, so a press on either
+          button is read even though the field is about to blur.
+        */}
+        <span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end', marginTop: '4px' }}>
+          <button
+            onMouseDown={e => { e.preventDefault(); void commit(); }}
+            title={t('common.save')}
+            aria-label={t('common.save')}
+            style={{ ...miniBtn, color: 'var(--success)', borderColor: 'rgba(52,211,153,.5)' }}
+          >{'✓'}</button>
+          <button
+            onMouseDown={e => { e.preventDefault(); cancel(); }}
+            title={t('common.cancel')}
+            aria-label={t('common.cancel')}
+            style={{ ...miniBtn, color: 'var(--text-dim)', borderColor: 'var(--border2)' }}
+          >{'✕'}</button>
+        </span>
+      </span>
+    );
   }
 
   return (
     <span
       onClick={() => setEditing(true)}
-      title={t_editHint}
+      title={t('ea.click_to_edit')}
       className="ea-inline"
       style={{
         display: 'inline-block', maxWidth: '100%',
@@ -409,9 +565,6 @@ const InlineText = ({
   );
 };
 
-/** Set once, in English, because it is a mouse tooltip on a desktop only. */
-const t_editHint = 'Click to edit';
-
 const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
   item: EaItemDto; isAdmin: boolean;
   onClose: () => void; onEdit: () => void; onDelete: () => void;
@@ -425,6 +578,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
   const [zoom, setZoom] = useState<number | null>(null);
   const [progress, setProgress] = useState<number | null | undefined>(null);
   const [error, setError] = useState('');
+  const { confirmNode, ask, asking } = useConfirm();
 
   /**
    * Deleting is off until it is asked for.
@@ -467,11 +621,57 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
     }
   };
 
-  /** Deleting a file takes the bytes with it and there is no Cancel to fall
-   *  back on any more, so each one asks. */
-  const confirmRemove = (label: string, run: () => Promise<unknown>) => {
-    if (window.confirm(`${t('ea.delete')} — ${label}?`)) void after(run());
-  };
+  /**
+   * Deleting an attachment takes the bytes with it and there is no Cancel to
+   * fall back on any more, so each one asks first — showing the thumbnail for
+   * an image, because a filename alone cannot tell you it is the right one.
+   */
+  const confirmRemoveImage = (img: EaImageDto) => ask({
+    tone: 'danger',
+    title: t('ea.confirm_delete_image'),
+    cancelLabel: t('common.cancel'),
+    confirmLabel: t('ea.delete'),
+    onConfirm: () => { void after(deleteEaImage(img.id)); },
+    body: (
+      <>
+        <ConfirmTarget>
+          <Thumb image={img} size={44} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {img.filename}
+            </div>
+            <div style={{ fontSize: 'var(--fs-micro)', marginTop: '2px' }}>
+              {img.caption ? `${img.caption} · ` : ''}{fmtSize(img.size)}
+            </div>
+          </div>
+        </ConfirmTarget>
+        <Permanent text={t('ea.confirm_permanent')} />
+      </>
+    ),
+  });
+
+  const confirmRemoveFile = (f: EaFileDto) => ask({
+    tone: 'danger',
+    title: t('ea.confirm_delete_file'),
+    cancelLabel: t('common.cancel'),
+    confirmLabel: t('ea.delete'),
+    onConfirm: () => { void after(deleteEaFile(f.id)); },
+    body: (
+      <>
+        <ConfirmTarget>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {f.filename}
+            </div>
+            <div style={{ fontSize: 'var(--fs-micro)', marginTop: '2px' }}>
+              {f.label ? `${f.label} · ` : ''}{fmtSize(f.size)}
+            </div>
+          </div>
+        </ConfirmTarget>
+        <Permanent text={t('ea.confirm_permanent')} />
+      </>
+    ),
+  });
 
   /**
    * Escape closes it. A click on the dark surround does not.
@@ -482,11 +682,11 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
    * The lightbox and any form layered over this take the key first.
    */
   useEffect(() => {
-    if (keysBusy || zoom !== null) return;
+    if (keysBusy || zoom !== null || asking) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [keysBusy, zoom, onClose]);
+  }, [keysBusy, zoom, asking, onClose]);
 
   return (
     <div
@@ -614,7 +814,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                     </div>
                     {canEdit && (
                       <button
-                        onClick={() => confirmRemove(img.filename, () => deleteEaImage(img.id))}
+                        onClick={() => confirmRemoveImage(img)}
                         title={`${t('ea.delete')} ${img.filename}`}
                         aria-label={`${t('ea.delete')} ${img.filename}`}
                         style={{
@@ -692,7 +892,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                       label={'✕'}
                       tone="danger"
                       title={`${t('ea.delete')} ${f.filename}`}
-                      onClick={() => confirmRemove(f.filename, () => deleteEaFile(f.id))}
+                      onClick={() => confirmRemoveFile(f)}
                     />
                   )}
                 </div>
@@ -727,7 +927,47 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               <Btn
                 label={t('ea.delete')}
                 title={`${t('ea.delete')} ${item.name}`}
-                onClick={() => { if (window.confirm(`${t('ea.delete')} — ${item.name}?`)) onDelete(); }}
+                onClick={() => ask({
+                  tone: 'danger',
+                  title: t('ea.confirm_delete_item'),
+                  cancelLabel: t('common.cancel'),
+                  confirmLabel: t('ea.confirm_delete_all'),
+                  onConfirm: onDelete,
+                  body: (
+                    <>
+                      <ConfirmTarget>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ color: 'var(--text-primary)' }}>
+                            {item.important ? '★ ' : ''}{item.name}
+                          </div>
+                          <div style={{ fontSize: 'var(--fs-micro)', marginTop: '2px' }}>
+                            {item.type.join(' · ')} · {item.status.toUpperCase()}
+                          </div>
+                        </div>
+                      </ConfirmTarget>
+                      {/* Counted, not just mentioned: the attachments go too,
+                          and the old one-line confirm never said so. */}
+                      {(item.images.length > 0 || item.files.length > 0) && (
+                        <div style={{ marginTop: '9px' }}>
+                          {t('ea.confirm_goes_too')}
+                          <ul style={{ margin: '5px 0 0', paddingLeft: '17px' }}>
+                            {item.images.length > 0 && (
+                              <li style={{ color: 'var(--text-primary)' }}>
+                                {item.images.length} {t('ea.images')}
+                              </li>
+                            )}
+                            {item.files.length > 0 && (
+                              <li style={{ color: 'var(--text-primary)' }}>
+                                {item.files.length} {t('ea.files')}
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                      <Permanent text={t('ea.confirm_permanent_all')} />
+                    </>
+                  ),
+                })}
                 tone="danger"
               />
             )}
@@ -743,6 +983,8 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
           onClose={() => setZoom(null)}
         />
       )}
+
+      {confirmNode}
     </div>
   );
 };
@@ -1009,6 +1251,7 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
   const [files, setFiles] = useState<Picked[]>([]);
   const [error, setError] = useState('');
   const [progress, setProgress] = useState<number | null | undefined>(null);
+  const { confirmNode, ask, asking } = useConfirm();
 
   /**
    * Add to what is already picked, refusing what the API would refuse anyway.
@@ -1079,13 +1322,35 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
 
   const dirty = Boolean(name || description || tags || images.length || files.length);
 
-  /** Closing throws away whatever has been typed, so ask first — and never
-   *  let a stray click on the backdrop do it silently. */
+  /**
+   * Closing throws away whatever has been typed, so ask first — and never let
+   * a stray click on the backdrop do it silently.
+   *
+   * Amber, not red: nothing leaves the server here, only the typing is lost,
+   * and a question that looks identical to the one asked before a permanent
+   * delete teaches people to dismiss both without reading.
+   */
   const requestClose = () => {
-    if (!dirty || window.confirm(t('ea.discard_confirm'))) onClose();
+    if (!dirty) { onClose(); return; }
+    ask({
+      tone: 'warning',
+      title: t('ea.discard_title'),
+      cancelLabel: t('ea.discard_keep'),
+      confirmLabel: t('ea.discard_go'),
+      onConfirm: onClose,
+      body: (
+        <>
+          {t('ea.discard_body')}
+          <div style={{ color: 'var(--text-muted)', marginTop: '5px' }}>
+            {t('ea.discard_nothing_deleted')}
+          </div>
+        </>
+      ),
+    });
   };
 
   useEffect(() => {
+    if (asking) return;   // the question on top owns the key while it is up
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1280,6 +1545,8 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
           </div>
         </div>
       </div>
+
+      {confirmNode}
     </div>
   );
 };
@@ -1309,6 +1576,7 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const [important, setImportant] = useState(item.important);
   const [tags, setTags] = useState(item.tags.join(', '));
   const [error, setError] = useState('');
+  const { confirmNode, ask, asking } = useConfirm();
 
   const save = useMutation({
     mutationFn: () =>
@@ -1328,10 +1596,26 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
     || tags !== item.tags.join(', ');
 
   const requestClose = () => {
-    if (!dirty || window.confirm(t('ea.discard_confirm'))) onClose();
+    if (!dirty) { onClose(); return; }
+    ask({
+      tone: 'warning',
+      title: t('ea.discard_title'),
+      cancelLabel: t('ea.discard_keep'),
+      confirmLabel: t('ea.discard_go'),
+      onConfirm: onClose,
+      body: (
+        <>
+          {t('ea.discard_body')}
+          <div style={{ color: 'var(--text-muted)', marginTop: '5px' }}>
+            {t('ea.discard_nothing_deleted')}
+          </div>
+        </>
+      ),
+    });
   };
 
   useEffect(() => {
+    if (asking) return;   // the question on top owns the key while it is up
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') requestClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1460,8 +1744,18 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
           />
         </div>
       </div>
+
+      {confirmNode}
     </div>
   );
+};
+
+/** The ✓ and ✕ beside a field being edited. Square, so the pair reads as one
+ *  control rather than two words competing with the text above them. */
+const miniBtn: React.CSSProperties = {
+  width: '24px', height: '22px', lineHeight: 1, padding: 0, cursor: 'pointer',
+  fontSize: '11px', borderRadius: 'var(--radius-sm)',
+  border: '1px solid var(--border2)', background: 'var(--bg-card)',
 };
 
 const inputStyle: React.CSSProperties = {
