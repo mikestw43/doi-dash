@@ -2326,10 +2326,12 @@ const CardView = ({ items, onOpen }: ViewProps) => {
           transition: border-color .15s;
         }
         .ea-card:hover { border-color: var(--accent-blue); }
+        /* Full strength, like the same text in the table: it is what tells
+           two entries apart, and the dim grey was hard work over a dark card. */
         .ea-card-desc {
           margin: 0;
           font-family: var(--ff-body); font-size: var(--fs-body-sm);
-          color: var(--text-dim); line-height: 1.45;
+          color: var(--text-primary); line-height: 1.45;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
           overflow: hidden;
         }
