@@ -191,6 +191,11 @@ model EaItem {
   description String   @default("")
   /// Where it came from: a vendor page, a forum thread, a repo. Optional.
   url         String   @default("")
+  /// A second link — the vendor page and the download are rarely one URL.
+  url2        String   @default("")
+  /// Flagged by hand as one to keep an eye on. Shown as a red mark in front
+  /// of the name everywhere the entry is listed.
+  important   Boolean  @default(false)
   /// Who wrote it. Free text — most of these are handles, not companies.
   developer   String   @default("")
   /// Free-form labels, comma separated. A join table buys nothing while the

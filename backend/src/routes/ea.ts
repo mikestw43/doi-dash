@@ -80,7 +80,7 @@ const toCsv = (raw: unknown): string =>
 
 const serialize = (item: {
   id: string; name: string; type: string; status: string; description: string; tags: string;
-  url: string; developer: string;
+  url: string; url2: string; developer: string; important: boolean;
   createdAt: Date; updatedAt: Date;
   images: { id: string; filename: string; caption: string; size: number }[];
   files: { id: string; filename: string; label: string; size: number; createdAt: Date }[];
@@ -91,7 +91,9 @@ const serialize = (item: {
   status: item.status,
   description: item.description,
   url: item.url,
+  url2: item.url2,
   developer: item.developer,
+  important: item.important,
   tags: asList(item.tags),
   images: item.images,
   files: item.files.map(f => ({ ...f, createdAt: f.createdAt.toISOString().slice(0, 10) })),
@@ -206,7 +208,8 @@ const attachUploads = async (
 };
 
 router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
-  const { name, type, status, description, tags, url, developer } = req.body as Record<string, string>;
+  const { name, type, status, description, tags, url, url2, developer, important } =
+    req.body as Record<string, string>;
   const types = toCsv(type);
   if (!name?.trim() || !types) {
     res.status(400).json({ error: 'name and at least one type are required' });
@@ -220,7 +223,10 @@ router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
       ...(status?.trim() && { status: status.trim() }),
       description: description?.trim() ?? '',
       url: url?.trim() ?? '',
+      url2: url2?.trim() ?? '',
       developer: developer?.trim() ?? '',
+      // multipart carries no booleans: the form sends the string "true".
+      important: important === 'true',
       tags: toCsv(tags),
       createdBy: req.user?.id,
     },
@@ -251,7 +257,8 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  const { name, type, status, description, tags, url, developer } = req.body as Record<string, unknown>;
+  const { name, type, status, description, tags, url, url2, developer, important } =
+    req.body as Record<string, unknown>;
   if (name !== undefined && !String(name).trim()) {
     res.status(400).json({ error: 'name cannot be empty' });
     return;
@@ -271,7 +278,9 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
       ...(status !== undefined && { status: String(status).trim() }),
       ...(description !== undefined && { description: String(description).trim() }),
       ...(url !== undefined && { url: String(url).trim() }),
+      ...(url2 !== undefined && { url2: String(url2).trim() }),
       ...(developer !== undefined && { developer: String(developer).trim() }),
+      ...(important !== undefined && { important: Boolean(important) }),
       ...(tags !== undefined && { tags: toCsv(tags) }),
     },
   });

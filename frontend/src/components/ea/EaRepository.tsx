@@ -77,6 +77,48 @@ const TypeBadges = ({ types }: { types: string[] }) => (
   <>{types.map(ty => <TypeBadge key={ty} type={ty} />)}</>
 );
 
+/**
+ * The red mark that says "keep an eye on this one".
+ *
+ * A shape and a colour rather than a word: it sits in front of the name in
+ * a table cell and on a card, where there is no room for a label, and it has
+ * to read at a glance from across the list. The title carries the meaning for
+ * anyone hovering or using a screen reader.
+ */
+const ImportantMark = ({ label }: { label: string }) => (
+  <span
+    title={label}
+    aria-label={label}
+    role="img"
+    style={{
+      flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: '16px', height: '16px', borderRadius: '50%',
+      fontSize: '10px', lineHeight: 1,
+      color: 'var(--danger)',
+      background: 'color-mix(in srgb, var(--danger) 16%, transparent)',
+      border: '1px solid color-mix(in srgb, var(--danger) 45%, transparent)',
+    }}
+  >{'★'}</span>
+);
+
+/** One labelled link. A long URL clips rather than wrapping the row. */
+const LinkRow = ({ label, href }: { label: string; href: string }) => (
+  <MetaRow label={label}>
+    {/* noreferrer as well as noopener: the repository is behind a login, and
+        its URL has no business reaching whoever is on the other end. */}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={href}
+      style={{
+        color: 'var(--accent-blue)', textDecoration: 'none', display: 'block',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}
+    >{href}</a>
+  </MetaRow>
+);
+
 /** A dim label and a value beside it, for the one-line facts about an entry. */
 const MetaRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div style={{ display: 'flex', gap: '8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>
@@ -477,6 +519,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               display: 'flex', alignItems: 'center', gap: '9px',
               flexWrap: 'wrap', marginBottom: '6px',
             }}>
+              {item.important && <ImportantMark label={t('ea.important')} />}
               <div style={{
                 fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)',
                 color: 'var(--text-primary)',
@@ -487,6 +530,17 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               <TypeBadges types={item.type} />
             </div>
           </div>
+          {/* Outside the MANAGE gate on purpose: that gate exists because a
+              stray ✕ destroys a file, and this only toggles a mark — one more
+              click puts it back. */}
+          {isAdmin && (
+            <Btn
+              label={item.important ? `★ ${t('ea.unmark')}` : `☆ ${t('ea.mark')}`}
+              title={item.important ? t('ea.unmark_hint') : t('ea.mark_hint')}
+              onClick={() => { void after(patchEaItem(item.id, { important: !item.important })); }}
+              tone={item.important ? 'danger' : 'ghost'}
+            />
+          )}
           <Btn label={t('ea.close')} onClick={onClose} />
         </div>
 
@@ -499,30 +553,15 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
 
           {/* Provenance: who wrote it and where it came from. Both optional,
               and a row only appears once there is something in it. */}
-          {(item.developer || item.url) && (
+          {(item.developer || item.url || item.url2) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {item.developer && (
                 <MetaRow label={t('ea.developer')}>
                   <span style={{ color: 'var(--text-primary)' }}>{item.developer}</span>
                 </MetaRow>
               )}
-              {item.url && (
-                <MetaRow label={t('ea.url')}>
-                  {/* noreferrer as well as noopener: the repository is behind a
-                      login, and its URL has no business reaching the vendor. */}
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={item.url}
-                    style={{
-                      color: 'var(--accent-blue)', textDecoration: 'none',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      display: 'block',
-                    }}
-                  >{item.url}</a>
-                </MetaRow>
-              )}
+              {item.url && <LinkRow label={t('ea.url')} href={item.url} />}
+              {item.url2 && <LinkRow label={t('ea.url2')} href={item.url2} />}
             </div>
           )}
 
@@ -963,6 +1002,8 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
   const [description, setDescription] = useState('');
   const [developer, setDeveloper] = useState('');
   const [url, setUrl] = useState('');
+  const [url2, setUrl2] = useState('');
+  const [important, setImportant] = useState(false);
   const [tags, setTags] = useState('');
   const [images, setImages] = useState<Picked[]>([]);
   const [files, setFiles] = useState<Picked[]>([]);
@@ -1007,6 +1048,8 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
       fd.append('description', description);
       fd.append('developer', developer);
       fd.append('url', url);
+      fd.append('url2', url2);
+      fd.append('important', String(important));
       fd.append('tags', tags);
       images.forEach(p => fd.append('images', p.file));
       files.forEach(p => fd.append('files', p.file));
@@ -1135,6 +1178,31 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
             />
           </Field>
 
+          <Field label={t('ea.url2')}>
+            <input
+              value={url2}
+              onChange={e => setUrl2(e.target.value)}
+              placeholder={t('ea.url2_ph')}
+              inputMode="url"
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label={t('ea.important')}>
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
+            }}>
+              <input
+                type="checkbox"
+                checked={important}
+                onChange={e => setImportant(e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: 'var(--danger)', cursor: 'pointer' }}
+              />
+              {t('ea.important_hint')}
+            </label>
+          </Field>
+
           <Field label={`${t('ea.tags')} — reporter, gold, production`}>
             <input value={tags} onChange={e => setTags(e.target.value)} style={inputStyle} />
           </Field>
@@ -1237,11 +1305,14 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const [description, setDescription] = useState(item.description);
   const [developer, setDeveloper] = useState(item.developer);
   const [url, setUrl] = useState(item.url);
+  const [url2, setUrl2] = useState(item.url2);
+  const [important, setImportant] = useState(item.important);
   const [tags, setTags] = useState(item.tags.join(', '));
   const [error, setError] = useState('');
 
   const save = useMutation({
-    mutationFn: () => patchEaItem(item.id, { name, type, status, description, developer, url, tags }),
+    mutationFn: () =>
+      patchEaItem(item.id, { name, type, status, description, developer, url, url2, important, tags }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ea-items'] });
       addToast({ type: 'success', title: t('ea.saved_edit') });
@@ -1252,7 +1323,8 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
 
   const dirty = name !== item.name || type.join(',') !== item.type.join(',')
     || status !== item.status || description !== item.description
-    || developer !== item.developer || url !== item.url
+    || developer !== item.developer || url !== item.url || url2 !== item.url2
+    || important !== item.important
     || tags !== item.tags.join(', ');
 
   const requestClose = () => {
@@ -1326,6 +1398,31 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
               inputMode="url"
               style={inputStyle}
             />
+          </Field>
+
+          <Field label={t('ea.url2')}>
+            <input
+              value={url2}
+              onChange={e => setUrl2(e.target.value)}
+              placeholder={t('ea.url2_ph')}
+              inputMode="url"
+              style={inputStyle}
+            />
+          </Field>
+
+          <Field label={t('ea.important')}>
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
+            }}>
+              <input
+                type="checkbox"
+                checked={important}
+                onChange={e => setImportant(e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: 'var(--danger)', cursor: 'pointer' }}
+              />
+              {t('ea.important_hint')}
+            </label>
           </Field>
 
           <Field label={`${t('ea.tags')} — reporter, gold, production`}>
@@ -1436,6 +1533,7 @@ export const EaRepository = () => {
   const [typeFilter, setTypeFilter] = useState<'all' | EaType>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | EaStatus>('all');
   const [tagFilter, setTagFilter] = useState<'all' | string>('all');
+  const [onlyImportant, setOnlyImportant] = useState(false);
   /**
    * The open entry is held by id, not by value.
    *
@@ -1463,13 +1561,14 @@ export const EaRepository = () => {
     if (typeFilter !== 'all' && !i.type.includes(typeFilter)) return false;
     if (statusFilter !== 'all' && i.status !== statusFilter) return false;
     if (tagFilter !== 'all' && !i.tags.includes(tagFilter)) return false;
+    if (onlyImportant && !i.important) return false;
     const q = search.trim().toLowerCase();
     return !q
       || i.name.toLowerCase().includes(q)
       || i.description.toLowerCase().includes(q)
       || i.developer.toLowerCase().includes(q)
       || i.tags.some(tag => tag.toLowerCase().includes(q));
-  }), [items, search, typeFilter, statusFilter, tagFilter]);
+  }), [items, search, typeFilter, statusFilter, tagFilter, onlyImportant]);
 
   const types = [...new Set(items.flatMap(i => i.type))];
   const tags = [...new Set(items.flatMap(i => i.tags))].sort();
@@ -1528,6 +1627,23 @@ export const EaRepository = () => {
           <option value="all">{t('ea.all_types')}</option>
           {types.map(ty => <option key={ty} value={ty}>{ty}</option>)}
         </select>
+        {/* A mark you cannot filter by only helps on the page you are already
+            looking at. One button, because it has two states, not a list. */}
+        <button
+          onClick={() => setOnlyImportant(v => !v)}
+          title={t('ea.only_important')}
+          aria-pressed={onlyImportant}
+          style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-input)',
+            padding: '6px 10px', cursor: 'pointer', whiteSpace: 'nowrap',
+            background: onlyImportant ? 'color-mix(in srgb, var(--danger) 16%, transparent)' : 'var(--bg-input)',
+            color: onlyImportant ? 'var(--danger)' : 'var(--text-dim)',
+            border: `1px solid ${onlyImportant ? 'color-mix(in srgb, var(--danger) 45%, transparent)' : 'var(--border2)'}`,
+            borderRadius: 'var(--radius-sm)',
+          }}
+        >
+          {onlyImportant ? '★' : '☆'} {t('ea.important')}
+        </button>
         {/* A status nobody can filter by is a label, not a status. */}
         <select
           value={statusFilter}
@@ -1632,7 +1748,14 @@ const TableView = ({ items, onOpen }: ViewProps) => {
         <tbody>
           {items.map(item => (
             <tr key={item.id} className="ea-row" onClick={() => onOpen(item)}>
-              <td className="ea-col-name">{item.name}</td>
+              <td className="ea-col-name">
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', maxWidth: '100%' }}>
+                  {item.important && <ImportantMark label={t('ea.important')} />}
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.name}
+                  </span>
+                </span>
+              </td>
               <td className="ea-col-status"><StatusBadge status={item.status} /></td>
               <td className="ea-col-type">
                 <span style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1720,6 +1843,7 @@ const CardView = ({ items, onOpen }: ViewProps) => {
                   sibling rather than an absolute badge: the name keeps its
                   ellipsis and can never run underneath it. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {item.important && <ImportantMark label={t('ea.important')} />}
                 <div style={{
                   flex: 1, minWidth: 0,
                   fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',

@@ -457,8 +457,12 @@ export interface EaItemDto {
   description: string;
   /** Where it came from. Empty when it was never filled in. */
   url: string;
+  /** A second link — vendor page and download are rarely the same URL. */
+  url2: string;
   /** Who wrote it. Free text. */
   developer: string;
+  /** Flagged by hand: shown as a red mark in front of the name. */
+  important: boolean;
   tags: string[];
   images: EaImageDto[];
   files: EaFileDto[];
@@ -491,7 +495,8 @@ export const createEaItem = async (form: FormData, onProgress?: UploadProgress):
  *  cannot cost an upload. */
 export const patchEaItem = async (
   id: string,
-  fields: Partial<Pick<EaItemDto, 'name' | 'status' | 'description' | 'url' | 'developer'>>
+  fields: Partial<Pick<EaItemDto,
+    'name' | 'status' | 'description' | 'url' | 'url2' | 'developer' | 'important'>>
     & { type?: string[]; tags?: string },
 ): Promise<EaItemDto> => (await api.patch(`/ea/${id}`, fields)).data;
 
