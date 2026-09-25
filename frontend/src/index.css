@@ -291,8 +291,17 @@
     overflow: visible; /* allow group picker dropdown & position panel to escape */
     display: flex;
     flex-direction: column;
+    /* A grid or flex item will not go below its own min-content unless told
+       to, and the SL/TP form inside the positions panel holds two number
+       inputs, which carry an intrinsic width of their own. Between them they
+       made the card 526px wide on a 390px phone and pushed it off the screen.
+       The card takes the width it is given; what is inside it fits or scrolls
+       in its own box. */
+    min-width: 0;
     transition: border-color .15s, background-color .15s;
   }
+  /* Same, for the panel the card opens below itself. */
+  .bot-card > * { min-width: 0; }
   @media (hover: hover) {
     .bot-card:hover {
       background: #32343a;

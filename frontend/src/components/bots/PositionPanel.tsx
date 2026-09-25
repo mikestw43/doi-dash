@@ -112,7 +112,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
           instead, and its actions — which have nowhere to sit at this width —
           come out from under the row when you drag it, the way a mail app
           reveals archive and delete. */}
-      <div className="pp-list" style={{ display: 'none', flexDirection: 'column', gap: '5px', padding: '8px' }}>
+      <div className="pp-list" style={{ display: 'none', flexDirection: 'column', gap: '5px', padding: '8px', minWidth: 0 }}>
         {orders.map(order => {
           const isEdit = editing?.ticket === order.ticket;
           const isLoading = loadingTicket === order.ticket;
@@ -120,29 +120,34 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
 
           if (isEdit) {
             return (
+              /* minWidth: 0 all the way down. A number input has an intrinsic
+                 width of its own and `flex: 1` alone will not take it below
+                 that, so two of them side by side made this form — and the
+                 list around it — 526px wide on a 390px phone. */
               <div key={order.ticket} style={{
                 background: 'var(--bg-card)', border: '1px solid var(--accent-blue)',
                 borderRadius: 'var(--radius-sm)', padding: '8px 10px',
                 display: 'flex', flexDirection: 'column', gap: '6px',
+                minWidth: 0, maxWidth: '100%',
               }}>
                 <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--text)' }}>
                   {order.symbol} <span style={{ color: isBuy ? 'var(--green)' : 'var(--red)' }}>{order.type.toLowerCase()} {order.lots.toFixed(2)}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', width: '22px' }}>SL</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', flexShrink: 0 }}>SL</span>
                   <input
                     type="number" step="0.00001" value={editing.sl} placeholder="0" autoFocus
                     onChange={e => setEditing(prev => prev ? { ...prev, sl: e.target.value } : null)}
-                    style={{ ...inputStyle, width: 'auto', flex: 1 }}
+                    style={{ ...inputStyle, width: 'auto', flex: '1 1 0', minWidth: 0 }}
                   />
-                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', width: '22px' }}>TP</span>
+                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', flexShrink: 0 }}>TP</span>
                   <input
                     type="number" step="0.00001" value={editing.tp} placeholder="0"
                     onChange={e => setEditing(prev => prev ? { ...prev, tp: e.target.value } : null)}
-                    style={{ ...inputStyle, width: 'auto', flex: 1 }}
+                    style={{ ...inputStyle, width: 'auto', flex: '1 1 0', minWidth: 0 }}
                   />
                 </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '6px', minWidth: 0 }}>
                   <button
                     onClick={commitEdit} disabled={isLoading}
                     style={{

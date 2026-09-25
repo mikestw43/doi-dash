@@ -110,7 +110,7 @@ export const SwipeRow = ({
   const offset = dx !== 0 ? dx : resting;
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-sm)' }}>
+    <div ref={wrapRef} style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-sm)', minWidth: 0 }}>
       <div style={{
         position: 'absolute', top: 0, bottom: 0, right: 0,
         display: 'flex', width: `${revealed}px`,
