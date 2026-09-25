@@ -321,5 +321,6 @@
   "calendar.estimated_note": "≈ marks a day rebuilt from stored trades, not confirmed by MT5. Days from now on come straight from the terminal.",
   "calendar.estimated_cell": "Estimated — rebuilt from stored trades, not confirmed by MT5",
   "calendar.verified_cell": "MT5's own figure for this day",
-  "bot.history": "HISTORY"
+  "bot.history": "HISTORY",
+  "trades.filters": "FILTERS"
 }

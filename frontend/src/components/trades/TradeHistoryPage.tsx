@@ -62,18 +62,18 @@ const SumCard = ({ label, value, color, sub }: SumCardProps) => (
     borderRadius: 'var(--radius-card)',
     padding: '12px 14px',
     display: 'flex', flexDirection: 'column', gap: '4px',
-  }}>
-    <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '1px' }}>
+  }} className="th-sum-card">
+    <div className="th-sum-label" style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '1px' }}>
       {label}
     </div>
-    <div style={{
+    <div className="th-sum-value" style={{
       fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-md)', lineHeight: 1,
       color, letterSpacing: '.5px',
     }}>
       {value}
     </div>
     {sub && (
-      <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
+      <div className="th-sum-sub" style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
         {sub}
       </div>
     )}
@@ -104,6 +104,11 @@ export const TradeHistoryPage = () => {
   const [type,      setType]      = useState('');
   const [dateFrom,  setDateFrom]  = useState('');
   const [dateTo,    setDateTo]    = useState('');
+
+  // On a phone the five filters cost 296px of an 726px screen and are used
+  // once in a while, so they fold away behind a button and say, as chips,
+  // what is currently filtering the list.
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Pagination / sort
   const [page, setPage]       = useState(1);
@@ -221,6 +226,21 @@ export const TradeHistoryPage = () => {
     );
   };
 
+  const activeFilters: { key: string; label: string; clear: () => void }[] = [];
+  if (accountId) {
+    const a = accounts.find(x => x.id === accountId);
+    activeFilters.push({ key: 'account', label: a?.name ?? t('filter.all_accounts'), clear: () => { setAccountId(''); setPage(1); } });
+  }
+  if (symbol) activeFilters.push({ key: 'symbol', label: symbol, clear: () => { setSymbol(''); setPage(1); } });
+  if (type)   activeFilters.push({ key: 'type',   label: type,   clear: () => { setType(''); setPage(1); } });
+  if (dateFrom || dateTo) {
+    activeFilters.push({
+      key: 'dates',
+      label: `${dateFrom || '…'} → ${dateTo || '…'}`,
+      clear: () => { setDateFrom(''); setDateTo(''); setPage(1); },
+    });
+  }
+
   const selStyle: React.CSSProperties = {
     background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
     color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
@@ -239,6 +259,28 @@ export const TradeHistoryPage = () => {
     : stats.totalProfit > 0 ? 'var(--success)'
     : stats.totalProfit < 0 ? 'var(--danger)'
     : 'var(--text-dim)';
+
+  const exportButton = (cls: string, extra: React.CSSProperties = {}) => (
+    <button
+      onClick={handleExport}
+      disabled={!trades.length}
+      className={cls}
+      style={{
+        fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+        padding: '7px 12px', background: 'none',
+        border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+        color: 'var(--text-muted)',
+        cursor: trades.length ? 'pointer' : 'not-allowed',
+        opacity: trades.length ? 1 : .3,
+        transition: 'all .15s',
+        ...extra,
+      }}
+      onMouseEnter={e => { if (trades.length) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; } }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
+    >
+      ↓ CSV
+    </button>
+  );
 
   return (
     <div>
@@ -287,8 +329,52 @@ export const TradeHistoryPage = () => {
         />
       </div>
 
+      {/* ── Filter toggle (phones only) ── */}
+      <div className="th-filter-toggle" style={{ display: 'none', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+        <button
+          onClick={() => setFiltersOpen(o => !o)}
+          aria-expanded={filtersOpen}
+          style={{
+            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+            padding: '7px 12px', background: 'none',
+            border: `1px solid ${activeFilters.length ? 'var(--accent-blue)' : 'var(--border2)'}`,
+            borderRadius: 'var(--radius-sm)',
+            color: activeFilters.length ? 'var(--accent-blue)' : 'var(--text-muted)',
+            cursor: 'pointer', transition: 'all .15s',
+          }}
+        >
+          {filtersOpen ? '▾' : '⚙'} {t('trades.filters').toUpperCase()}
+          {activeFilters.length > 0 && ` (${activeFilters.length})`}
+        </button>
+        {exportButton('', { marginLeft: 'auto' })}
+      </div>
+
+      {/* What is filtering the list, while the panel that set it is closed. */}
+      {!filtersOpen && activeFilters.length > 0 && (
+        <div className="th-filter-chips" style={{ display: 'none', flexWrap: 'wrap', gap: '5px', marginBottom: '10px' }}>
+          {activeFilters.map(f => (
+            <button
+              key={f.key}
+              onClick={f.clear}
+              style={{
+                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                padding: '3px 8px', background: 'rgba(96,165,250,.10)',
+                border: '1px solid var(--border2)', borderRadius: '999px',
+                color: 'var(--text)', cursor: 'pointer', maxWidth: '100%',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}
+            >
+              {f.label} ✕
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* ── Filters + Export ── */}
-      <div className="th-filter-bar" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+      <div
+        className={`th-filter-bar${filtersOpen ? ' th-filter-bar-open' : ''}`}
+        style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}
+      >
         {/* Row 1: Account + Symbol + Type + Export */}
         <select value={accountId} onChange={e => { setAccountId(e.target.value); setPage(1); }} style={selStyle}>
           <option value="">{t('filter.all_accounts')}</option>
@@ -324,26 +410,10 @@ export const TradeHistoryPage = () => {
           )}
         </div>
 
-        {/* Export — right-aligned on desktop, full-width on mobile */}
-        <button
-          onClick={handleExport}
-          disabled={!trades.length}
-          className="th-export-btn"
-          style={{
-            marginLeft: 'auto',
-            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-            padding: '7px 12px', background: 'none',
-            border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
-            color: 'var(--text-muted)',
-            cursor: trades.length ? 'pointer' : 'not-allowed',
-            opacity: trades.length ? 1 : .3,
-            transition: 'all .15s',
-          }}
-          onMouseEnter={e => { if (trades.length) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; } }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
-        >
-          ↓ CSV
-        </button>
+        {/* Export — right-aligned on desktop; on a phone it moves up beside
+            the filter button so it stays reachable while the filters are
+            folded away. */}
+        {exportButton('th-export-btn', { marginLeft: 'auto' })}
       </div>
 
       {/* ── Table ── */}
@@ -460,7 +530,15 @@ export const TradeHistoryPage = () => {
       <style>{`
         /* Summary grid */
         @media (max-width: 900px) { .th-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
-        @media (max-width: 560px) { .th-summary-grid { grid-template-columns: minmax(0, 1fr) !important; } }
+        /* Four figures stacked one per row filled half the screen before the
+           first trade. Two by two says the same thing in a third of the
+           space. */
+        @media (max-width: 560px) {
+          .th-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important; }
+          .th-sum-card  { padding: 8px 10px !important; gap: 2px !important; }
+          .th-sum-value { font-size: var(--fs-disp-sm) !important; }
+          .th-sum-sub   { font-size: var(--fs-micro) !important; }
+        }
 
         /* The 700px floor is for the full sixteen columns. Below 760px most of
            them are hidden and only four are left, which need about 250px — but
@@ -521,6 +599,16 @@ export const TradeHistoryPage = () => {
 
         /* Filter bar */
         @media (max-width: 600px) {
+          /* The five filters cost 296px of a 726px screen and are used once in
+             a while; the list is what the page is for. They fold away behind a
+             button, which keeps the export within reach and says how many
+             filters are on, and the chips below it name them. */
+          .th-filter-toggle { display: flex !important; }
+          .th-filter-chips  { display: flex !important; }
+          .th-filter-bar    { display: none !important; }
+          .th-filter-bar.th-filter-bar-open { display: flex !important; }
+          .th-filter-bar .th-export-btn { display: none !important; }
+
           .th-filter-bar { flex-direction: column !important; align-items: stretch !important; }
           .th-filter-bar select,
           .th-filter-bar input { width: 100% !important; box-sizing: border-box !important; }
