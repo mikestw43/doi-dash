@@ -16,7 +16,7 @@ const fmtNum = (n: number) =>
 const computeMaxDD = (trades: ClosedTrade[]): number => {
   let peak = 0, dd = 0, cum = 0;
   for (const t of trades) {
-    cum += t.profit;
+    cum += t.profitUsd;   // same unit as the total beside it
     if (cum > peak) peak = cum;
     const d = peak - cum;
     if (d > dd) dd = d;
@@ -148,11 +148,18 @@ export const TradeHistoryPage = () => {
   useEffect(() => { load(); }, [accountId, symbol, type, page, sortBy, sortDir, dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Computed stats ──
+  /**
+   * Everything here is `profitUsd` — profit, swap and commission together,
+   * converted. Summing the raw `profit` column added a cent account's figures
+   * to a dollar account's as though they were the same unit, and left out the
+   * swap and commission that the calendar counts, so the card labelled USD was
+   * neither USD nor a total of anything.
+   */
   const stats = useMemo(() => {
     if (!allTrades.length) return { wins: 0, winRate: 0, totalProfit: 0, maxDD: 0 };
-    const wins = allTrades.filter(t => t.profit > 0).length;
+    const wins = allTrades.filter(t => t.profitUsd > 0).length;
     const winRate = (wins / allTrades.length) * 100;
-    const totalProfit = allTrades.reduce((s, t) => s + t.profit, 0);
+    const totalProfit = allTrades.reduce((s, t) => s + t.profitUsd, 0);
     const maxDD = computeMaxDD(allTrades);
     return { wins, winRate, totalProfit, maxDD };
   }, [allTrades]);

@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma';
+import { toUsd } from './fxService';
 import type { Order } from '../mock/data';
 
 const MAX_AGE_DAYS = 90;
@@ -264,29 +265,72 @@ export const getTradeHistory = async (
 ) => {
   const { page = 1, limit = 25, symbol, type, sortBy = 'closeTime', sortDir = 'desc', dateFrom, dateTo } = params;
 
+  // Exactly the population the calendar counts, so a day here and a cell there
+  // are the same set of trades: no demo accounts, and rows whose account has
+  // since been removed are still the user's own history.
   const where: Record<string, unknown> = {
-    account: { userId },
+    OR: [
+      { account: { userId, isDemo: false } },
+      { accountId: null, userId, accountIsDemo: false },
+    ],
   };
   if (accountId) where.accountId = accountId;
   if (symbol) where.symbol = { contains: symbol };
   if (type) where.type = type;
   if (dateFrom || dateTo) {
+    /**
+     * A date means the broker's date, so that filtering this page to one day
+     * and reading that day's calendar cell give the same set of trades — which
+     * is the point of being able to filter it at all. Only exact for a single
+     * account, since only then is there one broker clock to read; across
+     * accounts the bounds stay UTC and a trade near midnight can fall either
+     * side.
+     */
+    let shiftMs = 0;
+    if (accountId) {
+      const a = await prisma.account.findUnique({
+        where: { id: accountId },
+        select: { brokerTimeOffset: true },
+      });
+      shiftMs = (a?.brokerTimeOffset ?? 0) * 1000;
+    }
+    const at = (iso: string, endOfDay = false): Date =>
+      new Date(new Date(iso + (endOfDay ? 'T23:59:59.999Z' : 'T00:00:00.000Z')).getTime() - shiftMs);
+
     where.closeTime = {
-      ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-      ...(dateTo   ? { lte: new Date(dateTo + 'T23:59:59.999Z') } : {}),
+      ...(dateFrom ? { gte: at(dateFrom) } : {}),
+      ...(dateTo   ? { lte: at(dateTo, true) } : {}),
     };
   }
 
-  const [trades, total] = await Promise.all([
+  const [rows, total] = await Promise.all([
     prisma.closedTrade.findMany({
       where,
       orderBy: { [sortBy]: sortDir },
       skip: (page - 1) * limit,
       take: limit,
-      include: { account: { select: { name: true, broker: true } } },
+      include: { account: { select: { name: true, broker: true, currency: true } } },
     }),
     prisma.closedTrade.count({ where }),
   ]);
+
+  /**
+   * `profit` alone is the raw figure in the account's own currency, and on a
+   * cent account that is a hundred times the dollar. Summing a column of those
+   * across accounts — which is what the page's total did — adds cents to
+   * dollars. `net` is the whole trade (profit, swap and commission, the same
+   * definition the calendar uses) and `profitUsd` is that converted, so a
+   * total over any mix of accounts means something.
+   */
+  const trades = rows.map(t => {
+    const net = t.profit + t.swap + t.commission;
+    return {
+      ...t,
+      currency: t.account?.currency ?? t.accountCurrency ?? 'USD',
+      net: parseFloat(net.toFixed(2)),
+      profitUsd: parseFloat(toUsd(net, t.account?.currency ?? t.accountCurrency ?? 'USD').toFixed(2)),
+    };
+  });
 
   return { trades, total, page, limit };
 };

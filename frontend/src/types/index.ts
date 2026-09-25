@@ -201,7 +201,14 @@ export interface ClosedTrade {
   closeTime: string;
   sl: number;
   tp: number;
-  account?: { name: string; broker: string };
+  /** The account's own currency — USC on a cent account, where `profit` is a
+   *  hundred times the dollar figure. */
+  currency: string;
+  /** profit + swap + commission, in the account's currency. */
+  net: number;
+  /** `net` converted to USD. The only figure safe to add up across accounts. */
+  profitUsd: number;
+  account?: { name: string; broker: string; currency?: string };
 }
 
 export interface DailyPnL {
