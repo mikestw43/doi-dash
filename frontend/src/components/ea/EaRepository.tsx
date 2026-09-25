@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { IconBookmark } from '../icons';
+import { IconBookmark, IconDownload, IconPencil, IconTrash } from '../icons';
 import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -622,6 +622,31 @@ const GrowingTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   );
 };
 
+/** The small round control that sits on the corner of a thumbnail — the tile
+ *  is 104px, so there is nowhere inside it for a button with a word on it. */
+const CornerBtn = ({ onClick, title, pressed, children }: {
+  onClick: () => void;
+  title: string;
+  pressed?: boolean;
+  children: React.ReactNode;
+}) => (
+  <button
+    onClick={onClick}
+    title={title}
+    aria-label={title}
+    aria-pressed={pressed}
+    style={{
+      position: 'absolute', top: '-7px', right: '-7px',
+      width: '22px', height: '22px', padding: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      borderRadius: '50%', cursor: 'pointer',
+      border: `1px solid ${pressed ? 'var(--accent-blue)' : 'var(--border2)'}`,
+      background: pressed ? 'rgba(96,165,250,.16)' : 'var(--bg-card)',
+      color: pressed ? 'var(--accent-blue)' : 'var(--text-dim)',
+    }}
+  >{children}</button>
+);
+
 /**
  * A note that may run to a paragraph.
  *
@@ -673,7 +698,7 @@ const LongText = ({ text, lines = 2, style }: {
 };
 
 const InlineText = ({
-  value, placeholder, onSave, style, multiline, clampLines,
+  value, placeholder, onSave, style, multiline, clampLines, startOpen, onLeave,
 }: {
   value: string;
   placeholder: string;
@@ -683,9 +708,15 @@ const InlineText = ({
   /** Fold the read view to this many lines, with a toggle. For notes that can
    *  run long — without it a paragraph pushes everything else off the screen. */
   clampLines?: number;
+  /** Open for typing the moment it appears: the row's pencil was the click
+   *  that asked for this, and asking for a second one on the text is a step
+   *  that does nothing. */
+  startOpen?: boolean;
+  /** Fired on ✓ and on ✕, so the row can close itself with the field. */
+  onLeave?: () => void;
 }) => {
   const t = useTranslation();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(Boolean(startOpen));
   const [draft, setDraft] = useState(value);
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -696,6 +727,7 @@ const InlineText = ({
 
   const commit = async () => {
     setEditing(false);
+    onLeave?.();
     const next = draft.trim();
     if (next === value) return;
     setBusy(true);
@@ -710,7 +742,7 @@ const InlineText = ({
     }
   };
 
-  const cancel = () => { setDraft(value); setEditing(false); };
+  const cancel = () => { setDraft(value); setEditing(false); onLeave?.(); };
 
   if (editing) {
     const props = {
@@ -834,6 +866,17 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
    * ways to edit one entry, which is one more than anybody can keep straight.
    */
   const canEdit = isAdmin;
+  /**
+   * Which one attachment is open for changes, by id.
+   *
+   * Scoped to the row rather than the whole panel: the old MANAGE armed every
+   * ✕ on the screen at once, and having none of them armed makes opening an
+   * entry to look at it exactly as safe as it should be. A pencil on the row
+   * arms that row and nothing else, and it is next to the thing it unlocks
+   * rather than in a banner above everything.
+   */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const isOpen = (id: string) => canEdit && editingId === id;
 
   const refresh = () => qc.invalidateQueries({ queryKey: ['ea-items'] });
 
@@ -1052,18 +1095,11 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                       <Thumb image={img} size={104} />
                     </div>
                     {canEdit && (
-                      <button
-                        onClick={() => confirmRemoveImage(img)}
-                        title={`${t('ea.delete')} ${img.filename}`}
-                        aria-label={`${t('ea.delete')} ${img.filename}`}
-                        style={{
-                          position: 'absolute', top: '-7px', right: '-7px',
-                          width: '20px', height: '20px', lineHeight: 1, padding: 0,
-                          borderRadius: '50%', cursor: 'pointer', fontSize: '11px',
-                          border: '1px solid var(--border2)', background: 'var(--bg-card)',
-                          color: 'var(--danger)',
-                        }}
-                      >{'✕'}</button>
+                      <CornerBtn
+                        onClick={() => setEditingId(isOpen(img.id) ? null : img.id)}
+                        title={isOpen(img.id) ? t('ea.done_editing') : `${t('ea.edit')} ${img.filename}`}
+                        pressed={isOpen(img.id)}
+                      ><IconPencil size={12} /></CornerBtn>
                     )}
                     <div
                       className="ea-cap"
@@ -1071,17 +1107,31 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                       style={{
                         fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
                         color: 'var(--text-dim)', marginTop: '6px', textAlign: 'center',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        ...(isOpen(img.id) ? {} : {
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }),
                       }}
                     >
-                      {canEdit
+                      {isOpen(img.id)
                         ? <InlineText
+                            startOpen
                             value={img.caption}
                             placeholder={t('ea.add_caption')}
                             onSave={next => after(setEaImageCaption(img.id, next))}
+                            onLeave={() => setEditingId(null)}
                           />
                         : (img.caption || <span style={{ color: 'var(--text-muted)' }}>{img.filename}</span>)}
                     </div>
+                    {isOpen(img.id) && (
+                      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '6px' }}>
+                        <Btn
+                          label={<IconTrash size={14} />}
+                          tone="danger"
+                          title={`${t('ea.delete')} ${img.filename}`}
+                          onClick={() => confirmRemoveImage(img)}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
 
@@ -1118,17 +1168,18 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                         color: 'var(--text-dim)', marginTop: '4px',
                       }}
                     >
-                      {canEdit
+                      {isOpen(f.id)
                         ? <InlineText
+                            startOpen
                             multiline
-                            clampLines={2}
                             value={f.label}
                             placeholder={t('ea.add_note')}
                             onSave={next => after(setEaFileLabel(f.id, next))}
+                            onLeave={() => setEditingId(null)}
                           />
                         : (f.label
                             ? <LongText text={f.label} />
-                            : <span>{'—'}</span>)}
+                            : <span>{canEdit ? t('ea.add_note') : '—'}</span>)}
                     </div>
                     <div style={{
                       fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
@@ -1137,10 +1188,25 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                       {fmtSize(f.size)} · {f.createdAt}
                     </div>
                   </div>
-                  <Btn label={t('ea.download')} onClick={() => { void downloadEaFile(f.id, f.filename); }} />
+                  {/* An arrow instead of the word: three buttons of text on one
+                      row crowded out the filename on a narrow screen. */}
+                  <Btn
+                    label={<IconDownload size={15} />}
+                    title={`${t('ea.download')} ${f.filename}`}
+                    onClick={() => { void downloadEaFile(f.id, f.filename); }}
+                  />
                   {canEdit && (
                     <Btn
-                      label={'✕'}
+                      label={<IconPencil size={15} />}
+                      title={isOpen(f.id) ? t('ea.done_editing') : `${t('ea.edit')} ${f.filename}`}
+                      pressed={isOpen(f.id)}
+                      tone={isOpen(f.id) ? 'primary' : 'ghost'}
+                      onClick={() => setEditingId(isOpen(f.id) ? null : f.id)}
+                    />
+                  )}
+                  {isOpen(f.id) && (
+                    <Btn
+                      label={<IconTrash size={15} />}
                       tone="danger"
                       title={`${t('ea.delete')} ${f.filename}`}
                       onClick={() => confirmRemoveFile(f)}

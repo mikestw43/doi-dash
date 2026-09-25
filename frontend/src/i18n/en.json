@@ -239,6 +239,7 @@
   "ea.subtitle": "Expert Advisors, indicators and source files",
   "ea.add": "+ ADD",
   "ea.edit": "EDIT",
+  "ea.done_editing": "Done editing",
   "ea.delete": "DELETE",
   "ea.click_to_edit": "Click to edit",
   "ea.confirm_delete_image": "Delete this image?",

@@ -169,3 +169,21 @@ export const IconBookmark = ({ size = 18, filled }: IconProps & { filled?: boole
     <path d="M6 3h12a1.5 1.5 0 0 1 1.5 1.5V21l-7.5-4.3L4.5 21V4.5A1.5 1.5 0 0 1 6 3z" />
   </svg>
 );
+
+/** Opens the controls that change or remove one attachment. */
+export const IconPencil = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M4 20.2h4.2L19.4 9a2.1 2.1 0 0 0-3-3L5.2 17.2z" />
+    <path d="M14.6 6.8 17.2 9.4" />
+  </Svg>
+);
+
+/** Removes it. A bin rather than a ✕, which on the same row would read as
+ *  "cancel what I am typing" — the two sit side by side while editing. */
+export const IconTrash = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M4.6 6.6h14.8" />
+    <path d="M9.4 6.6V4.9a1.3 1.3 0 0 1 1.3-1.3h2.6a1.3 1.3 0 0 1 1.3 1.3v1.7" />
+    <path d="M6.6 6.6 7.5 19a1.5 1.5 0 0 0 1.5 1.4h6a1.5 1.5 0 0 0 1.5-1.4l.9-12.4" />
+  </Svg>
+);
