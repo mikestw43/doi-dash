@@ -323,5 +323,7 @@
   "calendar.verified_cell": "MT5's own figure for this day",
   "bot.history": "HISTORY",
   "trades.filters": "FILTERS",
-  "trades.custom": "Custom"
+  "trades.custom": "Custom",
+  "trades.any_date": "Any date",
+  "trades.sort_by": "Sort by"
 }

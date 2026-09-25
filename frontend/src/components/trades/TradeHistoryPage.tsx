@@ -7,6 +7,7 @@ import type { ClosedTrade } from '../../types';
 import { useTranslation } from '../../i18n/useTranslation';
 import { IconFilter, IconDownload } from '../icons';
 import { formatDayTime } from '../../utils/formatters';
+import { DateField } from '../ui/DateField';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -56,8 +57,6 @@ const localDay = (d: Date): string => {
 /** The ranges MT5's own history filter offers, which is what people already
  *  reach for — a tap each, instead of two date pickers. The custom range stays
  *  for everything they do not cover. */
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 const PERIODS: { key: string; label: string; days: number }[] = [
   { key: 'today', label: 'TODAY', days: 0 },
   { key: '7d',    label: '7D',    days: 7 },
@@ -72,57 +71,6 @@ const periodRange = (days: number): { from: string; to: string } => {
   const from = new Date();
   from.setDate(from.getDate() - days);
   return { from: localDay(from), to: localDay(to) };
-};
-
-/**
- * A date field made of three selects, in place of input[type=date].
- *
- * iOS draws the native date control in whatever calendar the phone is set to,
- * and a phone set to Thai reads back "27 Aug BE 2569" for a trade that closed
- * in 2026 — the page cannot reach inside that control to change it. Three
- * selects carry our own option text, so the year is the broker's whatever the
- * device thinks, they take the theme like every other control, and on a phone
- * each one still opens the native wheel to spin.
- *
- * The value stays the YYYY-MM-DD the rest of the page already speaks.
- */
-const DateParts = ({ value, onChange, style }: {
-  value: string;
-  onChange: (v: string) => void;
-  style: React.CSSProperties;
-}) => {
-  const [y, m, d] = value ? value.split('-').map(Number) : [0, 0, 0];
-  const thisYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) => thisYear - i);
-  const daysIn = (yy: number, mm: number) => new Date(yy, mm, 0).getDate();
-
-  const emit = (ny: number, nm: number, nd: number) => {
-    if (!ny || !nm || !nd) { onChange(''); return; }
-    // Spinning the month down can leave a day the new month does not have.
-    const day = Math.min(nd, daysIn(ny, nm));
-    onChange(`${ny}-${String(nm).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
-  };
-
-  const sel: React.CSSProperties = { ...style, padding: '6px 6px' };
-
-  return (
-    <div style={{ display: 'flex', gap: '4px', minWidth: 0 }}>
-      <select value={d || ''} onChange={e => emit(y || thisYear, m || 1, Number(e.target.value))} style={sel} aria-label="day">
-        <option value="">--</option>
-        {Array.from({ length: daysIn(y || thisYear, m || 1) }, (_, i) => i + 1).map(n => (
-          <option key={n} value={n}>{String(n).padStart(2, '0')}</option>
-        ))}
-      </select>
-      <select value={m || ''} onChange={e => emit(y || thisYear, Number(e.target.value), d || 1)} style={sel} aria-label="month">
-        <option value="">--</option>
-        {MONTH_NAMES.map((name, i) => <option key={name} value={i + 1}>{name}</option>)}
-      </select>
-      <select value={y || ''} onChange={e => emit(Number(e.target.value), m || 1, d || 1)} style={sel} aria-label="year">
-        <option value="">----</option>
-        {years.map(n => <option key={n} value={n}>{n}</option>)}
-      </select>
-    </div>
-  );
 };
 
 // ── Summary card ─────────────────────────────────────────────────────────────
@@ -529,11 +477,25 @@ export const TradeHistoryPage = () => {
         </div>
 
         {(customDates || (!!(dateFrom || dateTo) && !activePeriod)) && (
-          <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+          /* One row: two dates read as a range, and on a phone they do not
+             cost two rows of a panel that is already the tallest thing on the
+             page. Each opens a calendar of our own — see DateField for why not
+             the native one. */
+          <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: '1 1 100%' }}>
             <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.from')}</span>
-            <DateParts value={dateFrom} onChange={v => { setDateFrom(v); setPage(1); }} style={dateInputStyle} />
+            <DateField
+              value={dateFrom}
+              onChange={v => { setDateFrom(v); setPage(1); }}
+              placeholder={t('trades.any_date')}
+              style={dateInputStyle}
+            />
             <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.to')}</span>
-            <DateParts value={dateTo} onChange={v => { setDateTo(v); setPage(1); }} style={dateInputStyle} />
+            <DateField
+              value={dateTo}
+              onChange={v => { setDateTo(v); setPage(1); }}
+              placeholder={t('trades.any_date')}
+              style={dateInputStyle}
+            />
           </div>
         )}
 
@@ -543,8 +505,96 @@ export const TradeHistoryPage = () => {
         {exportButton('th-export-btn', { marginLeft: 'auto' })}
       </div>
 
+      {/* ── The list, as a phone wants it ──
+          MT5 gives each closed trade two lines — what and how much on the
+          first, where it came from and when on the second — which fits a
+          phone far better than four narrowed columns, and brings back the
+          lots, the ticket and the two prices that the table has to hide at
+          this width. The sort the table header carries lives in the chips
+          above it. */}
+      <div className="th-list" style={{ display: 'none', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', letterSpacing: '.5px' }}>
+            {t('trades.sort_by').toUpperCase()}
+          </span>
+          {([
+            ['closeTime', t('trades.close_time')],
+            ['profit',    t('trades.profit')],
+            ['symbol',    t('trades.symbol')],
+          ] as const).map(([key, label]) => {
+            const on = sortBy === key;
+            return (
+              <button
+                key={key}
+                onClick={() => handleSort(key)}
+                aria-pressed={on}
+                style={{
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+                  padding: '4px 8px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                  border: `1px solid ${on ? 'var(--accent-blue)' : 'var(--border2)'}`,
+                  background: on ? 'rgba(96,165,250,.10)' : 'none',
+                  color: on ? 'var(--accent-blue)' : 'var(--text-muted)',
+                }}
+              >
+                {label.toUpperCase()}{on ? (sortDir === 'asc' ? ' \u2191' : ' \u2193') : ''}
+              </button>
+            );
+          })}
+        </div>
+
+        {loading ? (
+          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)' }}>Loading...</div>
+        ) : trades.length === 0 ? (
+          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)' }}>
+            <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', marginBottom: '6px' }}>{t('trades.no_trades_found')}</div>
+            <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>{t('trades.adjust_filters')}</div>
+          </div>
+        ) : trades.map(tr => (
+          <div
+            key={tr.id}
+            style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border2)',
+              borderLeft: `2px solid ${tr.profit >= 0 ? 'var(--success)' : 'var(--danger)'}`,
+              borderRadius: 'var(--radius-sm)',
+              padding: '8px 10px',
+              display: 'flex', flexDirection: 'column', gap: '3px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+              <span style={{ fontFamily: 'var(--ff-body)', fontWeight: 700, letterSpacing: '.5px', color: 'var(--text)' }}>
+                {tr.symbol}
+              </span>
+              <span style={{
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+                color: tr.type === 'BUY' ? 'var(--success)' : 'var(--danger)',
+              }}>
+                {tr.type.toLowerCase()} {tr.lots.toFixed(2)}
+              </span>
+              <span style={{
+                marginLeft: 'auto', textAlign: 'right', whiteSpace: 'nowrap',
+                fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1,
+                color: tr.profit >= 0 ? 'var(--success)' : 'var(--danger)',
+              }}>
+                {/* fmtNum drops the sign, so the row has to carry it. */}
+                {tr.profit >= 0 ? '+' : '-'}{fmtNum(tr.profit)}
+              </span>
+            </div>
+            <div style={{
+              display: 'flex', alignItems: 'baseline', gap: '8px',
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+            }}>
+              <span style={{ whiteSpace: 'nowrap' }}>
+                {tr.openPrice.toFixed(2)} {'\u2192'} {tr.closePrice.toFixed(2)}
+              </span>
+              <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>{formatDayTime(tr.closeTime)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* ── Table ── */}
-      <div style={{
+      <div className="th-table-wrap" style={{
         overflowX: 'auto',
         // The sixteen columns scroll inside this box; they must never widen
         // the page around it.
@@ -707,8 +757,13 @@ export const TradeHistoryPage = () => {
            still has to be allowed to shrink to the column it is given. */
         .th-filter-bar, .th-date-row, .th-period-row { min-width: 0; }
         .th-filter-bar select,
-        .th-filter-bar input,
-        .th-date-row select { min-width: 0; max-width: 100%; }
+        .th-filter-bar input { min-width: 0; max-width: 100%; }
+
+        /* The phone gets the two-line list instead of the narrowed table. */
+        @media (max-width: 600px) {
+          .th-list       { display: flex !important; }
+          .th-table-wrap { display: none !important; }
+        }
 
         /* Filter bar */
         @media (max-width: 600px) {
@@ -726,9 +781,6 @@ export const TradeHistoryPage = () => {
           .th-filter-bar select,
           .th-filter-bar input { width: 100% !important; box-sizing: border-box !important; }
           .th-symbol-input { width: 100% !important; }
-          .th-date-row { flex-direction: column !important; align-items: stretch !important; }
-          .th-date-row > div { width: 100% !important; }
-          .th-date-row > div > select { flex: 1 1 0 !important; }
           .th-export-btn { margin-left: 0 !important; width: 100% !important; text-align: center !important; }
         }
 
