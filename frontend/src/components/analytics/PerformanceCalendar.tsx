@@ -320,12 +320,10 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                         fontSize: '24px', lineHeight: 1, color: pnlColor,
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                       }}>
-                        {estimated && (
-                          <span style={{ color: 'var(--text-dim)', fontSize: '18px' }}>≈</span>
-                        )}
                         {fmtCell(pnl)}
                       </span>
                     )}
+                    {estimated && <span className="pcal-approx">≈</span>}
                   </td>
                 );
               });
@@ -347,11 +345,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                       fontSize: '24px', lineHeight: 1, color: weekColor,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                     }}>
-                      {hasDay && !weekVerified && (
-                        <span style={{ color: 'var(--text-dim)', fontSize: '18px' }}>≈</span>
-                      )}
                       {hasDay ? fmtCell(weekSum) : '—'}
                     </span>
+                    {hasDay && !weekVerified && <span className="pcal-approx">≈</span>}
                   </td>
                 </tr>
               );
@@ -379,7 +375,21 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
 
       {/* ── Mobile responsive — drop horizontal scroll, shrink cells ── */}
       <style>{`
+        /* The estimate mark sits in the cell's corner rather than in front of
+           the figure: on a phone the day box is barely wide enough for the
+           number itself, and a leading character pushed the last digit out of
+           view — a marker that hides the value it qualifies is worse than no
+           marker. */
+        .pcal-approx {
+          position: absolute;
+          top: 3px; right: 5px;
+          font-family: var(--ff-body);
+          font-size: 12px; line-height: 1;
+          color: var(--text-dim); opacity: .75;
+          pointer-events: none;
+        }
         @media (max-width: 768px) {
+          .pcal-approx { top: 2px; right: 3px; font-size: 10px; }
           .pcal-wrap { overflow-x: visible !important; }
           .pcal { min-width: 0 !important; table-layout: fixed !important; }
           .pcal-th { padding: 6px 1px !important; font-size: 10px !important; letter-spacing: 0 !important; }
@@ -390,11 +400,23 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           .pcal-pnl { font-size: 17px !important; }
         }
         @media (max-width: 480px) {
+          .pcal-approx { top: 1px; right: 2px; font-size: 9px; }
           .pcal-th { padding: 5px 1px !important; font-size: 9px !important; }
           .pcal-td { padding: 2px 2px !important; height: 44px !important; }
           .pcal-dn { font-size: 10px !important; }
           .pcal-dn.pcal-dn-today { min-width: 15px !important; height: 15px !important; padding: 0 4px !important; }
           .pcal-pnl { font-size: 14px !important; }
+        }
+        /* Eight columns on a 390px phone leave each day about 40px of usable
+           width, which the six-character figures (+$1.3k, -$94.0) overrun at
+           14px. The figure is the whole point of the cell, so it shrinks
+           rather than getting cut off. */
+        @media (max-width: 400px) {
+          .pcal-td { padding: 2px 1px !important; }
+          .pcal-pnl { font-size: 12px !important; }
+        }
+        @media (max-width: 370px) {
+          .pcal-pnl { font-size: 11px !important; }
         }
       `}</style>
     </div>
