@@ -354,7 +354,7 @@ export const TradeHistoryPage = () => {
         minWidth: 0, maxWidth: '100%',
         background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+        <table className="th-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
               <th style={thL(true)} className="th-col-ticket" onClick={() => handleSort('ticket')}>{t('trades.ticket').toUpperCase()}{sortIcon('ticket')}</th>
@@ -461,6 +461,30 @@ export const TradeHistoryPage = () => {
         /* Summary grid */
         @media (max-width: 900px) { .th-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
         @media (max-width: 560px) { .th-summary-grid { grid-template-columns: minmax(0, 1fr) !important; } }
+
+        /* The 700px floor is for the full sixteen columns. Below 760px most of
+           them are hidden and only four are left, which need about 250px — but
+           the floor stayed, so the table was three times wider than anything
+           in it. Its wrapper scrolled to cover the difference, and Safari
+           counted that width towards the page, which then slid sideways and
+           carried the cards and filters off the screen. With the floor lifted
+           the columns that are actually shown decide the width, and there is
+           nothing left to scroll. */
+        @media (max-width: 760px) {
+          .th-table { min-width: 0 !important; }
+        }
+        /* Four columns of nowrap content still want a few pixels more than a
+           360px phone has; the horizontal padding is the cheapest of them. */
+        @media (max-width: 400px) {
+          .th-table th, .th-table td { padding-left: 5px !important; padding-right: 5px !important; }
+        }
+        /* The narrowest phones still cannot hold four columns of nowrap text
+           at the body size; a point smaller costs less than a scrollbar. */
+        @media (max-width: 340px) {
+          .th-table td { font-size: 12px !important; }
+          .th-table th { font-size: 9px !important; }
+          .th-table th, .th-table td { padding-left: 3px !important; padding-right: 3px !important; }
+        }
 
         /* Table columns — hide on small screens */
         @media (max-width: 760px) {
