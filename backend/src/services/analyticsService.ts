@@ -27,7 +27,7 @@ const PERIOD_DAYS: Record<Period, number> = {
 };
 
 /** YYYY-MM-DD for a Date as observed in the given IANA timezone.
- *  Mirrors the Intl.DateTimeFormat pattern in reportScheduler.ts. */
+ *  Used only for accounts that have never reported a broker offset. */
 const dateKeyInTz = (d: Date, tz: string): string => {
   const parts: Record<string, string> = {};
   new Intl.DateTimeFormat('en-CA', {
@@ -36,17 +36,26 @@ const dateKeyInTz = (d: Date, tz: string): string => {
   return `${parts.year}-${parts.month}-${parts.day}`;
 };
 
+/** YYYY-MM-DD as the broker's own clock reads it. */
+const dateKeyAtOffset = (d: Date, offsetSec: number): string =>
+  new Date(d.getTime() + offsetSec * 1000).toISOString().slice(0, 10);
+
 /**
  * Get daily P&L summary from closed trades.
  *
- * Day bucketing uses the supplied `timezone` (typically the user's preference,
- * default Asia/Bangkok) — not UTC. This way the calendar cell labeled "Jun 4"
- * holds trades the user perceives as happening on Jun 4 in their local clock.
- * Residual slippage vs HOME's broker-day numbers is ≤5h (the Bangkok-vs-broker
- * offset gap) — trades closed 17:00–22:00 UTC may fall in a different day in
- * each view. Acceptable for an aggregate-across-brokers view.
+ * A day is the *broker's* day, taken from each account's own reported offset.
+ * It used to be the user's day (Asia/Bangkok), which put the boundary 4–5
+ * hours earlier than the broker's: a calendar cell for Friday began at 19:00
+ * on the broker's Thursday and swallowed the last hours of the New York
+ * session, so the figure never matched what MT5 showed for that date. Checking
+ * a day against MT5 is the whole point of the view, so the broker wins.
  *
- * Net per-trade P/L = profit + swap + commission (matches HOME's definition).
+ * With several brokers this means each trade lands on the day *its* broker
+ * calls it, and two brokers an hour apart can split a cell boundary. That is
+ * the price of every single-account view agreeing with its own terminal, and
+ * it is worth paying.
+ *
+ * Net per-trade P/L = profit + swap + commission.
  * Demo accounts are excluded per project rule.
  */
 export const getDailyPnL = async (
@@ -57,9 +66,15 @@ export const getDailyPnL = async (
 ): Promise<DailyPnL[]> => {
   const cutoff = new Date(Date.now() - PERIOD_DAYS[period] * 24 * 60 * 60 * 1000);
 
+  // Rows whose account is gone keep the owner and the account details they
+  // were written with, so they stay in the record instead of disappearing
+  // from months that already happened.
   const where: Record<string, unknown> = {
-    account: { userId, isDemo: false },
     closeTime: { gte: cutoff },
+    OR: [
+      { account: { userId, isDemo: false } },
+      { accountId: null, userId, accountIsDemo: false },
+    ],
   };
   if (accountId) where.accountId = accountId;
 
@@ -70,16 +85,20 @@ export const getDailyPnL = async (
       swap: true,
       commission: true,
       closeTime: true,
-      account: { select: { currency: true } },
+      accountCurrency: true,
+      account: { select: { currency: true, brokerTimeOffset: true } },
     },
     orderBy: { closeTime: 'asc' },
   });
 
   const dailyMap = new Map<string, { profit: number; trades: number }>();
   for (const t of trades) {
-    const date = dateKeyInTz(t.closeTime, timezone);
+    const offset = t.account?.brokerTimeOffset;
+    const date = offset === null || offset === undefined
+      ? dateKeyInTz(t.closeTime, timezone)
+      : dateKeyAtOffset(t.closeTime, offset);
     const net = t.profit + t.swap + t.commission;
-    const profitUsd = toUsd(net, t.account?.currency || 'USD');
+    const profitUsd = toUsd(net, t.account?.currency || t.accountCurrency || 'USD');
     const existing = dailyMap.get(date) || { profit: 0, trades: 0 };
     existing.profit += profitUsd;
     existing.trades += 1;
@@ -101,7 +120,10 @@ export const getPerformanceMetrics = async (
   accountId?: string,
 ): Promise<PerformanceMetrics> => {
   const where: Record<string, unknown> = {
-    account: { userId, isDemo: false },
+    OR: [
+      { account: { userId, isDemo: false } },
+      { accountId: null, userId, accountIsDemo: false },
+    ],
   };
   if (accountId) where.accountId = accountId;
 

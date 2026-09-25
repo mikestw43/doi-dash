@@ -203,9 +203,15 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     recordClosedDeals(account.id, payload.closedDeals, brokerOffset)
       .catch(err => console.error('[TradeHistory] recordClosedDeals error:', err.message));
   }
-  // Always run position diff detection as fallback (catches trades from old EAs)
-  detectClosedTrades(account.id, orders)
-    .catch(err => console.error('[TradeHistory] detectClosedTrades error:', err.message));
+  // Only when the EA sent no deal report of its own. Guessing a close from a
+  // position that vanished gives the wrong close time — the moment we noticed,
+  // not the moment it closed — and the last floating profit, which is missing
+  // the commission booked at the close. It is a fallback for old EAs, so it
+  // runs only when the accurate source is absent.
+  if (!payload.closedDeals) {
+    detectClosedTrades(account.id, orders)
+      .catch(err => console.error('[TradeHistory] detectClosedTrades error:', err.message));
+  }
 
   runtimeStore.updateAccount(userId, updated);
   broadcastToUser(userId, runtimeStore.getAccountsByUser(userId));

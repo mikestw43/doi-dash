@@ -125,8 +125,25 @@ model EquitySnapshot {
 
 model ClosedTrade {
   id         String   @id @default(uuid())
-  accountId  String
-  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// Null once the account is removed from the dashboard. The row stays: the
+  /// calendar is the record of what was actually traded, and taking an account
+  /// off the screen is not a claim that its trades never happened.
+  accountId  String?
+  account    Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  /// Owner and a snapshot of the account, so a detached row can still be
+  /// found, labelled and converted to USD without the account to read it from.
+  userId          String?
+  accountName     String?
+  accountCurrency String?
+  accountIsDemo   Boolean @default(false)
+  /// The closing deal's own ticket.
+  ///
+  /// A position closed in parts produces one deal per part, all sharing the
+  /// position id. Keying on the position id made the second part overwrite the
+  /// first — the earlier day lost its profit and the total came out wrong.
+  /// Null on rows written before this, and on the position-diff fallback.
+  dealTicket Int?
+  /// The position id. No longer the key, but still what a trade is called.
   ticket     Int
   symbol     String
   type       String
@@ -141,8 +158,9 @@ model ClosedTrade {
   sl         Float    @default(0)
   tp         Float    @default(0)
 
-  @@unique([accountId, ticket])
+  @@unique([accountId, dealTicket])
   @@index([accountId, closeTime])
+  @@index([userId, closeTime])
   @@index([accountId])
 }
 

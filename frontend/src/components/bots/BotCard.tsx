@@ -90,8 +90,9 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
   const isDemo = account.isDemo ?? false;
   const orderCount = typeof account.orders === 'number' ? account.orders : account.orders.length;
   const ordersArray: Order[] = Array.isArray(account.orders) ? account.orders : [];
-  const rawCur = account.currency || 'USD';
-  const cur = rawCur.toUpperCase() === 'USDC' ? 'USC' : rawCur;
+  // USDC is a dollar stablecoin and the server converts it 1:1; mapping it to
+  // USC here displayed it as cents, a hundredfold away from the KPI tiles.
+  const cur = account.currency || 'USD';
 
   const onSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['overview'] });

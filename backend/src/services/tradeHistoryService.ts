@@ -38,11 +38,23 @@ export const detectClosedTrades = async (
 
   if (closedTickets.length === 0) return;
 
+  const snapshot = await accountSnapshot(accountId);
+
   // Batch insert closed trades
   for (const order of closedTickets) {
     try {
+      // The EA's own deal report is the accurate one and usually lands first;
+      // guessing from a vanished position gives the wrong close time (now) and
+      // the last floating profit, without the commission booked at the close.
+      const already = await prisma.closedTrade.findFirst({
+        where: { accountId, ticket: order.ticket },
+        select: { id: true },
+      });
+      if (already) continue;
+
       await prisma.closedTrade.create({
         data: {
+          ...snapshot,
           accountId,
           ticket: order.ticket,
           symbol: order.symbol,
@@ -104,43 +116,124 @@ const mt5TimeToUtc = (timeStr: string, brokerOffsetSec: number): Date => {
   return new Date(brokerTimeAsUtc.getTime() - brokerOffsetSec * 1000);
 };
 
+/**
+ * Stamp the owner and account details onto rows written before they existed.
+ *
+ * Without it every trade already stored would vanish from the calendar the
+ * moment its account was removed — the opposite of what keeping the row is for.
+ */
+export const backfillTradeOwners = async (): Promise<void> => {
+  const stale = await prisma.closedTrade.findMany({
+    where: { userId: null, NOT: { accountId: null } },
+    select: { id: true, accountId: true },
+  });
+  if (stale.length === 0) return;
+
+  const ids = [...new Set(stale.map(t => t.accountId!))];
+  const accounts = await prisma.account.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, userId: true, name: true, currency: true, isDemo: true },
+  });
+  const byId = new Map(accounts.map(a => [a.id, a]));
+
+  let done = 0;
+  for (const [accountId, a] of byId) {
+    const r = await prisma.closedTrade.updateMany({
+      where: { accountId, userId: null },
+      data: {
+        userId: a.userId,
+        accountName: a.name,
+        accountCurrency: a.currency,
+        accountIsDemo: a.isDemo,
+      },
+    });
+    done += r.count;
+  }
+  console.log(`[TradeHistory] stamped the owner onto ${done} existing trade(s)`);
+};
+
+/** The owner and the account details a detached row has to carry on its own. */
+const accountSnapshot = async (accountId: string) => {
+  const a = await prisma.account.findUnique({
+    where: { id: accountId },
+    select: { userId: true, name: true, currency: true, isDemo: true },
+  });
+  return {
+    userId: a?.userId ?? null,
+    accountName: a?.name ?? null,
+    accountCurrency: a?.currency ?? null,
+    accountIsDemo: a?.isDemo ?? false,
+  };
+};
+
+/**
+ * Store the closing deals the EA reported.
+ *
+ * Keyed on the *deal* ticket, not the position id. A position closed in parts
+ * produces one deal per part and they all share the position id, so the old key
+ * made Friday's half overwrite Wednesday's — Wednesday silently lost its
+ * profit, and the total came out as the last part alone.
+ *
+ * Rows written under the old key have no deal ticket. The first deal of a
+ * position adopts such a row rather than inserting beside it, so the change
+ * does not double-count anything already stored; the second and later parts
+ * find it taken and insert as their own rows, which is what they always
+ * should have been.
+ */
 export const recordClosedDeals = async (
   accountId: string,
   deals: ClosedDeal[],
   brokerOffsetSec: number = 7200,
 ): Promise<void> => {
+  const snapshot = await accountSnapshot(accountId);
+
   for (const deal of deals) {
     try {
-      // Use positionId as the ticket for unique constraint (position = trade in MT5)
-      await prisma.closedTrade.upsert({
-        where: {
-          accountId_ticket: { accountId, ticket: deal.positionId },
-        },
-        update: {
-          // Update with exact values from deal history
-          profit: deal.profit,
-          swap: deal.swap,
-          commission: deal.commission,
-          closePrice: deal.closePrice,
-          closeTime: mt5TimeToUtc(deal.closeTime, brokerOffsetSec),
-        },
-        create: {
-          accountId,
-          ticket: deal.positionId,
-          symbol: deal.symbol,
-          type: TYPE_MAP[deal.type] ?? 'BUY',
-          lots: deal.lots,
-          openPrice: deal.openPrice,
-          closePrice: deal.closePrice,
-          profit: deal.profit,
-          swap: deal.swap,
-          commission: deal.commission,
-          openTime: mt5TimeToUtc(deal.openTime, brokerOffsetSec),
-          closeTime: mt5TimeToUtc(deal.closeTime, brokerOffsetSec),
-          sl: 0,
-          tp: 0,
-        },
+      const values = {
+        profit: deal.profit,
+        swap: deal.swap,
+        commission: deal.commission,
+        closePrice: deal.closePrice,
+        closeTime: mt5TimeToUtc(deal.closeTime, brokerOffsetSec),
+        ...snapshot,
+      };
+
+      const existing = await prisma.closedTrade.findFirst({
+        where: { accountId, dealTicket: deal.ticket },
+        select: { id: true },
       });
+
+      if (existing) {
+        await prisma.closedTrade.update({ where: { id: existing.id }, data: values });
+      } else {
+        const legacy = await prisma.closedTrade.findFirst({
+          where: { accountId, ticket: deal.positionId, dealTicket: null },
+          select: { id: true },
+        });
+
+        if (legacy) {
+          await prisma.closedTrade.update({
+            where: { id: legacy.id },
+            data: { ...values, dealTicket: deal.ticket },
+          });
+        } else {
+          await prisma.closedTrade.create({
+            data: {
+              accountId,
+              dealTicket: deal.ticket,
+              ticket: deal.positionId,
+              symbol: deal.symbol,
+              type: TYPE_MAP[deal.type] ?? 'BUY',
+              lots: deal.lots,
+              openPrice: deal.openPrice,
+              openTime: mt5TimeToUtc(deal.openTime, brokerOffsetSec),
+              sl: 0,
+              tp: 0,
+              ...values,
+            },
+          });
+        }
+      }
       const net = deal.profit + deal.swap + deal.commission;
       console.log(`[TradeHistory] Deal #${deal.positionId} ${deal.symbol} net: ${net.toFixed(2)} (profit:${deal.profit} swap:${deal.swap} comm:${deal.commission})`);
     } catch (err: unknown) {

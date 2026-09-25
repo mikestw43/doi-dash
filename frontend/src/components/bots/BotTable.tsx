@@ -35,11 +35,10 @@ interface Props {
   accent?: 'blue' | 'yellow';
 }
 
-/** USC (USD-cents) accounts don't show a $ prefix — the value is raw cents. */
-const isUsc = (currency?: string) => {
-  const c = (currency || '').toUpperCase();
-  return c === 'USC' || c === 'USDC';
-};
+/** USC (USD-cents) accounts don't show a $ prefix — the value is raw cents.
+ *  USDC is a dollar stablecoin, not cents: the server converts it 1:1, so
+ *  calling it cents here put the two a hundredfold apart. */
+const isUsc = (currency?: string) => (currency || '').toUpperCase() === 'USC';
 
 const fmtMoneyFull = (v: number) =>
   Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

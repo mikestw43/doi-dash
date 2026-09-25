@@ -63,8 +63,12 @@ const resolveTodayPnl = async (accounts: StoreAccount[]): Promise<Record<string,
   });
 
   for (const t of trades) {
-    if (t.closeTime >= brokerStartOfDay(offsetMap.get(t.accountId) ?? 7200)) {
-      pnlMap[t.accountId] = (pnlMap[t.accountId] || 0) + t.profit + t.swap + t.commission;
+    // accountId is nullable now (a row outlives its account); the query filters
+    // to live accounts, so this only narrows the type.
+    const id = t.accountId;
+    if (!id) continue;
+    if (t.closeTime >= brokerStartOfDay(offsetMap.get(id) ?? 7200)) {
+      pnlMap[id] = (pnlMap[id] || 0) + t.profit + t.swap + t.commission;
     }
   }
 

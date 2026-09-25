@@ -23,6 +23,7 @@ import { cleanOldAuditLogs, cleanOldNotificationLogs } from './services/retentio
 import { reportScheduler } from './services/reportScheduler';
 import { errorHandler } from './middleware/errorHandler';
 import { warmFxCache } from './services/fxService';
+import { backfillTradeOwners } from './services/tradeHistoryService';
 import { applySqlitePragmas } from './lib/prisma';
 import fs from 'fs';
 import path from 'path';
@@ -101,6 +102,7 @@ applySqlitePragmas().then(() => runtimeStore.initialize()).then(() => {
   // Warm the FX cache (used for KPI USD aggregation). Non-blocking — if the
   // refresh fails the cache is empty and rates fall back to 1.0.
   warmFxCache().catch(() => { /* logged inside fxService */ });
+  backfillTradeOwners().catch(e => console.error('[TradeHistory] owner backfill failed:', e));
   server.listen(PORT, () => {
     console.log(`[OnlyFunds] Backend running on http://localhost:${PORT}`);
   });
