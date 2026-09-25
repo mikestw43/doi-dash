@@ -9,6 +9,7 @@ import { BotTable } from './BotTable';
 import { GroupManager } from '../groups/GroupManager';
 import { Dialog } from '../ui/Dialog';
 import { useTranslation } from '../../i18n/useTranslation';
+import { IconFilter } from '../icons';
 
 const DEFAULT_FILTER = { status: 'all', broker: 'all', search: '', sort: 'name', group: 'all' };
 type BotFilter = typeof DEFAULT_FILTER;
@@ -146,12 +147,12 @@ export const BotList = () => {
 
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-          {/* ⚙ ${t('filter.filter')} — opens the modal; badge shows # of active filter/sort fields */}
+          {/* Opens the modal; the badge shows how many filter/sort fields are set. */}
           <button
             onClick={() => setShowFilter(true)}
             style={{ ...ftabStyle(activeFilterCount > 0), display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            ⚙ {t('filter.filter')}
+            <IconFilter size={14} /> {t('filter.filter')}
             {activeFilterCount > 0 && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

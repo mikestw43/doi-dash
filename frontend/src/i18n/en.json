@@ -322,5 +322,6 @@
   "calendar.estimated_cell": "Estimated — rebuilt from stored trades, not confirmed by MT5",
   "calendar.verified_cell": "MT5's own figure for this day",
   "bot.history": "HISTORY",
-  "trades.filters": "FILTERS"
+  "trades.filters": "FILTERS",
+  "trades.custom": "Custom"
 }

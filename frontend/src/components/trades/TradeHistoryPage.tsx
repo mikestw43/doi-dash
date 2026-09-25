@@ -5,6 +5,7 @@ import { fetchTradeHistory } from '../../services/api';
 import { exportToCSV } from '../../utils/export';
 import type { ClosedTrade } from '../../types';
 import { useTranslation } from '../../i18n/useTranslation';
+import { IconFilter, IconDownload } from '../icons';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,32 @@ const tdBase: React.CSSProperties = {
   fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', whiteSpace: 'nowrap',
 };
 const tdR: React.CSSProperties = { ...tdBase, textAlign: 'right' };
+
+/** YYYY-MM-DD for a Date as the user's own clock reads it — the date inputs
+ *  speak local dates, so building the presets in UTC would shift them a day. */
+const localDay = (d: Date): string => {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+/** The ranges MT5's own history filter offers, which is what people already
+ *  reach for — a tap each, instead of two date pickers. The custom range stays
+ *  for everything they do not cover. */
+const PERIODS: { key: string; label: string; days: number }[] = [
+  { key: 'today', label: 'TODAY', days: 0 },
+  { key: '7d',    label: '7D',    days: 7 },
+  { key: '30d',   label: '30D',   days: 30 },
+  { key: '3m',    label: '3M',    days: 90 },
+  { key: '6m',    label: '6M',    days: 180 },
+  { key: '1y',    label: '1Y',    days: 365 },
+];
+
+const periodRange = (days: number): { from: string; to: string } => {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  return { from: localDay(from), to: localDay(to) };
+};
 
 // ── Summary card ─────────────────────────────────────────────────────────────
 
@@ -109,6 +136,7 @@ export const TradeHistoryPage = () => {
   // once in a while, so they fold away behind a button and say, as chips,
   // what is currently filtering the list.
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [customDates, setCustomDates] = useState(false);
 
   // Pagination / sort
   const [page, setPage]       = useState(1);
@@ -226,6 +254,15 @@ export const TradeHistoryPage = () => {
     );
   };
 
+  const activePeriod = PERIODS.find(p => {
+    const r = periodRange(p.days);
+    return r.from === dateFrom && r.to === dateTo;
+  });
+  const applyPeriod = (days: number) => {
+    const r = periodRange(days);
+    setDateFrom(r.from); setDateTo(r.to); setCustomDates(false); setPage(1);
+  };
+
   const activeFilters: { key: string; label: string; clear: () => void }[] = [];
   if (accountId) {
     const a = accounts.find(x => x.id === accountId);
@@ -236,8 +273,8 @@ export const TradeHistoryPage = () => {
   if (dateFrom || dateTo) {
     activeFilters.push({
       key: 'dates',
-      label: `${dateFrom || '…'} → ${dateTo || '…'}`,
-      clear: () => { setDateFrom(''); setDateTo(''); setPage(1); },
+      label: activePeriod ? activePeriod.label : `${dateFrom || '…'} → ${dateTo || '…'}`,
+      clear: () => { setDateFrom(''); setDateTo(''); setCustomDates(false); setPage(1); },
     });
   }
 
@@ -270,6 +307,7 @@ export const TradeHistoryPage = () => {
         padding: '7px 12px', background: 'none',
         border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
         color: 'var(--text-muted)',
+        display: 'inline-flex', alignItems: 'center', gap: '5px',
         cursor: trades.length ? 'pointer' : 'not-allowed',
         opacity: trades.length ? 1 : .3,
         transition: 'all .15s',
@@ -278,7 +316,7 @@ export const TradeHistoryPage = () => {
       onMouseEnter={e => { if (trades.length) { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; } }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
     >
-      ↓ CSV
+      <IconDownload size={13} /> CSV
     </button>
   );
 
@@ -341,9 +379,10 @@ export const TradeHistoryPage = () => {
             borderRadius: 'var(--radius-sm)',
             color: activeFilters.length ? 'var(--accent-blue)' : 'var(--text-muted)',
             cursor: 'pointer', transition: 'all .15s',
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
           }}
         >
-          {filtersOpen ? '▾' : '⚙'} {t('trades.filters').toUpperCase()}
+          <IconFilter size={14} /> {t('trades.filters').toUpperCase()}
           {activeFilters.length > 0 && ` (${activeFilters.length})`}
         </button>
         {exportButton('', { marginLeft: 'auto' })}
@@ -394,21 +433,55 @@ export const TradeHistoryPage = () => {
           <option value="SELL">{t('trades.sell')}</option>
         </select>
 
-        {/* Date range */}
-        <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.from')}</span>
-          <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} style={dateInputStyle} />
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.to')}</span>
-          <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} style={dateInputStyle} />
-          {(dateFrom || dateTo) && (
-            <button
-              onClick={() => { setDateFrom(''); setDateTo(''); }}
-              style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', padding: '6px 8px', transition: 'all .15s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--danger)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--danger)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-dim)'; }}
-            >✕</button>
-          )}
+        {/* Period — MT5 offers these same ranges in its own history filter and
+            they are what people reach for, so they are one tap each here
+            rather than two date pickers. The pickers stay behind CUSTOM, for
+            the ranges the presets do not cover. */}
+        <div className="th-period-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+          {PERIODS.map(p => {
+            const on = activePeriod?.key === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => (on ? (setDateFrom(''), setDateTo(''), setPage(1)) : applyPeriod(p.days))}
+                aria-pressed={on}
+                style={{
+                  fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+                  padding: '6px 10px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                  border: `1px solid ${on ? 'var(--accent-blue)' : 'var(--border2)'}`,
+                  background: on ? 'rgba(96,165,250,.12)' : 'none',
+                  color: on ? 'var(--accent-blue)' : 'var(--text-muted)',
+                  transition: 'all .15s',
+                }}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setCustomDates(o => !o)}
+            aria-pressed={customDates || (!!(dateFrom || dateTo) && !activePeriod)}
+            style={{
+              fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+              padding: '6px 10px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+              border: `1px solid ${customDates || (!!(dateFrom || dateTo) && !activePeriod) ? 'var(--accent-blue)' : 'var(--border2)'}`,
+              background: customDates || (!!(dateFrom || dateTo) && !activePeriod) ? 'rgba(96,165,250,.12)' : 'none',
+              color: customDates || (!!(dateFrom || dateTo) && !activePeriod) ? 'var(--accent-blue)' : 'var(--text-muted)',
+              transition: 'all .15s',
+            }}
+          >
+            {t('trades.custom').toUpperCase()}
+          </button>
         </div>
+
+        {(customDates || (!!(dateFrom || dateTo) && !activePeriod)) && (
+          <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.from')}</span>
+            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} style={dateInputStyle} />
+            <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.to')}</span>
+            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} style={dateInputStyle} />
+          </div>
+        )}
 
         {/* Export — right-aligned on desktop; on a phone it moves up beside
             the filter button so it stays reachable while the filters are

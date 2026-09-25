@@ -102,6 +102,21 @@ export const IconDownload = ({ size }: IconProps) => (
   </Svg>
 );
 
+/** Sliders, not a gear: a gear says settings, and these are filters — the
+ *  four pages that offer them were all using a ⚙ emoji, which renders at
+ *  whatever weight and baseline the device feels like and matches nothing
+ *  else in the shell. */
+export const IconFilter = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M4 7h10" />
+    <path d="M18.5 7H20" />
+    <circle cx="16.2" cy="7" r="2.3" />
+    <path d="M4 17h4.2" />
+    <path d="M12.7 17H20" />
+    <circle cx="10.4" cy="17" r="2.3" />
+  </Svg>
+);
+
 export const IconUsers = ({ size }: IconProps) => (
   <Svg size={size}>
     <circle cx="9.2" cy="7.6" r="3.6" />

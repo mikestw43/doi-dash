@@ -4,6 +4,7 @@ import { exportToCSV } from '../../utils/export';
 import { useUIStore } from '../../stores/uiStore';
 import { Dialog } from '../ui/Dialog';
 import type { AuditLogEntry, UserInfo } from '../../types';
+import { IconFilter } from '../icons';
 
 const ACTION_COLORS: Record<string, string> = {
   login:                  'var(--cyan)',
@@ -128,6 +129,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '6px',
             padding: '6px 10px',
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
             border: activeFilterCount > 0 ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
             color: activeFilterCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)',
@@ -135,7 +137,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
             cursor: 'pointer',
           }}
         >
-          ⚙ FILTER
+          <IconFilter size={14} /> FILTER
           {activeFilterCount > 0 && (
             <span style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

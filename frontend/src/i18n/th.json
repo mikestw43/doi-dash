@@ -322,5 +322,6 @@
   "calendar.estimated_cell": "ประมาณการ — คำนวณจากไม้ที่เก็บไว้ ยังไม่ยืนยันกับ MT5",
   "calendar.verified_cell": "ตัวเลขจาก MT5 โดยตรง",
   "bot.history": "ประวัติ",
-  "trades.filters": "ตัวกรอง"
+  "trades.filters": "ตัวกรอง",
+  "trades.custom": "กำหนดเอง"
 }
