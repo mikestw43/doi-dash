@@ -586,6 +586,43 @@ const Btn = ({ label, onClick, tone = 'ghost', title, pressed }: {
  * save with it — one field, one request. Escape puts the old text back.
  */
 /**
+ * A textarea that is as tall as what is in it.
+ *
+ * A fixed three rows meant that writing anything longer scrolled the top of
+ * it out of sight while you were still typing — you could not read back the
+ * line you had just written. It starts at four rows so a short note does not
+ * open a crater, grows with the text, and stops at sixteen, after which it
+ * scrolls rather than pushing the Save button off the screen. Dragging the
+ * corner still works for anyone who wants it bigger still.
+ */
+const MIN_ROWS = 4;
+const MAX_TEXTAREA_PX = 340;
+
+const GrowingTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  const fit = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';                                    // shrink first, or it only ever grows
+    el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_PX)}px`;
+    el.style.overflowY = el.scrollHeight > MAX_TEXTAREA_PX ? 'auto' : 'hidden';
+  };
+
+  useEffect(fit, [props.value]);
+
+  return (
+    <textarea
+      {...props}
+      ref={ref}
+      rows={MIN_ROWS}
+      onInput={fit}
+      style={{ ...props.style, resize: 'vertical', lineHeight: 1.5 }}
+    />
+  );
+};
+
+/**
  * A note that may run to a paragraph.
  *
  * Kept to two lines until asked otherwise: a file's note can be the whole
@@ -689,7 +726,7 @@ const InlineText = ({
     return (
       <span style={{ display: 'block' }}>
         {multiline
-          ? <textarea {...props} rows={3} style={{ ...props.style, resize: 'vertical' }} />
+          ? <GrowingTextarea {...props} />
           : <input {...props} />}
         {/*
           Saving is a press, not a side effect of clicking elsewhere.
