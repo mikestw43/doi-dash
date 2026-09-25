@@ -162,6 +162,14 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     gap: '8px', flexWrap: 'wrap', marginBottom: '12px',
   };
+  // On a phone the header wraps to three rows and the month, the one control
+  // in it, sat hard against the left edge with its arrows. Centred, it reads
+  // as the title of what is below it. On a wide screen the row does not wrap,
+  // so this has nothing to centre and changes nothing.
+  const monthNavStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: '8px',
+    flex: '1 1 100%', justifyContent: 'center',
+  };
   const navBtn: React.CSSProperties = {
     width: '26px', height: '26px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
     color: 'var(--text)', cursor: 'pointer', fontSize: '13px',
@@ -209,7 +217,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
     <div>
       {/* Header: month nav + stats + total */}
       <div style={hdrStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="pcal-monthnav" style={monthNavStyle}>
           <button
             onClick={() => changeMonth(-1)}
             style={navBtn}
@@ -410,6 +418,11 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           font-size: 12px; line-height: 1;
           color: var(--text-dim); opacity: .75;
           pointer-events: none;
+        }
+        /* Only while the header wraps; on a wide screen the month stays on the
+           left of a single row, where it belongs. */
+        @media (min-width: 769px) {
+          .pcal-monthnav { flex: 0 0 auto !important; justify-content: flex-start !important; }
         }
         @media (max-width: 768px) {
           .pcal-approx { top: 2px; right: 3px; font-size: 10px; }

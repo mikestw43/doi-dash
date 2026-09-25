@@ -6,6 +6,7 @@ import { exportToCSV } from '../../utils/export';
 import type { ClosedTrade } from '../../types';
 import { useTranslation } from '../../i18n/useTranslation';
 import { IconFilter, IconDownload } from '../icons';
+import { formatDayTime } from '../../utils/formatters';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,8 @@ const localDay = (d: Date): string => {
 /** The ranges MT5's own history filter offers, which is what people already
  *  reach for — a tap each, instead of two date pickers. The custom range stays
  *  for everything they do not cover. */
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 const PERIODS: { key: string; label: string; days: number }[] = [
   { key: 'today', label: 'TODAY', days: 0 },
   { key: '7d',    label: '7D',    days: 7 },
@@ -69,6 +72,57 @@ const periodRange = (days: number): { from: string; to: string } => {
   const from = new Date();
   from.setDate(from.getDate() - days);
   return { from: localDay(from), to: localDay(to) };
+};
+
+/**
+ * A date field made of three selects, in place of input[type=date].
+ *
+ * iOS draws the native date control in whatever calendar the phone is set to,
+ * and a phone set to Thai reads back "27 Aug BE 2569" for a trade that closed
+ * in 2026 — the page cannot reach inside that control to change it. Three
+ * selects carry our own option text, so the year is the broker's whatever the
+ * device thinks, they take the theme like every other control, and on a phone
+ * each one still opens the native wheel to spin.
+ *
+ * The value stays the YYYY-MM-DD the rest of the page already speaks.
+ */
+const DateParts = ({ value, onChange, style }: {
+  value: string;
+  onChange: (v: string) => void;
+  style: React.CSSProperties;
+}) => {
+  const [y, m, d] = value ? value.split('-').map(Number) : [0, 0, 0];
+  const thisYear = new Date().getFullYear();
+  const years = Array.from({ length: 6 }, (_, i) => thisYear - i);
+  const daysIn = (yy: number, mm: number) => new Date(yy, mm, 0).getDate();
+
+  const emit = (ny: number, nm: number, nd: number) => {
+    if (!ny || !nm || !nd) { onChange(''); return; }
+    // Spinning the month down can leave a day the new month does not have.
+    const day = Math.min(nd, daysIn(ny, nm));
+    onChange(`${ny}-${String(nm).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+  };
+
+  const sel: React.CSSProperties = { ...style, padding: '6px 6px' };
+
+  return (
+    <div style={{ display: 'flex', gap: '4px', minWidth: 0 }}>
+      <select value={d || ''} onChange={e => emit(y || thisYear, m || 1, Number(e.target.value))} style={sel} aria-label="day">
+        <option value="">--</option>
+        {Array.from({ length: daysIn(y || thisYear, m || 1) }, (_, i) => i + 1).map(n => (
+          <option key={n} value={n}>{String(n).padStart(2, '0')}</option>
+        ))}
+      </select>
+      <select value={m || ''} onChange={e => emit(y || thisYear, Number(e.target.value), d || 1)} style={sel} aria-label="month">
+        <option value="">--</option>
+        {MONTH_NAMES.map((name, i) => <option key={name} value={i + 1}>{name}</option>)}
+      </select>
+      <select value={y || ''} onChange={e => emit(Number(e.target.value), m || 1, d || 1)} style={sel} aria-label="year">
+        <option value="">----</option>
+        {years.map(n => <option key={n} value={n}>{n}</option>)}
+      </select>
+    </div>
+  );
 };
 
 // ── Summary card ─────────────────────────────────────────────────────────────
@@ -477,9 +531,9 @@ export const TradeHistoryPage = () => {
         {(customDates || (!!(dateFrom || dateTo) && !activePeriod)) && (
           <div className="th-date-row" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.from')}</span>
-            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }} style={dateInputStyle} />
+            <DateParts value={dateFrom} onChange={v => { setDateFrom(v); setPage(1); }} style={dateInputStyle} />
             <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', flexShrink: 0 }}>{t('trades.to')}</span>
-            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }} style={dateInputStyle} />
+            <DateParts value={dateTo} onChange={v => { setDateTo(v); setPage(1); }} style={dateInputStyle} />
           </div>
         )}
 
@@ -556,7 +610,7 @@ export const TradeHistoryPage = () => {
                     {t.profit >= 0 ? '+' : ''}{t.profit.toFixed(2)}
                   </td>
                   <td style={{ ...tdBase, color: 'var(--text-dim)', fontSize: 'var(--fs-micro)' }}>
-                    {new Date(t.closeTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {formatDayTime(t.closeTime)}
                   </td>
                   <td style={{ ...tdBase, color: 'var(--text-dim)' }} className="th-col-account">{t.account?.name || '—'}</td>
                 </tr>
@@ -647,28 +701,14 @@ export const TradeHistoryPage = () => {
           .th-col-lots   { display: none !important; }
         }
 
-        /* iOS gives input[type=date] a native control with an intrinsic width
-           of its own, and a width of 100% does not override it: as a flex item
-           with the default min-width of auto it simply refuses to go below
-           that size and widens everything around it. These two inputs are the
-           only ones in the app, which is exactly why this page was the only
-           one that slid sideways on a phone while every other page sat still
-           — and why no width or font in Chromium, which shrinks its own date
-           control happily, ever reproduced it. Dropping the native appearance
-           removes the intrinsic size; a min-width of 0 lets the flex item shrink
-           to what it is given. */
-        .th-filter-bar input[type="date"],
-        .th-date-row input[type="date"] {
-          -webkit-appearance: none;
-          appearance: none;
-          min-width: 0;
-          max-width: 100%;
-          min-height: 32px;
-        }
-        .th-filter-bar, .th-date-row { min-width: 0; }
+        /* The date fields are three selects of our own now (see DateParts), so
+           the native control's intrinsic width — which used to drag this page
+           sideways on a phone — is not in the page at all. Every control here
+           still has to be allowed to shrink to the column it is given. */
+        .th-filter-bar, .th-date-row, .th-period-row { min-width: 0; }
         .th-filter-bar select,
         .th-filter-bar input,
-        .th-date-row input { min-width: 0; max-width: 100%; }
+        .th-date-row select { min-width: 0; max-width: 100%; }
 
         /* Filter bar */
         @media (max-width: 600px) {
@@ -687,12 +727,12 @@ export const TradeHistoryPage = () => {
           .th-filter-bar input { width: 100% !important; box-sizing: border-box !important; }
           .th-symbol-input { width: 100% !important; }
           .th-date-row { flex-direction: column !important; align-items: stretch !important; }
-          .th-date-row input[type="date"] { width: 100% !important; box-sizing: border-box !important; }
+          .th-date-row > div { width: 100% !important; }
+          .th-date-row > div > select { flex: 1 1 0 !important; }
           .th-export-btn { margin-left: 0 !important; width: 100% !important; text-align: center !important; }
         }
 
         /* Dark calendar icon */
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(3) hue-rotate(180deg); opacity: .5; cursor: pointer; }
       `}</style>
     </div>
   );

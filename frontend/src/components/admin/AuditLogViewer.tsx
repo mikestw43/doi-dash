@@ -5,6 +5,7 @@ import { useUIStore } from '../../stores/uiStore';
 import { Dialog } from '../ui/Dialog';
 import type { AuditLogEntry, UserInfo } from '../../types';
 import { IconFilter } from '../icons';
+import { formatDateTime } from '../../utils/formatters';
 
 const ACTION_COLORS: Record<string, string> = {
   login:                  'var(--cyan)',
@@ -186,7 +187,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
                     {log.details ? log.details.slice(0, 60) : '—'}
                   </td>
                   <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: 'var(--fs-micro)', whiteSpace: 'nowrap' }}>
-                    {new Date(log.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {formatDateTime(log.createdAt)}
                   </td>
                 </tr>
               ))

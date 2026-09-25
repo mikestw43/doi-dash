@@ -10,6 +10,8 @@ import { AccountsSection } from '../accounts/AccountsSection';
 import { ReportSettings } from './ReportSettings';
 import { TickerSettings } from './TickerSettings';
 import type { NotificationLogEntry } from '../../types';
+import { IconCard, IconSend, IconReport, IconTicker, IconBell } from '../icons';
+import type { ReactElement } from 'react';
 
 type Tab = 'account' | 'telegram' | 'reports' | 'ticker' | 'notifications';
 
@@ -44,12 +46,15 @@ const btnGhost: React.CSSProperties = {
   border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
 };
 
-const TABS: { key: Tab; symbol: string; label: string }[] = [
-  { key: 'account',       symbol: '◈', label: 'Account' },
-  { key: 'telegram',      symbol: '✈', label: 'Telegram' },
-  { key: 'reports',       symbol: '▤', label: 'Reports' },
-  { key: 'ticker',        symbol: '▦', label: 'Ticker' },
-  { key: 'notifications', symbol: '◉', label: 'Notifications' },
+/** Drawn on the shell's own 24x24 grid. They were typographic glyphs and one
+ *  ✈ emoji, which every phone renders at its own weight, colour and baseline —
+ *  the plane arrived in full colour beside four grey marks. */
+const TABS: { key: Tab; Icon: (p: { size?: number }) => ReactElement; label: string }[] = [
+  { key: 'account',       Icon: IconCard,   label: 'Account' },
+  { key: 'telegram',      Icon: IconSend,   label: 'Telegram' },
+  { key: 'reports',       Icon: IconReport, label: 'Reports' },
+  { key: 'ticker',        Icon: IconTicker, label: 'Ticker' },
+  { key: 'notifications', Icon: IconBell,   label: 'Notifications' },
 ];
 
 export const SettingsPage = () => {
@@ -91,7 +96,7 @@ export const SettingsPage = () => {
           display: 'flex', flexDirection: 'column', gap: '2px',
           position: 'sticky', top: '12px',
         }}>
-          {TABS.map(({ key, symbol, label }) => {
+          {TABS.map(({ key, Icon, label }) => {
             const active = tab === key;
             return (
               <button
@@ -108,7 +113,7 @@ export const SettingsPage = () => {
                   transition: 'all .15s',
                 }}
               >
-                <span style={{ fontSize: '13px', lineHeight: 1 }}>{symbol}</span>
+                <Icon size={15} />
                 {label}
               </button>
             );

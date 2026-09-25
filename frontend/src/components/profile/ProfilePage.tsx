@@ -5,6 +5,7 @@ import { updateProfile, savePreferences, getProfile, linkGoogle, unlinkGoogle } 
 import { useTranslation } from '../../i18n/useTranslation';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { GoogleAuth, googleEnabled } from '../auth/googleAuth';
+import { formatDate, formatDateTime } from '../../utils/formatters';
 
 const PHONE_COUNTRIES = [
   { code: 'TH', dial: '+66', label: 'TH +66' },
@@ -72,19 +73,8 @@ const btnDanger: React.CSSProperties = {
   ...btnGhost, color: 'var(--red)', borderColor: 'rgba(248,113,113,.4)',
 };
 
-const fmtDate = (iso?: string | null) => {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '—';
-  return d.toISOString().slice(0, 10);
-};
-
-const fmtDateTime = (iso?: string | null) => {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleString();
-};
+const fmtDate = formatDate;
+const fmtDateTime = formatDateTime;
 
 export const ProfilePage = () => {
   const user = useAuthStore(s => s.user);
@@ -231,7 +221,10 @@ export const ProfilePage = () => {
       </div>
 
       {/* Header card */}
-      <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '16px' }}>
+      {/* The button used to sit in a row that could not wrap, so on a phone the
+          email ran underneath it. It keeps its size and drops to its own line
+          instead, and a long address breaks rather than reaching across. */}
+      <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
         <div style={{
           width: '60px', height: '60px',
           background: 'var(--accent-bg)',
@@ -243,7 +236,7 @@ export const ProfilePage = () => {
         }}>
           {initials}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: '160px', overflowWrap: 'anywhere' }}>
           <div style={{
             fontFamily: 'var(--ff-body)', fontSize: '16px',
             color: 'var(--text)', marginBottom: '6px', fontWeight: 600,
@@ -262,17 +255,18 @@ export const ProfilePage = () => {
               {(user?.role || 'user').toUpperCase()}
             </span>
             {user?.email}
-            <br />
-            Member since {fmtDate(user?.createdAt)}
+            {/* "Member since" is a row of its own in PERSONAL INFO just below,
+                so the header keeps only what is not repeated there. */}
             {user?.lastLoginAt && (
               <>
-                {' '}·{' '}Last login {fmtDateTime(user?.lastLoginAt)}
+                <br />
+                Last login {fmtDateTime(user?.lastLoginAt)}
               </>
             )}
           </div>
         </div>
         {!editing && (
-          <button style={btnGhost} onClick={() => setEditing(true)}>EDIT PROFILE</button>
+          <button style={{ ...btnGhost, flexShrink: 0 }} onClick={() => setEditing(true)}>EDIT PROFILE</button>
         )}
       </div>
 

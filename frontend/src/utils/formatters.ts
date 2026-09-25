@@ -57,3 +57,41 @@ export const getMarginLevelColor = (level: number): string => {
   if (level > 200) return 'text-warning';
   return 'text-danger';
 };
+
+/**
+ * One date format for the whole app: 27 Aug 2026.
+ *
+ * `toLocaleDateString()` and an ISO slice were both in use, which gave
+ * `2026-09-20` on one screen and something else on the next — and on a phone
+ * set to Thai, `toLocaleDateString()` answers in the Buddhist era, so a date
+ * read "27 Aug BE 2569" for a trade that closed in 2026. Built by hand rather
+ * than through Intl: the device locale cannot reach it, the year is always the
+ * one the broker reports, and every month is three letters (en-GB returns a
+ * four-letter "Sept", which does not line up with the rest of a column).
+ */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const pad2 = (n: number) => String(n).padStart(2, '0');
+
+const toDate = (value?: string | number | Date | null): Date | null => {
+  if (value === null || value === undefined || value === '') return null;
+  const d = value instanceof Date ? value : new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+/** 27 Aug 2026 */
+export const formatDate = (value?: string | number | Date | null): string => {
+  const d = toDate(value);
+  return d ? `${pad2(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}` : '\u2014';
+};
+
+/** 27 Aug 2026 14:05 */
+export const formatDateTime = (value?: string | number | Date | null): string => {
+  const d = toDate(value);
+  return d ? `${formatDate(d)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}` : '\u2014';
+};
+
+/** 27 Aug 14:05 — for a column where the year is the same on every row. */
+export const formatDayTime = (value?: string | number | Date | null): string => {
+  const d = toDate(value);
+  return d ? `${pad2(d.getDate())} ${MONTHS[d.getMonth()]} ${pad2(d.getHours())}:${pad2(d.getMinutes())}` : '\u2014';
+};

@@ -8,6 +8,7 @@ import { AuditLogViewer } from './AuditLogViewer';
 import { UserDetailDialog } from './UserDetailDialog';
 import type { UserInfo } from '../../types';
 import { IconFilter } from '../icons';
+import { formatDate } from '../../utils/formatters';
 
 const COUNTRY_CODES = [
   { code: '+66',  label: 'TH +66' },
@@ -290,7 +291,7 @@ export const UserManagement = () => {
                           </span>
                         )}
                         <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
-                          Registered: {new Date(u.createdAt).toLocaleDateString()}
+                          Registered: {formatDate(u.createdAt)}
                         </span>
                       </div>
                       <div style={{ display: 'flex', gap: '6px' }}>
@@ -380,7 +381,7 @@ export const UserManagement = () => {
                           </td>
                           {/* CREATED */}
                           <td style={{ ...tdStyle, color: 'var(--text-dim)', fontSize: 'var(--fs-micro)' }} className="um-col-created">
-                            {new Date(user.createdAt).toLocaleDateString()}
+                            {formatDate(user.createdAt)}
                           </td>
                           {/* STATUS */}
                           <td style={tdStyle}>

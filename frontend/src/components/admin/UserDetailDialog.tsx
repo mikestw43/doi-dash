@@ -6,6 +6,7 @@ import {
 import { useUIStore } from '../../stores/uiStore';
 import { Dialog } from '../ui/Dialog';
 import type { UserInfo } from '../../types';
+import { formatDateTime } from '../../utils/formatters';
 
 interface Props {
   user: UserInfo | null;
@@ -159,11 +160,11 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
             </div>
             <div style={rowStyle}>
               <span style={lblStyle}>CREATED</span>
-              <span style={valStyle}>{new Date(user.createdAt).toLocaleString()}</span>
+              <span style={valStyle}>{formatDateTime(user.createdAt)}</span>
             </div>
             <div style={{ ...rowStyle, borderBottom: 'none' }}>
               <span style={lblStyle}>LAST LOGIN</span>
-              <span style={valStyle}>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : '—'}</span>
+              <span style={valStyle}>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : '—'}</span>
             </div>
           </div>
 

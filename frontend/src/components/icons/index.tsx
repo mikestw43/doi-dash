@@ -117,6 +117,54 @@ export const IconFilter = ({ size }: IconProps) => (
   </Svg>
 );
 
+/** Paper plane — Telegram. It was a ✈ emoji, which each phone draws in its
+ *  own colour and weight, next to outline icons. */
+export const IconSend = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M21 3 10.5 13.5" />
+    <path d="M21 3l-6.6 18-3.9-7.5L3 9.6 21 3z" />
+  </Svg>
+);
+
+/** A card with a title line and a rule — the settings account panel. */
+export const IconCard = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <rect x="3" y="5" width="18" height="14" rx="2.2" />
+    <path d="M3 10h18" />
+    <path d="M7 14.5h4" />
+  </Svg>
+);
+
+/** Stacked lines — a report. */
+export const IconReport = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <rect x="4" y="3" width="16" height="18" rx="2.2" />
+    <path d="M8 8h8" />
+    <path d="M8 12h8" />
+    <path d="M8 16h5" />
+  </Svg>
+);
+
+/** A running band of quotes — the ticker. */
+export const IconTicker = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <rect x="2.5" y="7" width="19" height="10" rx="2" />
+    <path d="M6 11.2h2.6" />
+    <path d="M11 11.2h2.2" />
+    <path d="M15.6 11.2h2.4" />
+    <path d="M6 14h3.4" />
+    <path d="M12 14h6" />
+  </Svg>
+);
+
+/** A bell — notifications. */
+export const IconBell = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M18 9.4a6 6 0 1 0-12 0c0 5.2-2 6.6-2 6.6h16s-2-1.4-2-6.6" />
+    <path d="M13.7 19.4a2 2 0 0 1-3.4 0" />
+  </Svg>
+);
+
 export const IconUsers = ({ size }: IconProps) => (
   <Svg size={size}>
     <circle cx="9.2" cy="7.6" r="3.6" />
