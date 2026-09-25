@@ -631,8 +631,11 @@ export const TradeHistoryPage = () => {
               display: 'flex', alignItems: 'baseline', gap: '8px',
               fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
             }}>
-              <span style={{ whiteSpace: 'nowrap' }}>
-                {tr.openPrice.toFixed(2)} {'\u2192'} {tr.closePrice.toFixed(2)}
+              {/* The prices are what the row is about after the profit, and at
+                  the micro size in dim grey they read as a caption. The time
+                  beside them stays a caption. */}
+              <span style={{ whiteSpace: 'nowrap', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>
+                {tr.openPrice.toFixed(2)} <span style={{ color: 'var(--text-dim)' }}>{'\u2192'}</span> {tr.closePrice.toFixed(2)}
               </span>
               <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>{formatDayTime(tr.closeTime)}</span>
             </div>

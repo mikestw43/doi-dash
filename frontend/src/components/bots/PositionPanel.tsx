@@ -221,8 +221,10 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                   display: 'flex', alignItems: 'baseline', gap: '8px',
                   fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
                 }}>
-                  <span style={{ whiteSpace: 'nowrap' }}>
-                    {fmtPriceCompact(order.openPrice)} {'\u2192'} <span style={{ color: 'var(--cyan)' }}>{fmtPriceCompact(order.currentPrice)}</span>
+                  {/* Same as the trade list: the prices lead the second line,
+                      the SL and TP beside them stay a caption. */}
+                  <span style={{ whiteSpace: 'nowrap', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>
+                    {fmtPriceCompact(order.openPrice)} <span style={{ color: 'var(--text-dim)' }}>{'\u2192'}</span> {fmtPriceCompact(order.currentPrice)}
                   </span>
                   <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
                     SL {fmtPriceCompact(order.sl)} · TP {fmtPriceCompact(order.tp)}
