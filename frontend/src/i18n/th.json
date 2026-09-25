@@ -325,5 +325,7 @@
   "trades.filters": "ตัวกรอง",
   "trades.custom": "กำหนดเอง",
   "trades.any_date": "ทุกวัน",
-  "trades.sort_by": "เรียงตาม"
+  "trades.sort_by": "เรียงตาม",
+  "filter.all_symbols": "ทุกสัญลักษณ์",
+  "trades.reset_sort": "ล่าสุด"
 }

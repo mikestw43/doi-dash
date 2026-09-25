@@ -269,6 +269,12 @@ export const fetchEquityHistory = async (
   return res.data;
 };
 
+/** The symbols this user has closed a trade on, for the history filter. */
+export const fetchTradedSymbols = async (accountId?: string): Promise<string[]> => {
+  const res = await api.get('/analytics/trades/symbols', { params: { accountId } });
+  return res.data;
+};
+
 export const fetchTradeHistory = async (params: {
   accountId?: string;
   page?: number;

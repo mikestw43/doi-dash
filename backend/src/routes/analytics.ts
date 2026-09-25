@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import prisma from '../lib/prisma';
 import { getEquityHistory } from '../services/equityService';
-import { getTradeHistory } from '../services/tradeHistoryService';
+import { getTradeHistory, getTradedSymbols } from '../services/tradeHistoryService';
 import { getDailyPnL, getPerformanceMetrics } from '../services/analyticsService';
 
 const router = Router();
@@ -44,6 +44,13 @@ router.get('/trades', async (req: AuthRequest, res: Response) => {
   });
 
   res.json(result);
+});
+
+// GET /api/analytics/trades/symbols?accountId=
+// The symbols to offer in the trade-history filter.
+router.get('/trades/symbols', async (req: AuthRequest, res: Response) => {
+  const accountId = req.query.accountId as string | undefined;
+  res.json(await getTradedSymbols(req.user!.id, accountId || undefined));
 });
 
 // GET /api/analytics/pnl?accountId=&period=1M|3M|6M

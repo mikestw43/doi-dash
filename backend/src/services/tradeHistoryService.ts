@@ -203,6 +203,34 @@ export const repairGuessedOpenTimes = async (): Promise<void> => {
   }
 };
 
+/**
+ * The symbols this user has actually closed a trade on.
+ *
+ * The symbol filter was a free-text box, which asks people to remember and
+ * spell what their own EAs trade — and answers an empty list if they get it
+ * wrong. The set is small and we already hold it, so it can just be offered.
+ */
+export const getTradedSymbols = async (
+  userId: string,
+  accountId?: string,
+): Promise<string[]> => {
+  const where: Record<string, unknown> = {
+    OR: [
+      { account: { userId, isDemo: false } },
+      { accountId: null, userId, accountIsDemo: false },
+    ],
+  };
+  if (accountId) where.accountId = accountId;
+
+  const rows = await prisma.closedTrade.findMany({
+    where,
+    select: { symbol: true },
+    distinct: ['symbol'],
+    orderBy: { symbol: 'asc' },
+  });
+  return rows.map(r => r.symbol).filter(Boolean);
+};
+
 /** The owner and the account details a detached row has to carry on its own. */
 export const accountSnapshot = async (accountId: string) => {
   const a = await prisma.account.findUnique({

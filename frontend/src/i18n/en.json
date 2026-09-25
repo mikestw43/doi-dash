@@ -325,5 +325,7 @@
   "trades.filters": "FILTERS",
   "trades.custom": "Custom",
   "trades.any_date": "Any date",
-  "trades.sort_by": "Sort by"
+  "trades.sort_by": "Sort by",
+  "filter.all_symbols": "All Symbols",
+  "trades.reset_sort": "Newest"
 }

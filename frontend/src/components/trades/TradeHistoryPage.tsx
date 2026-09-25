@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAccountStore } from '../../stores/accountStore';
 import { useUIStore } from '../../stores/uiStore';
-import { fetchTradeHistory } from '../../services/api';
+import { fetchTradeHistory, fetchTradedSymbols } from '../../services/api';
 import { exportToCSV } from '../../utils/export';
 import type { ClosedTrade } from '../../types';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -153,6 +153,10 @@ export const TradeHistoryPage = () => {
 
   // Stats data (all matching trades, no page limit)
   const [allTrades, setAllTrades]       = useState<ClosedTrade[]>([]);
+  // Offered in the symbol filter. Deliberately not derived from the rows on
+  // screen: those are already filtered by symbol, so picking one would leave
+  // the list with a single option and no way back.
+  const [symbols, setSymbols] = useState<string[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
 
   // ── Fetch table (paginated) ──
@@ -192,6 +196,21 @@ export const TradeHistoryPage = () => {
     setPage(1);
     loadStats();
   }, [accountId, symbol, type, dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Which account is selected changes what has been traded, so the list is
+  // fetched again; a symbol no longer on offer is dropped rather than left
+  // filtering the page to nothing.
+  useEffect(() => {
+    let live = true;
+    fetchTradedSymbols(accountId || undefined)
+      .then(list => {
+        if (!live) return;
+        setSymbols(list);
+        if (symbol && !list.includes(symbol)) { setSymbol(''); setPage(1); }
+      })
+      .catch(() => { if (live) setSymbols([]); });
+    return () => { live = false; };
+  }, [accountId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(); }, [accountId, symbol, type, page, sortBy, sortDir, dateFrom, dateTo]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -422,12 +441,18 @@ export const TradeHistoryPage = () => {
           {accounts.filter(a => !a.isDemo).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
 
-        <input
-          type="text" placeholder={t('filter.symbol')} value={symbol}
-          onChange={e => { setSymbol(e.target.value.toUpperCase()); setPage(1); }}
-          style={{ ...selStyle, cursor: 'text', width: '90px' }}
+        {/* What has actually been traded, rather than a box that asks people to
+            spell their own EAs' symbols from memory and answers an empty list
+            when they get it wrong. */}
+        <select
+          value={symbol}
+          onChange={e => { setSymbol(e.target.value); setPage(1); }}
+          style={selStyle}
           className="th-symbol-input"
-        />
+        >
+          <option value="">{t('filter.all_symbols')}</option>
+          {symbols.map(sym => <option key={sym} value={sym}>{sym}</option>)}
+        </select>
 
         <select value={type} onChange={e => { setType(e.target.value); setPage(1); }} style={selStyle}>
           <option value="">{t('filter.all_types')}</option>
@@ -540,6 +565,21 @@ export const TradeHistoryPage = () => {
               </button>
             );
           })}
+          {/* A list is always in some order, so there is no "unsorted" to go
+              back to — what there is, is the order the page opens in. This
+              says so, and only appears once you have left it. */}
+          {(sortBy !== 'closeTime' || sortDir !== 'desc') && (
+            <button
+              onClick={() => { setSortBy('closeTime'); setSortDir('desc'); setPage(1); }}
+              style={{
+                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+                padding: '4px 8px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                border: '1px solid var(--border2)', background: 'none', color: 'var(--text-dim)',
+              }}
+            >
+              {t('trades.reset_sort').toUpperCase()} {'\u2715'}
+            </button>
+          )}
         </div>
 
         {loading ? (
