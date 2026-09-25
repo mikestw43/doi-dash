@@ -675,9 +675,7 @@ export const TradeHistoryPage = () => {
                   beside them stays a caption. */}
               <span style={{ whiteSpace: 'nowrap', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>
                 {tr.openPrice.toFixed(2)} <span style={{ color: 'var(--text-dim)' }}>{'\u2192'}</span> {tr.closePrice.toFixed(2)}
-                <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-micro)' }}>
-                  {' '}({pointsMoved(tr)} pts)
-                </span>
+                {' '}({pointsMoved(tr)} pts)
               </span>
               <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>{formatDayTime(tr.closeTime)}</span>
             </div>
