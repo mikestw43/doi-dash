@@ -300,19 +300,25 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
           {isOnline ? (
             <>
               {/* ORDERS — primary cyan fill, toggles the open-positions panel */}
+              {/* Filled blue made it read as the one thing to press, when it is
+                  one of four equal ways into the account. It is outlined like
+                  the others; being open is said by the caret and by the panel
+                  that is open below it. */}
               <button
                 onClick={() => setShowPositions(p => !p)}
+                aria-expanded={showPositions}
                 className="bc-action"
                 style={{
                   flex: 1,
-                  border: '1px solid var(--accent-blue)',
-                  color: '#25272c',
-                  background: 'var(--accent-blue)',
+                  border: `1px solid ${showPositions ? 'var(--accent-blue)' : 'var(--border2)'}`,
+                  borderRadius: 'var(--radius-sm)',
+                  color: showPositions ? 'var(--accent-blue)' : 'var(--text-muted)',
+                  background: showPositions ? 'rgba(96,165,250,.08)' : 'none',
                   cursor: 'pointer', textAlign: 'center',
                   transition: 'all .15s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#93c5fd'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#93c5fd'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(96,165,250,.08)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = showPositions ? 'var(--accent-blue)' : 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = showPositions ? 'var(--accent-blue)' : 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = showPositions ? 'rgba(96,165,250,.08)' : 'none'; }}
               >
                 {showPositions ? `▾ ${t('bot.orders')}` : t('bot.orders')}
               </button>

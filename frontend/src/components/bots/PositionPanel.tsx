@@ -3,6 +3,7 @@ import type { Order } from '../../types';
 import { FlashNumber } from '../ui/FlashNumber';
 import { closePosition, setPositionSLTP } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
+import { SwipeRow } from '../ui/SwipeRow';
 
 interface Props {
   accountId: string;
@@ -22,10 +23,22 @@ const fmtNum = (v: number) =>
 const fmtPrice = (v: number) =>
   v === 0 ? '—' : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 5 });
 
+/** Prices side by side on one line, where 2,310.50 next to 2,326.55599 reads
+ *  as a mistake. Gold and the indices quote to two places, the currency pairs
+ *  to five, and the size of the number says which is which. */
+const fmtPriceCompact = (v: number) =>
+  v === 0 ? '—' : v.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: v >= 100 ? 2 : 5,
+  });
+
 export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   const { addToast } = useUIStore();
   const [editing, setEditing] = useState<EditState | null>(null);
   const [loadingTicket, setLoadingTicket] = useState<number | null>(null);
+  // Which row on the phone list is swiped open, and which way. Held here
+  // rather than in each row so that opening one closes the last.
+  const [swiped, setSwiped] = useState<number | null>(null);
 
   const rawCur = currency || 'USD';
 
@@ -74,6 +87,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   }
 
   const totalPL = orders.reduce((s, o) => s + o.profit, 0);
+  const t_swipeHint = 'Swipe a row left for SL / TP and CLOSE';
 
   const thStyle: React.CSSProperties = {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
@@ -91,7 +105,134 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   };
 
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div>
+      {/* ── The list a phone gets ──
+          The table below needs 580px, which is what stretched the account card
+          sideways when ORDERS was pressed. MT5 puts a position on two lines
+          instead, and its actions — which have nowhere to sit at this width —
+          come out from under the row when you drag it, the way a mail app
+          reveals archive and delete. */}
+      <div className="pp-list" style={{ display: 'none', flexDirection: 'column', gap: '5px', padding: '8px' }}>
+        {orders.map(order => {
+          const isEdit = editing?.ticket === order.ticket;
+          const isLoading = loadingTicket === order.ticket;
+          const isBuy = order.type === 'BUY';
+
+          if (isEdit) {
+            return (
+              <div key={order.ticket} style={{
+                background: 'var(--bg-card)', border: '1px solid var(--accent-blue)',
+                borderRadius: 'var(--radius-sm)', padding: '8px 10px',
+                display: 'flex', flexDirection: 'column', gap: '6px',
+              }}>
+                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--text)' }}>
+                  {order.symbol} <span style={{ color: isBuy ? 'var(--green)' : 'var(--red)' }}>{order.type.toLowerCase()} {order.lots.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', width: '22px' }}>SL</span>
+                  <input
+                    type="number" step="0.00001" value={editing.sl} placeholder="0" autoFocus
+                    onChange={e => setEditing(prev => prev ? { ...prev, sl: e.target.value } : null)}
+                    style={{ ...inputStyle, width: 'auto', flex: 1 }}
+                  />
+                  <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', width: '22px' }}>TP</span>
+                  <input
+                    type="number" step="0.00001" value={editing.tp} placeholder="0"
+                    onChange={e => setEditing(prev => prev ? { ...prev, tp: e.target.value } : null)}
+                    style={{ ...inputStyle, width: 'auto', flex: 1 }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={commitEdit} disabled={isLoading}
+                    style={{
+                      flex: 1, padding: '7px', cursor: 'pointer', borderRadius: 'var(--radius-sm)',
+                      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+                      border: '1px solid rgba(52,211,153,.4)', background: 'rgba(52,211,153,.08)',
+                      color: 'var(--green)', opacity: isLoading ? .4 : 1,
+                    }}
+                  >{isLoading ? '...' : 'SAVE'}</button>
+                  <button
+                    onClick={cancelEdit}
+                    style={{
+                      flex: 1, padding: '7px', cursor: 'pointer', borderRadius: 'var(--radius-sm)',
+                      fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
+                      border: '1px solid var(--border2)', background: 'none', color: 'var(--text-dim)',
+                    }}
+                  >CANCEL</button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <SwipeRow
+              key={order.ticket}
+              open={swiped === order.ticket}
+              onOpenChange={v => setSwiped(v ? order.ticket : null)}
+              actions={[
+                {
+                  label: 'SL / TP',
+                  color: 'var(--accent-blue)',
+                  background: 'rgba(96,165,250,.16)',
+                  onAction: () => startEdit(order),
+                },
+                {
+                  label: isLoading ? '...' : 'CLOSE',
+                  color: 'var(--red)',
+                  background: 'rgba(248,113,113,.16)',
+                  onAction: () => handleClose(order.ticket, order.symbol),
+                },
+              ]}
+            >
+              <div style={{
+                border: '1px solid var(--border2)',
+                borderLeft: `2px solid ${order.profit >= 0 ? 'var(--green)' : 'var(--red)'}`,
+                borderRadius: 'var(--radius-sm)',
+                padding: '8px 10px',
+                display: 'flex', flexDirection: 'column', gap: '3px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 700, letterSpacing: '.5px', color: 'var(--text)' }}>
+                    {order.symbol}
+                  </span>
+                  <span style={{
+                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 700,
+                    letterSpacing: '.5px', whiteSpace: 'nowrap',
+                    color: isBuy ? 'var(--green)' : 'var(--red)',
+                  }}>
+                    {order.type.toLowerCase()} {order.lots.toFixed(2)}
+                  </span>
+                  <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                    <FlashNumber
+                      value={order.profit}
+                      format={(v) => `${v >= 0 ? '+' : '-'}${fmtNum(v)}`}
+                      positiveGreen
+                      style={{ fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1 }}
+                    />
+                  </span>
+                </div>
+                <div style={{
+                  display: 'flex', alignItems: 'baseline', gap: '8px',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+                }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>
+                    {fmtPriceCompact(order.openPrice)} {'\u2192'} <span style={{ color: 'var(--cyan)' }}>{fmtPriceCompact(order.currentPrice)}</span>
+                  </span>
+                  <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                    SL {fmtPriceCompact(order.sl)} · TP {fmtPriceCompact(order.tp)}
+                  </span>
+                </div>
+              </div>
+            </SwipeRow>
+          );
+        })}
+        <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', textAlign: 'center', paddingTop: '2px' }}>
+          {t_swipeHint}
+        </div>
+      </div>
+
+      <div className="pp-table-wrap" style={{ overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '580px' }}>
         <thead>
           <tr>
@@ -222,6 +363,7 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
           })}
         </tbody>
       </table>
+      </div>
 
       {/* Summary row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px', borderTop: '1px solid var(--border2)' }}>
@@ -236,6 +378,13 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
           </span>
         </span>
       </div>
+
+      <style>{`
+        @media (max-width: 600px) {
+          .pp-list       { display: flex !important; }
+          .pp-table-wrap { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 };
