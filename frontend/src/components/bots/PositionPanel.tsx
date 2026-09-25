@@ -88,6 +88,8 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
 
   const totalPL = orders.reduce((s, o) => s + o.profit, 0);
   const t_swipeHint = 'Swipe a row left for SL / TP and CLOSE';
+  const t_open = 'OPEN';
+  const t_now  = 'NOW';
 
   const thStyle: React.CSSProperties = {
     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)',
@@ -132,6 +134,22 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
               }}>
                 <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--text)' }}>
                   {order.symbol} <span style={{ color: isBuy ? 'var(--green)' : 'var(--red)' }}>{order.type.toLowerCase()} {order.lots.toFixed(2)}</span>
+                </div>
+                {/* The row this form replaced was showing these, and a stop is
+                    a number relative to them — asking for one with the prices
+                    hidden is asking people to remember them. */}
+                <div style={{
+                  display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+                }}>
+                  <span>{t_open}</span>
+                  <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text)' }}>
+                    {fmtPriceCompact(order.openPrice)}
+                  </span>
+                  <span style={{ marginLeft: '4px' }}>{t_now}</span>
+                  <span style={{ fontSize: 'var(--fs-body)', color: 'var(--cyan)' }}>
+                    {fmtPriceCompact(order.currentPrice)}
+                  </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                   <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)', flexShrink: 0 }}>SL</span>
