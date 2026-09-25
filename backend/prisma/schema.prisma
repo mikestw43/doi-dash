@@ -143,6 +143,11 @@ model ClosedTrade {
   /// first — the earlier day lost its profit and the total came out wrong.
   /// Null on rows written before this, and on the position-diff fallback.
   dealTicket Int?
+  /// "deal" — reported by the EA from the broker's own deal history, exact.
+  /// "detected" — guessed from a position that vanished from the open list:
+  /// the close time is when the server noticed and the profit is the last
+  /// floating figure. Only ever right by accident, so it is marked.
+  source     String   @default("deal")
   /// The position id. No longer the key, but still what a trade is called.
   ticket     Int
   symbol     String

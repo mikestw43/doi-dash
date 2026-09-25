@@ -56,6 +56,7 @@ export const detectClosedTrades = async (
       await prisma.closedTrade.create({
         data: {
           ...snapshot,
+          source: 'detected',
           accountId,
           ticket: order.ticket,
           symbol: order.symbol,
@@ -196,6 +197,12 @@ export const recordClosedDeals = async (
         commission: deal.commission,
         closePrice: deal.closePrice,
         closeTime: mt5TimeToUtc(deal.closeTime, brokerOffsetSec),
+        // Was missing, and it is how the impossible rows were spotted: the
+        // fallback writes the open time without subtracting the broker offset,
+        // and nothing here ever corrected it, so a trade held ten minutes came
+        // out opening three hours after it closed.
+        openTime: mt5TimeToUtc(deal.openTime, brokerOffsetSec),
+        source: 'deal',
         ...snapshot,
       };
 
@@ -227,7 +234,6 @@ export const recordClosedDeals = async (
               type: TYPE_MAP[deal.type] ?? 'BUY',
               lots: deal.lots,
               openPrice: deal.openPrice,
-              openTime: mt5TimeToUtc(deal.openTime, brokerOffsetSec),
               sl: 0,
               tp: 0,
               ...values,

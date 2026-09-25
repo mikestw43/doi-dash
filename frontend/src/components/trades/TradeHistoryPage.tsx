@@ -173,12 +173,23 @@ export const TradeHistoryPage = () => {
   };
   const sortIcon = (col: string) => sortBy !== col ? '' : sortDir === 'asc' ? ' ↑' : ' ↓';
 
+  /**
+   * Exports everything the filters select, not the page on screen.
+   *
+   * It used to export `trades`, which is one page — 25 rows out of a filtered
+   * 41 — under a filename that claimed to be the lot. And it carried only the
+   * raw `profit`, leaving out the swap, the commission, the currency and the
+   * USD figure, so the file could not be added up either.
+   */
   const handleExport = () => {
-    if (!trades.length) return;
+    const rows = allTrades.length ? allTrades : trades;
+    if (!rows.length) return;
     exportToCSV(
-      trades.map(t => ({
+      rows.map(t => ({
         ticket: t.ticket, symbol: t.symbol, type: t.type, lots: t.lots,
-        openPrice: t.openPrice, closePrice: t.closePrice, profit: t.profit,
+        openPrice: t.openPrice, closePrice: t.closePrice,
+        profit: t.profit, swap: t.swap, commission: t.commission,
+        net: t.net, profitUsd: t.profitUsd, currency: t.currency,
         openTime: t.openTime, closeTime: t.closeTime, sl: t.sl, tp: t.tp,
         account: t.account?.name || '',
       })),
@@ -187,7 +198,10 @@ export const TradeHistoryPage = () => {
         { key: 'ticket', label: 'Ticket' }, { key: 'symbol', label: 'Symbol' },
         { key: 'type', label: 'Type' }, { key: 'lots', label: 'Lots' },
         { key: 'openPrice', label: 'Open Price' }, { key: 'closePrice', label: 'Close Price' },
-        { key: 'profit', label: 'Profit' }, { key: 'openTime', label: 'Open Time' },
+        { key: 'profit', label: 'Profit' }, { key: 'swap', label: 'Swap' },
+        { key: 'commission', label: 'Commission' }, { key: 'net', label: 'Net' },
+        { key: 'currency', label: 'Currency' }, { key: 'profitUsd', label: 'Net USD' },
+        { key: 'openTime', label: 'Open Time' },
         { key: 'closeTime', label: 'Close Time' }, { key: 'sl', label: 'SL' },
         { key: 'tp', label: 'TP' }, { key: 'account', label: 'Account' },
       ],
