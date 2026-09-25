@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAccountStore } from '../../stores/accountStore';
+import { useUIStore } from '../../stores/uiStore';
 import { fetchTradeHistory } from '../../services/api';
 import { exportToCSV } from '../../utils/export';
 import type { ClosedTrade } from '../../types';
@@ -85,8 +86,20 @@ export const TradeHistoryPage = () => {
   const t = useTranslation();
   const accounts = useAccountStore(s => s.accounts);
 
+  // An account card can send us here already filtered to itself. The handoff
+  // is read once and cleared, so coming back later opens on every account.
+  const handoffAccountId = useUIStore(s => s.tradeHistoryAccountId);
+  const clearHandoff = useUIStore(s => s.clearTradeHistoryAccount);
+
   // Filters
-  const [accountId, setAccountId] = useState('');
+  const [accountId, setAccountId] = useState(handoffAccountId ?? '');
+  useEffect(() => {
+    if (handoffAccountId) {
+      setAccountId(handoffAccountId);
+      setPage(1);
+      clearHandoff();
+    }
+  }, [handoffAccountId]); // eslint-disable-line react-hooks/exhaustive-deps
   const [symbol,    setSymbol]    = useState('');
   const [type,      setType]      = useState('');
   const [dateFrom,  setDateFrom]  = useState('');

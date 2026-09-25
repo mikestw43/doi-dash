@@ -320,5 +320,6 @@
   "ea.type_required": "เลือกชนิดอย่างน้อย 1 อัน",
   "calendar.estimated_note": "≈ คือวันที่คำนวณจากไม้ที่เก็บไว้ ยังไม่ได้ยืนยันกับ MT5 — วันต่อจากนี้จะเอาตัวเลขจาก MT5 โดยตรง",
   "calendar.estimated_cell": "ประมาณการ — คำนวณจากไม้ที่เก็บไว้ ยังไม่ยืนยันกับ MT5",
-  "calendar.verified_cell": "ตัวเลขจาก MT5 โดยตรง"
+  "calendar.verified_cell": "ตัวเลขจาก MT5 โดยตรง",
+  "bot.history": "ประวัติ"
 }

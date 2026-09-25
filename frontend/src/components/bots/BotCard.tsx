@@ -57,6 +57,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
   const groupRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { addToast } = useUIStore();
+  const openTradeHistory = useUIStore(s => s.openTradeHistory);
 
   useEffect(() => {
     if (!showGroupPicker) return;
@@ -298,7 +299,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
         }}>
           {isOnline ? (
             <>
-              {/* DETAILS — primary cyan fill, toggles positions panel */}
+              {/* ORDERS — primary cyan fill, toggles the open-positions panel */}
               <button
                 onClick={() => setShowPositions(p => !p)}
                 className="bc-action"
@@ -313,12 +314,15 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#93c5fd'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#93c5fd'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; }}
               >
-                {showPositions ? `▾ ${t('bot.details')}` : t('bot.details')}
+                {showPositions ? `▾ ${t('bot.orders')}` : t('bot.orders')}
               </button>
 
-              {/* ORDERS */}
+              {/* HISTORY — this button used to call the very same toggle as the
+                  one beside it, so the card had two ways to do one thing and
+                  no way to reach the closed trades. Open positions live on
+                  the left, closed ones a tap to the right. */}
               <button
-                onClick={() => setShowPositions(p => !p)}
+                onClick={() => openTradeHistory(account.id)}
                 className="bc-action"
                 style={{
                   flex: 1,
@@ -331,7 +335,7 @@ export const BotCard = ({ account, todayPnl = 0 }: Props) => {
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent-blue)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(96,165,250,.08)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border2)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.background = 'none'; }}
               >
-                {t('bot.orders')}
+                {t('bot.history')}
               </button>
 
               {/* + TRADE */}
