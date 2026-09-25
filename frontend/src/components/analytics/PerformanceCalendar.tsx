@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchDailyPnL } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -20,15 +20,37 @@ const MONTHS_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'S
  *   $10k – $999k → +$XXk / +$XXXk (5-6 chars, no decimals)
  *   ≥ $1M        → +$X.XM  (6 chars, 1 decimal)
  */
-const fmtCell = (n: number): string => {
+const fmtCell = (n: number, compact = false): string => {
   const abs = Math.abs(n);
   const sign = n >= 0 ? '+' : '-';
-  if (abs >= 1e6)  return `${sign}$${(abs / 1e6).toFixed(1)}M`;
-  if (abs >= 1e4)  return `${sign}$${Math.round(abs / 1000)}k`;
-  if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
-  if (abs >= 100)  return `${sign}$${Math.round(abs)}`;
-  if (abs >= 10)   return `${sign}$${abs.toFixed(1)}`;
-  return `${sign}$${abs.toFixed(2)}`;
+  // On a phone eight columns leave each day roughly 45px, and six characters
+  // of the display font do not fit — shrinking the type far enough to make
+  // them fit would make them unreadable instead. The currency symbol is the
+  // one character that carries no information here: every figure on the page
+  // is USD and the header says so. Dropping it buys a whole character.
+  const cur = compact ? '' : '$';
+  if (abs >= 1e6)  return `${sign}${cur}${(abs / 1e6).toFixed(1)}M`;
+  if (abs >= 1e4)  return `${sign}${cur}${Math.round(abs / 1000)}k`;
+  if (abs >= 1000) return `${sign}${cur}${(abs / 1000).toFixed(1)}k`;
+  if (abs >= 100)  return `${sign}${cur}${Math.round(abs)}`;
+  if (abs >= 10)   return `${sign}${cur}${abs.toFixed(1)}`;
+  return `${sign}${cur}${abs.toFixed(2)}`;
+};
+
+/** True while the viewport is narrow enough that the day cells are cramped. */
+const useNarrow = (): boolean => {
+  const query = '(max-width: 768px)';
+  const [narrow, setNarrow] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const onChange = () => setNarrow(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return narrow;
 };
 
 /** Monthly P/L total — full precision with thousands separator. USD. */
@@ -65,6 +87,7 @@ const heatBorder = (cls: string): string => {
 
 export const PerformanceCalendar = ({ accountId }: Props) => {
   const t = useTranslation();
+  const narrow = useNarrow();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-based
@@ -320,7 +343,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                         fontSize: '24px', lineHeight: 1, color: pnlColor,
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                       }}>
-                        {fmtCell(pnl)}
+                        {fmtCell(pnl, narrow)}
                       </span>
                     )}
                     {estimated && <span className="pcal-approx">≈</span>}
@@ -345,7 +368,7 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                       fontSize: '24px', lineHeight: 1, color: weekColor,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                     }}>
-                      {hasDay ? fmtCell(weekSum) : '—'}
+                      {hasDay ? fmtCell(weekSum, narrow) : '—'}
                     </span>
                     {hasDay && !weekVerified && <span className="pcal-approx">≈</span>}
                   </td>
@@ -397,7 +420,11 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           .pcal-td.pcal-wk-sum { min-width: 0 !important; padding: 2px 2px !important; }
           .pcal-dn { font-size: 11px !important; margin-bottom: 3px !important; }
           .pcal-dn.pcal-dn-today { min-width: 17px !important; height: 17px !important; }
-          .pcal-pnl { font-size: 17px !important; }
+          /* Seven days plus a week column share the screen, so the space a
+             figure gets is a fixed fraction of the viewport — which makes the
+             type size one too, rather than a staircase of breakpoints that is
+             always slightly wrong between two of its steps. */
+          .pcal-pnl { font-size: clamp(10px, 3vw, 17px) !important; }
         }
         @media (max-width: 480px) {
           .pcal-approx { top: 1px; right: 2px; font-size: 9px; }
@@ -405,18 +432,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
           .pcal-td { padding: 2px 2px !important; height: 44px !important; }
           .pcal-dn { font-size: 10px !important; }
           .pcal-dn.pcal-dn-today { min-width: 15px !important; height: 15px !important; padding: 0 4px !important; }
-          .pcal-pnl { font-size: 14px !important; }
         }
-        /* Eight columns on a 390px phone leave each day about 40px of usable
-           width, which the six-character figures (+$1.3k, -$94.0) overrun at
-           14px. The figure is the whole point of the cell, so it shrinks
-           rather than getting cut off. */
         @media (max-width: 400px) {
           .pcal-td { padding: 2px 1px !important; }
-          .pcal-pnl { font-size: 12px !important; }
-        }
-        @media (max-width: 370px) {
-          .pcal-pnl { font-size: 11px !important; }
         }
       `}</style>
     </div>

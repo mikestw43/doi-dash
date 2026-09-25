@@ -84,6 +84,15 @@ export const Layout = ({ children }: LayoutProps) => {
         }
         /* Prevent flex-shrink from clipping children — main scrolls instead */
         .main-content > * { flex-shrink: 0; }
+        /* ...but let them be narrower than their widest descendant. A page is
+           stretched to this column's width, and a stretched box will not go
+           below its own min-content unless told to. The trade history holds a
+           700px-wide table in its own horizontal scroller; Safari still counts
+           that table towards the page's minimum, so the page grew past the
+           screen and .main-content — which scrolls both axes, since a box with
+           one axis scrollable cannot leave the other visible — slid sideways,
+           taking the summary cards and the filters off the edge with it. */
+        .main-content > * { min-width: 0; }
 
         .nav-btn {
           display: flex;

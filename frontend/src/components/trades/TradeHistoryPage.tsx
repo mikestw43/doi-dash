@@ -255,7 +255,7 @@ export const TradeHistoryPage = () => {
       {/* ── Summary cards ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
         gap: '8px',
         marginBottom: '12px',
       }}
@@ -347,7 +347,13 @@ export const TradeHistoryPage = () => {
       </div>
 
       {/* ── Table ── */}
-      <div style={{ overflowX: 'auto', background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>
+      <div style={{
+        overflowX: 'auto',
+        // The sixteen columns scroll inside this box; they must never widen
+        // the page around it.
+        minWidth: 0, maxWidth: '100%',
+        background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
+      }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
@@ -453,8 +459,8 @@ export const TradeHistoryPage = () => {
 
       <style>{`
         /* Summary grid */
-        @media (max-width: 900px) { .th-summary-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-        @media (max-width: 560px) { .th-summary-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 900px) { .th-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+        @media (max-width: 560px) { .th-summary-grid { grid-template-columns: minmax(0, 1fr) !important; } }
 
         /* Table columns — hide on small screens */
         @media (max-width: 760px) {
