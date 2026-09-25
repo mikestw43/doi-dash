@@ -215,6 +215,9 @@ export interface DailyPnL {
   date: string;
   profit: number;
   trades: number;
+  /** True when MT5 itself reported the day's total. False means the day was
+   *  rebuilt from the trades we stored and may not match the terminal. */
+  verified?: boolean;
 }
 
 export interface PerformanceMetrics {

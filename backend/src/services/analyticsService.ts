@@ -5,6 +5,10 @@ export interface DailyPnL {
   date: string;
   profit: number;
   trades: number;
+  /** True when every account's figure for this day came from MT5 itself.
+   *  False means at least one account's day had to be rebuilt from the trades
+   *  we stored, which is an estimate and can disagree with the terminal. */
+  verified: boolean;
 }
 
 export interface PerformanceMetrics {
@@ -69,46 +73,86 @@ export const getDailyPnL = async (
   // Rows whose account is gone keep the owner and the account details they
   // were written with, so they stay in the record instead of disappearing
   // from months that already happened.
-  const where: Record<string, unknown> = {
-    closeTime: { gte: cutoff },
-    OR: [
-      { account: { userId, isDemo: false } },
-      { accountId: null, userId, accountIsDemo: false },
-    ],
-  };
+  const ownership = [
+    { account: { userId, isDemo: false } },
+    { accountId: null, userId, accountIsDemo: false },
+  ];
+
+  const where: Record<string, unknown> = { closeTime: { gte: cutoff }, OR: ownership };
   if (accountId) where.accountId = accountId;
 
-  const trades = await prisma.closedTrade.findMany({
-    where,
-    select: {
-      profit: true,
-      swap: true,
-      commission: true,
-      closeTime: true,
-      accountCurrency: true,
-      account: { select: { currency: true, brokerTimeOffset: true } },
-    },
-    orderBy: { closeTime: 'asc' },
-  });
+  const dayWhere: Record<string, unknown> = {
+    brokerDate: { gte: cutoff.toISOString().slice(0, 10) },
+    OR: ownership,
+  };
+  if (accountId) dayWhere.accountId = accountId;
 
-  const dailyMap = new Map<string, { profit: number; trades: number }>();
+  const [trades, days] = await Promise.all([
+    prisma.closedTrade.findMany({
+      where,
+      select: {
+        profit: true,
+        swap: true,
+        commission: true,
+        closeTime: true,
+        accountId: true,
+        accountCurrency: true,
+        account: { select: { currency: true, brokerTimeOffset: true } },
+      },
+      orderBy: { closeTime: 'asc' },
+    }),
+    prisma.dailyPnl.findMany({
+      where: dayWhere,
+      select: {
+        accountId: true,
+        brokerDate: true,
+        netProfit: true,
+        deals: true,
+        accountCurrency: true,
+        account: { select: { currency: true } },
+      },
+    }),
+  ]);
+
+  // MT5's own figure wins for any (account, day) it covers. Adding up the
+  // trades we stored is the fallback for days the EA never reported — days
+  // before this was kept, or a day an account spent offline.
+  const authoritative = new Set(days.map(d => `${d.accountId ?? ''}|${d.brokerDate}`));
+
+  type Cell = { profit: number; trades: number; verified: boolean };
+  const dailyMap = new Map<string, Cell>();
+  const add = (date: string, profitUsd: number, count: number, verified: boolean) => {
+    const cell = dailyMap.get(date) || { profit: 0, trades: 0, verified: true };
+    cell.profit += profitUsd;
+    cell.trades += count;
+    cell.verified = cell.verified && verified;
+    dailyMap.set(date, cell);
+  };
+
+  for (const d of days) {
+    add(
+      d.brokerDate,
+      toUsd(d.netProfit, d.account?.currency || d.accountCurrency || 'USD'),
+      d.deals,
+      true,
+    );
+  }
+
   for (const t of trades) {
     const offset = t.account?.brokerTimeOffset;
     const date = offset === null || offset === undefined
       ? dateKeyInTz(t.closeTime, timezone)
       : dateKeyAtOffset(t.closeTime, offset);
+    if (authoritative.has(`${t.accountId ?? ''}|${date}`)) continue;
     const net = t.profit + t.swap + t.commission;
-    const profitUsd = toUsd(net, t.account?.currency || t.accountCurrency || 'USD');
-    const existing = dailyMap.get(date) || { profit: 0, trades: 0 };
-    existing.profit += profitUsd;
-    existing.trades += 1;
-    dailyMap.set(date, existing);
+    add(date, toUsd(net, t.account?.currency || t.accountCurrency || 'USD'), 1, false);
   }
 
   return Array.from(dailyMap.entries()).map(([date, v]) => ({
     date,
     profit: parseFloat(v.profit.toFixed(2)),
     trades: v.trades,
+    verified: v.verified,
   }));
 };
 

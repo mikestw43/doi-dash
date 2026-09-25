@@ -5,6 +5,7 @@ import { checkAlerts, checkOfflineAlert } from '../services/alertService';
 import { commandQueue } from '../services/commandQueue';
 import { sendCloseAllNotification } from '../services/commandNotifier';
 import { detectClosedTrades, recordClosedDeals } from '../services/tradeHistoryService';
+import { recordDailyPnl } from '../services/dailyPnlService';
 import { recordSnapshot } from '../services/equityService';
 import { markAsReal, unmarkAsReal } from '../mock/simulator';
 import prisma from '../lib/prisma';
@@ -171,6 +172,15 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     console.log(
       `[MT5] ${account.name} todayPnl=${payload.todayPnl.toFixed(2)} (${payload.closedOrdersToday ?? 0} deals)`
     );
+    // Keep it, don't just display it. This is MT5's own realized total for the
+    // broker day; the calendar shows it instead of re-deriving the day from the
+    // trades we happened to store.
+    recordDailyPnl(
+      account.id,
+      payload.todayPnl,
+      payload.closedOrdersToday ?? 0,
+      payload.brokerTimeOffset ?? 7200,
+    ).catch(err => console.error('[DailyPnl] record error:', err.message));
   }
 
   // Persist MT5 account details to DB if they were empty (first-time connection)

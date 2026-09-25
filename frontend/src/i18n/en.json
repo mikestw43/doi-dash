@@ -317,5 +317,8 @@
   "ea.clear_rating": "Clear the score",
   "ea.type_multi_hint": "pick one or more",
   "ea.name_required": "A name is required.",
-  "ea.type_required": "Pick at least one type."
+  "ea.type_required": "Pick at least one type.",
+  "calendar.estimated_note": "≈ marks a day rebuilt from stored trades, not confirmed by MT5. Days from now on come straight from the terminal.",
+  "calendar.estimated_cell": "Estimated — rebuilt from stored trades, not confirmed by MT5",
+  "calendar.verified_cell": "MT5's own figure for this day"
 }

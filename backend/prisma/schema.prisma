@@ -104,6 +104,7 @@ model Account {
   updatedAt        DateTime @updatedAt
   equitySnapshots  EquitySnapshot[]
   closedTrades     ClosedTrade[]
+  dailyPnl         DailyPnl[]
 
   @@index([userId])
   @@index([apiKey])
@@ -267,4 +268,39 @@ model EaFile {
   createdAt  DateTime @default(now())
 
   @@index([itemId])
+}
+
+/// MT5's own realized P/L for one broker day, as the EA reports it.
+///
+/// The calendar used to be rebuilt by adding up the trades we had stored, so
+/// every gap, overwrite or guess in that reconstruction showed up as a day
+/// that disagreed with the terminal — and stayed wrong forever, because
+/// nothing ever went back to check it. The EA already computes the day's
+/// realized total straight from MT5's deal history on every push; this table
+/// simply keeps that number instead of throwing it away. The stored trades are
+/// still what the list is made of, but they no longer decide the total.
+model DailyPnl {
+  id        String   @id @default(uuid())
+  /// Null once the account is removed. The day stays: the calendar is the
+  /// record of what was really traded.
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  /// Snapshot of the owner, so a detached day is still attributable.
+  userId          String?
+  accountName     String?
+  accountCurrency String?
+  accountIsDemo   Boolean @default(false)
+  /// YYYY-MM-DD as the broker's own clock reads it.
+  brokerDate String
+  /// Realized profit + swap + commission for that broker day, in the
+  /// account's currency, exactly as MT5 totals it.
+  netProfit  Float
+  /// How many closing deals MT5 counted that day.
+  deals      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([accountId, brokerDate])
+  @@index([userId, brokerDate])
+  @@index([accountId])
 }

@@ -23,7 +23,7 @@ import { cleanOldAuditLogs, cleanOldNotificationLogs } from './services/retentio
 import { reportScheduler } from './services/reportScheduler';
 import { errorHandler } from './middleware/errorHandler';
 import { warmFxCache } from './services/fxService';
-import { backfillTradeOwners } from './services/tradeHistoryService';
+import { backfillTradeOwners, repairGuessedOpenTimes } from './services/tradeHistoryService';
 import { applySqlitePragmas } from './lib/prisma';
 import fs from 'fs';
 import path from 'path';
@@ -103,6 +103,7 @@ applySqlitePragmas().then(() => runtimeStore.initialize()).then(() => {
   // refresh fails the cache is empty and rates fall back to 1.0.
   warmFxCache().catch(() => { /* logged inside fxService */ });
   backfillTradeOwners().catch(e => console.error('[TradeHistory] owner backfill failed:', e));
+  repairGuessedOpenTimes().catch(e => console.error('[TradeHistory] open-time repair failed:', e));
   server.listen(PORT, () => {
     console.log(`[OnlyFunds] Backend running on http://localhost:${PORT}`);
   });

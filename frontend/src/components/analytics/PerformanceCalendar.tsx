@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchDailyPnL } from '../../services/api';
+import { useTranslation } from '../../i18n/useTranslation';
 import type { DailyPnL } from '../../types';
 
 interface Props {
@@ -63,6 +64,7 @@ const heatBorder = (cls: string): string => {
 };
 
 export const PerformanceCalendar = ({ accountId }: Props) => {
+  const t = useTranslation();
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-based
@@ -75,14 +77,16 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
     refetchInterval: 30_000,
   });
 
-  // Build pnl-by-date map for current month
+  // Build pnl-by-date map for current month. `verified` travels with the
+  // figure: a day MT5 itself reported is a fact, a day rebuilt from the trades
+  // we stored is an estimate, and the cell says which it is.
   const dayMap = useMemo(() => {
-    const m = new Map<number, number>();
+    const m = new Map<number, { profit: number; verified: boolean }>();
     const ymPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`;
     for (const d of data) {
       if (d.date.startsWith(ymPrefix)) {
         const day = parseInt(d.date.slice(8, 10), 10);
-        m.set(day, d.profit);
+        m.set(day, { profit: d.profit, verified: d.verified !== false });
       }
     }
     return m;
@@ -90,13 +94,14 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
 
   // Per-month stats
   const stats = useMemo(() => {
-    const vals = Array.from(dayMap.values());
+    const vals = Array.from(dayMap.values()).map(v => v.profit);
     const total = vals.reduce((s, v) => s + v, 0);
+    const verified = Array.from(dayMap.values()).every(v => v.verified);
     const wins = vals.filter(v => v > 0).length;
     const losses = vals.filter(v => v < 0).length;
     const best = vals.length ? Math.max(...vals) : 0;
     const worst = vals.length ? Math.min(...vals) : 0;
-    return { total, wins, losses, best, worst };
+    return { total, wins, losses, best, worst, verified };
   }, [dayMap]);
 
   // Calendar cells
@@ -228,7 +233,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
             fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', lineHeight: 1,
             color: stats.total > 0 ? 'var(--success)' : stats.total < 0 ? 'var(--danger)' : 'var(--text-dim)',
           }}>
-            {dayMap.size > 0 ? fmtFull(stats.total) : '—'}
+            {dayMap.size > 0
+              ? `${stats.verified ? '' : '≈'}${fmtFull(stats.total)}`
+              : '—'}
           </span>
         </div>
       </div>
@@ -260,12 +267,17 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
             {grid.map((row, ri) => {
               let weekSum = 0;
               let hasDay = false;
+              // A week is only as confirmed as its least confirmed day.
+              let weekVerified = true;
               const dayCells = row.map((day, ci) => {
                 if (day === null) {
                   return <td key={ci} className="pcal-td pcal-empty" style={{ ...tdBase, border: '1px solid transparent', background: 'transparent' }} />;
                 }
-                const pnl = dayMap.get(day);
+                const cell = dayMap.get(day);
+                const pnl = cell?.profit;
                 if (pnl !== undefined) { weekSum += pnl; hasDay = true; }
+                const estimated = cell !== undefined && !cell.verified;
+                if (estimated) weekVerified = false;
                 const heat = pnl !== undefined ? heatClass(pnl) : '';
                 const isToday = day === todayKey;
                 // "Today" is now signalled by a cyan circle around the date
@@ -277,11 +289,16 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                   ? (pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text-dim)')
                   : 'var(--text-dim)';
                 return (
-                  <td key={ci} className="pcal-td" style={{
-                    ...tdBase,
-                    background: bg,
-                    border,
-                  }}>
+                  <td
+                    key={ci}
+                    className="pcal-td"
+                    title={cell === undefined ? undefined : estimated ? t('calendar.estimated_cell') : t('calendar.verified_cell')}
+                    style={{
+                      ...tdBase,
+                      background: bg,
+                      border,
+                    }}
+                  >
                     <span className={`pcal-dn${isToday ? ' pcal-dn-today' : ''}`} style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                       fontFamily: 'var(--ff-body)',
@@ -303,6 +320,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                         fontSize: '24px', lineHeight: 1, color: pnlColor,
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                       }}>
+                        {estimated && (
+                          <span style={{ color: 'var(--text-dim)', fontSize: '18px' }}>≈</span>
+                        )}
                         {fmtCell(pnl)}
                       </span>
                     )}
@@ -327,6 +347,9 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
                       fontSize: '24px', lineHeight: 1, color: weekColor,
                       whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'clip',
                     }}>
+                      {hasDay && !weekVerified && (
+                        <span style={{ color: 'var(--text-dim)', fontSize: '18px' }}>≈</span>
+                      )}
                       {hasDay ? fmtCell(weekSum) : '—'}
                     </span>
                   </td>
@@ -340,6 +363,17 @@ export const PerformanceCalendar = ({ accountId }: Props) => {
       {loading && data.length === 0 && (
         <div style={{ textAlign: 'center', padding: '12px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>
           Loading...
+        </div>
+      )}
+
+      {/* Only shown while any visible day is still an estimate, so it stops
+          appearing once every day on screen came from MT5. */}
+      {Array.from(dayMap.values()).some(v => !v.verified) && (
+        <div style={{
+          marginTop: '10px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+          color: 'var(--text-dim)', lineHeight: 1.5,
+        }}>
+          {t('calendar.estimated_note')}
         </div>
       )}
 

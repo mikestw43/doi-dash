@@ -154,8 +154,57 @@ export const backfillTradeOwners = async (): Promise<void> => {
   console.log(`[TradeHistory] stamped the owner onto ${done} existing trade(s)`);
 };
 
+/**
+ * Undo the broker-time-as-UTC open times the position-diff fallback wrote.
+ *
+ * `detectClosedTrades` stored `new Date(order.openTime)` straight from the
+ * EA's `2026.09.25 18:05:12`, which JavaScript reads as UTC. The broker's
+ * clock runs ahead of UTC, so every one of those rows opens several hours
+ * later than it really did — and on a position that was open for less than the
+ * offset, that puts the open *after* the close, which is impossible and is how
+ * the whole thing was spotted.
+ *
+ * Rows where the open still precedes the close are shifted by the same amount
+ * but cannot be told apart from correct ones, so only the impossible ones are
+ * repaired. That is a repair, not a guess: an open time later than its own
+ * close can only have come from this bug, and subtracting the account's offset
+ * is exactly the conversion that was missed.
+ */
+export const repairGuessedOpenTimes = async (): Promise<void> => {
+  const accounts = await prisma.account.findMany({
+    where: { NOT: { brokerTimeOffset: null } },
+    select: { id: true, brokerTimeOffset: true },
+  });
+
+  let fixed = 0;
+  for (const a of accounts) {
+    const offsetMs = (a.brokerTimeOffset ?? 0) * 1000;
+    if (offsetMs <= 0) continue;
+
+    // SQLite through Prisma cannot compare two columns in a filter, so the
+    // candidates are narrowed by account and checked in JS.
+    const rows = await prisma.closedTrade.findMany({
+      where: { accountId: a.id },
+      select: { id: true, openTime: true, closeTime: true },
+    });
+
+    for (const r of rows) {
+      if (r.openTime <= r.closeTime) continue;
+      await prisma.closedTrade.update({
+        where: { id: r.id },
+        data: { openTime: new Date(r.openTime.getTime() - offsetMs) },
+      });
+      fixed += 1;
+    }
+  }
+
+  if (fixed > 0) {
+    console.log(`[TradeHistory] repaired ${fixed} open time(s) left behind by the position-diff fallback`);
+  }
+};
+
 /** The owner and the account details a detached row has to carry on its own. */
-const accountSnapshot = async (accountId: string) => {
+export const accountSnapshot = async (accountId: string) => {
   const a = await prisma.account.findUnique({
     where: { id: accountId },
     select: { userId: true, name: true, currency: true, isDemo: true },
