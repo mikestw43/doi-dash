@@ -602,11 +602,18 @@ export const TradeHistoryPage = () => {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-              <span style={{ fontFamily: 'var(--ff-body)', fontWeight: 700, letterSpacing: '.5px', color: 'var(--text)' }}>
+              <span style={{
+                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+                fontWeight: 700, letterSpacing: '.5px', color: 'var(--text)',
+              }}>
                 {tr.symbol}
               </span>
+              {/* Same size as the symbol beside it: the side and the volume are
+                  as much a part of what the trade was, and at the micro size
+                  they read as a footnote to it. */}
               <span style={{
-                fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+                fontWeight: 700, letterSpacing: '.5px', whiteSpace: 'nowrap',
                 color: tr.type === 'BUY' ? 'var(--success)' : 'var(--danger)',
               }}>
                 {tr.type.toLowerCase()} {tr.lots.toFixed(2)}
