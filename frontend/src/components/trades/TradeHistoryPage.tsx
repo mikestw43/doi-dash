@@ -496,6 +496,29 @@ export const TradeHistoryPage = () => {
           .th-col-lots   { display: none !important; }
         }
 
+        /* iOS gives input[type=date] a native control with an intrinsic width
+           of its own, and a width of 100% does not override it: as a flex item
+           with the default min-width of auto it simply refuses to go below
+           that size and widens everything around it. These two inputs are the
+           only ones in the app, which is exactly why this page was the only
+           one that slid sideways on a phone while every other page sat still
+           — and why no width or font in Chromium, which shrinks its own date
+           control happily, ever reproduced it. Dropping the native appearance
+           removes the intrinsic size; a min-width of 0 lets the flex item shrink
+           to what it is given. */
+        .th-filter-bar input[type="date"],
+        .th-date-row input[type="date"] {
+          -webkit-appearance: none;
+          appearance: none;
+          min-width: 0;
+          max-width: 100%;
+          min-height: 32px;
+        }
+        .th-filter-bar, .th-date-row { min-width: 0; }
+        .th-filter-bar select,
+        .th-filter-bar input,
+        .th-date-row input { min-width: 0; max-width: 100%; }
+
         /* Filter bar */
         @media (max-width: 600px) {
           .th-filter-bar { flex-direction: column !important; align-items: stretch !important; }

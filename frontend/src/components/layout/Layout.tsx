@@ -77,6 +77,12 @@ export const Layout = ({ children }: LayoutProps) => {
           flex: 1;
           min-height: 0;
           overflow-y: auto;
+          /* Stated outright, because a box with one axis scrollable cannot
+             leave the other visible: it turns into auto on its own, and then
+             anything that manages to grow past the screen takes the whole
+             page for a ride. Content that really is wider than the phone
+             carries its own scroller (the trade history table has one). */
+          overflow-x: hidden;
           padding: 14px 16px;
           display: flex;
           flex-direction: column;
