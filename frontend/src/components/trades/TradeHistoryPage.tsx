@@ -47,6 +47,33 @@ const tdBase: React.CSSProperties = {
 };
 const tdR: React.CSSProperties = { ...tdBase, textAlign: 'right' };
 
+/** How many decimals a number is actually written with. */
+const decimalsOf = (v: number): number => {
+  const s = String(v);
+  const dot = s.indexOf('.');
+  return dot < 0 ? 0 : s.length - dot - 1;
+};
+
+/**
+ * The move in points, the way MT5 counts them — the difference in the last
+ * digit the symbol quotes.
+ *
+ * That digit count is the one thing we do not store: gold quotes to two
+ * places, most pairs to five, the yen crosses to three, and reading it off a
+ * single trade is unreliable because a price that happens to land on a round
+ * number loses its trailing zeros. It is taken from every trade of that
+ * symbol on the page instead, so one price quoted in full settles it for the
+ * rest, with two places as the floor.
+ */
+const symbolDigits = (trades: { symbol: string; openPrice: number; closePrice: number }[]) => {
+  const m = new Map<string, number>();
+  for (const t of trades) {
+    const seen = Math.max(decimalsOf(t.openPrice), decimalsOf(t.closePrice));
+    m.set(t.symbol, Math.max(m.get(t.symbol) ?? 2, seen));
+  }
+  return m;
+};
+
 /** YYYY-MM-DD for a Date as the user's own clock reads it — the date inputs
  *  speak local dates, so building the presets in UTC would shift them a day. */
 const localDay = (d: Date): string => {
@@ -275,6 +302,12 @@ export const TradeHistoryPage = () => {
     );
   };
 
+  // Both lists, so a symbol quoted in full on any row settles the rest.
+  const digitsBySymbol = useMemo(
+    () => symbolDigits([...allTrades, ...trades]),
+    [allTrades, trades],
+  );
+
   const activePeriod = PERIODS.find(p => {
     const r = periodRange(p.days);
     return r.from === dateFrom && r.to === dateTo;
@@ -317,6 +350,12 @@ export const TradeHistoryPage = () => {
     : stats.totalProfit > 0 ? 'var(--success)'
     : stats.totalProfit < 0 ? 'var(--danger)'
     : 'var(--text-dim)';
+
+  const pointsMoved = (tr: ClosedTrade): string => {
+    const digits = digitsBySymbol.get(tr.symbol) ?? 2;
+    const pts = Math.round(Math.abs(tr.closePrice - tr.openPrice) * Math.pow(10, digits));
+    return pts.toLocaleString('en-US');
+  };
 
   const exportButton = (cls: string, extra: React.CSSProperties = {}) => (
     <button
@@ -636,6 +675,9 @@ export const TradeHistoryPage = () => {
                   beside them stays a caption. */}
               <span style={{ whiteSpace: 'nowrap', fontSize: 'var(--fs-body)', color: 'var(--text)' }}>
                 {tr.openPrice.toFixed(2)} <span style={{ color: 'var(--text-dim)' }}>{'\u2192'}</span> {tr.closePrice.toFixed(2)}
+                <span style={{ color: 'var(--text-dim)', fontSize: 'var(--fs-micro)' }}>
+                  {' '}({pointsMoved(tr)} pts)
+                </span>
               </span>
               <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>{formatDayTime(tr.closeTime)}</span>
             </div>

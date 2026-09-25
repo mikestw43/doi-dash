@@ -132,23 +132,22 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
                 display: 'flex', flexDirection: 'column', gap: '6px',
                 minWidth: 0, maxWidth: '100%',
               }}>
-                <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--text)' }}>
-                  {order.symbol} <span style={{ color: isBuy ? 'var(--green)' : 'var(--red)' }}>{order.type.toLowerCase()} {order.lots.toFixed(2)}</span>
-                </div>
-                {/* The row this form replaced was showing these, and a stop is
-                    a number relative to them — asking for one with the prices
-                    hidden is asking people to remember them. */}
+                {/* The prices ride the line the symbol is already on — a stop
+                    is a number relative to them, and the form had taken them
+                    off the screen, but they do not need a row of their own in
+                    a panel this short. */}
                 <div style={{
                   display: 'flex', alignItems: 'baseline', gap: '6px', flexWrap: 'wrap',
-                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-dim)',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', fontWeight: 700, color: 'var(--text)',
                 }}>
-                  <span>{t_open}</span>
-                  <span style={{ fontSize: 'var(--fs-body)', color: 'var(--text)' }}>
-                    {fmtPriceCompact(order.openPrice)}
+                  <span>
+                    {order.symbol} <span style={{ color: isBuy ? 'var(--green)' : 'var(--red)' }}>{order.type.toLowerCase()} {order.lots.toFixed(2)}</span>
                   </span>
-                  <span style={{ marginLeft: '4px' }}>{t_now}</span>
-                  <span style={{ fontSize: 'var(--fs-body)', color: 'var(--cyan)' }}>
-                    {fmtPriceCompact(order.currentPrice)}
+                  <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontWeight: 400 }}>
+                    <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-dim)' }}>{t_open} </span>
+                    {fmtPriceCompact(order.openPrice)}
+                    <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--text-dim)' }}> {t_now} </span>
+                    <span style={{ color: 'var(--cyan)' }}>{fmtPriceCompact(order.currentPrice)}</span>
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
