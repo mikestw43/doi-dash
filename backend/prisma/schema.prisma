@@ -189,9 +189,13 @@ model EaItem {
   /// Untest | Waiting | OK | Other — where this entry stands, at a glance.
   status      String   @default("OK")
   description String   @default("")
-  /// Where it came from: a vendor page, a forum thread, a repo. Optional.
+  /// Named links, as JSON: [{ "label": "Telegram", "url": "https://…" }].
+  /// A list rather than columns because there is no natural number of them —
+  /// a vendor page, a download, a manual and a chat group is already four.
+  links       String   @default("[]")
+  /// Superseded by `links`, which is backfilled from them once at startup.
+  /// Kept so that backfill has something to read on an old database.
   url         String   @default("")
-  /// A second link — the vendor page and the download are rarely one URL.
   url2        String   @default("")
   /// Flagged by hand as one to keep an eye on. Shown as a red bookmark in
   /// front of the name everywhere the entry is listed.

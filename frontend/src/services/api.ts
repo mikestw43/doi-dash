@@ -447,6 +447,12 @@ export default api;
 
 export interface EaImageDto { id: string; filename: string; caption: string; size: number }
 export interface EaFileDto { id: string; filename: string; label: string; size: number; createdAt: string }
+export interface EaLinkDto {
+  /** What it is — "Telegram group", "Manual". May be empty; then the URL shows. */
+  label: string;
+  url: string;
+}
+
 export interface EaItemDto {
   id: string;
   name: string;
@@ -455,10 +461,8 @@ export interface EaItemDto {
   /** Untest | Waiting | OK | Other */
   status: string;
   description: string;
-  /** Where it came from. Empty when it was never filled in. */
-  url: string;
-  /** A second link — vendor page and download are rarely the same URL. */
-  url2: string;
+  /** Named links — vendor page, download, manual, chat group. */
+  links: EaLinkDto[];
   /** Who wrote it. Free text. */
   developer: string;
   /** Flagged by hand: shown as a red bookmark in front of the name. */
@@ -498,7 +502,7 @@ export const createEaItem = async (form: FormData, onProgress?: UploadProgress):
 export const patchEaItem = async (
   id: string,
   fields: Partial<Pick<EaItemDto,
-    'name' | 'status' | 'description' | 'url' | 'url2' | 'developer' | 'important' | 'rating'>>
+    'name' | 'status' | 'description' | 'developer' | 'important' | 'rating' | 'links'>>
     & { type?: string[]; tags?: string },
 ): Promise<EaItemDto> => (await api.patch(`/ea/${id}`, fields)).data;
 

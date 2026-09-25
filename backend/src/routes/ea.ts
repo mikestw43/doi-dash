@@ -71,6 +71,51 @@ const param = (value: string | string[] | undefined): string =>
   Array.isArray(value) ? value[0] : (value ?? '');
 
 /** Both `type` and `tags` are comma-separated lists in one column. */
+export interface EaLink { label: string; url: string }
+
+const MAX_LINKS = 20;
+
+/**
+ * Whatever arrives — a JSON string from multipart, a real array from JSON —
+ * comes back as a clean list. A row with no URL is dropped: a label with
+ * nothing behind it is not a link, and would render as a dead line.
+ */
+const toLinks = (raw: unknown): EaLink[] => {
+  let arr: unknown = raw;
+  if (typeof raw === 'string') {
+    try { arr = JSON.parse(raw); } catch { return []; }
+  }
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map(v => {
+      const o = (v ?? {}) as Record<string, unknown>;
+      return { label: String(o.label ?? '').trim(), url: String(o.url ?? '').trim() };
+    })
+    .filter(l => l.url)
+    .slice(0, MAX_LINKS);
+};
+
+const readLinks = (raw: string): EaLink[] => toLinks(raw);
+
+/**
+ * The two fixed URL columns became a list. Rows written before that still
+ * carry their values, so they are folded into the list once, here, rather
+ * than at read time: a read-time fallback would resurrect the old URLs the
+ * moment someone emptied the list on purpose.
+ */
+const backfillLinks = async (): Promise<void> => {
+  const stale = await prisma.eaItem.findMany({
+    where: { links: '[]', NOT: { AND: [{ url: '' }, { url2: '' }] } },
+    select: { id: true, url: true, url2: true },
+  });
+  for (const row of stale) {
+    const links = [row.url, row.url2].filter(Boolean).map(url => ({ label: '', url }));
+    await prisma.eaItem.update({ where: { id: row.id }, data: { links: JSON.stringify(links) } });
+  }
+  if (stale.length) console.log(`[EA] moved ${stale.length} entr(y|ies) to the new link list`);
+};
+void backfillLinks().catch(e => console.error('[EA] link backfill failed:', e));
+
 /** 0 means "not rated yet", so anything unparseable or out of range lands there
  *  rather than inventing a score. */
 const clampRating = (raw: unknown): number => {
@@ -87,7 +132,7 @@ const toCsv = (raw: unknown): string =>
 
 const serialize = (item: {
   id: string; name: string; type: string; status: string; description: string; tags: string;
-  url: string; url2: string; developer: string; important: boolean; rating: number;
+  links: string; developer: string; important: boolean; rating: number;
   createdAt: Date; updatedAt: Date;
   images: { id: string; filename: string; caption: string; size: number }[];
   files: { id: string; filename: string; label: string; size: number; createdAt: Date }[];
@@ -97,8 +142,7 @@ const serialize = (item: {
   type: asList(item.type),
   status: item.status,
   description: item.description,
-  url: item.url,
-  url2: item.url2,
+  links: readLinks(item.links),
   developer: item.developer,
   important: item.important,
   rating: item.rating,
@@ -216,7 +260,7 @@ const attachUploads = async (
 };
 
 router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
-  const { name, type, status, description, tags, url, url2, developer, important, rating } =
+  const { name, type, status, description, tags, links, developer, important, rating } =
     req.body as Record<string, string>;
   const types = toCsv(type);
   if (!name?.trim() || !types) {
@@ -230,8 +274,7 @@ router.post('/', uploadFields, async (req: AuthRequest, res: Response) => {
       type: types,
       ...(status?.trim() && { status: status.trim() }),
       description: description?.trim() ?? '',
-      url: url?.trim() ?? '',
-      url2: url2?.trim() ?? '',
+      links: JSON.stringify(toLinks(links)),
       developer: developer?.trim() ?? '',
       // multipart carries no booleans: the form sends the string "true".
       important: important === 'true',
@@ -266,7 +309,7 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  const { name, type, status, description, tags, url, url2, developer, important, rating } =
+  const { name, type, status, description, tags, links, developer, important, rating } =
     req.body as Record<string, unknown>;
   if (name !== undefined && !String(name).trim()) {
     res.status(400).json({ error: 'name cannot be empty' });
@@ -286,8 +329,7 @@ router.patch('/:id', async (req: AuthRequest, res: Response) => {
       ...(type !== undefined && { type: toCsv(type) }),
       ...(status !== undefined && { status: String(status).trim() }),
       ...(description !== undefined && { description: String(description).trim() }),
-      ...(url !== undefined && { url: String(url).trim() }),
-      ...(url2 !== undefined && { url2: String(url2).trim() }),
+      ...(links !== undefined && { links: JSON.stringify(toLinks(links)) }),
       ...(developer !== undefined && { developer: String(developer).trim() }),
       ...(important !== undefined && { important: Boolean(important) }),
       ...(rating !== undefined && { rating: clampRating(rating) }),

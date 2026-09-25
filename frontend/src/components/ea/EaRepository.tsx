@@ -8,7 +8,7 @@ import {
   fetchEaItems, createEaItem, patchEaItem, deleteEaItem,
   addEaUploads, setEaFileLabel, setEaImageCaption, deleteEaFile, deleteEaImage,
   fetchEaImageUrl, downloadEaFile,
-  type EaItemDto, type EaImageDto, type EaFileDto,
+  type EaItemDto, type EaImageDto, type EaFileDto, type EaLinkDto,
 } from '../../services/api';
 
 // ─── Shape ───────────────────────────────────────────────────────────────────
@@ -305,6 +305,58 @@ const LinkRow = ({ label, href }: { label: string; href: string }) => (
   </MetaRow>
 );
 
+/**
+ * The link list, edited as a list.
+ *
+ * A row with a blank URL is dropped on save rather than refused: an empty row
+ * left over from pressing "add" is a mistake nobody needs telling about.
+ */
+const LinkEditor = ({ value, onChange }: {
+  value: EaLinkDto[];
+  onChange: (next: EaLinkDto[]) => void;
+}) => {
+  const t = useTranslation();
+  const set = (i: number, patch: Partial<EaLinkDto>) =>
+    onChange(value.map((l, n) => (n === i ? { ...l, ...patch } : l)));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {value.map((l, i) => (
+        <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            value={l.label}
+            onChange={e => set(i, { label: e.target.value })}
+            placeholder={t('ea.link_label_ph')}
+            aria-label={`${t('ea.link_label_ph')} ${i + 1}`}
+            style={{ ...inputStyle, flex: '0 1 130px', width: 'auto' }}
+          />
+          <input
+            value={l.url}
+            onChange={e => set(i, { url: e.target.value })}
+            placeholder={'https://…'}
+            inputMode="url"
+            aria-label={`${t('ea.link')} ${i + 1}`}
+            style={{ ...inputStyle, flex: '1 1 180px', width: 'auto' }}
+          />
+          <Btn
+            label={'✕'}
+            tone="danger"
+            title={`${t('common.cancel')} ${l.label || l.url || i + 1}`}
+            onClick={() => onChange(value.filter((_, n) => n !== i))}
+          />
+        </div>
+      ))}
+      <div>
+        <Btn
+          label={t('ea.add_link')}
+          tone="primary"
+          onClick={() => onChange([...value, { label: '', url: '' }])}
+        />
+      </div>
+    </div>
+  );
+};
+
 /** A dim label and a value beside it, for the one-line facts about an entry. */
 const MetaRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div style={{ display: 'flex', gap: '8px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>
@@ -533,14 +585,67 @@ const Btn = ({ label, onClick, tone = 'ghost', title, pressed }: {
  * saves. There is no Save button because there is nothing else in flight to
  * save with it — one field, one request. Escape puts the old text back.
  */
+/**
+ * A note that may run to a paragraph.
+ *
+ * Kept to two lines until asked otherwise: a file's note can be the whole
+ * trading logic, and five of those turn the panel into a wall of text with
+ * the files themselves lost in it. The toggle only appears when the text
+ * actually overflows — measured, not guessed from its length, because two
+ * short lines and one long wrapped one are the same number of characters.
+ */
+const LongText = ({ text, lines = 2, style }: {
+  text: string;
+  lines?: number;
+  style?: React.CSSProperties;
+}) => {
+  const t = useTranslation();
+  const ref = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    setOverflows(el.scrollHeight > el.clientHeight + 1);
+  }, [text, open, lines]);
+
+  return (
+    <>
+      <div
+        ref={ref}
+        style={{
+          whiteSpace: 'pre-wrap', overflow: 'hidden',
+          ...(open ? {} : {
+            display: '-webkit-box', WebkitLineClamp: lines, WebkitBoxOrient: 'vertical' as const,
+          }),
+          ...style,
+        }}
+      >{text}</div>
+      {(overflows || open) && (
+        <button
+          onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+          style={{
+            background: 'none', border: 'none', padding: '2px 0 0', cursor: 'pointer',
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--accent-blue)',
+          }}
+        >{open ? `▴ ${t('ea.show_less')}` : `▾ ${t('ea.show_all')}`}</button>
+      )}
+    </>
+  );
+};
+
 const InlineText = ({
-  value, placeholder, onSave, style, multiline,
+  value, placeholder, onSave, style, multiline, clampLines,
 }: {
   value: string;
   placeholder: string;
   onSave: (next: string) => Promise<unknown>;
   style?: React.CSSProperties;
   multiline?: boolean;
+  /** Fold the read view to this many lines, with a toggle. For notes that can
+   *  run long — without it a paragraph pushes everything else off the screen. */
+  clampLines?: number;
 }) => {
   const t = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -612,26 +717,47 @@ const InlineText = ({
     );
   }
 
+  const tick = saved
+    ? <span style={{ color: 'var(--success)', fontSize: 'var(--fs-micro)', marginLeft: '7px' }}>{'✓'}</span>
+    : null;
+
+  const shell: React.CSSProperties = {
+    display: 'block', maxWidth: '100%',
+    padding: '2px 6px', margin: '-2px -6px',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px dashed transparent',
+    cursor: 'text',
+    color: value ? undefined : 'var(--text-dim)',
+    fontStyle: value ? undefined : 'italic',
+    opacity: busy ? .5 : 1,
+    ...style,
+  };
+
+  // The folded view owns its own overflow, so the shell must not clip it — and
+  // the toggle inside it stops the click, or opening the note would start an edit.
+  if (clampLines && value) {
+    return (
+      <span onClick={() => setEditing(true)} title={t('ea.click_to_edit')} className="ea-inline" style={shell}>
+        <LongText text={value} lines={clampLines} />
+        {tick}
+      </span>
+    );
+  }
+
   return (
     <span
       onClick={() => setEditing(true)}
       title={t('ea.click_to_edit')}
       className="ea-inline"
       style={{
-        display: 'inline-block', maxWidth: '100%',
-        padding: '2px 6px', margin: '-2px -6px',
-        borderRadius: 'var(--radius-sm)',
-        border: '1px dashed transparent',
-        cursor: 'text', whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
+        ...shell,
+        display: 'inline-block',
+        whiteSpace: multiline ? 'pre-wrap' : 'nowrap',
         overflow: 'hidden', textOverflow: 'ellipsis',
-        color: value ? undefined : 'var(--text-dim)',
-        fontStyle: value ? undefined : 'italic',
-        opacity: busy ? .5 : 1,
-        ...style,
       }}
     >
       {value || placeholder}
-      {saved && <span style={{ color: 'var(--success)', fontSize: 'var(--fs-micro)', marginLeft: '7px' }}>{'✓'}</span>}
+      {tick}
     </span>
   );
 };
@@ -827,22 +953,30 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
 
         {/* body */}
         <div style={{ padding: '14px 16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* pre-wrap, because the field that writes this is a textarea: people
+              paste numbered rules into it, and without this every line ran
+              together into one paragraph. The text was always stored whole —
+              only the rendering threw the breaks away. */}
           <p style={{
             fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
             color: 'var(--text-primary)', lineHeight: 1.6, margin: 0,
+            whiteSpace: 'pre-wrap',
           }}>{item.description}</p>
 
           {/* Provenance: who wrote it and where it came from. Both optional,
               and a row only appears once there is something in it. */}
-          {(item.developer || item.url || item.url2) && (
+          {(item.developer || item.links.length > 0) && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {item.developer && (
                 <MetaRow label={t('ea.developer')}>
                   <span style={{ color: 'var(--text-primary)' }}>{item.developer}</span>
                 </MetaRow>
               )}
-              {item.url && <LinkRow label={t('ea.url')} href={item.url} />}
-              {item.url2 && <LinkRow label={t('ea.url2')} href={item.url2} />}
+              {/* Labelled where a label was given, so the row says what the
+                  link is instead of making you open it to find out. */}
+              {item.links.map((l, i) => (
+                <LinkRow key={`${l.url}-${i}`} label={l.label || t('ea.link')} href={l.url} />
+              ))}
             </div>
           )}
 
@@ -942,7 +1076,7 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               {item.files.map(f => (
                 <div key={f.id} style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
+                  display: 'flex', alignItems: 'flex-start', gap: '10px',
                   padding: '8px 10px',
                   background: 'var(--bg-primary)',
                   border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)',
@@ -953,18 +1087,30 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
                       color: 'var(--text-primary)', overflow: 'hidden',
                       textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>{f.filename}</div>
-                    <div style={{
-                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
-                      color: 'var(--text-dim)', marginTop: '3px',
-                    }}>
+                    <div
+                      className="ea-note"
+                      style={{
+                        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                        color: 'var(--text-dim)', marginTop: '4px',
+                      }}
+                    >
                       {canEdit
                         ? <InlineText
+                            multiline
+                            clampLines={2}
                             value={f.label}
                             placeholder={t('ea.add_note')}
                             onSave={next => after(setEaFileLabel(f.id, next))}
                           />
-                        : (f.label || '—')}
-                      {' · '}{fmtSize(f.size)} · {f.createdAt}
+                        : (f.label
+                            ? <LongText text={f.label} />
+                            : <span>{'—'}</span>)}
+                    </div>
+                    <div style={{
+                      fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+                      color: 'var(--text-dim)', marginTop: '4px',
+                    }}>
+                      {fmtSize(f.size)} · {f.createdAt}
                     </div>
                   </div>
                   <Btn label={t('ea.download')} onClick={() => { void downloadEaFile(f.id, f.filename); }} />
@@ -1324,8 +1470,7 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
   const [status, setStatus] = useState<string>(EA_STATUS_DEFAULT);
   const [description, setDescription] = useState('');
   const [developer, setDeveloper] = useState('');
-  const [url, setUrl] = useState('');
-  const [url2, setUrl2] = useState('');
+  const [links, setLinks] = useState<EaLinkDto[]>([]);
   const [important, setImportant] = useState(false);
   const [rating, setRating] = useState(0);
   const [tags, setTags] = useState('');
@@ -1372,8 +1517,7 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
       fd.append('status', status);
       fd.append('description', description);
       fd.append('developer', developer);
-      fd.append('url', url);
-      fd.append('url2', url2);
+      fd.append('links', JSON.stringify(links.filter(l => l.url.trim())));
       fd.append('important', String(important));
       fd.append('rating', String(rating));
       fd.append('tags', tags);
@@ -1525,24 +1669,8 @@ const EaForm = ({ onClose }: { onClose: () => void }) => {
             />
           </Field>
 
-          <Field label={t('ea.url')}>
-            <input
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              placeholder={t('ea.url_ph')}
-              inputMode="url"
-              style={inputStyle}
-            />
-          </Field>
-
-          <Field label={t('ea.url2')}>
-            <input
-              value={url2}
-              onChange={e => setUrl2(e.target.value)}
-              placeholder={t('ea.url2_ph')}
-              inputMode="url"
-              style={inputStyle}
-            />
+          <Field label={t('ea.links')}>
+            <LinkEditor value={links} onChange={setLinks} />
           </Field>
 
           <Field label={t('ea.important')}>
@@ -1663,8 +1791,7 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const [status, setStatus] = useState(item.status);
   const [description, setDescription] = useState(item.description);
   const [developer, setDeveloper] = useState(item.developer);
-  const [url, setUrl] = useState(item.url);
-  const [url2, setUrl2] = useState(item.url2);
+  const [links, setLinks] = useState<EaLinkDto[]>(item.links);
   const [important, setImportant] = useState(item.important);
   const [rating, setRating] = useState(item.rating);
   const [tags, setTags] = useState(item.tags.join(', '));
@@ -1674,7 +1801,8 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
   const save = useMutation({
     mutationFn: () =>
       patchEaItem(item.id, {
-        name, type, status, description, developer, url, url2, important, rating, tags,
+        name, type, status, description, developer, important, rating, tags,
+        links: links.filter(l => l.url.trim()),
       }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['ea-items'] });
@@ -1686,7 +1814,8 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
 
   const dirty = name !== item.name || type.join(',') !== item.type.join(',')
     || status !== item.status || description !== item.description
-    || developer !== item.developer || url !== item.url || url2 !== item.url2
+    || developer !== item.developer
+    || JSON.stringify(links) !== JSON.stringify(item.links)
     || important !== item.important || rating !== item.rating
     || tags !== item.tags.join(', ');
 
@@ -1778,24 +1907,8 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
             />
           </Field>
 
-          <Field label={t('ea.url')}>
-            <input
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              placeholder={t('ea.url_ph')}
-              inputMode="url"
-              style={inputStyle}
-            />
-          </Field>
-
-          <Field label={t('ea.url2')}>
-            <input
-              value={url2}
-              onChange={e => setUrl2(e.target.value)}
-              placeholder={t('ea.url2_ph')}
-              inputMode="url"
-              style={inputStyle}
-            />
+          <Field label={t('ea.links')}>
+            <LinkEditor value={links} onChange={setLinks} />
           </Field>
 
           <Field label={t('ea.important')}>
