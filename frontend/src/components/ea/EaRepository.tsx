@@ -823,8 +823,17 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
    * no use for them anyway. The controls appear when MANAGE is pressed and go
    * away again when it is pressed a second time or the entry is closed.
    */
-  const [managing, setManaging] = useState(false);
-  const canEdit = isAdmin && managing;
+  /**
+   * An admin edits where the thing is, with nothing to switch on first.
+   *
+   * There used to be a MANAGE mode hiding every ✕ behind a toggle, because a
+   * row of live deletes is a thumb-width away from losing an upload. The
+   * confirmation dialog does that job now — it shows the thumbnail, says the
+   * bytes go for good, and cancels on Escape, the backdrop or its own default
+   * focus. A second gate on top of it guarded nothing and left two different
+   * ways to edit one entry, which is one more than anybody can keep straight.
+   */
+  const canEdit = isAdmin;
 
   const refresh = () => qc.invalidateQueries({ queryKey: ['ea-items'] });
 
@@ -985,6 +994,10 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
               onClick={() => { void after(patchEaItem(item.id, { important: !item.important })); }}
             />
           )}
+          {/* Up here, next to the name, the status and the links it changes —
+              at the foot of the panel it was a long way from its own subject.
+              Images and files are not in it; those are edited where they are. */}
+          {isAdmin && <Btn label={t('ea.edit')} onClick={onEdit} tone="primary" />}
           <Btn label={t('ea.close')} onClick={onClose} />
         </div>
 
@@ -1020,32 +1033,6 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
           {item.tags.length > 0 && (
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
               {item.tags.map(tag => <TagChip key={tag} tag={tag} />)}
-            </div>
-          )}
-
-          {/* The switch between reading and changing. Named for what it
-              turns on, and coloured while it is on, so there is never a doubt
-              about which of the two states the screen is in. */}
-          {isAdmin && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: managing ? '8px 10px' : 0,
-              margin: managing ? '0 -10px' : 0,
-              borderRadius: 'var(--radius-sm)',
-              background: managing ? 'var(--accent-bg)' : 'none',
-              border: `1px solid ${managing ? 'rgba(96,165,250,.35)' : 'transparent'}`,
-            }}>
-              <span style={{
-                flex: 1, fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-                color: managing ? 'var(--accent-blue)' : 'var(--text-dim)',
-              }}>
-                {managing ? t('ea.managing_on') : t('ea.managing_off')}
-              </span>
-              <Btn
-                label={managing ? t('ea.manage_done') : t('ea.manage')}
-                onClick={() => setManaging(m => !m)}
-                tone={managing ? 'primary' : 'ghost'}
-              />
             </div>
           )}
 
@@ -1180,61 +1167,54 @@ const DetailModal = ({ item, isAdmin, onClose, onEdit, onDelete, keysBusy }: {
             padding: '10px 16px', borderTop: '1px solid var(--border-color)',
             display: 'flex', gap: '8px',
           }}>
-            {/* Text only. Files are handled above, one at a time, so nothing
-                in this form can lose an upload. Safe to leave out on its own:
-                it opens a form with a Cancel. */}
-            <Btn label={t('ea.edit_text')} onClick={onEdit} tone="primary" />
-            {/* Throwing away the entry and every file on it is the largest
-                thing this screen can do, so it keeps behind the same switch
-                as the ✕ beside each one. */}
-            {managing && (
-              <Btn
-                label={t('ea.delete')}
-                title={`${t('ea.delete')} ${item.name}`}
-                onClick={() => ask({
-                  tone: 'danger',
-                  title: t('ea.confirm_delete_item'),
-                  cancelLabel: t('common.cancel'),
-                  confirmLabel: t('ea.confirm_delete_all'),
-                  onConfirm: onDelete,
-                  body: (
-                    <>
-                      <ConfirmTarget>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ color: 'var(--text-primary)' }}>
-                            {item.important ? '★ ' : ''}{item.name}
-                          </div>
-                          <div style={{ fontSize: 'var(--fs-micro)', marginTop: '2px' }}>
-                            {item.type.join(' · ')} · {item.status.toUpperCase()}
-                          </div>
+            {/* The one thing on this screen that cannot be undone, kept at the
+                far end of it, away from everything used while reading. */}
+            <Btn
+              label={t('ea.delete')}
+              title={`${t('ea.delete')} ${item.name}`}
+              onClick={() => ask({
+                tone: 'danger',
+                title: t('ea.confirm_delete_item'),
+                cancelLabel: t('common.cancel'),
+                confirmLabel: t('ea.confirm_delete_all'),
+                onConfirm: onDelete,
+                body: (
+                  <>
+                    <ConfirmTarget>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ color: 'var(--text-primary)' }}>
+                          {item.important ? '★ ' : ''}{item.name}
                         </div>
-                      </ConfirmTarget>
-                      {/* Counted, not just mentioned: the attachments go too,
-                          and the old one-line confirm never said so. */}
-                      {(item.images.length > 0 || item.files.length > 0) && (
-                        <div style={{ marginTop: '9px' }}>
-                          {t('ea.confirm_goes_too')}
-                          <ul style={{ margin: '5px 0 0', paddingLeft: '17px' }}>
-                            {item.images.length > 0 && (
-                              <li style={{ color: 'var(--text-primary)' }}>
-                                {item.images.length} {t('ea.images')}
-                              </li>
-                            )}
-                            {item.files.length > 0 && (
-                              <li style={{ color: 'var(--text-primary)' }}>
-                                {item.files.length} {t('ea.files')}
-                              </li>
-                            )}
-                          </ul>
+                        <div style={{ fontSize: 'var(--fs-micro)', marginTop: '2px' }}>
+                          {item.type.join(' · ')} · {item.status.toUpperCase()}
                         </div>
-                      )}
-                      <Permanent text={t('ea.confirm_permanent_all')} />
-                    </>
-                  ),
-                })}
-                tone="danger"
-              />
-            )}
+                      </div>
+                    </ConfirmTarget>
+                    {/* Counted, not just mentioned: the attachments go too,
+                        and the old one-line confirm never said so. */}
+                    {(item.images.length > 0 || item.files.length > 0) && (
+                      <div style={{ marginTop: '9px' }}>
+                        {t('ea.confirm_goes_too')}
+                        <ul style={{ margin: '5px 0 0', paddingLeft: '17px' }}>
+                          {item.images.length > 0 && (
+                            <li style={{ color: 'var(--text-primary)' }}>
+                              {item.images.length} {t('ea.images')}
+                            </li>
+                          )}
+                          {item.files.length > 0 && (
+                            <li style={{ color: 'var(--text-primary)' }}>
+                              {item.files.length} {t('ea.files')}
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                    <Permanent text={t('ea.confirm_permanent_all')} />
+                  </>
+                ),
+              })}
+              tone="danger"
+            />
           </div>
         )}
       </div>
@@ -1900,7 +1880,7 @@ const EaTextForm = ({ item, onClose }: { item: EaItemDto; onClose: () => void })
           display: 'flex', alignItems: 'center', gap: '10px',
         }}>
           <div style={{ flex: 1, fontFamily: 'var(--ff-title)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)' }}>
-            {t('ea.edit_text')}
+            {t('ea.edit')}
           </div>
           <Btn label={t('ea.close')} onClick={requestClose} />
         </div>
