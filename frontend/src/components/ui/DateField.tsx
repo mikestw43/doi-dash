@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 
 /**
  * A date field that opens a calendar we draw ourselves.
@@ -42,12 +42,60 @@ export const DateField = ({ value, onChange, placeholder, style }: Props) => {
     m: picked?.m ?? today.getMonth(),
   }));
   const wrapRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  // Placed against the viewport rather than the button, because the button
+  // sits inside a panel that clips what overflows it: anchored to the field,
+  // the calendar opened off the right edge of the phone from the TO field and
+  // under the bottom bar from either, with no way to scroll to what was cut.
+  const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
 
   // Reopening on a field that already holds a date should land on that month,
   // not on wherever the last visit left off.
   useEffect(() => {
     if (open && picked) setView({ y: picked.y, m: picked.m });
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return; }
+
+    const place = () => {
+      const btn = btnRef.current;
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const GAP = 4;
+      const EDGE = 8;
+      // The bottom bar is part of the shell, not an overlay, so the space to
+      // open into ends above it.
+      const navH = document.querySelector('.bottom-nav')?.getBoundingClientRect().height ?? 0;
+
+      const width = Math.min(260, vw - EDGE * 2);
+      const height = panelRef.current?.offsetHeight ?? 300;
+
+      const left = Math.min(Math.max(r.left, EDGE), vw - width - EDGE);
+      const below = r.bottom + GAP;
+      const roomBelow = vh - navH - EDGE - below;
+      const top = roomBelow >= height
+        ? below
+        : Math.max(EDGE, r.top - GAP - height);
+
+      setPos({ left, top, width });
+    };
+
+    place();
+    // Once the panel has a height of its own, place it again — the first pass
+    // could only guess.
+    const again = requestAnimationFrame(place);
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      cancelAnimationFrame(again);
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -97,6 +145,7 @@ export const DateField = ({ value, onChange, placeholder, style }: Props) => {
   return (
     <div ref={wrapRef} style={{ position: 'relative', minWidth: 0, flex: '1 1 0' }}>
       <button
+        ref={btnRef}
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
@@ -113,10 +162,13 @@ export const DateField = ({ value, onChange, placeholder, style }: Props) => {
 
       {open && (
         <div
+          ref={panelRef}
           role="dialog"
           style={{
-            position: 'absolute', zIndex: 60, top: 'calc(100% + 4px)', left: 0,
-            minWidth: '236px', maxWidth: 'calc(100vw - 24px)',
+            position: 'fixed', zIndex: 60,
+            left: pos?.left ?? -9999, top: pos?.top ?? -9999,
+            width: pos?.width ?? 260,
+            visibility: pos ? 'visible' : 'hidden',
             padding: '10px',
             background: 'var(--bg-card2, var(--bg-card))',
             border: '1px solid var(--border2)',
