@@ -25,6 +25,9 @@ import { encrypt, decrypt } from '../lib/encryption';
 const PROVIDER_KEY = 'ai.provider';
 const modelKey = (provider: string) => `ai.model.${provider}`;
 const apiKeyKey = (provider: string) => `ai.apiKey.${provider}`;
+// Only 'custom' normally needs one, but any provider may be pointed at a
+// proxy, and it is one row either way.
+const baseKey = (provider: string) => `ai.base.${provider}`;
 
 // Before the settings were per provider there was one of each. They are
 // moved to the provider that was current at the time, on first read.
@@ -35,6 +38,8 @@ export interface AiConfig {
   provider: string;
   model: string;
   apiKey: string;
+  /** The address to talk to, when it is not the provider's own. */
+  baseUrl: string;
   /** Where the key came from, for the settings page to show. */
   source: 'dashboard' | 'environment' | 'none';
 }
@@ -76,7 +81,9 @@ const migrateLegacy = async (provider: string): Promise<void> => {
 /** What is saved for one provider, whether or not it is the selected one. */
 export const configForProvider = async (provider: string): Promise<AiConfig> => {
   const p = provider.trim().toLowerCase();
-  const [model, storedKey] = await Promise.all([read(modelKey(p)), read(apiKeyKey(p))]);
+  const [model, storedKey, base] = await Promise.all([
+    read(modelKey(p)), read(apiKeyKey(p)), read(baseKey(p)),
+  ]);
 
   const fromDashboard = storedKey ? decrypt(storedKey) : '';
   // The environment holds one key, for whichever provider it names.
@@ -87,6 +94,7 @@ export const configForProvider = async (provider: string): Promise<AiConfig> => 
     provider: p,
     model: (model || (envProvider === p ? process.env.AI_MODEL ?? '' : '')).trim(),
     apiKey: fromDashboard || fromEnv,
+    baseUrl: (base ?? '').trim(),
     source: fromDashboard ? 'dashboard' : fromEnv ? 'environment' : 'none',
   };
 };
@@ -104,6 +112,7 @@ export const saveAiConfig = async (
     provider?: string;
     model?: string;
     apiKey?: string;
+    baseUrl?: string;
     /** false edits that provider's settings without selecting it — clearing
      *  the key of a provider you are only looking at should not switch the
      *  assistant over to it. */
@@ -118,6 +127,11 @@ export const saveAiConfig = async (
 
   if (next.provider != null && next.activate !== false) await write(PROVIDER_KEY, target, who);
   if (next.model != null) await write(modelKey(target), next.model.trim(), who);
+  if (next.baseUrl != null) {
+    const url = next.baseUrl.trim().replace(/\/+$/, '');
+    if (url === '') await prisma.appSetting.deleteMany({ where: { key: baseKey(target) } });
+    else await write(baseKey(target), url, who);
+  }
 
   if (next.apiKey != null) {
     const trimmed = next.apiKey.trim();

@@ -4,7 +4,7 @@ import { runtimeStore } from '../services/runtimeStore';
 import prisma from '../lib/prisma';
 import { rateLimit } from '../middleware/rateLimit';
 import { buildPortfolioContext } from '../services/aiContext';
-import { askModel, resolveAi, aiDefaultModel, aiBaseFor, listModels, type AiTurn, type ResolvedAi } from '../services/aiProvider';
+import { askModel, resolveAi, aiDefaultModel, aiBaseFor, listModels, AI_PROVIDERS, type AiTurn, type ResolvedAi } from '../services/aiProvider';
 import { loadAiConfig, saveAiConfig, redacted, configForProvider, savedKeyHints } from '../services/aiSettings';
 import { adminMiddleware } from '../middleware/auth';
 import { logAudit } from '../services/auditLogger';
@@ -103,13 +103,24 @@ const chatLimiter = rateLimit({
  *  follow a thread, capped because every turn is paid for again. */
 const MAX_HISTORY_TURNS = 10;
 
+/**
+ * Whether a question would get an answer.
+ *
+ * A key is what the four named providers need. A server of one's own
+ * needs an address and a model name instead, and often no key at all —
+ * Ollama on a machine at home asks for nothing.
+ */
+const isReady = (ai: { provider: string; apiKey: string; base: string; model: string }): boolean =>
+  ai.provider === 'custom' ? !!ai.base && !!ai.model : !!ai.apiKey;
+
 // GET /api/ai/status
 router.get('/status', async (_req: AuthRequest, res: Response) => {
   const ai = await resolveAi();
+  const ready = isReady(ai);
   res.json({
-    configured: !!ai.apiKey,
+    configured: ready,
     provider: ai.provider,
-    model: ai.apiKey ? ai.model : null,
+    model: ready ? ai.model : null,
   });
 });
 
@@ -121,7 +132,21 @@ router.get('/status', async (_req: AuthRequest, res: Response) => {
  * goes in encrypted and never comes back out: the page is told only that
  * there is one, and its last four characters.
  */
-const PROVIDERS = ['anthropic', 'openai', 'google', 'openrouter'] as const;
+const PROVIDERS = AI_PROVIDERS;
+
+/**
+ * An address an admin typed, checked before anything is sent to it.
+ *
+ * http and https only: the point of the field is another company's API or
+ * a machine on the home network, and anything else is a mistake or worse.
+ */
+const badAddress = (raw: string): string | null => {
+  let url: URL;
+  try { url = new URL(raw); } catch { return 'That is not a web address. It should look like https://api.example.com/v1'; }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return 'The address must start with http:// or https://';
+  if (!url.hostname) return 'That address has no server name in it.';
+  return null;
+};
 
 
 
@@ -143,6 +168,9 @@ router.get('/settings', adminMiddleware, async (_req: AuthRequest, res: Response
     models: Object.fromEntries(await Promise.all(
       PROVIDERS.map(async p => [p, (await configForProvider(p)).model] as const),
     )),
+    bases: Object.fromEntries(await Promise.all(
+      PROVIDERS.map(async p => [p, (await configForProvider(p)).baseUrl] as const),
+    )),
   });
 });
 
@@ -159,7 +187,7 @@ router.get('/settings', adminMiddleware, async (_req: AuthRequest, res: Response
  * deciding.
  */
 router.post('/settings/models', adminMiddleware, async (req: AuthRequest, res: Response) => {
-  const body = req.body as { provider?: string; apiKey?: string };
+  const body = req.body as { provider?: string; apiKey?: string; baseUrl?: string };
   const provider = (body.provider || (await resolveAi()).provider).trim().toLowerCase();
 
   if (!PROVIDERS.includes(provider as typeof PROVIDERS[number])) {
@@ -172,14 +200,17 @@ router.post('/settings/models', adminMiddleware, async (req: AuthRequest, res: R
     provider: provider as ResolvedAi['provider'],
     model: '',
     apiKey: (body.apiKey || '').trim() || saved.apiKey,
-    base: aiBaseFor(provider),
+    base: aiBaseFor(provider, (body.baseUrl || '').trim() || saved.baseUrl),
   });
 
   res.json({ provider, defaultModel: aiDefaultModel(provider), ...list });
 });
 
 router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response) => {
-  const body = req.body as { provider?: unknown; model?: unknown; apiKey?: unknown; activate?: unknown };
+  const body = req.body as {
+    provider?: unknown; model?: unknown; apiKey?: unknown;
+    baseUrl?: unknown; activate?: unknown;
+  };
 
   if (body.provider != null && !PROVIDERS.includes(String(body.provider).toLowerCase() as typeof PROVIDERS[number])) {
     res.status(400).json({ error: 'bad_provider', message: `Provider must be one of: ${PROVIDERS.join(', ')}` });
@@ -189,11 +220,30 @@ router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response)
     res.status(400).json({ error: 'bad_key', message: 'That does not look like an API key.' });
     return;
   }
+  if (body.baseUrl != null && String(body.baseUrl).trim() !== '') {
+    const wrong = badAddress(String(body.baseUrl).trim());
+    if (wrong) {
+      res.status(400).json({ error: 'bad_base', message: wrong });
+      return;
+    }
+  }
+  // A server of one's own is only reachable if it has been named.
+  const targetProvider = String(body.provider ?? (await resolveAi()).provider).toLowerCase();
+  if (targetProvider === 'custom' && body.activate !== false) {
+    const address = body.baseUrl != null
+      ? String(body.baseUrl).trim()
+      : (await configForProvider('custom')).baseUrl;
+    if (!address) {
+      res.status(400).json({ error: 'no_base', message: 'This one needs the address of the server that answers.' });
+      return;
+    }
+  }
 
   await saveAiConfig({
     provider: body.provider != null ? String(body.provider) : undefined,
     model: body.model != null ? String(body.model) : undefined,
     apiKey: body.apiKey != null ? String(body.apiKey) : undefined,
+    baseUrl: body.baseUrl != null ? String(body.baseUrl) : undefined,
     activate: body.activate !== false,
   }, req.user!.email);
 
@@ -217,7 +267,7 @@ router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response)
  * is caught before it is stored.
  */
 router.post('/settings/test', adminMiddleware, async (req: AuthRequest, res: Response) => {
-  const body = req.body as { provider?: string; model?: string; apiKey?: string };
+  const body = req.body as { provider?: string; model?: string; apiKey?: string; baseUrl?: string };
   const current = await resolveAi();
 
   const provider = (body.provider || current.provider) as ResolvedAi['provider'];
@@ -229,10 +279,19 @@ router.post('/settings/test', adminMiddleware, async (req: AuthRequest, res: Res
     provider,
     model: (body.model || '').trim() || saved.model || aiDefaultModel(provider),
     apiKey: (body.apiKey || '').trim() || saved.apiKey,
-    base: aiBaseFor(provider),
+    base: aiBaseFor(provider, (body.baseUrl || '').trim() || saved.baseUrl),
   };
 
-  if (!trial.apiKey) {
+  if (!trial.base) {
+    res.status(400).json({ ok: false, message: 'There is no server address to test yet.' });
+    return;
+  }
+  if (!trial.model) {
+    res.status(400).json({ ok: false, message: 'Name the model this server should answer with.' });
+    return;
+  }
+  // A server at home usually has no key, and that is not a mistake.
+  if (!trial.apiKey && provider !== 'custom') {
     res.status(400).json({ ok: false, message: 'There is no key to test yet.' });
     return;
   }
@@ -340,7 +399,7 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
   }
 
   const ai = await resolveAi();
-  if (!ai.apiKey) {
+  if (!isReady(ai)) {
     res.status(503).json({
       error: 'not_configured',
       message: 'No AI provider is connected yet. An admin can add one in Settings → AI.',

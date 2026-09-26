@@ -576,5 +576,15 @@
   "aiset.models_loading": "Loading the model list…",
   "aiset.models_live": "Model list from the provider",
   "aiset.models_offline": "Could not ask the provider for its models — these are the usual ones, and you can type any id.",
-  "aiset.models_need_key": "Add a key and the real list loads here."
+  "aiset.models_need_key": "Add a key and the real list loads here.",
+  "aiset.custom_what": "Any service that speaks OpenAI's format — DeepSeek, Groq, Typhoon, or a model running on your own machine.",
+  "aiset.base": "SERVER ADDRESS",
+  "aiset.base_hint": "The address its documentation gives for the API, ending in /v1. Tap one to try it:",
+  "aiset.model_pick": "Pick or type a model…",
+  "aiset.provider_custom": "custom — your own address",
+  "aiset.err_bad_provider": "That provider is not one this dashboard knows.",
+  "aiset.err_bad_key": "That does not look like an API key — check you copied all of it.",
+  "aiset.err_bad_base": "That address is not right. It should look like https://api.example.com/v1",
+  "aiset.err_no_base": "Fill in the address of the server that answers first.",
+  "aiset.err_save": "Could not save."
 }

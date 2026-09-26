@@ -679,6 +679,8 @@ export interface AiSettings {
   keys: Record<string, string | null>;
   /** The model saved for each provider ('' = use that provider's default). */
   models: Record<string, string>;
+  /** The address saved for each provider ('' = the provider's own). */
+  bases: Record<string, string>;
 }
 
 export interface AiModelList {
@@ -695,19 +697,19 @@ export const fetchAiSettings = async (): Promise<AiSettings> => {
   return res.data as AiSettings;
 };
 
-export const saveAiSettings = async (next: { provider?: string; model?: string; apiKey?: string; activate?: boolean }) => {
+export const saveAiSettings = async (next: { provider?: string; model?: string; apiKey?: string; baseUrl?: string; activate?: boolean }) => {
   const res = await api.put('/ai/settings', next);
   return res.data as { provider: string; model: string; hasKey: boolean; keyHint: string | null; source: string };
 };
 
 /** Ask the provider one cheap question, with a key that may not be saved
  *  yet — a mistake is better caught before it is stored. */
-export const testAiSettings = async (next: { provider?: string; model?: string; apiKey?: string }) => {
+export const testAiSettings = async (next: { provider?: string; model?: string; apiKey?: string; baseUrl?: string }) => {
   const res = await api.post('/ai/settings/test', next);
   return res.data as { ok: boolean; ms?: number; model?: string; said?: string; message?: string; detail?: string };
 };
 
-export const fetchAiModels = async (next: { provider: string; apiKey?: string }) => {
+export const fetchAiModels = async (next: { provider: string; apiKey?: string; baseUrl?: string }) => {
   const res = await api.post('/ai/settings/models', next);
   return res.data as AiModelList;
 };

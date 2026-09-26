@@ -21,7 +21,17 @@ const WHERE: Record<string, string> = {
   openai: 'platform.openai.com → API keys',
   google: 'aistudio.google.com → Get API key',
   openrouter: 'openrouter.ai → Keys',
+  custom: '',
 };
+
+/** Addresses that work in the custom field, as a reminder of what the
+ *  field is for. Anything that answers OpenAI's /chat/completions fits. */
+const EXAMPLE_BASES = [
+  'https://api.deepseek.com/v1',
+  'https://api.groq.com/openai/v1',
+  'https://api.opentyphoon.ai/v1',
+  'http://192.168.1.50:11434/v1',
+];
 
 export const AiSettings = () => {
   const t = useTranslation();
@@ -30,6 +40,7 @@ export const AiSettings = () => {
   const [provider, setProvider] = useState('anthropic');
   const [model, setModel] = useState('');
   const [key, setKey] = useState('');
+  const [baseUrl, setBaseUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [list, setList] = useState<AiModelList | null>(null);
@@ -40,12 +51,15 @@ export const AiSettings = () => {
   const [typeModel, setTypeModel] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const isCustom = provider === 'custom';
+
   const load = async () => {
     try {
       const s = await fetchAiSettings();
       setSettings(s);
       setProvider(s.provider);
       setModel(s.models[s.provider] ?? '');
+      setBaseUrl(s.bases[s.provider] ?? '');
     } catch { /* not an admin, or not reachable */ }
   };
 
@@ -58,10 +72,14 @@ export const AiSettings = () => {
    * the list is the first honest sign that a key works, before anyone
    * presses TEST.
    */
-  const loadModels = async (forProvider: string, withKey?: string) => {
+  const loadModels = async (forProvider: string, withKey?: string, withBase?: string) => {
     setLoadingModels(true);
     try {
-      setList(await fetchAiModels({ provider: forProvider, ...(withKey?.trim() ? { apiKey: withKey.trim() } : {}) }));
+      setList(await fetchAiModels({
+        provider: forProvider,
+        ...(withKey?.trim() ? { apiKey: withKey.trim() } : {}),
+        ...(withBase?.trim() ? { baseUrl: withBase.trim() } : {}),
+      }));
     } catch {
       setList(null);
     } finally {
@@ -89,15 +107,27 @@ export const AiSettings = () => {
     setSaving(true);
     setResult(null);
     try {
-      await saveAiSettings({ provider, model, ...(key.trim() ? { apiKey: key.trim() } : {}) });
+      await saveAiSettings({
+        provider, model,
+        ...(key.trim() ? { apiKey: key.trim() } : {}),
+        ...(isCustom ? { baseUrl } : {}),
+      });
       const justTyped = key.trim();
       setKey('');
       await load();
-      await loadModels(provider, justTyped);
+      await loadModels(provider, justTyped, baseUrl);
       addToast({ type: 'success', title: t('aiset.saved') });
     } catch (err) {
-      const msg = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
-      addToast({ type: 'error', title: t('aiset.title'), message: msg ?? 'Could not save' });
+      const data = (err as { response?: { data?: { error?: string; message?: string } } }).response?.data;
+      // The server answers in English. Its reasons are few and known, so
+      // each one has a sentence in the language on screen; anything else
+      // falls back to what the server said, which is better than nothing.
+      const known = data?.error ? t(`aiset.err_${data.error}`) : '';
+      addToast({
+        type: 'error',
+        title: t('aiset.title'),
+        message: (known && !known.startsWith('aiset.') ? known : data?.message) ?? t('aiset.err_save'),
+      });
     } finally {
       setSaving(false);
     }
@@ -109,11 +139,15 @@ export const AiSettings = () => {
     try {
       // The typed key is tested before it is saved: a wrong one should
       // never make it into the database in the first place.
-      const r = await testAiSettings({ provider, model, ...(key.trim() ? { apiKey: key.trim() } : {}) });
+      const r = await testAiSettings({
+        provider, model,
+        ...(key.trim() ? { apiKey: key.trim() } : {}),
+        ...(isCustom ? { baseUrl } : {}),
+      });
       setResult(r.ok
         ? { ok: true, text: `${t('aiset.test_ok')} · ${r.model} · ${r.ms}ms` }
         : { ok: false, text: r.message ?? 'Failed' });
-      if (r.ok && key.trim()) void loadModels(provider, key.trim());
+      if (r.ok) void loadModels(provider, key.trim(), baseUrl);
     } catch {
       setResult({ ok: false, text: 'Could not reach the server.' });
     } finally {
@@ -157,6 +191,7 @@ export const AiSettings = () => {
             const next = e.target.value;
             setProvider(next);
             setModel(settings.models[next] ?? '');
+            setBaseUrl(settings.bases[next] ?? '');
             setKey('');
             setTypeModel(false);
             setResult(null);
@@ -165,15 +200,48 @@ export const AiSettings = () => {
         >
           {settings.providers.map(p => (
             <option key={p} value={p}>
-              {p}{settings.keys[p] ? ` — ${t('aiset.key_on_file')}` : ''}
+              {p === 'custom' ? t('aiset.provider_custom') : p}
+              {settings.keys[p] ? ` — ${t('aiset.key_on_file')}` : ''}
             </option>
           ))}
         </select>
         <div style={{
           fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
           color: 'var(--text-muted)', marginTop: '5px',
-        }}>{t('aiset.where')}: {WHERE[provider] ?? ''}</div>
+        }}>{isCustom ? t('aiset.custom_what') : `${t('aiset.where')}: ${WHERE[provider] ?? ''}`}</div>
       </div>
+
+      {isCustom && (
+        <div style={{ marginBottom: '14px' }}>
+          <label style={lbl}>{t('aiset.base')}</label>
+          <input
+            value={baseUrl}
+            onChange={e => { setBaseUrl(e.target.value); setResult(null); }}
+            placeholder="https://api.deepseek.com/v1"
+            autoComplete="off"
+            spellCheck={false}
+            style={inp}
+          />
+          <div style={{
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+            color: 'var(--text-muted)', marginTop: '5px', lineHeight: 1.6,
+          }}>
+            {t('aiset.base_hint')}
+            <br />
+            {EXAMPLE_BASES.map(b => (
+              <button
+                key={b}
+                onClick={() => { setBaseUrl(b); setResult(null); }}
+                style={{
+                  background: 'none', border: 'none', padding: '2px 0', marginRight: '10px',
+                  color: 'var(--accent-blue)', fontFamily: 'var(--ff-mono, var(--ff-body))',
+                  fontSize: 'var(--fs-micro)', cursor: 'pointer', textDecoration: 'underline',
+                }}
+              >{b}</button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ marginBottom: '14px' }}>
         <label style={lbl}>{t('aiset.model')}</label>
@@ -198,7 +266,9 @@ export const AiSettings = () => {
             style={{ ...inp, cursor: loadingModels ? 'wait' : 'pointer' }}
           >
             <option value="">
-              {t('aiset.model_default')} — {settings.defaults[provider] ?? ''}
+              {isCustom
+                ? t('aiset.model_pick')
+                : `${t('aiset.model_default')} — ${settings.defaults[provider] ?? ''}`}
             </option>
             {options.map(m => <option key={m} value={m}>{m}</option>)}
             <option value="__type__">{t('aiset.model_type')}</option>

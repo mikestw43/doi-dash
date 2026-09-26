@@ -17,7 +17,7 @@
 
 import { loadAiConfig } from './aiSettings';
 
-export type AiProvider = 'anthropic' | 'openai' | 'google' | 'openrouter';
+export type AiProvider = 'anthropic' | 'openai' | 'google' | 'openrouter' | 'custom';
 
 export interface AiTurn {
   role: 'user' | 'assistant';
@@ -37,6 +37,8 @@ const DEFAULT_MODEL: Record<AiProvider, string> = {
   openai: 'gpt-4o-mini',
   google: 'gemini-2.0-flash',
   openrouter: 'anthropic/claude-sonnet-5',
+  // Nobody can guess what a server we have never seen calls its models.
+  custom: '',
 };
 
 const DEFAULT_BASE: Record<AiProvider, string> = {
@@ -44,6 +46,9 @@ const DEFAULT_BASE: Record<AiProvider, string> = {
   openai: 'https://api.openai.com/v1',
   google: 'https://generativelanguage.googleapis.com',
   openrouter: 'https://openrouter.ai/api/v1',
+  // 'custom' has no default: its address is the whole point, and is saved
+  // with the rest of its settings.
+  custom: '',
 };
 
 /** The settings an admin saved, or the environment behind them. Resolved
@@ -56,8 +61,23 @@ export interface ResolvedAi {
   base: string;
 }
 
+export const AI_PROVIDERS = ['anthropic', 'openai', 'google', 'openrouter', 'custom'] as const;
+
 const asProvider = (raw: string): AiProvider =>
-  (['anthropic', 'openai', 'google', 'openrouter'].includes(raw) ? raw : 'anthropic') as AiProvider;
+  (AI_PROVIDERS.includes(raw as AiProvider) ? raw : 'anthropic') as AiProvider;
+
+/**
+ * Anything that is not one of the four, reached by the shape almost
+ * everyone copied.
+ *
+ * Most companies that came after OpenAI answer at /chat/completions with
+ * OpenAI's own request and reply — DeepSeek, Groq, Together, Typhoon, and
+ * Ollama or LM Studio running on a machine at home. So a fifth provider
+ * that is only an address covers all of them without a release from us
+ * each time a new one appears.
+ */
+export const isOpenAiShaped = (provider: AiProvider): boolean =>
+  provider === 'openai' || provider === 'openrouter' || provider === 'custom';
 
 export const resolveAi = async (): Promise<ResolvedAi> => {
   const cfg = await loadAiConfig();
@@ -66,7 +86,7 @@ export const resolveAi = async (): Promise<ResolvedAi> => {
     provider,
     model: cfg.model || DEFAULT_MODEL[provider],
     apiKey: cfg.apiKey,
-    base: (process.env.AI_API_BASE?.trim() || DEFAULT_BASE[provider]).replace(/\/+$/, ''),
+    base: aiBaseFor(provider, cfg.baseUrl),
   };
 };
 
@@ -75,8 +95,9 @@ export const aiDefaultModel = (provider: string): string => DEFAULT_MODEL[asProv
 /** Where to reach a provider that is not the selected one — asking another
  *  provider for its model list, or testing a key before switching to it.
  *  AI_API_BASE, when set, points all of them at one stand-in. */
-export const aiBaseFor = (provider: string): string =>
-  (process.env.AI_API_BASE?.trim() || DEFAULT_BASE[asProvider(provider)]).replace(/\/+$/, '');
+export const aiBaseFor = (provider: string, savedBase?: string): string =>
+  (process.env.AI_API_BASE?.trim() || savedBase?.trim() || DEFAULT_BASE[asProvider(provider)])
+    .replace(/\/+$/, '');
 
 const MAX_OUTPUT_TOKENS = 1200;
 const TIMEOUT_MS = 60_000;
@@ -199,6 +220,7 @@ const askGoogle = async (ai: ResolvedAi, system: string, turns: AiTurn[]): Promi
  *  words, which the caller turns into something a person can act on. */
 export const askModel = async (system: string, turns: AiTurn[], override?: ResolvedAi): Promise<AiAnswer> => {
   const ai = override ?? await resolveAi();
+  if (!ai.base) throw new Error('no address is set for this server');
   switch (ai.provider) {
     case 'anthropic': return askAnthropic(ai, system, turns);
     case 'google':    return askGoogle(ai, system, turns);
@@ -226,6 +248,7 @@ const FALLBACK_MODELS: Record<AiProvider, string[]> = {
   openai: ['gpt-4o-mini', 'gpt-4o'],
   google: ['gemini-2.0-flash', 'gemini-2.0-flash-lite'],
   openrouter: ['anthropic/claude-sonnet-5', 'openai/gpt-4o-mini', 'google/gemini-2.0-flash'],
+  custom: [],
 };
 
 /** Names in the list that are not chat models, whatever the provider. */
@@ -259,7 +282,12 @@ export interface ModelList {
 export const listModels = async (ai: ResolvedAi): Promise<ModelList> => {
   const preferred = DEFAULT_MODEL[ai.provider];
   try {
-    if (!ai.apiKey && ai.provider !== 'openrouter') throw new Error('no key yet');
+    // OpenRouter lists without a key, and a server at home usually wants
+    // no key at all — but it does need an address.
+    if (!ai.base) throw new Error('no address for this server yet');
+    if (!ai.apiKey && ai.provider !== 'openrouter' && ai.provider !== 'custom') {
+      throw new Error('no key yet');
+    }
 
     let ids: string[] = [];
     if (ai.provider === 'anthropic') {
