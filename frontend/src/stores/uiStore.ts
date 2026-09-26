@@ -33,6 +33,17 @@ interface UIState {
   /** The assistant is a sheet over whatever page you are on, not a page. */
   aiOpen: boolean;
   setAiOpen: (open: boolean) => void;
+  /**
+   * The conversation, kept out here rather than inside the sheet.
+   *
+   * The sheet unmounts when it closes, so anything it held went with it —
+   * close it to look at a position and the exchange you were in the middle
+   * of was gone. Held for the session; a reload still starts fresh, and
+   * conversations that survive that belong on the server, with the model.
+   */
+  aiMessages: { id: number; who: 'me' | 'ai'; text: string }[];
+  addAiMessage: (m: { who: 'me' | 'ai'; text: string }) => void;
+  clearAiMessages: () => void;
   /** Go to the trade history already filtered to one account. */
   openTradeHistory: (accountId: string) => void;
   clearTradeHistoryAccount: () => void;
@@ -49,6 +60,7 @@ export const useUIStore = create<UIState>()(
       activeTab: 'overview',
       currentPage: 'dashboard',
       aiOpen: false,
+      aiMessages: [],
       language: 'en',
       theme: 'dark',
       tradeHistoryAccountId: null,
@@ -63,6 +75,10 @@ export const useUIStore = create<UIState>()(
       setActiveTab: (tab) => set({ activeTab: tab }),
       setCurrentPage: (page) => set({ currentPage: page }),
       setAiOpen: (open) => set({ aiOpen: open }),
+      addAiMessage: (m) => set(state => ({
+        aiMessages: [...state.aiMessages, { ...m, id: Date.now() + state.aiMessages.length }],
+      })),
+      clearAiMessages: () => set({ aiMessages: [] }),
       openTradeHistory: (accountId) =>
         set({ currentPage: 'trade-history', tradeHistoryAccountId: accountId }),
       clearTradeHistoryAccount: () => set({ tradeHistoryAccountId: null }),

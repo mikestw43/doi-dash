@@ -58,14 +58,35 @@ export const useDictation = (lang: string): Dictation => {
   const [heard, setHeard] = useState('');
   const [error, setError] = useState<'denied' | 'nothing' | null>(null);
 
-  const stop = useCallback(() => {
-    rec.current?.stop();
-    setListening(false);
+  const hardStopAt = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const release = useCallback(() => {
+    if (hardStopAt.current) { clearTimeout(hardStopAt.current); hardStopAt.current = null; }
+    const r = rec.current;
+    rec.current = null;
+    if (!r) return;
+    // stop() asks politely and waits for the engine to settle; abort() ends
+    // it outright. Safari sometimes never fires onend after stop(), which
+    // left the button stuck listening — and every further tap started
+    // another recognition on top of the last until the page stopped
+    // answering at all. Both are called, in that order.
+    try { r.stop(); } catch { /* already gone */ }
+    setTimeout(() => { try { r.abort(); } catch { /* already gone */ } }, 350);
   }, []);
+
+  const stop = useCallback(() => {
+    release();
+    setListening(false);
+  }, [release]);
 
   const start = useCallback(() => {
     const Ctor = ctor.current;
     if (!Ctor) return;
+
+    // Never two at once. A second recognition over a live one is what made
+    // the page unresponsive: the microphone stays held, and neither session
+    // can be stopped by the button.
+    release();
 
     // A fresh one each time: a recognition that has ended cannot be restarted
     // on Safari, and reusing it silently does nothing.
@@ -83,7 +104,11 @@ export const useDictation = (lang: string): Dictation => {
       setError(e.error === 'not-allowed' || e.error === 'service-not-allowed' ? 'denied' : 'nothing');
       setListening(false);
     };
-    r.onend = () => setListening(false);
+    r.onend = () => {
+      if (hardStopAt.current) { clearTimeout(hardStopAt.current); hardStopAt.current = null; }
+      rec.current = null;
+      setListening(false);
+    };
 
     setHeard('');
     setError(null);
@@ -91,14 +116,25 @@ export const useDictation = (lang: string): Dictation => {
     try {
       r.start();
       setListening(true);
+      // A session that is never ended by the engine — no speech, a lost
+      // permission prompt, the screen locking — must not hold the
+      // microphone or the button forever.
+      hardStopAt.current = setTimeout(() => {
+        rec.current = null;
+        try { r.stop(); } catch { /* already gone */ }
+        try { r.abort(); } catch { /* already gone */ }
+        setListening(false);
+      }, 15_000);
     } catch {
-      // start() throws if one is already running; treat it as already on.
-      setListening(true);
+      // Already running, or refused outright. Either way this attempt is
+      // over: leaving the button lit would make it unpressable.
+      rec.current = null;
+      setListening(false);
     }
-  }, [lang]);
+  }, [lang, release]);
 
   // Leaving the screen must not leave the microphone on.
-  useEffect(() => () => { rec.current?.abort(); }, []);
+  useEffect(() => () => { release(); }, [release]);
 
   return { supported: !!ctor.current, listening, heard, error, start, stop };
 };

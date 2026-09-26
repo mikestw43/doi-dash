@@ -26,12 +26,6 @@ import { useDictation } from '../../hooks/useDictation';
  * down, tapping the dimmed page behind it and Escape all close it.
  */
 
-interface Message {
-  id: number;
-  who: 'me' | 'ai';
-  text: string;
-}
-
 export const AiSheet = () => {
   const t = useTranslation();
   const addToast = useUIStore(st => st.addToast);
@@ -41,12 +35,13 @@ export const AiSheet = () => {
   const mic = useDictation(language);
   const [status, setStatus] = useState<AiStatus | null>(null);
   const [ctx, setCtx] = useState<AiContext | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const messages = useUIStore(st => st.aiMessages);
+  const addMessage = useUIStore(st => st.addAiMessage);
+  const clearMessages = useUIStore(st => st.clearAiMessages);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  const nextId = useRef(1);
 
   // How far the sheet has been pushed down, in px, while a finger is on it.
   const [dragY, setDragY] = useState(0);
@@ -142,17 +137,14 @@ export const AiSheet = () => {
     const question = text.trim();
     if (!question || busy) return;
     setDraft('');
-    setMessages(m => [...m, { id: nextId.current++, who: 'me', text: question }]);
+    addMessage({ who: 'me', text: question });
     setBusy(true);
     try {
       const { reply } = await askAi(question);
-      setMessages(m => [...m, { id: nextId.current++, who: 'ai', text: reply }]);
+      addMessage({ who: 'ai', text: reply });
     } catch (err) {
       const answer = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
-      setMessages(m => [...m, {
-        id: nextId.current++, who: 'ai',
-        text: answer || 'Could not reach the server. Please try again.',
-      }]);
+      addMessage({ who: 'ai', text: answer || 'Could not reach the server. Please try again.' });
     } finally {
       setBusy(false);
     }
@@ -218,6 +210,15 @@ export const AiSheet = () => {
           <span />
         </div>
 
+        {/* While the microphone is live, the first tap anywhere stops it.
+            A stuck listening state used to leave nothing to press. */}
+        {mic.listening && (
+          <div
+            className="ai-catch"
+            onPointerDown={mic.stop}
+          />
+        )}
+
         <div className="ai-scroll" ref={scroller} style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0, flex: 1 }}>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
@@ -226,6 +227,20 @@ export const AiSheet = () => {
           color: 'var(--text-dim)', letterSpacing: '2px',
         }}>{t('ai.title')}</span>
         <div style={{ flex: 1 }} />
+        {messages.length > 0 && (
+          <button
+            onClick={clearMessages}
+            title={t('ai.new_chat')}
+            aria-label={t('ai.new_chat')}
+            style={{
+              background: 'none', border: '1px solid var(--border2)', borderRadius: '999px',
+              padding: '3px 10px', cursor: 'pointer', flexShrink: 0,
+              color: 'var(--text-muted)', fontFamily: 'var(--ff-label)',
+              fontSize: 'var(--fs-micro)', letterSpacing: '1px',
+            }}
+          >{t('ai.new_chat')}</button>
+        )}
+
         {/* A mouse has no swipe, and a keyboard user needs a target. */}
         <button
           onClick={close}
@@ -366,7 +381,10 @@ export const AiSheet = () => {
               does nothing is worse than none. */}
           {mic.supported && (
             <button
-              onClick={() => (mic.listening ? mic.stop() : mic.start())}
+              // One pointer event, not a touch and a click: handling both
+              // fired twice per tap — start then stop — and the button
+              // looked dead. This covers finger and mouse alike.
+              onPointerDown={() => (mic.listening ? mic.stop() : mic.start())}
               title={mic.listening ? t('ai.listening') : t('ai.speak')}
               aria-label={t('ai.speak')}
               className={mic.listening ? 'ai-mic ai-mic-on' : 'ai-mic'}
@@ -412,6 +430,7 @@ export const AiSheet = () => {
         }
         .ai-backdrop > .ai-sheet { pointer-events: auto; }
         .ai-sheet {
+          position: relative;
           width: 100%; max-width: 640px;
           height: 88vh; max-height: 88vh;
           background: var(--bg-primary);
@@ -424,8 +443,13 @@ export const AiSheet = () => {
           animation: ai-rise .24s cubic-bezier(.2,.8,.3,1);
         }
         @keyframes ai-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .ai-catch {
+          position: absolute; inset: 0; z-index: 5;
+          background: transparent;
+        }
         .ai-mic {
           position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+          z-index: 6;
           width: 32px; height: 32px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           background: none; border: 1px solid var(--border2);
@@ -457,8 +481,13 @@ export const AiSheet = () => {
         @media (min-width: 768px) {
           .ai-backdrop { align-items: center; }
           .ai-sheet { height: 80vh; border-radius: 12px; border-bottom: 1px solid var(--border2); }
-          .ai-mic {
+          .ai-catch {
+          position: absolute; inset: 0; z-index: 5;
+          background: transparent;
+        }
+        .ai-mic {
           position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+          z-index: 6;
           width: 32px; height: 32px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           background: none; border: 1px solid var(--border2);
