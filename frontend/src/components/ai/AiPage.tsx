@@ -3,7 +3,7 @@ import { askAi, fetchAiContext, fetchAiStatus, type AiContext, type AiStatus, fe
   type AiChatSummary } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useUIStore } from '../../stores/uiStore';
-import { IconSpark, IconMic, IconPlus } from '../icons';
+import { IconSpark, IconMic, IconPlus, IconCopy, IconRetry, IconPencil, IconArrowUp } from '../icons';
 import { prepareImage } from '../../utils/imagePrep';
 import { useDictation } from '../../hooks/useDictation';
 import { RichText } from './RichText';
@@ -415,6 +415,17 @@ export const AiSheet = () => {
     }
   };
 
+  /**
+   * Tapping a button while the keyboard is up used to cost two taps.
+   *
+   * The first tap took focus off the box, the keyboard came down, the
+   * sheet grew back into the space it left — and the button had moved out
+   * from under the finger before the tap landed. Refusing the focus change
+   * at pointer-down keeps the keyboard where it is, so the first tap is
+   * the one that works.
+   */
+  const keepKeyboard = (e: React.PointerEvent) => e.preventDefault();
+
   /** Abandon the question in flight. */
   const stop = () => {
     inflight.current?.abort();
@@ -724,7 +735,13 @@ export const AiSheet = () => {
           <div className="ai-meta" style={{ justifyContent: 'flex-end' }}>
             <span>{clock(m.at)}</span>
             {!busy && (
-              <button onClick={() => void editMessage(m)} className="ai-act">{t('ai.edit')}</button>
+              <button
+                onClick={() => void editMessage(m)}
+                onPointerDown={keepKeyboard}
+                className="ai-act"
+                aria-label={t('ai.edit')}
+                title={t('ai.edit')}
+              ><IconPencil size={17} /></button>
             )}
           </div>
           </div>
@@ -740,11 +757,25 @@ export const AiSheet = () => {
           </div>
           <div className="ai-meta">
             <span>{clock(m.at)}</span>
-            <button onClick={() => void copy(m)} className="ai-act">
-              {copied === m.id ? t('ai.copied') : t('ai.copy')}
+            <button
+              onClick={() => void copy(m)}
+              onPointerDown={keepKeyboard}
+              className={copied === m.id ? 'ai-act ai-act-done' : 'ai-act'}
+              aria-label={t('ai.copy')}
+              title={copied === m.id ? t('ai.copied') : t('ai.copy')}
+            >
+              {copied === m.id
+                ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+                : <IconCopy size={17} />}
             </button>
             {!busy && (
-              <button onClick={() => void retry(m.id)} className="ai-act">{t('ai.retry')}</button>
+              <button
+                onClick={() => void retry(m.id)}
+                onPointerDown={keepKeyboard}
+                className="ai-act"
+                aria-label={t('ai.retry')}
+                title={t('ai.retry')}
+              ><IconRetry size={17} /></button>
             )}
             {m.model && <span style={{ marginLeft: 'auto', opacity: .75 }}>{m.model}</span>}
           </div>
@@ -882,7 +913,7 @@ export const AiSheet = () => {
               // One pointer event, not a touch and a click: handling both
               // fired twice per tap — start then stop — and the button
               // looked dead. This covers finger and mouse alike.
-              onPointerDown={() => (mic.listening ? mic.stop() : mic.start())}
+              onPointerDown={e => { e.preventDefault(); if (mic.listening) mic.stop(); else mic.start(); }}
               title={mic.listening ? t('ai.listening') : t('ai.speak')}
               aria-label={t('ai.speak')}
               className={mic.listening ? 'ai-mic ai-mic-on' : 'ai-mic'}
@@ -891,21 +922,18 @@ export const AiSheet = () => {
             </button>
           )}
         </div>
+        {/* Round, with an arrow, the way every chat on a phone sends: the
+            word SEND in a box took a third of the composer's width and
+            still had to be aimed at. */}
         <button
           onClick={() => send(draft)}
+          onPointerDown={keepKeyboard}
           disabled={busy || (!draft.trim() && photos.length === 0)}
           title={t('ai.send')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0,
-            background: 'var(--accent-blue)', color: '#12151a', border: 'none',
-            borderRadius: 'var(--radius-sm)', padding: '10px 13px',
-            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-label)', letterSpacing: '1px',
-            cursor: busy || (!draft.trim() && photos.length === 0) ? 'default' : 'pointer',
-            opacity: busy || (!draft.trim() && photos.length === 0) ? .5 : 1,
-          }}
+          aria-label={t('ai.send')}
+          className="ai-send"
         >
-          <IconSpark size={14} />
-          {t('ai.send')}
+          <IconArrowUp size={20} />
         </button>
       </div>
       </div>
@@ -992,13 +1020,32 @@ export const AiSheet = () => {
           font-family: var(--ff-body); font-size: var(--fs-micro);
           color: var(--text-muted);
         }
+        /* Icons, and a target a thumb can actually hit: the words "Copy"
+           and "Edit" at micro size were both hard to read and hard to
+           land on. 34px square is the smallest that reliably takes a tap. */
         .ai-act {
-          background: none; border: none; padding: 2px 0;
-          font-family: var(--ff-body); font-size: var(--fs-micro);
-          color: var(--text-dim); cursor: pointer;
+          width: 34px; height: 34px; margin: -6px 0;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: none; border: none; padding: 0;
+          /* The muted greys are for text under a table; an icon this size
+             disappears in them. */
+          color: var(--text-primary); opacity: .72;
+          cursor: pointer; border-radius: 50%;
           -webkit-tap-highlight-color: transparent;
         }
-        .ai-act:active { color: var(--accent-blue); }
+        .ai-act:active { background: var(--bg-input); color: var(--accent-blue); opacity: 1; }
+        .ai-act-done { color: var(--success); opacity: 1; }
+        /* The send button: a filled circle with an arrow in it. */
+        .ai-send {
+          width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--accent-blue); color: #12151a;
+          border: none; padding: 0; cursor: pointer;
+          transition: opacity .15s, transform .1s;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-send:disabled { opacity: .38; cursor: default; }
+        .ai-send:not(:disabled):active { transform: scale(.93); }
         /* A small round button: the history clock, and the ✕ on a row in
            the list of past conversations. */
         .ai-round {

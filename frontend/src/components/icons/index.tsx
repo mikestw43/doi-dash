@@ -276,3 +276,27 @@ export const IconPlus = ({ size }: IconProps) => (
     <path d="M12 5v14M5 12h14" />
   </Svg>
 );
+
+/** Copy: one sheet behind another. For taking an answer out of the chat. */
+export const IconCopy = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V6a2 2 0 0 1 2-2h8" />
+  </Svg>
+);
+
+/** Ask again: a circle that comes back round to where it started. */
+export const IconRetry = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M20 12a8 8 0 1 1-2.6-5.9" />
+    <path d="M20 4v4.5h-4.5" />
+  </Svg>
+);
+
+/** Send: straight up, the way every chat on a phone sends a message. */
+export const IconArrowUp = ({ size }: IconProps) => (
+  <Svg size={size} stroke={2.2}>
+    <path d="M12 19V6" />
+    <path d="M6 11.5 12 5.5l6 6" />
+  </Svg>
+);
