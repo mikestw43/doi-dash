@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 import { fetchAuditLogs, fetchAuditActions, fetchUsers } from '../../services/api';
 import { exportToCSV } from '../../utils/export';
 import { useUIStore } from '../../stores/uiStore';
@@ -33,6 +34,7 @@ const thStyle: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize
 const tdStyle: React.CSSProperties = { padding: '7px 10px', borderBottom: '1px solid rgba(42,45,52,.3)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)' };
 
 export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
+  const t = useTranslation();
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [total, setTotal] = useState(0);
@@ -102,7 +104,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
           onClick={() => setCurrentPage('dashboard')}
           style={{ background: 'none', border: 'none', color: 'var(--cyan)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
         >
-          ← BACK
+          ← {t('common.back')}
         </button>
       )}
 
@@ -110,7 +112,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
       {!embedded && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <div style={{ width: '7px', height: '7px', background: 'var(--cyan)',flexShrink: 0 }} />
-          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>AUDIT LOG</span>
+          <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>{t('audit.title')}</span>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
           <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', padding: '4px 10px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>{total}</span>
           <button
@@ -138,7 +140,7 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
             cursor: 'pointer',
           }}
         >
-          <IconFilter size={14} /> FILTER
+          <IconFilter size={14} /> {t('common.filter')}
           {activeFilterCount > 0 && (
             <span style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -156,18 +158,18 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '380px' }}>
           <thead>
             <tr style={{ background: 'var(--bg-card2)' }}>
-              <th style={thStyle} className="al-col-user">USER</th>
-              <th style={thStyle}>ACTION</th>
-              <th style={thStyle} className="al-col-resource">RESOURCE</th>
-              <th style={thStyle} className="al-col-details">DETAILS</th>
-              <th style={thStyle}>TIME</th>
+              <th style={thStyle} className="al-col-user">{t('audit.col_user')}</th>
+              <th style={thStyle}>{t('audit.col_action')}</th>
+              <th style={thStyle} className="al-col-resource">{t('audit.col_resource')}</th>
+              <th style={thStyle} className="al-col-details">{t('audit.col_details')}</th>
+              <th style={thStyle}>{t('audit.col_time')}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} style={{ ...tdStyle, textAlign: 'center', padding: '32px', color: 'var(--text-dim)' }}>Loading...</td></tr>
+              <tr><td colSpan={5} style={{ ...tdStyle, textAlign: 'center', padding: '32px', color: 'var(--text-dim)' }}>{t('common.loading')}</td></tr>
             ) : logs.length === 0 ? (
-              <tr><td colSpan={5} style={{ ...tdStyle, textAlign: 'center', padding: '32px', color: 'var(--text-dim)' }}>No logs found.</td></tr>
+              <tr><td colSpan={5} style={{ ...tdStyle, textAlign: 'center', padding: '32px', color: 'var(--text-dim)' }}>{t('audit.empty')}</td></tr>
             ) : (
               logs.map(log => (
                 <tr key={log.id}
@@ -222,18 +224,18 @@ export const AuditLogViewer = ({ embedded }: { embedded?: boolean } = {}) => {
       )}
 
       {/* Filter modal — draft state, only committed when Apply is pressed */}
-      <Dialog open={showFilter} onClose={() => setShowFilter(false)} title="FILTER AUDIT LOG">
+      <Dialog open={showFilter} onClose={() => setShowFilter(false)} title={t('audit.filter_dialog')}>
         <div style={{ marginBottom: '12px' }}>
-          <label style={lblStyle}>USER</label>
+          <label style={lblStyle}>{t('audit.col_user')}</label>
           <select value={draftUser} onChange={e => setDraftUser(e.target.value)} style={selStyle}>
-            <option value="">All Users</option>
+            <option value="">{t('audit.all_users')}</option>
             {users.map(u => <option key={u.id} value={u.id}>{u.email}</option>)}
           </select>
         </div>
         <div style={{ marginBottom: '16px' }}>
-          <label style={lblStyle}>ACTION</label>
+          <label style={lblStyle}>{t('audit.col_action')}</label>
           <select value={draftAction} onChange={e => setDraftAction(e.target.value)} style={selStyle}>
-            <option value="">All Actions</option>
+            <option value="">{t('audit.all_actions')}</option>
             {actions.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>

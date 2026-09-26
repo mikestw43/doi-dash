@@ -43,7 +43,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
       addToast({ type: 'success', title: t('protection.saved') });
       onClose();
     } catch {
-      addToast({ type: 'error', title: 'Failed to save' });
+      addToast({ type: 'error', title: t('common.save_failed') });
     } finally {
       setSaving(false);
     }
@@ -120,7 +120,7 @@ export const ProtectionSettings = ({ accountId, accountName, onClose }: Props) =
                   style={inp}
                 />
                 <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginTop: '4px' }}>
-                  {threshold ? `Close all when drawdown ≥ ${threshold}%` : 'Enter threshold percentage'}
+                  {threshold ? `${t('protection.close_when')} ${threshold}%` : t('protection.threshold_hint')}
                 </div>
               </div>
             )}

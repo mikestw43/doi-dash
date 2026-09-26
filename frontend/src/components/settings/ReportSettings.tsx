@@ -36,7 +36,7 @@ export const ReportSettings = () => {
       setSettings(updated);
       addToast({ type: 'success', title: t('reports.saved') || 'Saved' });
     } catch {
-      addToast({ type: 'error', title: 'Failed to save' });
+      addToast({ type: 'error', title: t('common.save_failed') });
     } finally {
       setSaving(false);
     }
@@ -48,7 +48,7 @@ export const ReportSettings = () => {
       await sendReportNow();
       addToast({ type: 'success', title: t('reports.sent') || 'Report sent' });
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || t('reports.failed');
       addToast({ type: 'error', title: msg });
     } finally {
       setSending(false);
@@ -75,7 +75,7 @@ export const ReportSettings = () => {
     <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '20px 22px', marginBottom: '12px' }}>
       {/* Title */}
       <div style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '1px', marginBottom: '12px' }}>
-        SCHEDULED REPORTS
+        {t('reports.title2')}
       </div>
       <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
         {t('reports.description') || 'Receive automated P&L reports via Telegram.'}
@@ -139,7 +139,7 @@ export const ReportSettings = () => {
           disabled={sending}
           style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '9px 16px', background: 'none', color: sending ? 'var(--text-dim)' : 'var(--text)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? .6 : 1 }}
         >
-          {sending ? 'SENDING...' : t('reports.send_now') || 'SEND NOW'}
+          {sending ? t('reports.sending') : t('reports.send_now') || 'SEND NOW'}
         </button>
       </div>
     </div>

@@ -1,25 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchTickerSymbols, saveTickerSymbols } from '../../services/api';
 
 /** Catalog of available ticker symbols, grouped for the picker UI. */
-const CATALOG: { group: string; items: { sym: string; label: string }[] }[] = [
+const CATALOG: { groupKey: string; items: { sym: string; label: string; labelKey?: string }[] }[] = [
   {
-    group: 'Crypto',
+    groupKey: 'ticker.crypto',
     items: [
       { sym: 'BTCUSD', label: 'BTC' },
       { sym: 'ETHUSD', label: 'ETH' },
     ],
   },
   {
-    group: 'Metals',
+    groupKey: 'ticker.metals',
     items: [
-      { sym: 'XAUUSD', label: 'Gold' },
-      { sym: 'SLV',    label: 'Silver (ETF)' },
+      { sym: 'XAUUSD', label: 'Gold', labelKey: 'ticker.gold' },
+      { sym: 'SLV',    label: 'Silver (ETF)', labelKey: 'ticker.silver' },
     ],
   },
   {
-    group: 'Forex',
+    groupKey: 'ticker.forex',
     items: [
       { sym: 'EURUSD', label: 'EU' },
       { sym: 'GBPUSD', label: 'GU' },
@@ -67,6 +68,7 @@ const chip = (active: boolean): React.CSSProperties => ({
 });
 
 export const TickerSettings = () => {
+  const t = useTranslation();
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery<{ symbols: string[] }>({
     queryKey: ['ticker-symbols'],
@@ -118,7 +120,7 @@ export const TickerSettings = () => {
   if (isLoading) {
     return (
       <div style={card}>
-        <div style={cardTitle}>◈ LIVE TICKER</div>
+        <div style={cardTitle}>{t('ticker.live')}</div>
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
           Loading…
         </p>
@@ -128,18 +130,17 @@ export const TickerSettings = () => {
 
   return (
     <div style={card}>
-      <div style={cardTitle}>◈ LIVE TICKER</div>
+      <div style={cardTitle}>{t('ticker.live')}</div>
       <p style={{
         fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
         color: 'var(--text-muted)', marginBottom: '18px', lineHeight: 1.5,
       }}>
-        Pick which symbols scroll on the header ticker bar.
-        Changes sync across all your devices.
+        {t('ticker.desc')}
       </p>
 
       {CATALOG.map(group => (
-        <div key={group.group} style={{ marginBottom: '16px' }}>
-          <span style={groupLabel}>{group.group}</span>
+        <div key={group.groupKey} style={{ marginBottom: '16px' }}>
+          <span style={groupLabel}>{t(group.groupKey)}</span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {group.items.map(item => {
               const active = selected.has(item.sym);
@@ -151,7 +152,7 @@ export const TickerSettings = () => {
                   aria-pressed={active}
                 >
                   <span style={{ fontSize: '11px' }}>{active ? '●' : '○'}</span>
-                  {item.label}
+                  {item.labelKey ? t(item.labelKey) : item.label}
                   <span style={{ opacity: 0.5, fontSize: 'var(--fs-section)' }}>{item.sym}</span>
                 </button>
               );
@@ -167,7 +168,7 @@ export const TickerSettings = () => {
         borderTop: '1px solid var(--border2)',
       }}>
         <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
-          {selected.size} symbol{selected.size === 1 ? '' : 's'} selected
+          {selected.size} {t('ticker.count')}
         </span>
         <span style={{ flex: 1 }} />
         {dirty && (
@@ -179,7 +180,7 @@ export const TickerSettings = () => {
               border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
             }}
           >
-            CANCEL
+            {t('common.cancel')}
           </button>
         )}
         <button
@@ -195,7 +196,7 @@ export const TickerSettings = () => {
             opacity: saving ? 0.6 : 1,
           }}
         >
-          {savedFlash ? '✓ SAVED' : saving ? 'SAVING…' : 'SAVE'}
+          {savedFlash ? t('common.saved') : saving ? t('common.saving') : t('common.save')}
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { fetchAccounts, deleteAccount, createAccount, getAccountAlerts, saveAccountAlerts, revealApiKey } from '../../services/api';
 import type { Account, AccountAlerts } from '../../types';
@@ -69,6 +70,7 @@ const lbl: React.CSSProperties = {
 /** Masked key + COPY button. The full key is never rendered — Copy fetches
  *  it from the API and writes straight to the clipboard so it stays hidden. */
 const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: string }) => {
+  const t = useTranslation();
   const addToast = useUIStore(s => s.addToast);
   const [busy, setBusy] = useState(false);
   const [justCopied, setJustCopied] = useState(false);
@@ -92,9 +94,9 @@ const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: str
       }
       setJustCopied(true);
       setTimeout(() => setJustCopied(false), 1800);
-      addToast({ type: 'success', title: 'Copied!', message: 'API key copied to clipboard' });
+      addToast({ type: 'success', title: t('acc.copied'), message: 'API key copied to clipboard' });
     } catch {
-      addToast({ type: 'error', title: 'Failed to copy API key' });
+      addToast({ type: 'error', title: t('acc.copy_failed') });
     } finally {
       setBusy(false);
     }
@@ -112,7 +114,7 @@ const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: str
       <button
         onClick={handleCopy}
         disabled={busy}
-        title="Copy API key"
+        title={t('acc.copy_key')}
         style={{
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: '40px', height: '32px',
@@ -135,6 +137,7 @@ const MaskedKey = ({ accountId, maskedKey }: { accountId: string; maskedKey: str
 // ─── DeleteDialog ─────────────────────────────────────────────────────────────
 
 const DeleteDialog = ({ account, onClose }: { account: Account; onClose: () => void }) => {
+  const t = useTranslation();
   const queryClient = useQueryClient();
   const addToast = useUIStore(s => s.addToast);
   const [loading, setLoading] = useState(false);
@@ -144,17 +147,17 @@ const DeleteDialog = ({ account, onClose }: { account: Account; onClose: () => v
     try {
       await deleteAccount(account.id);
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      addToast({ type: 'success', title: 'Account deleted', message: account.name });
+      addToast({ type: 'success', title: t('acc.deleted'), message: account.name });
       onClose();
     } catch {
-      addToast({ type: 'error', title: 'Delete failed' });
+      addToast({ type: 'error', title: t('acc.delete_failed') });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open onClose={onClose} title="DELETE ACCOUNT">
+    <Dialog open onClose={onClose} title={t('acc.delete_dialog')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
           Are you sure you want to delete{' '}
@@ -165,12 +168,12 @@ const DeleteDialog = ({ account, onClose }: { account: Account; onClose: () => v
           <button
             onClick={onClose}
             style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: 'pointer', letterSpacing: '.5px' }}
-          >CANCEL</button>
+          >{t('common.cancel')}</button>
           <button
             onClick={handleDelete}
             disabled={loading}
             style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--red)', color: '#fff', border: '1px solid var(--red)', cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: loading ? .6 : 1 }}
-          >{loading ? 'DELETING...' : 'DELETE'}</button>
+          >{loading ? t('acc.deleting') : t('common.delete')}</button>
         </div>
       </div>
     </Dialog>
@@ -214,6 +217,7 @@ const NumField = ({
 // ─── AlertThresholdsDialog ────────────────────────────────────────────────────
 
 const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose: () => void }) => {
+  const t = useTranslation();
   const addToast = useUIStore(s => s.addToast);
   const queryClient = useQueryClient();
 
@@ -232,23 +236,23 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
 
   const mutation = useMutation({
     mutationFn: () => saveAccountAlerts(account.id, form),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['account-alerts', account.id] }); addToast({ type: 'success', title: 'Alert thresholds saved' }); onClose(); },
-    onError: () => { addToast({ type: 'error', title: 'Failed to save alert thresholds' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['account-alerts', account.id] }); addToast({ type: 'success', title: t('acc.alerts_saved') }); onClose(); },
+    onError: () => { addToast({ type: 'error', title: t('acc.alerts_failed') }); },
   });
 
   return (
-    <Dialog open onClose={onClose} title={`ALERT THRESHOLDS — ${account.name}`}>
+    <Dialog open onClose={onClose} title={`${t('acc.alerts_dialog')} — ${account.name}`}>
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>Loading...</div>
+        <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>{t('common.loading')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', lineHeight: 1.6 }}>
             Leave a field blank to disable that alert. Requires Telegram in Profile Settings.
           </p>
 
-          <NumField label="DRAWDOWN ALERT (fire when DD ≥)" value={form.alertDrawdown} onChange={v => setForm(p => ({ ...p, alertDrawdown: v }))} onClear={() => setForm(p => ({ ...p, alertDrawdown: null }))} placeholder="e.g. 10" unit="%" />
-          <NumField label="EQUITY ALERT (fire when equity drops below)" value={form.alertEquityBelow} onChange={v => setForm(p => ({ ...p, alertEquityBelow: v }))} onClear={() => setForm(p => ({ ...p, alertEquityBelow: null }))} placeholder="e.g. 4500" unit="$" />
-          <NumField label="MARGIN LEVEL ALERT (fire when margin level ≤)" value={form.alertMarginLevel} onChange={v => setForm(p => ({ ...p, alertMarginLevel: v }))} onClear={() => setForm(p => ({ ...p, alertMarginLevel: null }))} placeholder="e.g. 200" unit="%" />
+          <NumField label={t('acc.alert_dd')} value={form.alertDrawdown} onChange={v => setForm(p => ({ ...p, alertDrawdown: v }))} onClear={() => setForm(p => ({ ...p, alertDrawdown: null }))} placeholder="e.g. 10" unit="%" />
+          <NumField label={t('acc.alert_eq')} value={form.alertEquityBelow} onChange={v => setForm(p => ({ ...p, alertEquityBelow: v }))} onClear={() => setForm(p => ({ ...p, alertEquityBelow: null }))} placeholder="e.g. 4500" unit="$" />
+          <NumField label={t('acc.alert_ml')} value={form.alertMarginLevel} onChange={v => setForm(p => ({ ...p, alertMarginLevel: v }))} onClear={() => setForm(p => ({ ...p, alertMarginLevel: null }))} placeholder="e.g. 200" unit="%" />
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
             <input
@@ -257,7 +261,7 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
               onChange={e => setForm(p => ({ ...p, alertOffline: e.target.checked }))}
               style={{ width: '14px', height: '14px', accentColor: 'var(--cyan)', cursor: 'pointer' }}
             />
-            <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>Alert when account goes offline</span>
+            <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)' }}>{t('acc.offline_alert')}</span>
           </label>
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
@@ -267,7 +271,7 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
             </button>
             <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
               style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--cyan)', color: '#25272c', border: '1px solid var(--cyan)', cursor: mutation.isPending ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: mutation.isPending ? .6 : 1 }}>
-              {mutation.isPending ? 'SAVING...' : 'SAVE'}
+              {mutation.isPending ? t('common.saving') : t('common.save')}
             </button>
           </div>
         </div>
@@ -279,6 +283,7 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
 // ─── ApiKeyRevealDialog ───────────────────────────────────────────────────────
 
 const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; accountName: string; onClose: () => void }) => {
+  const t = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const copyKey = () => {
@@ -288,7 +293,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
   };
 
   return (
-    <Dialog open onClose={() => {}} title="ACCOUNT CREATED — SAVE YOUR API KEY">
+    <Dialog open onClose={() => {}} title={t('acc.created_dialog')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
         {/* Warning banner */}
@@ -298,21 +303,21 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
           fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', lineHeight: 1.8, letterSpacing: '.5px',
           textAlign: 'center',
         }}>
-          ⚠ THIS IS THE ONLY TIME YOUR API KEY WILL BE SHOWN.<br />
+          {t('acc.key_once')}<br />
           <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', letterSpacing: 0 }}>
-            Copy it now and paste it into your MT5 EA settings.
+            {t('acc.key_copy_now')}
           </span>
         </div>
 
         {/* Account name */}
         <div>
-          <label style={lbl}>ACCOUNT</label>
+          <label style={lbl}>{t('acc.title')}</label>
           <div style={{ fontFamily: 'var(--ff-input)', fontSize: 'var(--fs-input)', color: 'var(--text)' }}>{accountName}</div>
         </div>
 
         {/* API Key with large copy button */}
         <div>
-          <label style={lbl}>API KEY — COPY AND PASTE INTO EA</label>
+          <label style={lbl}>{t('acc.apikey_label')}</label>
           <div style={{
             display: 'flex', alignItems: 'center', gap: '8px',
             background: 'var(--bg-input)', border: '2px solid var(--accent-blue)', padding: '10px 12px',
@@ -343,7 +348,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
 
         {/* EA Setup instructions */}
         <div>
-          <label style={lbl}>MT5 EA SETUP</label>
+          <label style={lbl}>{t('acc.ea_setup')}</label>
           <div style={{
             background: 'var(--bg-input)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
             padding: '10px 12px', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
@@ -367,7 +372,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
               cursor: 'pointer', letterSpacing: '.5px',
             }}
           >
-            {copied ? 'DONE ✓' : 'I HAVE COPIED THE KEY'}
+            {copied ? 'DONE ✓' : t('acc.copied_key')}
           </button>
         </div>
       </div>
@@ -380,6 +385,7 @@ const ApiKeyRevealDialog = ({ apiKey, accountName, onClose }: { apiKey: string; 
 // API key is auto-generated. MT5 EA fills in broker/accountNumber/server/currency/leverage on first connect.
 
 const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreated: (apiKey: string, name: string) => void }) => {
+  const t = useTranslation();
   const queryClient = useQueryClient();
   const addToast = useUIStore(s => s.addToast);
   const [name, setName] = useState('');
@@ -389,21 +395,21 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { addToast({ type: 'warning', title: 'Enter an account name' }); return; }
+    if (!name.trim()) { addToast({ type: 'warning', title: t('acc.name_required') }); return; }
     setLoading(true);
     try {
       await createAccount({ name: name.trim(), apiKey, isDemo });
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       onCreated(apiKey, name.trim());
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to add account';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || t('acc.add_failed');
       addToast({ type: 'error', title: msg });
       setLoading(false);
     }
   };
 
   return (
-    <Dialog open onClose={onClose} title="ADD NEW ACCOUNT">
+    <Dialog open onClose={onClose} title={t('acc.add_dialog')}>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
         {/* Info banner */}
@@ -418,7 +424,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="e.g. Gold Scalper Bot"
+            placeholder={t('acc.name_ph')}
             style={inp}
             autoFocus
           />
@@ -444,8 +450,8 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
             </div>
             <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)', marginTop: '4px' }}>
               {isDemo
-                ? 'Excluded from KPI stats & performance reports'
-                : 'Included in all statistics and reports'}
+                ? t('acc.demo_on')
+                : t('acc.demo_off')}
             </div>
           </div>
         </label>
@@ -457,7 +463,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
           </button>
           <button type="submit" disabled={loading || !name.trim()}
             style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '8px 14px', background: 'var(--accent-blue)', color: '#25272c', border: '1px solid var(--accent-blue)', cursor: (loading || !name.trim()) ? 'not-allowed' : 'pointer', letterSpacing: '.5px', opacity: (loading || !name.trim()) ? .5 : 1 }}>
-            {loading ? 'ADDING...' : 'ADD ACCOUNT'}
+            {loading ? t('acc.adding') : t('acc.add')}
           </button>
         </div>
       </form>
@@ -468,6 +474,7 @@ const AddAccountDialog = ({ onClose, onCreated }: { onClose: () => void; onCreat
 // ─── AccountsSection (main export) ───────────────────────────────────────────
 
 export const AccountsSection = () => {
+  const t = useTranslation();
   const [showAdd, setShowAdd] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
   const [revealKey, setRevealKey] = useState<{ apiKey: string; name: string } | null>(null);
@@ -492,7 +499,7 @@ export const AccountsSection = () => {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '.5px' }}>
-            ⌗ API KEY MANAGEMENT
+            {t('acc.key_mgmt')}
           </span>
           <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', padding: '2px 7px' }}>
             {accounts.length}
@@ -502,13 +509,13 @@ export const AccountsSection = () => {
           onClick={() => setShowAdd(true)}
           style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '7px 12px', background: 'var(--cyan)', color: '#25272c', border: '1px solid var(--cyan)', cursor: 'pointer' }}
         >
-          + ADD ACCOUNT
+          {t('acc.add_btn')}
         </button>
       </div>
 
       <div style={{ marginTop: '14px' }}>
         {isLoading ? (
-          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>Loading...</div>
+          <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>{t('common.loading')}</div>
         ) : accounts.length === 0 ? (
           <div style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-dim)', textAlign: 'center', padding: '16px' }}>
             No accounts yet. Add your first MT5/MT4 account.
@@ -551,7 +558,7 @@ export const AccountsSection = () => {
                       color: online ? 'var(--green)' : 'var(--text-dim)',
                     }}>
                       <span style={{ width: '6px', height: '6px', background: online ? 'var(--green)' : '#4a4e57',display: 'inline-block' }} />
-                      {acc.status}
+                      {t(`status.${acc.status}`)}
                     </span>
                   </div>
 
@@ -571,7 +578,7 @@ export const AccountsSection = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', marginTop: '2px' }}>
                     <button
                       onClick={() => setAlertTarget(acc)}
-                      title="Alert thresholds"
+                      title={t('acc.alerts_title')}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
@@ -581,11 +588,11 @@ export const AccountsSection = () => {
                       }}
                     >
                       <PixelBellIcon />
-                      ALERT
+                      {t('acc.btn_alert')}
                     </button>
                     <button
                       onClick={() => setDeleteTarget(acc)}
-                      title="Delete account"
+                      title={t('acc.delete_title')}
                       style={{
                         background: 'none', border: '1px solid rgba(248,113,113,.3)',
                         color: 'var(--red)', cursor: 'pointer',
@@ -593,7 +600,7 @@ export const AccountsSection = () => {
                         fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                       }}
                     >
-                      ✕ DELETE
+                      ✕ {t('acc.btn_delete')}
                     </button>
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '../../i18n/useTranslation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   changeUserRole, changeUserStatus, resetUserPassword,
@@ -21,11 +22,11 @@ const ROLE_COLOR: Record<string, { border: string; color: string; bg: string; la
   user:  { border: 'var(--border2)',       color: 'var(--text-dim)',    bg: 'none',                 label: 'USER'  },
 };
 
-const STATUS_META: Record<string, { color: string; label: string }> = {
-  active:    { color: 'var(--success)', label: 'ACTIVE' },
-  pending:   { color: 'var(--warning)', label: 'PENDING' },
-  rejected:  { color: 'var(--danger)',  label: 'REJECTED' },
-  suspended: { color: 'var(--warning)', label: 'SUSPENDED' },
+const STATUS_META: Record<string, { color: string; labelKey: string }> = {
+  active:    { color: 'var(--success)', labelKey: 'status.active' },
+  pending:   { color: 'var(--warning)', labelKey: 'status.pending' },
+  rejected:  { color: 'var(--danger)',  labelKey: 'status.rejected' },
+  suspended: { color: 'var(--warning)', labelKey: 'status.suspended' },
 };
 
 const cardTitle: React.CSSProperties = {
@@ -58,6 +59,7 @@ const btn = (color: string, bg: string): React.CSSProperties => ({
 });
 
 export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Props) => {
+  const t = useTranslation();
   const queryClient = useQueryClient();
   const addToast = useUIStore(s => s.addToast);
   const [resetPw, setResetPw] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
     mutationFn: ({ id, role }: { id: string; role: string }) => changeUserRole(id, role),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      addToast({ type: 'success', title: 'Role updated' });
+      addToast({ type: 'success', title: t('ud.role_updated') });
     },
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed';
@@ -83,9 +85,9 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
     mutationFn: ({ id, status }: { id: string; status: 'active' | 'suspended' }) => changeUserStatus(id, status),
     onSuccess: (_d, v) => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      addToast({ type: 'success', title: v.status === 'suspended' ? 'User suspended' : 'User reactivated' });
+      addToast({ type: 'success', title: v.status === 'suspended' ? t('ud.suspended') : t('ud.reactivated') });
     },
-    onError: () => addToast({ type: 'error', title: 'Failed to update status' }),
+    onError: () => addToast({ type: 'error', title: t('admin.status_failed') }),
   });
 
   const resetMutation = useMutation({
@@ -95,7 +97,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
       setResetConfirm(false);
       setCopied(false);
     },
-    onError: () => addToast({ type: 'error', title: 'Failed to reset password' }),
+    onError: () => addToast({ type: 'error', title: t('ud.reset_failed') }),
   });
 
   if (!user) return null;
@@ -123,25 +125,25 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '70vh', overflowY: 'auto' }}>
           {/* Identity card */}
           <div>
-            <div style={cardTitle}>IDENTITY</div>
+            <div style={cardTitle}>{t('ud.identity')}</div>
             <div style={rowStyle}>
-              <span style={lblStyle}>EMAIL</span>
+              <span style={lblStyle}>{t('auth.email').toUpperCase()}</span>
               <span style={valStyle}>{user.email}</span>
             </div>
             <div style={rowStyle}>
-              <span style={lblStyle}>FULL NAME</span>
+              <span style={lblStyle}>{t('admin.full_name')}</span>
               <span style={valStyle}>{user.name || '—'}</span>
             </div>
             <div style={rowStyle}>
-              <span style={lblStyle}>DISPLAY NAME</span>
+              <span style={lblStyle}>{t('admin.display_name')}</span>
               <span style={valStyle}>{user.displayName || '—'}</span>
             </div>
             <div style={rowStyle}>
-              <span style={lblStyle}>MOBILE</span>
+              <span style={lblStyle}>{t('admin.mobile')}</span>
               <span style={valStyle}>{user.mobile ? `${user.phoneCountry || ''} ${user.mobile}`.trim() : '—'}</span>
             </div>
             <div style={{ ...rowStyle, borderBottom: 'none' }}>
-              <span style={lblStyle}>ACCOUNTS</span>
+              <span style={lblStyle}>{t('ud.accounts')}</span>
               <span style={{ ...valStyle, fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: 'var(--accent-blue)' }}>
                 {user._count.accounts}
                 <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginLeft: '8px' }}>
@@ -153,26 +155,26 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
 
           {/* Status & timestamps */}
           <div>
-            <div style={cardTitle}>ACCOUNT INFO</div>
+            <div style={cardTitle}>{t('ud.account_info')}</div>
             <div style={rowStyle}>
-              <span style={lblStyle}>STATUS</span>
-              <span style={{ ...valStyle, color: s.color }}>● {s.label}</span>
+              <span style={lblStyle}>{t('admin.col_status')}</span>
+              <span style={{ ...valStyle, color: s.color }}>● {t(s.labelKey)}</span>
             </div>
             <div style={rowStyle}>
-              <span style={lblStyle}>SIGN IN</span>
+              <span style={lblStyle}>{t('ud.sign_in')}</span>
               <span style={valStyle}>{
-                user.signIn === 'google' ? 'Google button'
-                  : user.signIn === 'both' ? 'Password or Google'
-                  : user.signIn === 'password' ? 'Email & password'
+                user.signIn === 'google' ? t('ud.signin_google')
+                  : user.signIn === 'both' ? t('ud.signin_both')
+                  : user.signIn === 'password' ? t('ud.signin_password')
                   : '—'
               }</span>
             </div>
             <div style={rowStyle}>
-              <span style={lblStyle}>CREATED</span>
+              <span style={lblStyle}>{t('ud.created')}</span>
               <span style={valStyle}>{formatDateTime(user.createdAt)}</span>
             </div>
             <div style={{ ...rowStyle, borderBottom: 'none' }}>
-              <span style={lblStyle}>LAST LOGIN</span>
+              <span style={lblStyle}>{t('ud.last_login')}</span>
               <span style={valStyle}>{user.lastLoginAt ? formatDateTime(user.lastLoginAt) : '—'}</span>
             </div>
           </div>
@@ -180,11 +182,11 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
           {/* Admin actions */}
           {!isSelf && (
             <div>
-              <div style={cardTitle}>ADMIN ACTIONS</div>
+              <div style={cardTitle}>{t('ud.admin_actions')}</div>
 
               {/* Role */}
               <div style={rowStyle}>
-                <span style={lblStyle}>ROLE</span>
+                <span style={lblStyle}>{t('admin.col_role')}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{
                     fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
@@ -196,16 +198,16 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
                     disabled={roleMutation.isPending}
                     style={sel}
                   >
-                    <option value="user">User (limit: 1)</option>
-                    <option value="vip">VIP (unlimited)</option>
-                    <option value="admin">Admin</option>
+                    <option value="user">{t('ud.role_user')}</option>
+                    <option value="vip">{t('ud.role_vip')}</option>
+                    <option value="admin">{t('ud.role_admin')}</option>
                   </select>
                 </div>
               </div>
 
               {/* Suspend / Activate */}
               <div style={rowStyle}>
-                <span style={lblStyle}>ACCESS</span>
+                <span style={lblStyle}>{t('ud.access')}</span>
                 <div>
                   {isSuspended ? (
                     <button
@@ -229,21 +231,21 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
 
               {/* Reset password */}
               <div style={rowStyle}>
-                <span style={lblStyle}>PASSWORD</span>
+                <span style={lblStyle}>{t('ud.password')}</span>
                 <div>
                   <button
                     onClick={() => setResetConfirm(true)}
                     disabled={resetMutation.isPending}
                     style={btn('var(--accent-blue)', 'rgba(96,165,250,.08)')}
                   >
-                    {resetMutation.isPending ? 'RESETTING...' : 'RESET PASSWORD'}
+                    {resetMutation.isPending ? t('ud.resetting') : t('ud.reset_password')}
                   </button>
                 </div>
               </div>
 
               {/* Delete */}
               <div style={{ ...rowStyle, borderBottom: 'none' }}>
-                <span style={lblStyle}>DANGER ZONE</span>
+                <span style={lblStyle}>{t('ud.danger')}</span>
                 <div>
                   <button
                     onClick={() => onDelete(user.id)}
@@ -269,7 +271,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
       </Dialog>
 
       {/* Reset password confirmation */}
-      <Dialog open={resetConfirm} onClose={() => setResetConfirm(false)} title="RESET PASSWORD?">
+      <Dialog open={resetConfirm} onClose={() => setResetConfirm(false)} title={t('ud.reset_dialog')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Generate a new random password for <span style={{ color: 'var(--accent-blue)' }}>{user.email}</span>?<br />
@@ -294,7 +296,7 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
       </Dialog>
 
       {/* Show generated password */}
-      <Dialog open={!!resetPw} onClose={handleCloseReset} title="NEW PASSWORD GENERATED">
+      <Dialog open={!!resetPw} onClose={handleCloseReset} title={t('ud.new_password_dialog')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             New password for <span style={{ color: 'var(--accent-blue)' }}>{user.email}</span>:

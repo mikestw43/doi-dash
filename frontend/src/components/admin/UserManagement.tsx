@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { Dialog } from '../ui/Dialog';
 import { AuditLogViewer } from './AuditLogViewer';
 import { EmailLogViewer } from './EmailLogViewer';
+import { useTranslation } from '../../i18n/useTranslation';
 import { UserDetailDialog } from './UserDetailDialog';
 import type { UserInfo } from '../../types';
 import { IconFilter } from '../icons';
@@ -33,28 +34,29 @@ const ROLE_COLOR: Record<string, { border: string; color: string; bg: string }> 
   user:  { border: 'var(--border2)',       color: 'var(--text-dim)',    bg: 'none' },
 };
 
-const STATUS_META: Record<string, { color: string; dot: string; label: string }> = {
-  active:    { color: 'var(--success)', dot: 'var(--success)', label: 'ACTIVE' },
-  pending:   { color: 'var(--warning)', dot: 'var(--warning)', label: 'PENDING' },
-  rejected:  { color: 'var(--danger)',  dot: 'var(--danger)',  label: 'REJECTED' },
-  suspended: { color: 'var(--warning)', dot: 'var(--warning)', label: 'SUSPENDED' },
+const STATUS_META: Record<string, { color: string; dot: string; labelKey: string }> = {
+  active:    { color: 'var(--success)', dot: 'var(--success)', labelKey: 'status.active' },
+  pending:   { color: 'var(--warning)', dot: 'var(--warning)', labelKey: 'status.pending' },
+  rejected:  { color: 'var(--danger)',  dot: 'var(--danger)',  labelKey: 'status.rejected' },
+  suspended: { color: 'var(--warning)', dot: 'var(--warning)', labelKey: 'status.suspended' },
 };
 
-const roleBadge = (role: string) => {
+const roleBadge = (role: string, label: string) => {
   const r = ROLE_COLOR[role] || ROLE_COLOR.user;
   return (
     <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '3px 8px', border: `1px solid ${r.border}`, color: r.color, background: r.bg }}>
-      {role.toUpperCase()}
+      {label}
     </span>
   );
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
+  const t = useTranslation();
   const m = STATUS_META[status] || STATUS_META.active;
   return (
     <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: m.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: m.dot, display: 'inline-block', flexShrink: 0 }} />
-      {m.label}
+      {t(m.labelKey)}
     </span>
   );
 };
@@ -63,6 +65,7 @@ const inp: React.CSSProperties = { width: '100%', background: 'var(--bg-input)',
 const lbl: React.CSSProperties = { fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text-dim)', letterSpacing: '.5px', display: 'block', marginBottom: '6px' };
 
 export const UserManagement = () => {
+  const t = useTranslation();
   const { setCurrentPage, addToast } = useUIStore();
   const currentUserId = useAuthStore(s => s.user?.id);
   const queryClient = useQueryClient();
@@ -117,10 +120,10 @@ export const UserManagement = () => {
       setShowAddDialog(false);
       setNewEmail(''); setNewPassword(''); setNewName(''); setNewDisplayName('');
       setNewMobile(''); setNewPhoneCountry('+66'); setNewRole('user');
-      addToast({ type: 'success', title: 'User created' });
+      addToast({ type: 'success', title: t('admin.created_ok') });
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to create user';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || t('admin.create_failed');
       addToast({ type: 'error', title: msg });
     },
   });
@@ -130,10 +133,10 @@ export const UserManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setDeleteId(null);
-      addToast({ type: 'success', title: 'User deleted' });
+      addToast({ type: 'success', title: t('admin.deleted_ok') });
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed to delete';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || t('admin.delete_failed');
       addToast({ type: 'error', title: msg });
     },
   });
@@ -145,12 +148,12 @@ export const UserManagement = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setSuspendId(null);
       const label =
-        vars.status === 'active' ? 'User approved / activated' :
-        vars.status === 'rejected' ? 'User rejected' :
-        vars.status === 'suspended' ? 'User suspended' : 'Status updated';
+        vars.status === 'active' ? t('admin.approved_ok') :
+        vars.status === 'rejected' ? t('admin.rejected_ok') :
+        vars.status === 'suspended' ? t('admin.suspended_ok') : t('admin.status_ok');
       addToast({ type: 'success', title: label });
     },
-    onError: () => { addToast({ type: 'error', title: 'Failed to update status' }); },
+    onError: () => { addToast({ type: 'error', title: t('admin.status_failed') }); },
   });
 
   const deleteTarget  = users.find(u => u.id === deleteId);
@@ -189,13 +192,13 @@ export const UserManagement = () => {
         onClick={() => setCurrentPage('dashboard')}
         style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', cursor: 'pointer', marginBottom: '14px', letterSpacing: '.5px' }}
       >
-        ← BACK
+        ← {t('common.back')}
       </button>
 
       {/* Section title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
         <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)',flexShrink: 0 }} />
-        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>ADMIN</span>
+        <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--text)', letterSpacing: '2px',}}>{t('admin.title')}</span>
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
 
@@ -206,16 +209,16 @@ export const UserManagement = () => {
         borderBottom: 'none', marginBottom: 0, overflowX: 'auto',
       }}>
         <button className="um-tab-btn" style={tabBtn(activeTab === 'users')} onClick={() => setActiveTab('users')}>
-          <span className="um-tab-long">USER MANAGEMENT</span>
-          <span className="um-tab-short">USERS</span>
+          <span className="um-tab-long">{t('admin.tab_users_long')}</span>
+          <span className="um-tab-short">{t('admin.tab_users_short')}</span>
         </button>
         <button className="um-tab-btn" style={tabBtn(activeTab === 'audit')} onClick={() => setActiveTab('audit')}>
-          <span className="um-tab-long">AUDIT LOG</span>
-          <span className="um-tab-short">AUDIT</span>
+          <span className="um-tab-long">{t('admin.tab_audit_long')}</span>
+          <span className="um-tab-short">{t('admin.tab_audit_short')}</span>
         </button>
         <button className="um-tab-btn" style={tabBtn(activeTab === 'email')} onClick={() => setActiveTab('email')}>
-          <span className="um-tab-long">EMAIL LOG</span>
-          <span className="um-tab-short">EMAIL</span>
+          <span className="um-tab-long">{t('admin.tab_email_long')}</span>
+          <span className="um-tab-short">{t('admin.tab_email_short')}</span>
         </button>
       </div>
 
@@ -234,7 +237,7 @@ export const UserManagement = () => {
                 onClick={() => setShowAddDialog(true)}
                 style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px', padding: '8px 14px', background: 'rgba(96,165,250,.1)', color: 'var(--accent-blue)', border: '1px solid var(--accent-blue)', cursor: 'pointer' }}
               >
-                + CREATE USER
+                {t('admin.create_user')}
               </button>
               <button
                 onClick={() => setShowFilter(true)}
@@ -250,7 +253,7 @@ export const UserManagement = () => {
                   cursor: 'pointer',
                 }}
               >
-                <IconFilter size={14} /> FILTER
+                <IconFilter size={14} /> {t('common.filter')}
                 {activeFilterCount > 0 && (
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -269,7 +272,7 @@ export const UserManagement = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                   <div style={{ width: '6px', height: '6px', background: 'var(--warning)',}} />
                   <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', letterSpacing: '1px' }}>
-                    PENDING APPROVAL
+                    {t('admin.pending_approval')}
                   </span>
                   <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', color: 'var(--warning)', padding: '3px 8px', border: '1px solid rgba(251,191,36,.4)' }}>
                     {pendingUsers.length}
@@ -296,7 +299,7 @@ export const UserManagement = () => {
                           </span>
                         )}
                         <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)' }}>
-                          Registered: {formatDate(u.createdAt)}
+                          {t('admin.registered')} {formatDate(u.createdAt)}
                         </span>
                       </div>
                       <div style={{ display: 'flex', gap: '6px' }}>
@@ -305,14 +308,14 @@ export const UserManagement = () => {
                           disabled={statusMutation.isPending}
                           style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--success)', color: 'var(--success)', background: 'rgba(52,211,153,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
                         >
-                          ✓ APPROVE
+                          {t('admin.approve')}
                         </button>
                         <button
                           onClick={() => statusMutation.mutate({ id: u.id, status: 'rejected' })}
                           disabled={statusMutation.isPending}
                           style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', padding: '6px 12px', border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(248,113,113,.08)', cursor: 'pointer', letterSpacing: '.5px' }}
                         >
-                          ✕ REJECT
+                          {t('admin.reject')}
                         </button>
                       </div>
                     </div>
@@ -324,26 +327,26 @@ export const UserManagement = () => {
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               {isLoading ? (
-                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>Loading...</div>
+                <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)' }}>{t('common.loading')}</div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '480px' }}>
                   <thead>
                     <tr style={{ background: 'var(--bg-card2)' }}>
-                      <th style={thStyle}>USER</th>
-                      <th style={thStyle} className="um-col-email">EMAIL</th>
+                      <th style={thStyle}>{t('admin.col_user')}</th>
+                      <th style={thStyle} className="um-col-email">{t('auth.email').toUpperCase()}</th>
                       <th style={thStyle} className="um-col-mobile">MOBILE</th>
-                      <th style={thStyle}>ROLE</th>
-                      <th style={{ ...thStyle, textAlign: 'center' }} className="um-col-accounts">ACCTS</th>
-                      <th style={thStyle} className="um-col-created">CREATED</th>
-                      <th style={thStyle}>STATUS</th>
-                      <th style={{ ...thStyle, textAlign: 'right' }}>ACTIONS</th>
+                      <th style={thStyle}>{t('admin.col_role')}</th>
+                      <th style={{ ...thStyle, textAlign: 'center' }} className="um-col-accounts">{t('admin.col_accts')}</th>
+                      <th style={thStyle} className="um-col-created">{t('admin.col_created')}</th>
+                      <th style={thStyle}>{t('admin.col_status')}</th>
+                      <th style={{ ...thStyle, textAlign: 'right' }}>{t('admin.col_actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredUsers.length === 0 && (
                       <tr>
                         <td colSpan={8} style={{ ...tdStyle, textAlign: 'center', padding: '24px', color: 'var(--text-dim)' }}>
-                          No users match the current filter
+                          {t('admin.no_match')}
                         </td>
                       </tr>
                     )}
@@ -356,7 +359,7 @@ export const UserManagement = () => {
                           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(42,45,52,.25)')}
                           onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                           style={{ cursor: 'pointer' }}
-                          title="Click to view details and manage user"
+                          title={t('admin.row_hint')}
                         >
                           {/* USER */}
                           <td style={tdStyle}>
@@ -378,7 +381,7 @@ export const UserManagement = () => {
                           </td>
                           {/* ROLE */}
                           <td style={tdStyle}>
-                            {roleBadge(user.role)}
+                            {roleBadge(user.role, t(`role.${user.role}`))}
                           </td>
                           {/* ACCOUNTS */}
                           <td style={{ ...tdStyle, textAlign: 'center', fontFamily: 'var(--ff-display)', fontSize: 'var(--fs-disp-sm)', color: 'var(--accent-blue)' }} className="um-col-accounts">
@@ -395,7 +398,7 @@ export const UserManagement = () => {
                           {/* ACTIONS — open detail */}
                           <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--accent-blue)' }}>
                             <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px' }}>
-                              VIEW ›
+                              {t('admin.view')} ›
                             </span>
                           </td>
                         </tr>
@@ -418,14 +421,14 @@ export const UserManagement = () => {
       </div>
 
       {/* Add User Dialog */}
-      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} title="CREATE NEW USER">
+      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} title={t('admin.create_dialog')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div><label style={lbl}>EMAIL *</label><input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="user@example.com" style={inp} /></div>
-          <div><label style={lbl}>PASSWORD * (min 6)</label><input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={inp} /></div>
-          <div><label style={lbl}>FULL NAME</label><input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="John Doe" style={inp} /></div>
+          <div><label style={lbl}>EMAIL *</label><input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder={t('admin.ph_email')} style={inp} /></div>
+          <div><label style={lbl}>{t('admin.password_min')}</label><input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={inp} /></div>
+          <div><label style={lbl}>{t('admin.full_name')}</label><input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('admin.ph_name')} style={inp} /></div>
           <div>
             <label style={lbl}>DISPLAY NAME</label>
-            <input type="text" value={newDisplayName} onChange={e => setNewDisplayName(e.target.value)} placeholder="Shown in top menu (e.g. JohnD)" style={inp} />
+            <input type="text" value={newDisplayName} onChange={e => setNewDisplayName(e.target.value)} placeholder={t('admin.ph_display')} style={inp} />
           </div>
           <div>
             <label style={lbl}>MOBILE</label>
@@ -433,15 +436,15 @@ export const UserManagement = () => {
               <select value={newPhoneCountry} onChange={e => setNewPhoneCountry(e.target.value)} style={{ ...inp, cursor: 'pointer' }}>
                 {COUNTRY_CODES.map(c => <option key={c.code} value={c.code}>{c.label}</option>)}
               </select>
-              <input type="tel" value={newMobile} onChange={e => setNewMobile(e.target.value)} placeholder="812345678" style={inp} />
+              <input type="tel" value={newMobile} onChange={e => setNewMobile(e.target.value)} placeholder={t('admin.ph_mobile')} style={inp} />
             </div>
           </div>
           <div>
             <label style={lbl}>ROLE</label>
             <select value={newRole} onChange={e => setNewRole(e.target.value)} style={{ ...inp, cursor: 'pointer' }}>
-              <option value="user">User (limit: 1 account)</option>
-              <option value="vip">VIP (unlimited accounts)</option>
-              <option value="admin">Admin (full access)</option>
+              <option value="user">{t('admin.role_user_hint')}</option>
+              <option value="vip">{t('admin.role_vip_hint')}</option>
+              <option value="admin">{t('admin.role_admin_hint')}</option>
             </select>
           </div>
           <div style={{ display: 'flex', gap: '8px', paddingTop: '4px' }}>
@@ -477,7 +480,7 @@ export const UserManagement = () => {
       />
 
       {/* Suspend Confirm Dialog */}
-      <Dialog open={!!suspendId} onClose={() => setSuspendId(null)} title="SUSPEND USER">
+      <Dialog open={!!suspendId} onClose={() => setSuspendId(null)} title={t('admin.suspend_dialog')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Suspend <span style={{ color: 'var(--warning)' }}>{suspendTarget?.email}</span>?<br />
@@ -500,7 +503,7 @@ export const UserManagement = () => {
       </Dialog>
 
       {/* Delete Confirm Dialog */}
-      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} title="DELETE USER">
+      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} title={t('admin.delete_dialog')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)', lineHeight: 1.6 }}>
             Permanently delete <span style={{ color: 'var(--danger)' }}>{deleteTarget?.email}</span>?
@@ -524,7 +527,7 @@ export const UserManagement = () => {
       </Dialog>
 
       {/* Filter & sort modal — draft state, only committed when Apply is pressed */}
-      <Dialog open={showFilter} onClose={() => setShowFilter(false)} title="FILTER USERS">
+      <Dialog open={showFilter} onClose={() => setShowFilter(false)} title={t('admin.filter_dialog')}>
         <div style={{ marginBottom: '12px' }}>
           <label style={lbl}>ROLE</label>
           <select
@@ -532,8 +535,8 @@ export const UserManagement = () => {
             onChange={e => setDraftRole(e.target.value)}
             style={{ ...inp, cursor: 'pointer' }}
           >
-            <option value="all">All Roles</option>
-            <option value="admin">Admin</option>
+            <option value="all">{t('admin.all_roles')}</option>
+            <option value="admin">{t('role.admin')}</option>
             <option value="vip">VIP</option>
             <option value="user">User</option>
           </select>
@@ -545,7 +548,7 @@ export const UserManagement = () => {
             onChange={e => setDraftStatus(e.target.value)}
             style={{ ...inp, cursor: 'pointer' }}
           >
-            <option value="all">All Status</option>
+            <option value="all">{t('admin.all_status')}</option>
             <option value="active">Active</option>
             <option value="suspended">Suspended</option>
             <option value="rejected">Rejected</option>

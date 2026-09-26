@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
+import { useTranslation } from '../../i18n/useTranslation';
 import {
   getTelegramSettings, saveTelegramSettings, testTelegramMessage,
   fetchNotifications,
@@ -49,16 +50,17 @@ const btnGhost: React.CSSProperties = {
 /** Drawn on the shell's own 24x24 grid. They were typographic glyphs and one
  *  ✈ emoji, which every phone renders at its own weight, colour and baseline —
  *  the plane arrived in full colour beside four grey marks. */
-const TABS: { key: Tab; Icon: (p: { size?: number }) => ReactElement; label: string }[] = [
-  { key: 'account',       Icon: IconCard,   label: 'Account' },
-  { key: 'telegram',      Icon: IconSend,   label: 'Telegram' },
-  { key: 'reports',       Icon: IconReport, label: 'Reports' },
-  { key: 'ticker',        Icon: IconTicker, label: 'Ticker' },
-  { key: 'notifications', Icon: IconBell,   label: 'Notifications' },
+const TABS: { key: Tab; Icon: (p: { size?: number }) => ReactElement; labelKey: string }[] = [
+  { key: 'account',       Icon: IconCard,   labelKey: 'settings.tab_account' },
+  { key: 'telegram',      Icon: IconSend,   labelKey: 'settings.tab_telegram' },
+  { key: 'reports',       Icon: IconReport, labelKey: 'settings.tab_reports' },
+  { key: 'ticker',        Icon: IconTicker, labelKey: 'settings.tab_ticker' },
+  { key: 'notifications', Icon: IconBell,   labelKey: 'settings.tab_notifications' },
 ];
 
 export const SettingsPage = () => {
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
+  const t = useTranslation();
   const [tab, setTab] = useState<Tab>('account');
 
   return (
@@ -74,11 +76,11 @@ export const SettingsPage = () => {
             letterSpacing: '.5px', cursor: 'pointer',
           }}
         >
-          ‹ BACK
+          ‹ {t('settings.back')}
         </button>
         <span style={{ width: '6px', height: '6px', background: 'var(--cyan)',}} />
         <span style={{ fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-title)', color: 'var(--text-primary)', fontWeight: 600, letterSpacing: '2px',}}>
-          SETTINGS
+          {t('settings.title')}
         </span>
         <div style={{ flex: 1, height: '1px', background: 'var(--border2)' }} />
       </div>
@@ -96,7 +98,7 @@ export const SettingsPage = () => {
           display: 'flex', flexDirection: 'column', gap: '2px',
           position: 'sticky', top: '12px',
         }}>
-          {TABS.map(({ key, Icon, label }) => {
+          {TABS.map(({ key, Icon, labelKey }) => {
             const active = tab === key;
             return (
               <button
@@ -114,7 +116,7 @@ export const SettingsPage = () => {
                 }}
               >
                 <Icon size={15} />
-                {label}
+                {t(labelKey)}
               </button>
             );
           })}
@@ -149,6 +151,7 @@ export const SettingsPage = () => {
 
 /* ── Telegram tab ─────────────────────────────────────── */
 const TelegramTab = () => {
+  const t = useTranslation();
   const addToast = useUIStore(s => s.addToast);
   const [botToken, setBotToken] = useState('');
   const [chatId, setChatId] = useState('');
@@ -169,8 +172,8 @@ const TelegramTab = () => {
       if (botToken && !botToken.startsWith('●')) payload.telegramBotToken = botToken;
       await saveTelegramSettings(payload);
       refetchTg(); setBotToken('');
-      addToast({ type: 'success', title: 'Telegram settings saved' });
-    } catch { addToast({ type: 'error', title: 'Failed to save Telegram settings' }); }
+      addToast({ type: 'success', title: t('settings.tg_saved') });
+    } catch { addToast({ type: 'error', title: t('settings.tg_save_failed') }); }
     finally { setSavingTg(false); }
   };
 
@@ -180,7 +183,7 @@ const TelegramTab = () => {
       const res = await testTelegramMessage();
       addToast({ type: 'success', title: res.message });
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Test failed';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || t('settings.tg_test_failed');
       addToast({ type: 'error', title: msg });
     } finally { setTestingTg(false); }
   };
@@ -188,26 +191,26 @@ const TelegramTab = () => {
   return (
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-        <div style={cardTitle}>TELEGRAM ALERTS</div>
+        <div style={cardTitle}>{t('settings.tg_title')}</div>
         {tgData?.configured && (
-          <span style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', padding: '3px 8px', border: '1px solid rgba(52,211,153,.4)', color: 'var(--green)' }}>✓ ACTIVE</span>
+          <span style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', padding: '3px 8px', border: '1px solid rgba(52,211,153,.4)', color: 'var(--green)' }}>{t('settings.tg_active')}</span>
         )}
       </div>
       <p style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', marginBottom: '14px', lineHeight: 1.6 }}>
-        Enter your Telegram Bot Token and Chat ID to receive alerts.
+        {t('settings.tg_intro')}
       </p>
       <div style={{ marginBottom: '14px' }}>
-        <label style={lbl}>BOT TOKEN</label>
-        <input style={inp} type="password" value={botToken} onChange={e => setBotToken(e.target.value)} placeholder={tgData?.telegramBotToken ?? 'Paste token from @BotFather'} />
+        <label style={lbl}>{t('settings.tg_token')}</label>
+        <input style={inp} type="password" value={botToken} onChange={e => setBotToken(e.target.value)} placeholder={tgData?.telegramBotToken ?? t('settings.tg_token_ph')} />
       </div>
       <div style={{ marginBottom: '14px' }}>
-        <label style={lbl}>CHAT ID</label>
+        <label style={lbl}>{t('settings.tg_chat')}</label>
         <input style={inp} value={chatId} onChange={e => setChatId(e.target.value)} placeholder="123456789" />
       </div>
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button onClick={handleSave} disabled={savingTg} style={btnPrimary(savingTg)}>{savingTg ? 'SAVING...' : 'SAVE'}</button>
+        <button onClick={handleSave} disabled={savingTg} style={btnPrimary(savingTg)}>{savingTg ? t('common.saving') : t('common.save')}</button>
         <button onClick={handleTest} disabled={testingTg || !tgData?.configured} style={{ ...btnGhost, opacity: (testingTg || !tgData?.configured) ? .4 : 1 }}>
-          {testingTg ? 'SENDING...' : 'SEND TEST'}
+          {testingTg ? t('settings.tg_testing') : t('settings.tg_test')}
         </button>
       </div>
     </div>
@@ -221,6 +224,7 @@ const TYPE_COLOR: Record<string, string> = {
 };
 
 const NotificationsTab = () => {
+  const t = useTranslation();
   const [logs, setLogs] = useState<NotificationLogEntry[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -250,7 +254,7 @@ const NotificationsTab = () => {
     <div style={card}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={cardTitle as React.CSSProperties}>NOTIFICATIONS</span>
+          <span style={cardTitle as React.CSSProperties}>{t('settings.notif_title')}</span>
           <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)', padding: '2px 8px', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)' }}>{total}</span>
         </div>
         <button
@@ -258,14 +262,14 @@ const NotificationsTab = () => {
           disabled={!logs.length}
           style={{ fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-label)', color: 'var(--text-dim)', background: 'none', border: 'none', cursor: logs.length ? 'pointer' : 'not-allowed', opacity: logs.length ? 1 : .3, letterSpacing: '.5px' }}
         >
-          ↓ EXPORT
+          {t('settings.notif_export')}
         </button>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>Loading...</div>
+        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>{t('common.loading')}</div>
       ) : logs.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>No notifications sent yet.</div>
+        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-dim)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)' }}>{t('settings.notif_empty')}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {logs.map(log => (
@@ -296,7 +300,7 @@ const NotificationsTab = () => {
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px' }}>
-          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>Page {page}/{totalPages}</span>
+          <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)' }}>{t('settings.page')} {page}/{totalPages}</span>
           <div style={{ display: 'flex', gap: '4px' }}>
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}
               style={{ background: 'none', border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-dim)', cursor: page > 1 ? 'pointer' : 'not-allowed', padding: '4px 8px', opacity: page > 1 ? 1 : .3 }}>
