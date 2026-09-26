@@ -367,5 +367,13 @@
   "ai.suggest_compare": "Compare my accounts",
   "ai.suggest_week": "Summarise this week",
   "ai.disclaimer": "It reads your own figures and history. It cannot predict where price will go, and every order still needs your confirmation.",
-  "ai.ask_about_position": "ASK AI ABOUT THIS"
+  "ai.ask_about_position": "ASK AI ABOUT THIS",
+  "ai.back": "BACK",
+  "ai.details": "Details",
+  "ai.hide_details": "Hide",
+  "ai.watching": "Watching",
+  "ai.offline_short": "AI not connected yet",
+  "ai.sum_open": "open",
+  "ai.sum_losing": "losing",
+  "ai.sum_nosl": "no SL"
 }

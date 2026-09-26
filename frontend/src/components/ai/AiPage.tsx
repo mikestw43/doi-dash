@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { askAi, fetchAiContext, fetchAiStatus, type AiContext, type AiStatus } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
-import { IconSpark, IconSend } from '../icons';
+import { useUIStore } from '../../stores/uiStore';
+import { IconSpark } from '../icons';
 
 /**
  * The assistant's room.
@@ -11,10 +12,11 @@ import { IconSpark, IconSend } from '../icons';
  * in the one place a person would look for an answer, rather than letting
  * the first question fail with a red toast.
  *
- * The header strip is not decoration. It is the same set of figures the
- * assistant would be handed — accounts, open orders, how many are losing,
- * how many carry no stop — so what it is looking at is visible before it
- * says a word.
+ * The screen is mostly the conversation. Everything that is true whether or
+ * not anyone is talking — what the assistant can see, whether it is
+ * connected, what it cannot do — is one line at the top that opens when
+ * tapped. The first version put all of it on the page at once, and the
+ * conversation started halfway down.
  */
 
 interface Message {
@@ -30,6 +32,8 @@ export const AiPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const setCurrentPage = useUIStore(st => st.setCurrentPage);
   const endRef = useRef<HTMLDivElement>(null);
   const nextId = useRef(1);
 
@@ -85,57 +89,118 @@ export const AiPage = () => {
 
   const money = (n: number) => `${n < 0 ? '−' : n > 0 ? '+' : ''}$${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, flex: 1 }}>
+  const chips = [t('ai.suggest_today'), t('ai.suggest_risk'), t('ai.suggest_compare'), t('ai.suggest_week')];
 
-      {/* Section title */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ width: '7px', height: '7px', background: 'var(--accent-blue)', flexShrink: 0 }} />
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0, flex: 1 }}>
+
+      {/* Leaving. Every other page has this; the first version of this one
+          did not, and the only way out was the bottom bar. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+        <button
+          onClick={() => setCurrentPage('dashboard')}
+          style={{
+            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+            color: 'var(--accent-blue)', fontFamily: 'var(--ff-section)',
+            fontSize: 'var(--fs-section)', letterSpacing: '.5px', flexShrink: 0,
+          }}
+        >← {t('ai.back')}</button>
+        <div style={{ flex: 1 }} />
         <span style={{
           fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)',
-          color: 'var(--text)', letterSpacing: '2px',
+          color: 'var(--text-dim)', letterSpacing: '2px',
         }}>{t('ai.title')}</span>
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, var(--border2), transparent)' }} />
       </div>
 
-      {/* What the assistant is looking at */}
-      {ctx && (
-        <div style={{ ...card, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-          {stat(t('ai.ctx_accounts'), `${ctx.online}/${ctx.accounts}`)}
-          {stat(t('ai.ctx_open'), String(ctx.openOrders))}
-          {stat(t('ai.ctx_today'), money(ctx.todayPnl), ctx.todayPnl < 0 ? 'var(--red)' : 'var(--green)')}
-          {stat(t('ai.ctx_losing'), String(ctx.losingOrders), ctx.losingOrders > 0 ? 'var(--red)' : undefined)}
-          {stat(t('ai.ctx_nosl'), String(ctx.ordersWithoutStop), ctx.ordersWithoutStop > 0 ? 'var(--warning)' : undefined)}
-          {stat(t('ai.ctx_history'), String(ctx.closedTrades30d))}
-        </div>
-      )}
-
-      {/* Not connected yet — said once, at the top, not as a failed question */}
-      {status && !status.configured && (
-        <div style={{
-          padding: '11px 12px', borderRadius: 'var(--radius-sm)',
-          background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.3)',
+      {/* One line for everything that is true whether or not anyone is
+          talking. Tap it for the rest. */}
+      <button
+        onClick={() => setShowDetails(v => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+          background: 'var(--bg-card)', border: '1px solid var(--border2)',
+          borderRadius: 'var(--radius-sm)', padding: '8px 10px',
+          cursor: 'pointer', textAlign: 'left', minWidth: 0,
+        }}
+      >
+        {status && !status.configured && (
+          <span style={{
+            width: '6px', height: '6px', borderRadius: '50%',
+            background: 'var(--warning)', flexShrink: 0,
+          }} />
+        )}
+        <span style={{
+          flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
         }}>
+          {ctx
+            ? `${ctx.openOrders} ${t('ai.sum_open')} · ${ctx.losingOrders} ${t('ai.sum_losing')} · ${ctx.ordersWithoutStop} ${t('ai.sum_nosl')} · ${money(ctx.todayPnl)}`
+            : t('ai.watching')}
+        </span>
+        <span style={{ ...lbl, flexShrink: 0 }}>
+          {showDetails ? t('ai.hide_details') : t('ai.details')} {showDetails ? '▴' : '▾'}
+        </span>
+      </button>
+
+      {showDetails && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {ctx && (
+            <div style={{ ...card, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+              {stat(t('ai.ctx_accounts'), `${ctx.online}/${ctx.accounts}`)}
+              {stat(t('ai.ctx_open'), String(ctx.openOrders))}
+              {stat(t('ai.ctx_today'), money(ctx.todayPnl), ctx.todayPnl < 0 ? 'var(--red)' : 'var(--green)')}
+              {stat(t('ai.ctx_losing'), String(ctx.losingOrders), ctx.losingOrders > 0 ? 'var(--red)' : undefined)}
+              {stat(t('ai.ctx_nosl'), String(ctx.ordersWithoutStop), ctx.ordersWithoutStop > 0 ? 'var(--warning)' : undefined)}
+              {stat(t('ai.ctx_history'), String(ctx.closedTrades30d))}
+            </div>
+          )}
+
+          {status && !status.configured && (
+            <div style={{
+              padding: '10px 12px', borderRadius: 'var(--radius-sm)',
+              background: 'rgba(251,191,36,.06)', border: '1px solid rgba(251,191,36,.3)',
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+              color: 'var(--text-dim)', lineHeight: 1.6,
+            }}>
+              <span style={{ color: 'var(--warning)' }}>{t('ai.not_connected')}</span>
+              {' — '}{t('ai.not_connected_body')}
+            </div>
+          )}
+
           <div style={{
-            fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-label)',
-            color: 'var(--warning)', letterSpacing: '1px', marginBottom: '5px',
-          }}>{t('ai.not_connected')}</div>
-          <div style={{
-            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-            color: 'var(--text-dim)', lineHeight: 1.6,
-          }}>{t('ai.not_connected_body')}</div>
+            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+            color: 'var(--text-muted)', lineHeight: 1.6,
+          }}>{t('ai.disclaimer')}</div>
         </div>
       )}
 
-      {/* Conversation */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0 }}>
-        <div style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
-          <div style={{ ...lbl, marginBottom: '6px' }}>AI</div>
-          <div style={{
-            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-            color: 'var(--text-dim)', lineHeight: 1.7,
-          }}>{t('ai.greeting')}</div>
-        </div>
+      {/* The conversation, which is what the screen is for */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0, flex: 1 }}>
+        {messages.length === 0 && (
+          <div style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
+            <div style={{
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+              color: 'var(--text-dim)', lineHeight: 1.7, marginBottom: '12px',
+            }}>
+              {status && !status.configured ? t('ai.offline_short') : t('ai.greeting')}
+            </div>
+            <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+              {chips.map(c => (
+                <button
+                  key={c}
+                  onClick={() => send(c)}
+                  disabled={busy}
+                  style={{
+                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
+                    color: 'var(--text-dim)', background: 'var(--bg-input)',
+                    border: '1px solid var(--border2)', borderRadius: '999px',
+                    padding: '6px 11px', cursor: busy ? 'default' : 'pointer',
+                  }}
+                >{c}</button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {messages.map(m => m.who === 'me' ? (
           <div key={m.id} style={{
@@ -155,28 +220,6 @@ export const AiPage = () => {
         ))}
         <div ref={endRef} />
       </div>
-
-      {/* Suggested questions — an empty box is harder to start than a menu */}
-      <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
-        {[t('ai.suggest_today'), t('ai.suggest_risk'), t('ai.suggest_compare'), t('ai.suggest_week')].map(s => (
-          <button
-            key={s}
-            onClick={() => send(s)}
-            disabled={busy}
-            style={{
-              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-              color: 'var(--text-dim)', background: 'var(--bg-card)',
-              border: '1px solid var(--border2)', borderRadius: '999px',
-              padding: '6px 11px', cursor: busy ? 'default' : 'pointer',
-            }}
-          >{s}</button>
-        ))}
-      </div>
-
-      <div style={{
-        fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
-        color: 'var(--text-muted)', lineHeight: 1.6,
-      }}>{t('ai.disclaimer')}</div>
 
       {/* Composer */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>

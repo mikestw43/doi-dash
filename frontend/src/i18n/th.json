@@ -367,5 +367,13 @@
   "ai.suggest_compare": "เทียบบัญชีทั้งหมด",
   "ai.suggest_week": "สรุปสัปดาห์นี้",
   "ai.disclaimer": "มันอ่านตัวเลขและประวัติของคุณเอง ทำนายราคาไม่ได้ และทุกออเดอร์ต้องให้คุณกดยืนยันเสมอ",
-  "ai.ask_about_position": "ถาม AI เรื่องไม้นี้"
+  "ai.ask_about_position": "ถาม AI เรื่องไม้นี้",
+  "ai.back": "กลับ",
+  "ai.details": "รายละเอียด",
+  "ai.hide_details": "ซ่อน",
+  "ai.watching": "กำลังดู",
+  "ai.offline_short": "ยังไม่ได้เชื่อมต่อ AI",
+  "ai.sum_open": "ไม้เปิด",
+  "ai.sum_losing": "ติดลบ",
+  "ai.sum_nosl": "ไม่มี SL"
 }
