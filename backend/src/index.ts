@@ -48,6 +48,11 @@ dns.setDefaultResultOrder('ipv4first');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// One nginx sits in front and sets X-Forwarded-For. Without this every
+// request looks like it came from 127.0.0.1, which would make a per-address
+// rate limit a limit on the whole world at once.
+app.set('trust proxy', 1);
+
 app.use(helmet());
 
 // CORS: production reads from CORS_ORIGIN env, dev allows localhost

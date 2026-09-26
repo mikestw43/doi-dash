@@ -9,6 +9,7 @@ import { encrypt, decrypt } from '../lib/encryption';
 import crypto from 'node:crypto';
 import { sendEmail, siteUrl, recordEmailSkipped } from '../services/emailService';
 import { passwordResetEmail, googleSignInEmail } from '../services/emailTemplates';
+import { rateLimit } from '../middleware/rateLimit';
 
 const router = Router();
 
@@ -262,6 +263,14 @@ router.post('/google/unlink', authMiddleware, async (req: AuthRequest, res: Resp
 
 /** How long a reset link stays usable. Long enough to find the mail, short
  *  enough that a mailbox read later is not a way in. */
+// Six tries a quarter of an hour is more than a person who mistyped their own
+// address will ever need, and far too slow to work through a list of them.
+const forgotLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: 6,
+  message: 'Too many attempts. Please wait a few minutes and try again.',
+});
+
 const RESET_TTL_MINUTES = 30;
 
 const hashToken = (token: string): string =>
@@ -269,56 +278,74 @@ const hashToken = (token: string): string =>
 
 // POST /api/auth/forgot-password
 //
-// Always answers the same way. Telling the caller whether an address is
-// registered turns this into a way of finding out who has an account, and a
-// password form is the last place to be handing that out.
-router.post('/forgot-password', async (req: Request, res: Response) => {
+// Says plainly when an address has no account.
+//
+// The careful version of this form answers identically either way, so that
+// nobody can use it to find out who is registered. That protection is worth
+// having where registration is open — and here it is not: the sign-up form
+// already answers the same question with "Email already in use", so the
+// secret was never being kept, and all the vague answer achieved was leaving
+// someone who typed the wrong address waiting for mail that was never coming.
+// So it says what happened, and rateLimit above caps how fast the question
+// can be asked, which is the part that actually costs an address-harvester
+// something.
+router.post('/forgot-password', forgotLimiter, async (req: Request, res: Response) => {
   const { email } = req.body as { email?: string };
-  const sameAnswer = { message: 'If that address has an account, a reset link is on its way.' };
 
-  if (!email || typeof email !== 'string') {
-    res.json(sameAnswer);
+  if (!email || typeof email !== 'string' || !email.trim()) {
+    res.status(400).json({ error: 'Enter your email address.' });
     return;
   }
 
   const address = email.trim().toLowerCase();
   const user = await prisma.user.findUnique({ where: { email: address } });
 
-  // A Google-only account has no password to reset — the button is the way in
-  // — and a rejected or suspended one should not be handed a way back.
-  const eligible = user && user.password && user.status !== 'rejected' && user.status !== 'suspended';
-
-  if (eligible) {
-    // Any link already outstanding stops working: asking again should not
-    // leave two keys to the same door.
-    await prisma.passwordResetToken.updateMany({
-      where: { userId: user.id, usedAt: null },
-      data: { usedAt: new Date() },
-    });
-
-    const token = crypto.randomBytes(32).toString('hex');
-    await prisma.passwordResetToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: hashToken(token),
-        expiresAt: new Date(Date.now() + RESET_TTL_MINUTES * 60_000),
-      },
-    });
-
-    const link = `${siteUrl()}/reset-password?token=${token}`;
-    sendEmail(user.email, passwordResetEmail(user.name, link, siteUrl(), RESET_TTL_MINUTES), 'reset');
-  } else if (user && !user.password && user.status !== 'rejected' && user.status !== 'suspended') {
-    // Nothing to reset, but the owner of the address deserves to know why no
-    // reset link is coming. The page still says the same thing to everyone.
-    console.log(`[Auth] reset asked for ${address} — Google-only account, sent the Google notice`);
-    sendEmail(user.email, googleSignInEmail(user.name, siteUrl()), 'google-notice');
-  } else {
-    const why = !user ? 'no account with that address' : `account is ${user.status}`;
-    console.log(`[Auth] reset asked for ${address} — ${why}, nothing sent`);
-    recordEmailSkipped(address, why);
+  if (!user) {
+    console.log(`[Auth] reset asked for ${address} — no account with that address`);
+    recordEmailSkipped(address, 'no account with that address');
+    res.status(404).json({ error: 'No account uses this email address.' });
+    return;
   }
 
-  res.json(sameAnswer);
+  if (user.status === 'rejected' || user.status === 'suspended') {
+    console.log(`[Auth] reset asked for ${address} — account is ${user.status}`);
+    recordEmailSkipped(address, `account is ${user.status}`);
+    res.status(403).json({ error: 'This account is not active. Please contact the administrator.' });
+    return;
+  }
+
+  // A Google account has no password to reset — the button is the way in. The
+  // notice still goes out, because whoever asked may be on another device
+  // than the one holding this inbox.
+  if (!user.password) {
+    console.log(`[Auth] reset asked for ${address} — Google-only account, sent the Google notice`);
+    sendEmail(user.email, googleSignInEmail(user.name, siteUrl()), 'google-notice');
+    res.status(409).json({
+      error: 'This account signs in with Google. Use the "Sign in with Google" button on the login screen.',
+    });
+    return;
+  }
+
+  // Any link already outstanding stops working: asking again should not leave
+  // two keys to the same door.
+  await prisma.passwordResetToken.updateMany({
+    where: { userId: user.id, usedAt: null },
+    data: { usedAt: new Date() },
+  });
+
+  const token = crypto.randomBytes(32).toString('hex');
+  await prisma.passwordResetToken.create({
+    data: {
+      userId: user.id,
+      tokenHash: hashToken(token),
+      expiresAt: new Date(Date.now() + RESET_TTL_MINUTES * 60_000),
+    },
+  });
+
+  const link = `${siteUrl()}/reset-password?token=${token}`;
+  sendEmail(user.email, passwordResetEmail(user.name, link, siteUrl(), RESET_TTL_MINUTES), 'reset');
+
+  res.json({ message: 'A link to choose a new password is on its way.' });
 });
 
 // GET /api/auth/reset-password/:token

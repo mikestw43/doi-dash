@@ -9,16 +9,19 @@ interface Props {
 /**
  * Ask for a reset link.
  *
- * The screen never says whether the address has an account. That is the
- * server's answer and this only repeats it: a form that replies "no such
- * user" is a way of finding out who has an account, and this is the last
- * place to be handing that out.
+ * It says what happened: no account with that address, an account that signs
+ * in with Google, one that is not active. The server decides that — see the
+ * note on the route — and this shows the sentence it sends back rather than
+ * inventing its own, so the two can never drift apart.
  */
 export const ForgotPasswordPage = ({ onBack }: Props) => {
   const [email, setEmail]     = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent]       = useState(false);
   const [error, setError]     = useState('');
+  // A Google account is not a mistake anyone made, so it should not be shown
+  // in the colour reserved for one.
+  const [tone, setTone]       = useState<'error' | 'info'>('error');
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -28,8 +31,10 @@ export const ForgotPasswordPage = ({ onBack }: Props) => {
     try {
       await forgotPassword(email.trim());
       setSent(true);
-    } catch {
-      setError('Could not reach the server. Please try again.');
+    } catch (err) {
+      const res = (err as { response?: { status?: number; data?: { error?: string } } }).response;
+      setTone(res?.status === 409 ? 'info' : 'error');
+      setError(res?.data?.error || 'Could not reach the server. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,8 +94,8 @@ export const ForgotPasswordPage = ({ onBack }: Props) => {
               fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
               color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: '20px',
             }}>
-              If that address has an account, a link to choose a new password
-              is on its way. It expires in 30 minutes.
+              A link to choose a new password is on its way. It expires in
+              30 minutes. If you cannot see it, look in your spam folder.
             </div>
             <button onClick={onBack} style={ghost}>← BACK TO LOGIN</button>
           </div>
@@ -109,7 +114,7 @@ export const ForgotPasswordPage = ({ onBack }: Props) => {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={e => { setEmail(e.target.value); if (error) setError(''); }}
                 placeholder="trader@example.com"
                 style={input}
                 onFocus={e => (e.target.style.borderColor = 'var(--accent-blue)')}
@@ -120,10 +125,11 @@ export const ForgotPasswordPage = ({ onBack }: Props) => {
 
             {error && (
               <div style={{
-                fontSize: 'var(--fs-micro)', color: 'var(--danger)',
+                fontSize: 'var(--fs-micro)',
+                color: tone === 'info' ? 'var(--accent-blue)' : 'var(--danger)',
                 marginBottom: '10px', padding: '7px 10px',
-                background: 'rgba(248,113,113,.08)',
-                border: '1px solid rgba(248,113,113,.3)',
+                background: tone === 'info' ? 'rgba(96,165,250,.08)' : 'rgba(248,113,113,.08)',
+                border: tone === 'info' ? '1px solid rgba(96,165,250,.35)' : '1px solid rgba(248,113,113,.3)',
                 fontFamily: 'var(--ff-body)',
               }}>{error}</div>
             )}
