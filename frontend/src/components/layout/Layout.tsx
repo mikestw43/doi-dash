@@ -29,6 +29,7 @@ interface LayoutProps {
 export const Layout = ({ children }: LayoutProps) => {
   const currentPage = useUIStore(s => s.currentPage);
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
+  const setAiOpen = useUIStore(s => s.setAiOpen);
   const t = useTranslation();
 
   // Almost the same buttons in both shells — the sidebar on desktop, the
@@ -57,9 +58,21 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   const navButtons = NAV_ITEMS.map(button);
+
+  // AI is not a place, so it is not a page: on a phone the floating button
+  // opens it, and here — where there is no floating button — this does.
   const sidebarButtons = [
     ...navButtons,
-    button({ page: 'ai', labelKey: 'nav.ai', Icon: IconSpark }),
+    <button
+      key="ai"
+      onClick={() => setAiOpen(true)}
+      title={t('nav.ai')}
+      className="nav-btn"
+      style={{ color: 'var(--text-muted)', border: '1px solid transparent', background: 'none' }}
+    >
+      <IconSpark />
+      <span className="sb-label">{t('nav.ai')}</span>
+    </button>,
   ];
 
   return (

@@ -17,7 +17,7 @@ interface UIState {
   botFilter: { status: string; broker: string; search: string; sort: string; group: string };
   botViewMode: BotViewMode;
   activeTab: string;
-  currentPage: 'dashboard' | 'profile' | 'settings' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce' | 'download' | 'ai';
+  currentPage: 'dashboard' | 'profile' | 'settings' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce' | 'download';
   language: Language;
   theme: Theme;
   /** Account the trade-history page should open filtered to, set by whoever
@@ -30,6 +30,9 @@ interface UIState {
   setBotViewMode: (mode: BotViewMode) => void;
   setActiveTab: (tab: string) => void;
   setCurrentPage: (page: UIState['currentPage']) => void;
+  /** The assistant is a sheet over whatever page you are on, not a page. */
+  aiOpen: boolean;
+  setAiOpen: (open: boolean) => void;
   /** Go to the trade history already filtered to one account. */
   openTradeHistory: (accountId: string) => void;
   clearTradeHistoryAccount: () => void;
@@ -45,6 +48,7 @@ export const useUIStore = create<UIState>()(
       botViewMode: 'card',
       activeTab: 'overview',
       currentPage: 'dashboard',
+      aiOpen: false,
       language: 'en',
       theme: 'dark',
       tradeHistoryAccountId: null,
@@ -58,6 +62,7 @@ export const useUIStore = create<UIState>()(
       setBotViewMode: (botViewMode) => set({ botViewMode }),
       setActiveTab: (tab) => set({ activeTab: tab }),
       setCurrentPage: (page) => set({ currentPage: page }),
+      setAiOpen: (open) => set({ aiOpen: open }),
       openTradeHistory: (accountId) =>
         set({ currentPage: 'trade-history', tradeHistoryAccountId: accountId }),
       clearTradeHistoryAccount: () => set({ tradeHistoryAccountId: null }),
