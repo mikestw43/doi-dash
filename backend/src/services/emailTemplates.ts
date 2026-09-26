@@ -4,21 +4,26 @@
  * Email is not the web. Tables carry the layout because a fair number of
  * clients still do not lay out flex or grid; every rule is inline because
  * Outlook and some webmail strip a stylesheet; the type is a system stack
- * because a web font will not load; and each table states its own bgcolor so
- * a client's dark mode has less to guess at. The width stops at 600px, which
- * is what a preview pane gives you.
+ * because a web font will not load; and each table states its own bgcolor.
+ * The width stops at 600px, which is what a preview pane gives you.
+ *
+ * Light, unlike the product it comes from. A dark email is the one a client's
+ * own dark mode is most likely to fight with — it inverts what it thinks is
+ * light-on-dark and leaves grey text on grey — and an inbox is somebody
+ * else's surface, not ours to theme.
  */
 
 const BRAND = {
-  bg:      '#0d0f13',
-  card:    '#16181d',
-  border:  '#2a2d34',
-  text:    '#e8eaed',
-  dim:     '#9aa0a6',
-  faint:   '#6b7280',
-  blue:    '#60a5fa',
-  green:   '#34d399',
-  red:     '#f87171',
+  bg:      '#f4f5f7',
+  card:    '#ffffff',
+  border:  '#e3e5e9',
+  panel:   '#f7f8fa',
+  text:    '#16181d',
+  dim:     '#4b5158',
+  faint:   '#8b9198',
+  blue:    '#2563eb',
+  green:   '#0f9d63',
+  grey:    '#9aa0a6',
 };
 
 const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -44,7 +49,8 @@ const layout = ({ accent, preheader, heading, body, siteUrl }: LayoutOptions): s
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
 <title>${heading}</title>
 </head>
 <body style="margin:0;padding:0;background-color:${BRAND.bg};">
@@ -62,8 +68,8 @@ const layout = ({ accent, preheader, heading, body, siteUrl }: LayoutOptions): s
             <td style="padding:0 0 20px 0;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="width:30px;height:30px;border:2px solid ${BRAND.green};border-radius:8px 8px 14px 14px;" align="center" valign="middle">
-                    <span style="font:700 14px ${FONT};color:${BRAND.green};line-height:26px;">O</span>
+                  <td bgcolor="${BRAND.green}" style="width:30px;height:30px;background-color:${BRAND.green};border-radius:8px 8px 14px 14px;" align="center" valign="middle">
+                    <span style="font:700 15px ${FONT};color:#ffffff;line-height:30px;">O</span>
                   </td>
                   <td style="padding-left:11px;font:600 18px ${FONT};color:${BRAND.text};letter-spacing:.4px;">OnlyFunds</td>
                 </tr>
@@ -110,7 +116,7 @@ const button = (href: string, label: string, color: string): string => `
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 8px 0;">
   <tr>
     <td bgcolor="${color}" style="background-color:${color};border-radius:8px;">
-      <a href="${href}" style="display:inline-block;padding:13px 26px;font:600 15px ${FONT};color:#0d0f13;text-decoration:none;">${label}</a>
+      <a href="${href}" style="display:inline-block;padding:13px 26px;font:600 15px ${FONT};color:#ffffff;text-decoration:none;">${label}</a>
     </td>
   </tr>
 </table>`;
@@ -119,7 +125,7 @@ const button = (href: string, label: string, color: string): string => `
 const note = (html: string): string => `
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 22px 0;">
   <tr>
-    <td bgcolor="#1c1f26" style="background-color:#1c1f26;border-left:2px solid ${BRAND.border};border-radius:0 6px 6px 0;padding:13px 16px;">
+    <td bgcolor="${BRAND.panel}" style="background-color:${BRAND.panel};border-left:2px solid ${BRAND.blue};border-radius:0 6px 6px 0;padding:13px 16px;">
       <p style="margin:0;font:400 13px/1.6 ${FONT};color:${BRAND.dim};">${html}</p>
     </td>
   </tr>
@@ -160,7 +166,7 @@ export const accountApprovedEmail = (name: string | null, siteUrl: string): Emai
 export const accountRejectedEmail = (name: string | null, siteUrl: string): EmailContent => ({
   subject: 'About your OnlyFunds registration',
   html: layout({
-    accent: BRAND.faint,
+    accent: BRAND.grey,
     preheader: 'An update on the registration you submitted.',
     heading: 'About your registration',
     siteUrl,

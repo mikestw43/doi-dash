@@ -24,6 +24,7 @@ import { reportScheduler } from './services/reportScheduler';
 import { errorHandler } from './middleware/errorHandler';
 import { warmFxCache } from './services/fxService';
 import { backfillTradeOwners, repairGuessedOpenTimes } from './services/tradeHistoryService';
+import { verifyEmailTransport } from './services/emailService';
 import { applySqlitePragmas } from './lib/prisma';
 import fs from 'fs';
 import path from 'path';
@@ -104,6 +105,7 @@ applySqlitePragmas().then(() => runtimeStore.initialize()).then(() => {
   warmFxCache().catch(() => { /* logged inside fxService */ });
   backfillTradeOwners().catch(e => console.error('[TradeHistory] owner backfill failed:', e));
   repairGuessedOpenTimes().catch(e => console.error('[TradeHistory] open-time repair failed:', e));
+  verifyEmailTransport().catch(() => { /* logged inside emailService */ });
   server.listen(PORT, () => {
     console.log(`[OnlyFunds] Backend running on http://localhost:${PORT}`);
   });
