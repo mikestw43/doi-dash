@@ -568,5 +568,13 @@
   "aiset.saved": "บันทึกแล้ว",
   "aiset.test_ok": "ตอบกลับแล้ว",
   "aiset.where": "สมัคร key ได้ที่ไหน",
-  "aiset.clear": "ลบ key ที่บันทึกไว้"
+  "aiset.clear": "ลบ key ที่บันทึกไว้",
+  "aiset.key_on_file": "มี key แล้ว",
+  "aiset.model_default": "ใช้ค่าเริ่มต้น",
+  "aiset.model_type": "พิมพ์ชื่อโมเดลเอง…",
+  "aiset.model_back": "เลือกจากรายชื่อ",
+  "aiset.models_loading": "กำลังโหลดรายชื่อโมเดล…",
+  "aiset.models_live": "รายชื่อโมเดลดึงมาจากผู้ให้บริการ",
+  "aiset.models_offline": "ยังดึงรายชื่อจากผู้ให้บริการไม่ได้ นี่คือรุ่นที่ใช้กันทั่วไป และพิมพ์ชื่อรุ่นอื่นเองก็ได้",
+  "aiset.models_need_key": "ใส่ key แล้วรายชื่อรุ่นจริงจะขึ้นมาตรงนี้"
 }

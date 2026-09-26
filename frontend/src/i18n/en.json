@@ -568,5 +568,13 @@
   "aiset.saved": "Saved",
   "aiset.test_ok": "It answered",
   "aiset.where": "Where to get a key",
-  "aiset.clear": "Remove the saved key"
+  "aiset.clear": "Remove the saved key",
+  "aiset.key_on_file": "key saved",
+  "aiset.model_default": "Use the default",
+  "aiset.model_type": "Type a model id…",
+  "aiset.model_back": "Pick from the list",
+  "aiset.models_loading": "Loading the model list…",
+  "aiset.models_live": "Model list from the provider",
+  "aiset.models_offline": "Could not ask the provider for its models — these are the usual ones, and you can type any id.",
+  "aiset.models_need_key": "Add a key and the real list loads here."
 }

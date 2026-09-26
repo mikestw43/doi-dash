@@ -674,6 +674,20 @@ export interface AiSettings {
   source: 'dashboard' | 'environment' | 'none';
   providers: string[];
   defaults: Record<string, string>;
+  /** Last four of the key saved for each provider, so switching between
+   *  them shows what is already set up. */
+  keys: Record<string, string | null>;
+  /** The model saved for each provider ('' = use that provider's default). */
+  models: Record<string, string>;
+}
+
+export interface AiModelList {
+  provider: string;
+  defaultModel: string;
+  models: string[];
+  /** 'provider' — the real list. 'fallback' — could not ask, see problem. */
+  source: 'provider' | 'fallback';
+  problem?: string;
 }
 
 export const fetchAiSettings = async (): Promise<AiSettings> => {
@@ -681,7 +695,7 @@ export const fetchAiSettings = async (): Promise<AiSettings> => {
   return res.data as AiSettings;
 };
 
-export const saveAiSettings = async (next: { provider?: string; model?: string; apiKey?: string }) => {
+export const saveAiSettings = async (next: { provider?: string; model?: string; apiKey?: string; activate?: boolean }) => {
   const res = await api.put('/ai/settings', next);
   return res.data as { provider: string; model: string; hasKey: boolean; keyHint: string | null; source: string };
 };
@@ -691,6 +705,11 @@ export const saveAiSettings = async (next: { provider?: string; model?: string; 
 export const testAiSettings = async (next: { provider?: string; model?: string; apiKey?: string }) => {
   const res = await api.post('/ai/settings/test', next);
   return res.data as { ok: boolean; ms?: number; model?: string; said?: string; message?: string; detail?: string };
+};
+
+export const fetchAiModels = async (next: { provider: string; apiKey?: string }) => {
+  const res = await api.post('/ai/settings/models', next);
+  return res.data as AiModelList;
 };
 
 export const fetchAiStatus = async (): Promise<AiStatus> => {

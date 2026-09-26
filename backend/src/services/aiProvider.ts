@@ -72,6 +72,12 @@ export const resolveAi = async (): Promise<ResolvedAi> => {
 
 export const aiDefaultModel = (provider: string): string => DEFAULT_MODEL[asProvider(provider)];
 
+/** Where to reach a provider that is not the selected one — asking another
+ *  provider for its model list, or testing a key before switching to it.
+ *  AI_API_BASE, when set, points all of them at one stand-in. */
+export const aiBaseFor = (provider: string): string =>
+  (process.env.AI_API_BASE?.trim() || DEFAULT_BASE[asProvider(provider)]).replace(/\/+$/, '');
+
 const MAX_OUTPUT_TOKENS = 1200;
 const TIMEOUT_MS = 60_000;
 
@@ -197,5 +203,95 @@ export const askModel = async (system: string, turns: AiTurn[], override?: Resol
     case 'anthropic': return askAnthropic(ai, system, turns);
     case 'google':    return askGoogle(ai, system, turns);
     default:          return askOpenAiShaped(ai, system, turns);
+  }
+};
+
+/* ------------------------------------------------------------------ *
+ * Which models this key may use.
+ *
+ * Every provider will tell you, so the settings page asks them instead of
+ * carrying a hand-written list that goes stale the week a new model ships.
+ * Each answer is filtered down to the ones that can hold a conversation —
+ * the raw lists also carry embeddings, speech and image models, which
+ * would only be names to pick wrongly from.
+ *
+ * When the call fails (no key yet, no network, a provider that changed its
+ * list endpoint) the caller still gets something to choose from, and the
+ * field stays typeable either way.
+ * ------------------------------------------------------------------ */
+
+/** Enough to get started with if the provider cannot be asked. */
+const FALLBACK_MODELS: Record<AiProvider, string[]> = {
+  anthropic: ['claude-sonnet-5', 'claude-opus-5-5', 'claude-haiku-4-5-20251001'],
+  openai: ['gpt-4o-mini', 'gpt-4o'],
+  google: ['gemini-2.0-flash', 'gemini-2.0-flash-lite'],
+  openrouter: ['anthropic/claude-sonnet-5', 'openai/gpt-4o-mini', 'google/gemini-2.0-flash'],
+};
+
+/** Names in the list that are not chat models, whatever the provider. */
+const NOT_A_CHAT_MODEL =
+  /embed|whisper|tts|audio|realtime|transcrib|moderation|image|dall-e|imagen|veo|rerank|aqa|guard/i;
+
+const LIST_TIMEOUT_MS = 20_000;
+
+const getJson = async (url: string, headers: Record<string, string>): Promise<unknown> => {
+  const res = await fetch(url, { headers, signal: AbortSignal.timeout(LIST_TIMEOUT_MS) });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`${res.status} ${text.slice(0, 300)}`);
+  return JSON.parse(text);
+};
+
+/** Default first, then alphabetical: the one to pick is at the top, and
+ *  everything else is where the eye expects to find it. */
+const tidy = (ids: string[], preferred: string): string[] => {
+  const kept = [...new Set(ids.filter(id => id && !NOT_A_CHAT_MODEL.test(id)))].sort();
+  return [...kept.filter(id => id === preferred), ...kept.filter(id => id !== preferred)];
+};
+
+export interface ModelList {
+  models: string[];
+  /** 'provider' — asked and answered. 'fallback' — could not ask. */
+  source: 'provider' | 'fallback';
+  /** Why the provider could not be asked, in its own words. */
+  problem?: string;
+}
+
+export const listModels = async (ai: ResolvedAi): Promise<ModelList> => {
+  const preferred = DEFAULT_MODEL[ai.provider];
+  try {
+    if (!ai.apiKey && ai.provider !== 'openrouter') throw new Error('no key yet');
+
+    let ids: string[] = [];
+    if (ai.provider === 'anthropic') {
+      const json = await getJson(`${ai.base}/v1/models?limit=200`, {
+        'x-api-key': ai.apiKey, 'anthropic-version': '2023-06-01',
+      }) as { data?: { id?: string }[] };
+      ids = (json.data ?? []).map(m => m.id ?? '');
+    } else if (ai.provider === 'google') {
+      const json = await getJson(
+        `${ai.base}/v1beta/models?pageSize=200&key=${encodeURIComponent(ai.apiKey)}`, {},
+      ) as { models?: { name?: string; supportedGenerationMethods?: string[] }[] };
+      ids = (json.models ?? [])
+        .filter(m => (m.supportedGenerationMethods ?? []).includes('generateContent'))
+        .map(m => (m.name ?? '').replace(/^models\//, ''));
+    } else {
+      // OpenAI and OpenRouter share the shape. OpenRouter lists every model
+      // on the internet, so it is capped; the field still takes any id.
+      const json = await getJson(`${ai.base}/models`, {
+        ...(ai.apiKey ? { Authorization: `Bearer ${ai.apiKey}` } : {}),
+      }) as { data?: { id?: string }[] };
+      ids = (json.data ?? []).map(m => m.id ?? '');
+      if (ai.provider === 'openai') ids = ids.filter(id => /^(gpt-|o[134]|chatgpt)/i.test(id));
+    }
+
+    const models = tidy(ids, preferred);
+    if (models.length === 0) throw new Error('the list came back empty');
+    return { models: models.slice(0, 120), source: 'provider' };
+  } catch (err) {
+    return {
+      models: FALLBACK_MODELS[ai.provider],
+      source: 'fallback',
+      problem: err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200),
+    };
   }
 };

@@ -4,8 +4,8 @@ import { runtimeStore } from '../services/runtimeStore';
 import prisma from '../lib/prisma';
 import { rateLimit } from '../middleware/rateLimit';
 import { buildPortfolioContext } from '../services/aiContext';
-import { askModel, resolveAi, aiDefaultModel, type AiTurn, type ResolvedAi } from '../services/aiProvider';
-import { loadAiConfig, saveAiConfig, redacted } from '../services/aiSettings';
+import { askModel, resolveAi, aiDefaultModel, aiBaseFor, listModels, type AiTurn, type ResolvedAi } from '../services/aiProvider';
+import { loadAiConfig, saveAiConfig, redacted, configForProvider, savedKeyHints } from '../services/aiSettings';
 import { adminMiddleware } from '../middleware/auth';
 import { logAudit } from '../services/auditLogger';
 
@@ -123,6 +123,8 @@ router.get('/status', async (_req: AuthRequest, res: Response) => {
  */
 const PROVIDERS = ['anthropic', 'openai', 'google', 'openrouter'] as const;
 
+
+
 router.get('/settings', adminMiddleware, async (_req: AuthRequest, res: Response) => {
   const cfg = await loadAiConfig();
   const ai = await resolveAi();
@@ -135,11 +137,49 @@ router.get('/settings', adminMiddleware, async (_req: AuthRequest, res: Response
     source: cfg.source,               // dashboard | environment | none
     providers: PROVIDERS,
     defaults: Object.fromEntries(PROVIDERS.map(p => [p, aiDefaultModel(p)])),
+    // Which providers already have a key, so switching between them shows
+    // what is set up without having to select each one and find out.
+    keys: await savedKeyHints(PROVIDERS),
+    models: Object.fromEntries(await Promise.all(
+      PROVIDERS.map(async p => [p, (await configForProvider(p)).model] as const),
+    )),
   });
 });
 
+/**
+ * The models this key is allowed to use, asked of the provider itself.
+ *
+ * The alternative is a list written here by hand, which is wrong the week
+ * a new model ships and gives no hint that a key has been refused. This
+ * asks the provider, and when it cannot (no key yet, no network) it says
+ * so and hands back a short starter list — the field stays typeable, so an
+ * id this does not know about is still allowed.
+ *
+ * A key may be passed in before it is saved, so the list can be seen while
+ * deciding.
+ */
+router.post('/settings/models', adminMiddleware, async (req: AuthRequest, res: Response) => {
+  const body = req.body as { provider?: string; apiKey?: string };
+  const provider = (body.provider || (await resolveAi()).provider).trim().toLowerCase();
+
+  if (!PROVIDERS.includes(provider as typeof PROVIDERS[number])) {
+    res.status(400).json({ error: 'bad_provider', message: `Provider must be one of: ${PROVIDERS.join(', ')}` });
+    return;
+  }
+
+  const saved = await configForProvider(provider);
+  const list = await listModels({
+    provider: provider as ResolvedAi['provider'],
+    model: '',
+    apiKey: (body.apiKey || '').trim() || saved.apiKey,
+    base: aiBaseFor(provider),
+  });
+
+  res.json({ provider, defaultModel: aiDefaultModel(provider), ...list });
+});
+
 router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response) => {
-  const body = req.body as { provider?: unknown; model?: unknown; apiKey?: unknown };
+  const body = req.body as { provider?: unknown; model?: unknown; apiKey?: unknown; activate?: unknown };
 
   if (body.provider != null && !PROVIDERS.includes(String(body.provider).toLowerCase() as typeof PROVIDERS[number])) {
     res.status(400).json({ error: 'bad_provider', message: `Provider must be one of: ${PROVIDERS.join(', ')}` });
@@ -154,6 +194,7 @@ router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response)
     provider: body.provider != null ? String(body.provider) : undefined,
     model: body.model != null ? String(body.model) : undefined,
     apiKey: body.apiKey != null ? String(body.apiKey) : undefined,
+    activate: body.activate !== false,
   }, req.user!.email);
 
   const ai = await resolveAi();
@@ -180,11 +221,15 @@ router.post('/settings/test', adminMiddleware, async (req: AuthRequest, res: Res
   const current = await resolveAi();
 
   const provider = (body.provider || current.provider) as ResolvedAi['provider'];
+  // Not current.apiKey: the provider being tested may not be the selected
+  // one, and testing Google with the OpenAI key would fail for the wrong
+  // reason.
+  const saved = await configForProvider(provider);
   const trial: ResolvedAi = {
     provider,
-    model: (body.model || '').trim() || aiDefaultModel(provider),
-    apiKey: (body.apiKey || '').trim() || current.apiKey,
-    base: current.base,
+    model: (body.model || '').trim() || saved.model || aiDefaultModel(provider),
+    apiKey: (body.apiKey || '').trim() || saved.apiKey,
+    base: aiBaseFor(provider),
   };
 
   if (!trial.apiKey) {
