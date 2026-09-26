@@ -77,6 +77,8 @@ export const recordEmailSkipped = (to: string, reason: string, kind: EmailKind =
 
 const cfg = () => ({
   resendKey: process.env.RESEND_API_KEY,
+  brevoKey: process.env.BREVO_API_KEY,
+  brevoBase: (process.env.BREVO_API_BASE || 'https://api.brevo.com/v3').replace(/\/+$/, ''),
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT || '587', 10),
   user: process.env.SMTP_USER,
@@ -89,13 +91,40 @@ export const siteUrl = (): string =>
 
 export const isEmailConfigured = (): boolean => {
   const c = cfg();
-  return !!c.resendKey || !!(c.host && c.user && c.pass);
+  return !!c.resendKey || !!c.brevoKey || !!(c.host && c.user && c.pass);
 };
 
-/** Which route a send will take, for the log and the startup check. */
-const route = (): 'resend' | 'smtp' | 'none' => {
+/**
+ * Split "OnlyFunds <hello@example.com>" into its parts.
+ *
+ * Resend and nodemailer both take that one string; Brevo wants the name and
+ * the address as separate fields, and rejects the combined form.
+ */
+const splitFrom = (value: string): { name?: string; email: string } => {
+  const m = value.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  if (m) return { name: m[1] ? m[1].replace(/^"|"$/g, '') : undefined, email: m[2].trim() };
+  return { email: value.trim() };
+};
+
+/**
+ * Which route a send will take, for the log and the startup check.
+ *
+ * MAIL_PROVIDER picks one outright, which is what makes trying another
+ * service a change of one variable and a restart — and makes going back the
+ * same. With it unset the first configured one wins, in this order.
+ */
+export type MailRoute = 'resend' | 'brevo' | 'smtp' | 'none';
+
+const route = (): MailRoute => {
   const c = cfg();
+  const chosen = (process.env.MAIL_PROVIDER || '').trim().toLowerCase();
+
+  if (chosen === 'resend') return c.resendKey ? 'resend' : 'none';
+  if (chosen === 'brevo') return c.brevoKey ? 'brevo' : 'none';
+  if (chosen === 'smtp') return c.host && c.user && c.pass ? 'smtp' : 'none';
+
   if (c.resendKey) return 'resend';
+  if (c.brevoKey) return 'brevo';
   if (c.host && c.user && c.pass) return 'smtp';
   return 'none';
 };
@@ -142,6 +171,63 @@ const sendViaResend = async (to: string, content: EmailContent, kind: EmailKind)
   }
 };
 
+/**
+ * Brevo's HTTP API.
+ *
+ * Here because Brevo will send from a single verified address — a plain
+ * Gmail address, verified by clicking a link in it — where Resend's shared
+ * test domain only ever delivers to the account owner. That is the whole
+ * difference: it can write to somebody else.
+ *
+ * What it does not do is make that mail look like it came from the person
+ * it says it came from. Sending as gmail.com through another service means
+ * SPF and DKIM sign Brevo's domain, not Gmail's, and receivers score that
+ * down. It lands, often in spam. A verified domain of one's own is still
+ * the only thing that fixes deliverability; this buys reach in the
+ * meantime.
+ */
+const sendViaBrevo = async (to: string, content: EmailContent, kind: EmailKind): Promise<boolean> => {
+  const c = cfg();
+  const from = splitFrom(c.from || 'OnlyFunds <onboarding@resend.dev>');
+  try {
+    const res = await fetch(`${c.brevoBase}/smtp/email`, {
+      method: 'POST',
+      headers: {
+        'api-key': c.brevoKey as string,
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({
+        sender: from.name ? { name: from.name, email: from.email } : { email: from.email },
+        to: [{ email: to }],
+        subject: content.subject,
+        htmlContent: content.html,
+        textContent: content.text,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+
+    if (!res.ok) {
+      // Brevo answers a rejected sender with a reason worth reading in full:
+      // an address that was never verified is the mistake this setup invites.
+      const detail = await res.text().catch(() => '');
+      console.error(`[Email] Brevo refused "${content.subject}" for ${to}: ${res.status} ${detail.slice(0, 300)}`);
+      void record(kind, to, content.subject, 'failed', `Brevo ${res.status}: ${detail}`);
+      return false;
+    }
+
+    const body = await res.json().catch(() => ({})) as { messageId?: string };
+    console.log(`[Email] sent "${content.subject}" to ${to} via Brevo (${body.messageId ?? 'no id'})`);
+    void record(kind, to, content.subject, 'sent', `Brevo ${body.messageId ?? ''}`.trim());
+    return true;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[Email] Brevo request failed for ${to}: ${msg}`);
+    void record(kind, to, content.subject, 'failed', msg);
+    return false;
+  }
+};
+
 let transporter: Transporter | null = null;
 
 const getTransport = (): Transporter | null => {
@@ -172,12 +258,14 @@ const getTransport = (): Transporter | null => {
  * went, for the callers that want to say so.
  */
 export const sendEmail = async (to: string, content: EmailContent, kind: EmailKind = 'other'): Promise<boolean> => {
-  if (route() === 'resend') return sendViaResend(to, content, kind);
+  const taking = route();
+  if (taking === 'resend') return sendViaResend(to, content, kind);
+  if (taking === 'brevo') return sendViaBrevo(to, content, kind);
 
-  const tx = getTransport();
+  const tx = taking === 'smtp' ? getTransport() : null;
   if (!tx) {
     console.warn(`[Email] not configured — would have sent "${content.subject}" to ${to}`);
-    void record(kind, to, content.subject, 'not_configured', 'No RESEND_API_KEY and no SMTP settings');
+    void record(kind, to, content.subject, 'not_configured', 'No mail provider is configured');
     return false;
   }
   try {
@@ -234,7 +322,50 @@ export const verifyEmailTransport = async (): Promise<void> => {
     return;
   }
 
-  const tx = getTransport();
+  if (route() === 'brevo') {
+    const from = splitFrom(c.from || '');
+    if (!from.email) {
+      console.error('[Email] Brevo is selected but MAIL_FROM is empty — set it to the address you verified with Brevo');
+      return;
+    }
+    try {
+      // The senders list is the check worth making: a key can be perfectly
+      // valid and every send still fail, because Brevo will only send from
+      // an address somebody clicked a link in. Saying that at startup beats
+      // finding out when a person is waiting for a reset link.
+      const res = await fetch(`${c.brevoBase}/senders`, {
+        headers: { 'api-key': c.brevoKey as string, accept: 'application/json' },
+        signal: AbortSignal.timeout(10_000),
+      });
+      const text = await res.text().catch(() => '');
+
+      if (!res.ok) {
+        console.error(`[Email] Brevo key rejected: ${res.status} ${text.slice(0, 200)}`);
+        return;
+      }
+
+      const list = (JSON.parse(text) as { senders?: { email?: string; active?: boolean }[] }).senders ?? [];
+      const mine = list.find(x => (x.email || '').toLowerCase() === from.email.toLowerCase());
+
+      if (!mine) {
+        console.error(
+          `[Email] Brevo ready, but ${from.email} is not one of its senders ` +
+          `(${list.map(x => x.email).join(', ') || 'none verified yet'}) — ` +
+          'add and verify it at brevo.com → Senders, or set MAIL_FROM to one of those',
+        );
+      } else if (mine.active === false) {
+        console.error(`[Email] Brevo knows ${from.email} but it is not verified yet — click the link in its inbox`);
+      } else {
+        console.log(`[Email] Brevo ready (from ${c.from})`);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[Email] Brevo unreachable: ${msg}`);
+    }
+    return;
+  }
+
+  const tx = route() === 'smtp' ? getTransport() : null;
   if (!tx) {
     console.log('[Email] not configured — approval and reset emails will not be sent');
     return;
