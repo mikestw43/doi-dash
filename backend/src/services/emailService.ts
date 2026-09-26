@@ -157,15 +157,26 @@ export const verifyEmailTransport = async (): Promise<void> => {
   const c = cfg();
 
   if (route() === 'resend') {
-    // Listing domains is a read the key is always allowed to make, so it
-    // checks the credential without sending anything.
+    const from = c.from || 'OnlyFunds <onboarding@resend.dev>';
+    // Listing domains proves the key is real without sending anything — but
+    // a send-only key, which is the right kind to give a server, is not
+    // allowed to read that list and answers 401 restricted_api_key. That
+    // answer only comes back to a key the API recognised, so it means the
+    // credential is good; the first version of this check reported it as a
+    // rejection and sent me looking for a fault that was not there.
     try {
       const res = await fetch('https://api.resend.com/domains', {
         headers: { Authorization: `Bearer ${c.resendKey}` },
         signal: AbortSignal.timeout(10_000),
       });
-      if (res.ok) console.log(`[Email] Resend ready (from ${c.from || 'OnlyFunds <onboarding@resend.dev>'})`);
-      else console.error(`[Email] Resend key rejected: ${res.status} ${(await res.text().catch(() => '')).slice(0, 200)}`);
+      const body = await res.text().catch(() => '');
+      if (res.ok) {
+        console.log(`[Email] Resend ready (from ${from})`);
+      } else if (body.includes('restricted_api_key')) {
+        console.log(`[Email] Resend ready — send-only key (from ${from})`);
+      } else {
+        console.error(`[Email] Resend key rejected: ${res.status} ${body.slice(0, 200)}`);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[Email] Resend unreachable: ${msg}`);
