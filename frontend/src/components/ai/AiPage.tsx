@@ -403,7 +403,9 @@ export const AiSheet = () => {
         )}
         <span style={{
           flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
+          // The one line of the portfolio anyone actually reads, so it is
+          // sized to be read rather than to fit a table.
+          fontFamily: 'var(--ff-body)', fontSize: '13.5px', color: 'var(--text-primary)',
         }}>
           {ctx
             ? `${ctx.openOrders} ${t('ai.sum_open')} · ${ctx.losingOrders} ${t('ai.sum_losing')} · ${ctx.ordersWithoutStop} ${t('ai.sum_nosl')} · ${money(ctx.todayPnl)}`
@@ -454,24 +456,20 @@ export const AiSheet = () => {
       <div className="ai-scroll" ref={scroller} onScroll={onScroll}>
         {messages.length === 0 && (
           <div style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
-            <div style={{
-              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-              color: 'var(--text-dim)', lineHeight: 1.7, marginBottom: '12px',
-            }}>
+            <div className="ai-msg" style={{ color: 'var(--text-primary)', marginBottom: '12px' }}>
               {status && !status.configured ? t('ai.offline_short') : t('ai.greeting')}
             </div>
-            <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
+            {/* Two columns rather than a wrapping row: at a size worth
+                reading, one long opener per line pushed the other three
+                down the card. */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {chips.map(c => (
                 <button
                   key={c}
                   onClick={() => send(c)}
                   disabled={busy}
-                  style={{
-                    fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)',
-                    color: 'var(--text-dim)', background: 'var(--bg-input)',
-                    border: '1px solid var(--border2)', borderRadius: '999px',
-                    padding: '6px 11px', cursor: busy ? 'default' : 'pointer',
-                  }}
+                  className="ai-chip"
+                  style={{ cursor: busy ? 'default' : 'pointer' }}
                 >{c}</button>
               ))}
             </div>
@@ -717,6 +715,21 @@ export const AiSheet = () => {
           line-height: 1.7;
         }
         .ai-msg strong { color: var(--text); }
+        /* The four openers are read and tapped, so they are sized to be
+           read and tapped, not like a caption under a table. */
+        .ai-chip {
+          font-family: var(--ff-body);
+          font-size: 15px;
+          line-height: 1.4;
+          color: var(--text-primary);
+          background: var(--bg-input);
+          border: 1px solid var(--border2);
+          border-radius: 999px;
+          padding: 9px 14px;
+          text-align: left;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-chip:active { background: var(--bg-tertiary); }
         .ai-box {
           flex: 1; min-width: 0; width: 100%;
           background: var(--bg-input);
@@ -818,9 +831,9 @@ export const AiSheet = () => {
           bottom: calc(78px + env(safe-area-inset-bottom, 0px));
           width: 40px; height: 40px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          background: var(--accent-blue); border: none;
-          color: #10141b;
-          cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.45);
+          background: var(--bg-tertiary); border: 1px solid var(--border2);
+          color: var(--text-primary);
+          cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.5);
           -webkit-tap-highlight-color: transparent;
         }
         .ai-jump:active { transform: translateX(-50%) scale(.94); }
