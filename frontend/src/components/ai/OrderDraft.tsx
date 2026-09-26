@@ -399,3 +399,25 @@ export const OrderDraftCard = ({ plan }: { plan: Plan }) => {
     </div>
   );
 };
+
+
+/* ------------------------------------------------------------------ *
+ * "Remember this?"
+ *
+ * The other thing an answer can carry. A model cannot learn from being
+ * talked to, so the nearest thing is asking for a line to be kept and
+ * read back to it on every future question. It asks; the person keeps
+ * it or does not.
+ * ------------------------------------------------------------------ */
+
+export const readMemoryOffer = (text: string): { offer: string | null; rest: string } => {
+  for (const m of text.matchAll(/```[a-zA-Z]*\s*(\{[\s\S]*?\})\s*```/g)) {
+    let parsed: Record<string, unknown>;
+    try { parsed = JSON.parse(m[1]) as Record<string, unknown>; } catch { continue; }
+    if (typeof parsed.text !== 'string' || parsed.action || parsed.orders) continue;
+    const offer = parsed.text.trim();
+    if (offer.length < 3) continue;
+    return { offer, rest: text.replace(m[0], '').trim() };
+  }
+  return { offer: null, rest: text };
+};

@@ -4,6 +4,7 @@ import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useAuthStore } from '../../stores/authStore';
 import { AiSettings } from './AiSettings';
+import { AiMemory } from './AiMemory';
 import {
   getTelegramSettings, saveTelegramSettings, testTelegramMessage,
   fetchNotifications,
@@ -13,10 +14,10 @@ import { AccountsSection } from '../accounts/AccountsSection';
 import { ReportSettings } from './ReportSettings';
 import { TickerSettings } from './TickerSettings';
 import type { NotificationLogEntry } from '../../types';
-import { IconCard, IconSend, IconReport, IconTicker, IconBell, IconSpark } from '../icons';
+import { IconCard, IconSend, IconReport, IconTicker, IconBell, IconSpark, IconBookmark } from '../icons';
 import type { ReactElement } from 'react';
 
-type Tab = 'account' | 'telegram' | 'reports' | 'ticker' | 'notifications' | 'ai';
+type Tab = 'account' | 'telegram' | 'reports' | 'ticker' | 'notifications' | 'memory' | 'ai';
 
 /* ── shared styles ────────────────────────────────────── */
 const card: React.CSSProperties = {
@@ -58,6 +59,7 @@ const TABS: { key: Tab; Icon: (p: { size?: number }) => ReactElement; labelKey: 
   { key: 'reports',       Icon: IconReport, labelKey: 'settings.tab_reports' },
   { key: 'ticker',        Icon: IconTicker, labelKey: 'settings.tab_ticker' },
   { key: 'notifications', Icon: IconBell,   labelKey: 'settings.tab_notifications' },
+  { key: 'memory',        Icon: IconBookmark, labelKey: 'settings.tab_memory' },
   { key: 'ai',            Icon: IconSpark,  labelKey: 'nav.ai' },
 ];
 
@@ -137,6 +139,7 @@ export const SettingsPage = () => {
           {tab === 'reports'       && <ReportSettings />}
           {tab === 'ticker'        && <TickerSettings />}
           {tab === 'notifications' && <NotificationsTab />}
+          {tab === 'memory' && <AiMemory />}
           {tab === 'ai' && isAdmin && <AiSettings />}
         </div>
       </div>

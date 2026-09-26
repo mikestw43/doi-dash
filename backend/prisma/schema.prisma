@@ -457,3 +457,24 @@ model AiUsage {
   @@unique([userId, day])
   @@index([day])
 }
+
+/// Something the assistant should know every time, not just in the
+/// conversation where it was said.
+///
+/// A model does not learn from being talked to: the one answering
+/// tomorrow is the same one that answered today, with no memory of it.
+/// What can be done is to hand it the same short list of facts with
+/// every question — which is what this is. Kept small on purpose: it
+/// is read in full on every single question, and a page of notes is a
+/// page of notes paid for each time.
+model AiMemory {
+  id        String   @id @default(uuid())
+  userId    String
+  text      String
+  /// 'you' — typed in by the person. 'ai' — proposed in a conversation
+  /// and accepted. Shown so a list nobody recognises can be pruned.
+  source    String   @default("you")
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

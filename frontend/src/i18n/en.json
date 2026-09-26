@@ -656,5 +656,16 @@
   "acc.ai_auto": "Let the assistant send orders here without asking",
   "acc.ai_auto_demo": "A practice account — a good place to find out what it does before trusting it with money.",
   "acc.ai_auto_live": "This account holds real money. Orders will be placed with no confirmation — the EA's own limits are all that stands in the way.",
-  "acc.ai_auto_saved": "Saved"
+  "acc.ai_auto_saved": "Saved",
+  "settings.tab_memory": "AI MEMORY",
+  "mem.title": "◈ WHAT THE ASSISTANT KNOWS ABOUT YOU",
+  "mem.intro": "The assistant does not learn from talking to you — tomorrow it is the same model with none of it. These lines are handed to it with every question instead, in every conversation. Keep them few: each one is read every time.",
+  "mem.empty": "Nothing yet. Write what is always true: how you count points, what you trade, the size you use, how you like answers written.",
+  "mem.placeholder": "One per line, for example:\nI count in MT5 points — 20 points on gold is 0.20\nI trade gold with demand and supply zones\nKeep answers short",
+  "mem.add": "REMEMBER THIS",
+  "mem.from_ai": "asked by the assistant",
+  "mem.save": "Remember",
+  "mem.dismiss": "No need",
+  "mem.saved": "Saved to memory",
+  "mem.offer": "Remember this?"
 }

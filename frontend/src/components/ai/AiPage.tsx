@@ -7,7 +7,8 @@ import { IconSpark, IconMic, IconPlus, IconCopy, IconRetry, IconPencil, IconArro
 import { prepareImage } from '../../utils/imagePrep';
 import { useDictation } from '../../hooks/useDictation';
 import { RichText } from './RichText';
-import { readPlan, OrderDraftCard } from './OrderDraft';
+import { readPlan, readMemoryOffer, OrderDraftCard } from './OrderDraft';
+import { MemoryOffer } from './MemoryOffer';
 
 /**
  * The assistant's room.
@@ -761,7 +762,9 @@ export const AiSheet = () => {
               // It comes out of the text and becomes a card with a button:
               // printing the JSON at somebody is not an offer they can act
               // on, and leaving it in the prose is just noise.
-              const { plan, rest } = readPlan(m.text);
+              const { plan, rest: withoutPlan } = readPlan(m.text);
+              // An answer can also ask for something to be remembered.
+              const { offer, rest } = readMemoryOffer(withoutPlan);
               return (
                 <>
                   <div className="ai-msg" style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}>
@@ -772,6 +775,7 @@ export const AiSheet = () => {
                       <OrderDraftCard plan={plan} />
                     </div>
                   )}
+                  {offer && <MemoryOffer text={offer} />}
                 </>
               );
             })()}

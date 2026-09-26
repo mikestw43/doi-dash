@@ -8,6 +8,7 @@ import { askModel, resolveAi, aiDefaultModel, aiBaseFor, listModels, AI_PROVIDER
 import { loadAiConfig, saveAiConfig, redacted, configForProvider, savedKeyHints, aiPrices, saveAiPrices } from '../services/aiSettings';
 import { listChats, getChat, saveTurn, deleteChat, truncateFrom } from '../services/aiChats';
 import { mayAsk, recordAsk } from '../services/aiUsage';
+import { listMemories, addMemory, forgetMemory, memoryText } from '../services/aiMemory';
 import { adminMiddleware } from '../middleware/auth';
 import { logAudit } from '../services/auditLogger';
 
@@ -46,7 +47,7 @@ router.use(authMiddleware);
  * does not know what the market will do next, and it must not sound as if
  * it does. The person on the other end has real money in these positions.
  */
-const systemPrompt = (contextText: string, language: string): string => `
+const systemPrompt = (contextText: string, language: string, memories: string): string => `
 You are the assistant inside OnlyFunds, a dashboard that watches this
 person's live MT5 trading accounts. You are talking to the account owner.
 
@@ -56,7 +57,7 @@ It is the only account data you have; you cannot look anything else up.
 
 ${contextText}
 
-HOW TO ANSWER
+${memories}HOW TO ANSWER
 - Answer plainly. This person is a trader, not a programmer.
 - Start in ${language === 'th' ? 'Thai' : 'English'} — that is the language
   the dashboard is set to. It is a default, not a rule: answer in whatever
@@ -122,6 +123,26 @@ Rules that matter more than being helpful:
   certain.
 - Only attach a block when they asked for the trade. Never on an answer
   about how things are going.
+
+ASKING TO REMEMBER SOMETHING
+You do not learn from this conversation: tomorrow you will be the same
+model, with none of it. What you can do is ask for something to be kept
+on the list above, which is read to you at the start of every question.
+
+When they say something that will still be true next week — how they
+count, what they trade, a size they always use, how they want answers
+written — offer to keep it, at the end of the answer:
+
+\`\`\`remember
+{"text":"Counts in MT5 points, so 20 points on gold is 0.20"}
+\`\`\`
+
+One line, in their own terms, written so it makes sense on its own.
+At most one per answer, and only when it is worth carrying for months:
+not what they asked today, not a position that will be closed by
+Friday, and never something already on the list. If in doubt, leave it
+— an unasked question costs nothing and a cluttered list costs every
+question after it.
 
 WHAT A POINT MEANS HERE
 This person counts in MT5 points: one point is the "1 point = …" figure
@@ -414,6 +435,36 @@ router.post('/settings/test', adminMiddleware, async (req: AuthRequest, res: Res
 });
 
 /* ------------------------------------------------------------------ *
+ * What the assistant is told about this person every time
+ * ------------------------------------------------------------------ */
+
+router.get('/memories', async (req: AuthRequest, res: Response) => {
+  res.json({ memories: await listMemories(req.user!.id) });
+});
+
+router.post('/memories', async (req: AuthRequest, res: Response) => {
+  const body = req.body as { text?: unknown; source?: unknown };
+  const text = typeof body.text === 'string' ? body.text : '';
+  const source = body.source === 'ai' ? 'ai' as const : 'you' as const;
+
+  const saved = await addMemory(req.user!.id, text, source);
+  if ('error' in saved) {
+    res.status(400).json({ error: 'bad_memory', message: saved.error });
+    return;
+  }
+  res.json(saved);
+});
+
+router.delete('/memories/:id', async (req: AuthRequest, res: Response) => {
+  const gone = await forgetMemory(req.user!.id, String(req.params.id));
+  if (!gone) {
+    res.status(404).json({ error: 'not_found', message: 'That one is not there.' });
+    return;
+  }
+  res.json({ ok: true });
+});
+
+/* ------------------------------------------------------------------ *
  * Conversations
  *
  * Everything here is scoped to the person asking. The service takes the
@@ -583,7 +634,7 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
     ];
 
     const started = Date.now();
-    const answer = await askModel(systemPrompt(context.text, language), turns, ai);
+    const answer = await askModel(systemPrompt(context.text, language, await memoryText(req.user!.id)), turns, ai);
     const ms = Date.now() - started;
 
     console.log(

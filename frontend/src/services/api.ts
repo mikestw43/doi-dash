@@ -769,6 +769,22 @@ export const askAi = async (
   return res.data as AiAnswer;
 };
 
+export interface AiMemoryRow { id: string; text: string; source: 'you' | 'ai'; createdAt: string }
+
+export const fetchAiMemories = async (): Promise<AiMemoryRow[]> => {
+  const res = await api.get('/ai/memories');
+  return (res.data as { memories: AiMemoryRow[] }).memories;
+};
+
+export const addAiMemory = async (text: string, source: 'you' | 'ai' = 'you') => {
+  const res = await api.post('/ai/memories', { text, source });
+  return res.data as AiMemoryRow;
+};
+
+export const forgetAiMemory = async (id: string): Promise<void> => {
+  await api.delete(`/ai/memories/${id}`);
+};
+
 export interface AiChatSummary { id: string; title: string; updatedAt: string; messages: number }
 export interface AiChatMessage {
   id: string;
