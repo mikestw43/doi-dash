@@ -49,6 +49,10 @@ const getTransport = (): Transporter | null => {
     // 465 is TLS from the first byte; 587 opens plain and upgrades with
     // STARTTLS, which is what Gmail expects.
     secure: c.port === 465,
+    // Fail in ten seconds rather than hanging a request for a minute.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
     auth: { user: c.user, pass: c.pass },
   });
   return transporter;

@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import dns from 'node:dns';
+
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
@@ -28,6 +30,20 @@ import { verifyEmailTransport } from './services/emailService';
 import { applySqlitePragmas } from './lib/prisma';
 import fs from 'fs';
 import path from 'path';
+
+/**
+ * Resolve names to IPv4 first.
+ *
+ * Node 17 changed the default to whatever the resolver returns, which for a
+ * host like smtp.gmail.com means the AAAA record. A droplet with no IPv6
+ * route then fails the connection outright — ENETUNREACH against
+ * 2404:6800:… — before anything it was trying to do can begin, and the error
+ * names the wrong culprit: the mailer reported bad credentials when the
+ * credentials were fine. Every outbound call this server makes goes to a
+ * host with an A record, so preferring it costs nothing and removes a class
+ * of failure that is very hard to read from the log.
+ */
+dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
