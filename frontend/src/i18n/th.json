@@ -360,7 +360,7 @@
   "ai.ctx_nosl": "ไม่มี SL",
   "ai.ctx_today": "วันนี้",
   "ai.ctx_history": "เทรด (30 วัน)",
-  "ai.ask_placeholder": "พิมพ์คำถาม หรือสั่งเปิดออเดอร์…",
+  "ai.ask_placeholder": "ถามอะไรก็ได้…",
   "ai.send": "ส่ง",
   "ai.suggest_today": "วันนี้ทำไมติดลบ",
   "ai.suggest_risk": "ไม้ไหนน่าห่วงที่สุด",

@@ -360,7 +360,7 @@
   "ai.ctx_nosl": "NO SL",
   "ai.ctx_today": "TODAY",
   "ai.ctx_history": "TRADES (30D)",
-  "ai.ask_placeholder": "Ask a question, or describe an order…",
+  "ai.ask_placeholder": "Ask anything…",
   "ai.send": "SEND",
   "ai.suggest_today": "Why am I down today?",
   "ai.suggest_risk": "Which position worries you most?",

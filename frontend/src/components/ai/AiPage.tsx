@@ -5,6 +5,7 @@ import { useUIStore } from '../../stores/uiStore';
 import { IconSpark, IconMic, IconPlus } from '../icons';
 import { prepareImage } from '../../utils/imagePrep';
 import { useDictation } from '../../hooks/useDictation';
+import { RichText } from './RichText';
 
 /**
  * The assistant's room.
@@ -44,7 +45,11 @@ export const AiSheet = () => {
   const [photos, setPhotos] = useState<{ dataUrl: string; name: string }[]>([]);
   const [busy, setBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  // True while a Thai or other IME is mid-word: Enter there confirms the
+  // word being composed and must not send the question.
+  const [typing, setTyping] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLTextAreaElement>(null);
 
   // How far the sheet has been pushed down, in px, while a finger is on it.
   const [dragY, setDragY] = useState(0);
@@ -135,6 +140,20 @@ export const AiSheet = () => {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages.length]);
+
+  // The box follows the text: measured from nothing each time, because a
+  // textarea that has already grown reports its own height as the content
+  // height and would never shrink again.
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    // An empty box is one row. Measuring it would measure the placeholder,
+    // which wraps onto two lines and left the composer a row taller than
+    // it needed to be after every question was sent.
+    if (draft === '') { box.style.height = ''; return; }
+    box.style.height = 'auto';
+    box.style.height = `${Math.min(box.scrollHeight, 132)}px`;
+  }, [draft]);
 
   const MAX_PHOTOS = 4;
 
@@ -377,9 +396,8 @@ export const AiSheet = () => {
           <div key={m.id} style={{
             marginLeft: '28px', padding: '10px 12px', borderRadius: 'var(--radius-sm)',
             background: 'rgba(96,165,250,.10)', border: '1px solid rgba(96,165,250,.35)',
-            fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)',
-            lineHeight: 1.6, wordBreak: 'break-word',
-          }}>
+            color: 'var(--text)', wordBreak: 'break-word', whiteSpace: 'pre-wrap',
+          }} className="ai-msg">
             {m.images && m.images.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: m.text ? '8px' : 0 }}>
                 {m.images.map((src, i) => (
@@ -401,10 +419,11 @@ export const AiSheet = () => {
         ) : (
           <div key={m.id} style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
             <div style={{ ...lbl, marginBottom: '6px' }}>AI</div>
-            <div style={{
-              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-              color: 'var(--text-dim)', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-            }}>{m.text}</div>
+            {/* --text-dim is right for a meta line in a table and wrong
+                for three paragraphs to read on a phone in daylight. */}
+            <div className="ai-msg" style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}>
+              <RichText text={m.text} />
+            </div>
           </div>
         ))}
         <div ref={endRef} />
@@ -441,7 +460,7 @@ export const AiSheet = () => {
       )}
 
       {/* Composer */}
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end', minWidth: 0 }}>
         {/* A label, not a button that calls click() on a hidden input: iOS
             only opens the picker for a real activation, and a programmatic
             click from pointerdown is not one — the button did nothing at
@@ -459,17 +478,31 @@ export const AiSheet = () => {
           <IconPlus size={19} />
         </label>
         <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex' }}>
-          <input
+          {/* A textarea, because a question can be three lines long and a
+              single-line input just scrolls sideways under the thumb. It
+              grows with the text to a point and then scrolls. */}
+          <textarea
+            ref={boxRef}
             value={draft}
+            rows={1}
             onChange={e => setDraft(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') send(draft); }}
+            onKeyDown={e => {
+              // On a phone the return key writes a new line; there is a
+              // SEND button an inch away. With a real keyboard Enter sends
+              // and Shift+Enter breaks the line, which is what every chat
+              // on a desktop does.
+              if (e.key !== 'Enter' || e.shiftKey || typing) return;
+              if (window.matchMedia('(pointer: coarse)').matches) return;
+              e.preventDefault();
+              void send(draft);
+            }}
+            onCompositionStart={() => setTyping(true)}
+            onCompositionEnd={() => setTyping(false)}
             placeholder={mic.listening ? t('ai.listening') : t('ai.ask_placeholder')}
+            className="ai-box"
             style={{
-              flex: 1, minWidth: 0, background: 'var(--bg-input)',
               border: `1px solid ${mic.listening ? 'var(--danger)' : 'var(--border2)'}`,
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-              padding: mic.supported ? '10px 42px 10px 12px' : '10px 12px', outline: 'none',
+              paddingRight: mic.supported ? '42px' : '12px',
             }}
           />
           {/* Only where the browser can actually listen. A microphone that
@@ -557,8 +590,35 @@ export const AiSheet = () => {
           position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%;
           cursor: pointer;
         }
+        /* Chat is prose, not a dense table, and --fs-body is 12px on a
+           phone. This is the one place in the app that is read a paragraph
+           at a time, so it gets a reading size of its own. */
+        .ai-msg {
+          font-family: var(--ff-body);
+          font-size: 15px;
+          line-height: 1.75;
+        }
+        .ai-msg strong { color: var(--text); }
+        .ai-box {
+          flex: 1; min-width: 0; width: 100%;
+          background: var(--bg-input);
+          border-radius: var(--radius-sm);
+          color: var(--text);
+          font-family: var(--ff-body);
+          /* 16px or iOS zooms the whole page in when the box is focused. */
+          font-size: 16px;
+          line-height: 1.5;
+          padding: 9px 12px;
+          outline: none;
+          resize: none;
+          overflow-y: auto;
+          max-height: 132px;
+          box-sizing: border-box;
+        }
         .ai-mic {
-          position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+          /* Pinned to the bottom, not the middle: the box grows upward as
+             the question gets longer and a centred button would drift. */
+          position: absolute; right: 5px; bottom: 4px;
           z-index: 6;
           width: 32px; height: 32px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
@@ -593,43 +653,11 @@ export const AiSheet = () => {
         @media (min-width: 901px) {
           .ai-backdrop { align-items: center; }
           .ai-sheet { height: 80vh; border-radius: 12px; border-bottom: 1px solid var(--border2); }
-          .ai-catch {
-          position: absolute; inset: 0; z-index: 5;
-          background: transparent;
-        }
-        .ai-plus {
-          position: relative;
-          width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-          display: flex; align-items: center; justify-content: center;
-          background: none; border: 1px solid var(--border2);
-          color: var(--text-muted); cursor: pointer;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .ai-plus:active { background: var(--bg-input); }
-        /* Covers the label so the tap lands on the input itself wherever it
-           is pressed, which is the most reliable path on iOS. */
-        .ai-plus input[type="file"] {
-          position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%;
-          cursor: pointer;
-        }
-        .ai-mic {
-          position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
-          z-index: 6;
-          width: 32px; height: 32px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          background: none; border: 1px solid var(--border2);
-          color: var(--text-muted); cursor: pointer;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .ai-mic-on {
-          color: var(--danger); border-color: var(--danger);
-          animation: ai-pulse 1.1s ease-in-out infinite;
-        }
-        @keyframes ai-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,.45); }
-          50%      { box-shadow: 0 0 0 6px rgba(248,113,113,0); }
-        }
-        .ai-grip { display: none; }
+          /* Nothing to swipe with a mouse. */
+          .ai-grip { display: none; }
+          /* A desktop browser does not zoom the page when a box is
+             focused, so the composer can match the rest of the page. */
+          .ai-box { font-size: 14px; }
         }
       `}</style>
     </div>
