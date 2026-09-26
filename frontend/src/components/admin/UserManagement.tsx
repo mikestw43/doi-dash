@@ -245,7 +245,6 @@ export const UserManagement = () => {
                   marginLeft: 'auto',
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '6px 10px',
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
                   fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
                   border: activeFilterCount > 0 ? '1px solid var(--accent-blue)' : '1px solid var(--border2)',
                   color: activeFilterCount > 0 ? 'var(--accent-blue)' : 'var(--text-muted)',
