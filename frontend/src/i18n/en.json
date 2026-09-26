@@ -589,5 +589,6 @@
   "aiset.err_save": "Could not save.",
   "ai.thinking": "Thinking…",
   "ai.stop": "STOP",
-  "ai.to_latest": "Jump to the newest"
+  "ai.to_latest": "Jump to the newest",
+  "ai.unreachable": "Could not reach the server. Please try again."
 }

@@ -28,6 +28,12 @@ import { RichText } from './RichText';
  * down, tapping the dimmed page behind it and Escape all close it.
  */
 
+/** What is actually typed in the composer. innerText keeps the line
+ *  breaks that a contenteditable stores as <br>; a non-breaking space,
+ *  which some keyboards insert, is just a space to everyone reading. */
+const readBox = (el: HTMLElement): string =>
+  el.innerText.replace(/\u00a0/g, ' ').replace(/\n+$/, '');
+
 export const AiSheet = () => {
   const t = useTranslation();
   const addToast = useUIStore(st => st.addToast);
@@ -49,7 +55,7 @@ export const AiSheet = () => {
   // word being composed and must not send the question.
   const [typing, setTyping] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  const boxRef = useRef<HTMLTextAreaElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
   // The question in flight, so STOP has something to cancel.
   const inflight = useRef<AbortController | null>(null);
   // Shown only once the conversation has been scrolled away from the end.
@@ -156,7 +162,7 @@ export const AiSheet = () => {
   const onScroll = () => {
     const el = scroller.current;
     if (!el) return;
-    setAwayFromEnd(el.scrollHeight - el.scrollTop - el.clientHeight > 120);
+    setAwayFromEnd(el.scrollHeight - el.scrollTop - el.clientHeight > 90);
   };
 
   /**
@@ -182,18 +188,16 @@ export const AiSheet = () => {
     };
   }, []);
 
-  // The box follows the text: measured from nothing each time, because a
-  // textarea that has already grown reports its own height as the content
-  // height and would never shrink again.
+  // An editable div grows on its own, so nothing has to be measured. What
+  // does have to happen is the other direction: when the text is set from
+  // outside — cleared after sending, filled by the microphone — the box
+  // has to be told. Only when it differs, or the caret jumps to the front
+  // on every keystroke.
   useEffect(() => {
     const box = boxRef.current;
     if (!box) return;
-    // An empty box is one row. Measuring it would measure the placeholder,
-    // which wraps onto two lines and left the composer a row taller than
-    // it needed to be after every question was sent.
-    if (draft === '') { box.style.height = ''; return; }
-    box.style.height = 'auto';
-    box.style.height = `${Math.min(box.scrollHeight, 132)}px`;
+    if (readBox(box) !== draft) box.textContent = draft;
+    if (draft === '') box.innerHTML = '';
   }, [draft]);
 
   const MAX_PHOTOS = 4;
@@ -241,8 +245,12 @@ export const AiSheet = () => {
       const stopped = (err as { code?: string; name?: string }).code === 'ERR_CANCELED'
         || (err as { name?: string }).name === 'CanceledError';
       if (!stopped) {
-        const answer = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
-        addMessage({ who: 'ai', text: answer || 'Could not reach the server. Please try again.' });
+        // Some refusals carry `message`, the rate limiter carries `error`.
+        // Printing "could not reach the server" over "you have asked a lot
+        // of questions this hour" sends the reader looking for a fault
+        // that is not there.
+        const data = (err as { response?: { data?: { message?: string; error?: string } } }).response?.data;
+        addMessage({ who: 'ai', text: data?.message || data?.error || t('ai.unreachable') });
       }
     } finally {
       inflight.current = null;
@@ -515,7 +523,9 @@ export const AiSheet = () => {
       {/* Back to the newest answer, from wherever the reading got to. */}
       {awayFromEnd && (
         <button className="ai-jump" onClick={() => toEnd()} aria-label={t('ai.to_latest')} title={t('ai.to_latest')}>
-          ↓
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 5v14M6 13l6 6 6-6" />
+          </svg>
         </button>
       )}
 
@@ -569,28 +579,51 @@ export const AiSheet = () => {
           <IconPlus size={19} />
         </label>
         <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex' }}>
-          {/* A textarea, because a question can be three lines long and a
-              single-line input just scrolls sideways under the thumb. It
-              grows with the text to a point and then scrolls. */}
-          <textarea
+          {/* Not a textarea.
+              iOS puts its own grey bar — ‹ › Done — above the keyboard for
+              every form field on a web page, and it sits between the
+              keyboard and the question being typed. A box that is editable
+              text rather than a form control does not get that bar, which
+              is why chat apps are built this way. It also grows by itself
+              as the question gets longer. */}
+          <div
             ref={boxRef}
-            value={draft}
-            rows={1}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={e => {
-              // On a phone the return key writes a new line; there is a
-              // SEND button an inch away. With a real keyboard Enter sends
-              // and Shift+Enter breaks the line, which is what every chat
-              // on a desktop does.
-              if (e.key !== 'Enter' || e.shiftKey || typing) return;
-              if (window.matchMedia('(pointer: coarse)').matches) return;
+            className="ai-box"
+            contentEditable
+            suppressContentEditableWarning
+            role="textbox"
+            aria-multiline="true"
+            aria-label={t('ai.ask_placeholder')}
+            data-placeholder={mic.listening ? t('ai.listening') : t('ai.ask_placeholder')}
+            onInput={e => {
+              const el = e.currentTarget;
+              // innerText, not textContent: a line break in an editable
+              // element is a <br>, which textContent leaves out — three
+              // lines came back as one run-on line when sent.
+              const text = readBox(el);
+              // Deleting the last letter can leave a stray <br> behind,
+              // and an element that is not empty shows no placeholder.
+              if (text === '') el.innerHTML = '';
+              setDraft(text);
+            }}
+            onPaste={e => {
+              // Text only: pasting from a web page otherwise brings its
+              // fonts and colours into the box.
               e.preventDefault();
-              void send(draft);
+              document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+            }}
+            onKeyDown={e => {
+              if (e.key !== 'Enter' || typing) return;
+              // With a real keyboard Enter sends and Shift+Enter breaks the
+              // line, as every chat on a desktop does. On a phone the
+              // return key writes a new line and the SEND button sends.
+              const shouldSend = !e.shiftKey && !window.matchMedia('(pointer: coarse)').matches;
+              e.preventDefault();
+              if (shouldSend) { void send(draft); return; }
+              document.execCommand('insertText', false, '\n');
             }}
             onCompositionStart={() => setTyping(true)}
             onCompositionEnd={() => setTyping(false)}
-            placeholder={mic.listening ? t('ai.listening') : t('ai.ask_placeholder')}
-            className="ai-box"
             style={{
               border: `1px solid ${mic.listening ? 'var(--danger)' : 'var(--border2)'}`,
               paddingRight: mic.supported ? '42px' : '12px',
@@ -686,8 +719,8 @@ export const AiSheet = () => {
            at a time, so it gets a reading size of its own. */
         .ai-msg {
           font-family: var(--ff-body);
-          font-size: 15px;
-          line-height: 1.75;
+          font-size: 16.5px;
+          line-height: 1.7;
         }
         .ai-msg strong { color: var(--text); }
         .ai-box {
@@ -701,10 +734,19 @@ export const AiSheet = () => {
           line-height: 1.5;
           padding: 9px 12px;
           outline: none;
-          resize: none;
           overflow-y: auto;
           max-height: 132px;
           box-sizing: border-box;
+          /* It is text being edited, so line breaks and runs of spaces are
+             kept, and a long word wraps instead of widening the sheet. */
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+          -webkit-user-modify: read-write-plaintext-only;
+        }
+        .ai-box:empty::before {
+          content: attr(data-placeholder);
+          color: var(--text-muted);
+          pointer-events: none;
         }
         .ai-mic {
           /* Pinned to the bottom, not the middle: the box grows upward as
@@ -782,18 +824,20 @@ export const AiSheet = () => {
           width: 8px; height: 8px; border-radius: 1px;
           background: var(--danger); display: block;
         }
-        /* Sits just above the composer, out of the way of the text. */
+        /* Centred above the composer, where a thumb of either hand
+           reaches it, and filled rather than outlined so the arrow reads
+           at a glance against a wall of text. */
         .ai-jump {
-          position: absolute; right: 16px; z-index: 7;
-          bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-          width: 34px; height: 34px; border-radius: 50%;
+          position: absolute; left: 50%; transform: translateX(-50%); z-index: 7;
+          bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+          width: 40px; height: 40px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
-          background: var(--bg-card); border: 1px solid var(--border2);
-          color: var(--text-dim); font-size: 16px; line-height: 1;
-          cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.35);
+          background: var(--accent-blue); border: none;
+          color: #10141b;
+          cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.45);
           -webkit-tap-highlight-color: transparent;
         }
-        .ai-jump:active { background: var(--bg-input); }
+        .ai-jump:active { transform: translateX(-50%) scale(.94); }
         /* On a desktop it is a panel, not a sheet: nothing to swipe, and a
            full-height column of chat on a wide screen reads badly. The
            breakpoint is the shell's own — the sidebar appears at 901px, and
