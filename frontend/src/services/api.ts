@@ -270,6 +270,25 @@ export const fetchEquityHistory = async (
 };
 
 /** The symbols this user has closed a trade on, for the history filter. */
+/** Ask for a reset link. Answers the same whether or not the address has an
+ *  account — see the route for why — so there is nothing to branch on. */
+export const forgotPassword = async (email: string): Promise<{ message: string }> => {
+  const res = await api.post('/auth/forgot-password', { email });
+  return res.data;
+};
+
+/** Whether a reset link is still good, so the page can say so before asking
+ *  for a password rather than after. */
+export const checkResetToken = async (token: string): Promise<{ valid: boolean }> => {
+  const res = await api.get(`/auth/reset-password/${encodeURIComponent(token)}`);
+  return res.data;
+};
+
+export const resetPassword = async (token: string, password: string): Promise<{ message: string }> => {
+  const res = await api.post('/auth/reset-password', { token, password });
+  return res.data;
+};
+
 export const fetchTradedSymbols = async (accountId?: string): Promise<string[]> => {
   const res = await api.get('/analytics/trades/symbols', { params: { accountId } });
   return res.data;

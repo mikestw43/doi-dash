@@ -5,6 +5,7 @@ import { useUIStore } from './stores/uiStore';
 import { useWebSocket } from './hooks/useWebSocket';
 import { getProfile } from './services/api';
 import { LoginPage } from './components/auth/LoginPage';
+import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { Layout } from './components/layout/Layout';
 
 import { OverviewTabs } from './components/overview/OverviewTabs';
@@ -172,6 +173,26 @@ const Booting = ({ slow }: { slow: boolean }) => (
 
 function App() {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+
+  /**
+   * The reset link from the email arrives as a path with a token on it, and
+   * the app has no router — so it is read once here, straight from the
+   * address bar, and takes precedence over everything: somebody following
+   * that link may well already be signed in on this device, and the point of
+   * the link is that they cannot sign in.
+   */
+  const [resetToken, setResetToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    return window.location.pathname.startsWith('/reset-password') && token ? token : null;
+  });
+  const clearResetToken = () => {
+    // Take the token out of the address bar so a reload, or a shoulder, does
+    // not get a second look at it.
+    window.history.replaceState({}, '', '/');
+    setResetToken(null);
+  };
   const logout = useAuthStore(s => s.logout);
   const [ready, setReady] = useState(false);
   const [slow, setSlow] = useState(false);
@@ -205,7 +226,9 @@ function App() {
   if (!ready) return <Booting slow={slow} />;
   return (
     <ErrorBoundary>
-      {isAuthenticated ? <Dashboard /> : <LoginPage />}
+      {resetToken
+        ? <ResetPasswordPage token={resetToken} onDone={clearResetToken} />
+        : isAuthenticated ? <Dashboard /> : <LoginPage />}
     </ErrorBoundary>
   );
 }

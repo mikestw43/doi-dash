@@ -4,6 +4,8 @@ import prisma from '../lib/prisma';
 import { authMiddleware, adminMiddleware, AuthRequest } from '../middleware/auth';
 import { runtimeStore } from '../services/runtimeStore';
 import { logAudit } from '../services/auditLogger';
+import { sendEmail, siteUrl } from '../services/emailService';
+import { accountApprovedEmail, accountRejectedEmail } from '../services/emailTemplates';
 
 const router = Router();
 router.use(authMiddleware);
@@ -165,6 +167,18 @@ router.patch('/users/:id/status', async (req: AuthRequest, res: Response) => {
   });
   logAudit(req.user!.id, 'change_status', 'user', paramId,
     JSON.stringify({ email: user.email, oldStatus: user.status, newStatus: status }));
+
+  // Tell them the decision. Only on the move out of pending: somebody waiting
+  // to be let in is owed an answer, while suspending or reinstating an account
+  // that is already in use is a different conversation and not one to open
+  // with an automated mail. Not awaited, and it cannot throw — the decision is
+  // already saved and must not be held up, or undone, by the mail.
+  if (user.status === 'pending' && status === 'active') {
+    sendEmail(user.email, accountApprovedEmail(user.name, siteUrl()));
+  } else if (user.status === 'pending' && status === 'rejected') {
+    sendEmail(user.email, accountRejectedEmail(user.name, siteUrl()));
+  }
+
   res.json({ id: updated.id, email: updated.email, status: updated.status });
 });
 

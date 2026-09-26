@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { login, googleLogin } from '../../services/api';
 import { useAuthStore } from '../../stores/authStore';
 import { SignUpPage } from './SignUpPage';
+import { ForgotPasswordPage } from './ForgotPasswordPage';
 import { GoogleAuth, googleEnabled } from './googleAuth';
 import { Logo } from '../ui/Logo';
 import { LanguageToggle } from '../ui/LanguageToggle';
@@ -45,6 +46,7 @@ export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState<{ title: string; message: string } | null>(null);
   const [showSignUp, setShowSignUp] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
   const { setAuth } = useAuthStore();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -206,7 +208,7 @@ export const LoginPage = () => {
           <div style={{ textAlign: 'right', margin: '-4px 0 10px', fontSize: 'var(--fs-body-sm)', fontFamily: 'var(--ff-body)', color: 'var(--text-muted)' }}>
             <span
               style={{ color: 'rgba(96,165,250,.5)', cursor: 'pointer' }}
-              onClick={() => setModal({ title: 'FORGOT PASSWORD', message: 'Password reset is managed by your administrator. Please contact your admin to reset your password.' })}
+              onClick={() => setShowForgot(true)}
             >{t('auth.forgot_password')}</span>
           </div>
 
@@ -310,6 +312,7 @@ export const LoginPage = () => {
       </div>
     </div>
     {showSignUp && <SignUpPage onBack={() => setShowSignUp(false)} />}
+    {showForgot && <ForgotPasswordPage onBack={() => setShowForgot(false)} />}
     </>
   );
 };

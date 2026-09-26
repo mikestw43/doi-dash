@@ -36,6 +36,7 @@ model User {
   timezone         String    @default("Asia/Bangkok")
   // Live ticker symbols (JSON array of strings). Null = use server default.
   tickerSymbols    Json?
+  passwordResets   PasswordResetToken[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastLoginAt      DateTime?
@@ -303,4 +304,26 @@ model DailyPnl {
   @@unique([accountId, brokerDate])
   @@index([userId, brokerDate])
   @@index([accountId])
+}
+
+/// A one-time link for setting a new password.
+///
+/// The token is stored hashed, like a password, because that is what it is
+/// for as long as it lives: anything that can read this table must not be
+/// able to take over an account with what it finds. Rows are kept after use
+/// rather than deleted, so a link that arrives twice can be told from one
+/// that was never issued.
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// SHA-256 of the token that went out in the email. The token itself is
+  /// never written down anywhere.
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }

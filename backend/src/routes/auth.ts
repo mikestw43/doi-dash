@@ -6,6 +6,9 @@ import { generateToken, authMiddleware, AuthRequest } from '../middleware/auth';
 import { sendTelegramMessage } from '../services/telegramService';
 import { logAudit } from '../services/auditLogger';
 import { encrypt, decrypt } from '../lib/encryption';
+import crypto from 'node:crypto';
+import { sendEmail, siteUrl } from '../services/emailService';
+import { passwordResetEmail } from '../services/emailTemplates';
 
 const router = Router();
 
@@ -255,6 +258,104 @@ router.post('/google/unlink', authMiddleware, async (req: AuthRequest, res: Resp
   });
   logAudit(me.id, 'unlink_google', 'user', me.id);
   res.json(publicUser(updated));
+});
+
+/** How long a reset link stays usable. Long enough to find the mail, short
+ *  enough that a mailbox read later is not a way in. */
+const RESET_TTL_MINUTES = 30;
+
+const hashToken = (token: string): string =>
+  crypto.createHash('sha256').update(token).digest('hex');
+
+// POST /api/auth/forgot-password
+//
+// Always answers the same way. Telling the caller whether an address is
+// registered turns this into a way of finding out who has an account, and a
+// password form is the last place to be handing that out.
+router.post('/forgot-password', async (req: Request, res: Response) => {
+  const { email } = req.body as { email?: string };
+  const sameAnswer = { message: 'If that address has an account, a reset link is on its way.' };
+
+  if (!email || typeof email !== 'string') {
+    res.json(sameAnswer);
+    return;
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+
+  // A Google-only account has no password to reset — the button is the way in
+  // — and a rejected or suspended one should not be handed a way back.
+  const eligible = user && user.password && user.status !== 'rejected' && user.status !== 'suspended';
+
+  if (eligible) {
+    // Any link already outstanding stops working: asking again should not
+    // leave two keys to the same door.
+    await prisma.passwordResetToken.updateMany({
+      where: { userId: user.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashToken(token),
+        expiresAt: new Date(Date.now() + RESET_TTL_MINUTES * 60_000),
+      },
+    });
+
+    const link = `${siteUrl()}/reset-password?token=${token}`;
+    sendEmail(user.email, passwordResetEmail(user.name, link, siteUrl(), RESET_TTL_MINUTES));
+  } else {
+    console.log(`[Auth] reset asked for ${email} — no eligible account, nothing sent`);
+  }
+
+  res.json(sameAnswer);
+});
+
+// GET /api/auth/reset-password/:token
+// Lets the page say "this link has expired" before asking for a new password,
+// rather than after it has been typed twice.
+router.get('/reset-password/:token', async (req: Request, res: Response) => {
+  const raw = Array.isArray(req.params.token) ? req.params.token[0] : req.params.token;
+  const row = await prisma.passwordResetToken.findUnique({ where: { tokenHash: hashToken(raw || '') } });
+  const valid = !!row && !row.usedAt && row.expiresAt > new Date();
+  res.json({ valid });
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req: Request, res: Response) => {
+  const { token, password } = req.body as { token?: string; password?: string };
+
+  if (!token || !password) {
+    res.status(400).json({ error: 'Token and password are required' });
+    return;
+  }
+  if (password.length < 6) {
+    res.status(400).json({ error: 'Password must be at least 6 characters' });
+    return;
+  }
+
+  const row = await prisma.passwordResetToken.findUnique({ where: { tokenHash: hashToken(token) } });
+  if (!row || row.usedAt || row.expiresAt <= new Date()) {
+    res.status(400).json({ error: 'This link has expired or has already been used.' });
+    return;
+  }
+
+  // Spent first. If setting the password fails the link is gone, which is the
+  // safe way round — a link that survives a half-finished reset is worse than
+  // one that has to be asked for again.
+  await prisma.passwordResetToken.update({
+    where: { id: row.id },
+    data: { usedAt: new Date() },
+  });
+  await prisma.user.update({
+    where: { id: row.userId },
+    data: { password: await bcrypt.hash(password, 10) },
+  });
+
+  console.log(`[Auth] password reset completed for user ${row.userId}`);
+  res.json({ message: 'Your password has been changed. You can sign in with it now.' });
 });
 
 // POST /api/auth/register
