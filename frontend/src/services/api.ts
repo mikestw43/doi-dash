@@ -776,6 +776,25 @@ export interface AiChatMessage {
   at: string;
 }
 
+export interface CommandRow {
+  commandId: string;
+  accountId: string;
+  account: string;
+  accountNumber: string | null;
+  type: string;
+  detail: string | null;
+  status: 'queued' | 'sent' | 'done' | 'failed' | 'dropped';
+  result: string | null;
+  createdAt: string;
+  sentAt: string | null;
+  settledAt: string | null;
+}
+
+export const fetchCommands = async (params: { accountId?: string; status?: string; limit?: number } = {}) => {
+  const res = await api.get('/commands', { params });
+  return res.data as { commands: CommandRow[]; accounts: { id: string; name: string }[] };
+};
+
 export interface AiUsageRow {
   userId: string;
   questions: number;

@@ -18,6 +18,7 @@ import auditRouter from './routes/audit';
 import marketRouter from './routes/market';
 import eaRouter from './routes/ea';
 import aiRouter from './routes/ai';
+import commandsRouter from './routes/commands';
 import { initWebSocket } from './websocket/broadcaster';
 import { runtimeStore } from './services/runtimeStore';
 import { cleanOldSnapshots } from './services/equityService';
@@ -84,6 +85,7 @@ app.use('/api/admin/audit', auditRouter);
 app.use('/api/market', marketRouter);
 app.use('/api/ea', eaRouter);
 app.use('/api/ai', aiRouter);
+app.use('/api/commands', commandsRouter);
 
 // Build stamp helps verify a deploy actually picked up new code.
 const BUILD_TAG = 'v1.4-vps-sqlite';

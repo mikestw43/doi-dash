@@ -15,6 +15,7 @@ import { SettingsPage } from './components/settings/SettingsPage';
 import { UserManagement } from './components/admin/UserManagement';
 import { AuditLogViewer } from './components/admin/AuditLogViewer';
 import { AnalyticsPage } from './components/analytics/AnalyticsPage';
+import { CommandLogPage } from './components/trades/CommandLogPage';
 import { TradeHistoryPage } from './components/trades/TradeHistoryPage';
 import { PrivacyPolicy } from './components/privacy/PrivacyPolicy';
 import { EconomicCalendar } from './components/calendar/EconomicCalendar';
@@ -75,6 +76,7 @@ const Dashboard = () => {
       {currentPage === 'calendar' && <EconomicCalendar />}
       {currentPage === 'ea-repository' && <EaRepository />}
       {currentPage === 'download' && <DownloadPage />}
+      {currentPage === 'command-log' && <CommandLogPage />}
       {currentPage === 'announce' && <AnnouncePage />}
       <AiSheet />
       <AiFab onClick={() => useUIStore.getState().setAiOpen(true)} />

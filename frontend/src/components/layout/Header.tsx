@@ -6,8 +6,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useUIStore } from '../../stores/uiStore';
 import { NotificationBell } from './NotificationBell';
 import {
-  IconUser, IconGear, IconDownload, IconUsers, IconPackage, IconMegaphone, IconPower,
-} from '../icons';
+  IconUser, IconGear, IconDownload, IconUsers, IconPackage, IconMegaphone, IconPower, IconReport } from '../icons';
 import type { IconProps } from '../icons';
 import { fetchMarketQuotes, fetchTickerSymbols } from '../../services/api';
 import type { MarketQuote } from '../../services/api';
@@ -414,6 +413,7 @@ export const Header = () => {
                 {/* Everyone's items */}
                 <MenuRow Icon={IconUser}     label={t('menu.profile')}     onSelect={() => go('profile')} />
                 <MenuRow Icon={IconGear}     label={t('menu.settings')}    onSelect={() => go('settings')} />
+                <MenuRow Icon={IconReport}   label={t('menu.command_log')}  onSelect={() => go('command-log')} />
                 <MenuRow Icon={IconDownload} label={t('menu.download_ea')} onSelect={() => go('download')} />
 
                 {user?.role === 'admin' && (

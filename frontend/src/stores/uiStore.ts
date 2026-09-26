@@ -31,7 +31,7 @@ interface UIState {
   botFilter: { status: string; broker: string; search: string; sort: string; group: string };
   botViewMode: BotViewMode;
   activeTab: string;
-  currentPage: 'dashboard' | 'profile' | 'settings' | 'admin' | 'analytics' | 'trade-history' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce' | 'download';
+  currentPage: 'dashboard' | 'profile' | 'settings' | 'admin' | 'analytics' | 'trade-history' | 'command-log' | 'audit' | 'privacy' | 'calendar' | 'ea-repository' | 'announce' | 'download';
   language: Language;
   theme: Theme;
   /** Account the trade-history page should open filtered to, set by whoever

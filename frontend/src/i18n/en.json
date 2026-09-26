@@ -613,5 +613,17 @@
   "aiset.price": "PRICE, IN BAHT PER MILLION TOKENS",
   "aiset.price_in": "questions (input)",
   "aiset.price_out": "answers (output)",
-  "aiset.price_hint": "Only used to estimate what the assistant has cost on the user screen. The provider's own bill is the real number."
+  "aiset.price_hint": "Only used to estimate what the assistant has cost on the user screen. The provider's own bill is the real number.",
+  "menu.command_log": "Command history",
+  "cmd.title": "COMMAND HISTORY",
+  "cmd.intro": "Every order this dashboard sent to an EA, and what came back from it.",
+  "cmd.all": "All",
+  "cmd.all_accounts": "All accounts",
+  "cmd.none": "Nothing sent yet. Orders placed from the dashboard will show up here, with what the EA did about them.",
+  "cmd.open": "Open a trade",
+  "cmd.close": "Close a position",
+  "cmd.sltp": "Change SL / TP",
+  "cmd.close_all": "Close everything",
+  "cmd.other": "Command",
+  "cmd.took": "answered in"
 }
