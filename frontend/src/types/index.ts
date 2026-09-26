@@ -158,6 +158,9 @@ export interface UserInfo {
   status: string;   // 'active' | 'pending' | 'rejected' | 'suspended'
   createdAt: string;
   lastLoginAt: string | null;
+  // How this account gets in. A Google-only account has no password, which is
+  // why a password reset can do nothing for it.
+  signIn?: 'password' | 'google' | 'both' | 'none';
   _count: { accounts: number };
 }
 

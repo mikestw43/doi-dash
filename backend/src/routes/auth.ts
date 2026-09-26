@@ -7,8 +7,8 @@ import { sendTelegramMessage } from '../services/telegramService';
 import { logAudit } from '../services/auditLogger';
 import { encrypt, decrypt } from '../lib/encryption';
 import crypto from 'node:crypto';
-import { sendEmail, siteUrl } from '../services/emailService';
-import { passwordResetEmail } from '../services/emailTemplates';
+import { sendEmail, siteUrl, recordEmailSkipped } from '../services/emailService';
+import { passwordResetEmail, googleSignInEmail } from '../services/emailTemplates';
 
 const router = Router();
 
@@ -281,7 +281,8 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
     return;
   }
 
-  const user = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+  const address = email.trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email: address } });
 
   // A Google-only account has no password to reset — the button is the way in
   // — and a rejected or suspended one should not be handed a way back.
@@ -305,9 +306,16 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
     });
 
     const link = `${siteUrl()}/reset-password?token=${token}`;
-    sendEmail(user.email, passwordResetEmail(user.name, link, siteUrl(), RESET_TTL_MINUTES));
+    sendEmail(user.email, passwordResetEmail(user.name, link, siteUrl(), RESET_TTL_MINUTES), 'reset');
+  } else if (user && !user.password && user.status !== 'rejected' && user.status !== 'suspended') {
+    // Nothing to reset, but the owner of the address deserves to know why no
+    // reset link is coming. The page still says the same thing to everyone.
+    console.log(`[Auth] reset asked for ${address} — Google-only account, sent the Google notice`);
+    sendEmail(user.email, googleSignInEmail(user.name, siteUrl()), 'google-notice');
   } else {
-    console.log(`[Auth] reset asked for ${email} — no eligible account, nothing sent`);
+    const why = !user ? 'no account with that address' : `account is ${user.status}`;
+    console.log(`[Auth] reset asked for ${address} — ${why}, nothing sent`);
+    recordEmailSkipped(address, why);
   }
 
   res.json(sameAnswer);

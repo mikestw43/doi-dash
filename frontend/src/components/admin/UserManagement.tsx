@@ -5,6 +5,7 @@ import { useUIStore } from '../../stores/uiStore';
 import { useAuthStore } from '../../stores/authStore';
 import { Dialog } from '../ui/Dialog';
 import { AuditLogViewer } from './AuditLogViewer';
+import { EmailLogViewer } from './EmailLogViewer';
 import { UserDetailDialog } from './UserDetailDialog';
 import type { UserInfo } from '../../types';
 import { IconFilter } from '../icons';
@@ -66,7 +67,7 @@ export const UserManagement = () => {
   const currentUserId = useAuthStore(s => s.user?.id);
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<'users' | 'audit'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'audit' | 'email'>('users');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [suspendId, setSuspendId] = useState<string | null>(null);
@@ -211,6 +212,10 @@ export const UserManagement = () => {
         <button className="um-tab-btn" style={tabBtn(activeTab === 'audit')} onClick={() => setActiveTab('audit')}>
           <span className="um-tab-long">AUDIT LOG</span>
           <span className="um-tab-short">AUDIT</span>
+        </button>
+        <button className="um-tab-btn" style={tabBtn(activeTab === 'email')} onClick={() => setActiveTab('email')}>
+          <span className="um-tab-long">EMAIL LOG</span>
+          <span className="um-tab-short">EMAIL</span>
         </button>
       </div>
 
@@ -408,6 +413,8 @@ export const UserManagement = () => {
             <AuditLogViewer embedded />
           </div>
         )}
+
+        {activeTab === 'email' && <EmailLogViewer />}
       </div>
 
       {/* Add User Dialog */}

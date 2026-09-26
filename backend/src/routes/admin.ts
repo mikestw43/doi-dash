@@ -19,11 +19,31 @@ router.get('/users', async (_req: AuthRequest, res: Response) => {
       mobile: true, phoneCountry: true,
       role: true, status: true,
       createdAt: true, lastLoginAt: true,
+      // Not the hash itself — only whether there is one. A Google-only account
+      // has none, which is why a password reset can do nothing for it.
+      password: true,
+      googleId: true,
       _count: { select: { accounts: true } },
     },
     orderBy: { createdAt: 'asc' },
   });
-  res.json(users);
+  res.json(users.map(({ password, googleId, ...u }) => ({
+    ...u,
+    signIn: password && googleId ? 'both' : googleId ? 'google' : password ? 'password' : 'none',
+  })));
+});
+
+// GET /api/admin/email-log
+//
+// What the mail system has been doing, so an admin with a phone can see why a
+// message did or did not arrive. The server log says the same thing, and a
+// phone cannot read the server log.
+router.get('/email-log', async (_req: AuthRequest, res: Response) => {
+  const rows = await prisma.emailLog.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+  res.json(rows);
 });
 
 const ALLOWED_ROLES = ['user', 'vip', 'admin'] as const;
@@ -174,9 +194,9 @@ router.patch('/users/:id/status', async (req: AuthRequest, res: Response) => {
   // with an automated mail. Not awaited, and it cannot throw — the decision is
   // already saved and must not be held up, or undone, by the mail.
   if (user.status === 'pending' && status === 'active') {
-    sendEmail(user.email, accountApprovedEmail(user.name, siteUrl()));
+    sendEmail(user.email, accountApprovedEmail(user.name, siteUrl()), 'approval');
   } else if (user.status === 'pending' && status === 'rejected') {
-    sendEmail(user.email, accountRejectedEmail(user.name, siteUrl()));
+    sendEmail(user.email, accountRejectedEmail(user.name, siteUrl()), 'rejection');
   }
 
   res.json({ id: updated.id, email: updated.email, status: updated.status });

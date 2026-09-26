@@ -159,6 +159,15 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
               <span style={{ ...valStyle, color: s.color }}>● {s.label}</span>
             </div>
             <div style={rowStyle}>
+              <span style={lblStyle}>SIGN IN</span>
+              <span style={valStyle}>{
+                user.signIn === 'google' ? 'Google button'
+                  : user.signIn === 'both' ? 'Password or Google'
+                  : user.signIn === 'password' ? 'Email & password'
+                  : '—'
+              }</span>
+            </div>
+            <div style={rowStyle}>
               <span style={lblStyle}>CREATED</span>
               <span style={valStyle}>{formatDateTime(user.createdAt)}</span>
             </div>

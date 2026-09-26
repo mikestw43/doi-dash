@@ -327,3 +327,19 @@ model PasswordResetToken {
   @@index([userId])
   @@index([expiresAt])
 }
+
+/// Every attempt to send mail, kept so an admin can see what happened without
+/// reading the server log. A phone cannot tail a log file; this is the same
+/// information in the app. No link or token is ever stored here — only who it
+/// was for, what it was, and how it went.
+model EmailLog {
+  id        String   @id @default(uuid())
+  to        String
+  subject   String
+  kind      String   // 'approval' | 'rejection' | 'reset' | 'google-notice' | 'other'
+  status    String   // 'sent' | 'failed' | 'skipped' | 'not_configured'
+  detail    String?  // the provider's id, or the reason it did not go
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

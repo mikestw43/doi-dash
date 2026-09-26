@@ -206,6 +206,21 @@ export const changeUserRole = async (id: string, role: string) => {
   return res.data;
 };
 
+export interface EmailLogRow {
+  id: string;
+  to: string;
+  subject: string;
+  kind: string;
+  status: string;
+  detail: string | null;
+  createdAt: string;
+}
+
+export const fetchEmailLog = async () => {
+  const res = await api.get('/admin/email-log');
+  return res.data as EmailLogRow[];
+};
+
 export const changeUserStatus = async (id: string, status: 'active' | 'pending' | 'rejected' | 'suspended') => {
   const res = await api.patch(`/admin/users/${id}/status`, { status });
   return res.data;

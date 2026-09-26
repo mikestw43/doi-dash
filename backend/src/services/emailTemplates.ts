@@ -227,3 +227,44 @@ export const passwordResetEmail = (
     '— OnlyFunds',
   ].join('\n'),
 });
+
+/**
+ * Asked to reset the password of an account that signs in with Google.
+ *
+ * There is no password on such an account, so there is nothing to reset. The
+ * web page cannot say so — it answers identically for every address on
+ * purpose — which leaves the person staring at an inbox that will never fill.
+ * This is what Google and most banks send in the same situation: the mail
+ * goes only to the address itself, so it tells the owner something useful
+ * without telling a stranger anything at all.
+ */
+export const googleSignInEmail = (name: string | null, siteUrl: string): EmailContent => ({
+  subject: 'Signing in to OnlyFunds',
+  html: layout({
+    accent: BRAND.blue,
+    preheader: 'This account signs in with Google — there is no password to reset.',
+    heading: 'Use the Google button',
+    siteUrl,
+    body:
+      p(greeting(name), BRAND.text) +
+      p('Someone asked to reset the password for the OnlyFunds account using this email address.') +
+      p('This account signs in with Google, so it has no password of its own — there is nothing to reset. Open OnlyFunds and press <strong style="color:' + BRAND.text + ';">Sign in with Google</strong> instead.') +
+      button(siteUrl, 'Go to OnlyFunds', BRAND.blue) +
+      p(`<span style="color:${BRAND.faint};font-size:13px;">If this wasn't you, nothing has changed and you can ignore this email.</span>`),
+  }),
+  text: [
+    greeting(name),
+    '',
+    'Someone asked to reset the password for the OnlyFunds account using this email',
+    'address. This account signs in with Google, so it has no password of its own',
+    'and there is nothing to reset.',
+    '',
+    'Open OnlyFunds and press "Sign in with Google" instead:',
+    '',
+    siteUrl,
+    '',
+    "If this wasn't you, nothing has changed and you can ignore this email.",
+    '',
+    '— OnlyFunds',
+  ].join('\n'),
+});

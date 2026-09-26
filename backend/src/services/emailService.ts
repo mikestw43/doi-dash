@@ -1,5 +1,6 @@
 import nodemailer, { type Transporter } from 'nodemailer';
 import type { EmailContent } from './emailTemplates';
+import prisma from '../lib/prisma';
 
 /**
  * Outbound email, by whichever route the environment provides.
@@ -31,6 +32,49 @@ import type { EmailContent } from './emailTemplates';
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 
+/** What the message was for, so the log reads as something other than subjects. */
+export type EmailKind = 'approval' | 'rejection' | 'reset' | 'google-notice' | 'other';
+
+/** How long the log is worth keeping. Long enough to answer "did it go?". */
+const LOG_KEEP_DAYS = 30;
+
+/**
+ * Write one line of the mail log.
+ *
+ * Its own try/catch, and never awaited by the caller in a way that can fail a
+ * send: a log that cannot be written is a smaller problem than an email that
+ * did not go out because logging threw.
+ */
+const record = async (
+  kind: EmailKind,
+  to: string,
+  subject: string,
+  status: 'sent' | 'failed' | 'skipped' | 'not_configured',
+  detail?: string,
+): Promise<void> => {
+  try {
+    await prisma.emailLog.create({
+      data: { kind, to, subject, status, detail: detail?.slice(0, 500) ?? null },
+    });
+    await prisma.emailLog.deleteMany({
+      where: { createdAt: { lt: new Date(Date.now() - LOG_KEEP_DAYS * 864e5) } },
+    });
+  } catch {
+    // Deliberately silent. See above.
+  }
+};
+
+/**
+ * Note that nothing was sent, and why.
+ *
+ * The forgot-password route answers the same way whether or not an address is
+ * registered, which is right for the visitor and useless for the admin trying
+ * to work out why no mail arrived. This is where that answer lives.
+ */
+export const recordEmailSkipped = (to: string, reason: string, kind: EmailKind = 'reset'): void => {
+  void record(kind, to, '(nothing sent)', 'skipped', reason);
+};
+
 const cfg = () => ({
   resendKey: process.env.RESEND_API_KEY,
   host: process.env.SMTP_HOST,
@@ -60,7 +104,7 @@ const route = (): 'resend' | 'smtp' | 'none' => {
  * Resend's HTTP API. No SDK — it is one POST, and a dependency that wraps one
  * POST is a dependency to keep updated for nothing.
  */
-const sendViaResend = async (to: string, content: EmailContent): Promise<boolean> => {
+const sendViaResend = async (to: string, content: EmailContent, kind: EmailKind): Promise<boolean> => {
   const c = cfg();
   try {
     const res = await fetch(RESEND_ENDPOINT, {
@@ -83,14 +127,17 @@ const sendViaResend = async (to: string, content: EmailContent): Promise<boolean
       // without send permission — and it is the only place it is said.
       const detail = await res.text().catch(() => '');
       console.error(`[Email] Resend refused "${content.subject}" for ${to}: ${res.status} ${detail.slice(0, 300)}`);
+      void record(kind, to, content.subject, 'failed', `Resend ${res.status}: ${detail}`);
       return false;
     }
     const body = await res.json().catch(() => ({})) as { id?: string };
     console.log(`[Email] sent "${content.subject}" to ${to} via Resend (${body.id ?? 'no id'})`);
+    void record(kind, to, content.subject, 'sent', `Resend ${body.id ?? ''}`.trim());
     return true;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[Email] Resend request failed for ${to}: ${msg}`);
+    void record(kind, to, content.subject, 'failed', msg);
     return false;
   }
 };
@@ -124,12 +171,13 @@ const getTransport = (): Transporter | null => {
  * a refused SMTP handshake is not a reason to fail it. Returns whether it
  * went, for the callers that want to say so.
  */
-export const sendEmail = async (to: string, content: EmailContent): Promise<boolean> => {
-  if (route() === 'resend') return sendViaResend(to, content);
+export const sendEmail = async (to: string, content: EmailContent, kind: EmailKind = 'other'): Promise<boolean> => {
+  if (route() === 'resend') return sendViaResend(to, content, kind);
 
   const tx = getTransport();
   if (!tx) {
     console.warn(`[Email] not configured — would have sent "${content.subject}" to ${to}`);
+    void record(kind, to, content.subject, 'not_configured', 'No RESEND_API_KEY and no SMTP settings');
     return false;
   }
   try {
@@ -141,10 +189,12 @@ export const sendEmail = async (to: string, content: EmailContent): Promise<bool
       html: content.html,
     });
     console.log(`[Email] sent "${content.subject}" to ${to} (${info.messageId})`);
+    void record(kind, to, content.subject, 'sent', info.messageId);
     return true;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[Email] failed to send "${content.subject}" to ${to}: ${msg}`);
+    void record(kind, to, content.subject, 'failed', msg);
     return false;
   }
 };
