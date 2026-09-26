@@ -28,6 +28,25 @@ import { RichText } from './RichText';
  * down, tapping the dimmed page behind it and Escape all close it.
  */
 
+/**
+ * What is left of the screen above the sheet: the strip the clock and the
+ * battery live in, plus a little, so the sheet clears them and there is
+ * still somewhere to tap to close.
+ *
+ * The strip is measured rather than guessed — it is 0 on a phone with no
+ * notch, and about 59 on one with, and a number typed here would be wrong
+ * on one of them.
+ */
+const topGap = (): number => {
+  const probe = document.createElement('div');
+  probe.style.cssText =
+    'position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none';
+  document.body.appendChild(probe);
+  const inset = probe.getBoundingClientRect().height;
+  probe.remove();
+  return Math.max(24, Math.round(inset) + 8);
+};
+
 export const AiSheet = () => {
   const t = useTranslation();
   const addToast = useUIStore(st => st.addToast);
@@ -170,7 +189,7 @@ export const AiSheet = () => {
    * keys. visualViewport is the part still visible, and the sheet is sized
    * to that instead.
    */
-  const [viewport, setViewport] = useState<{ height: number; top: number; keyboard: boolean } | null>(null);
+  const [viewport, setViewport] = useState<{ height: number; top: number; keyboard: boolean; gap: number } | null>(null);
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
@@ -178,7 +197,12 @@ export const AiSheet = () => {
     // with its own height and no keyboard covering anything.
     const measure = () =>
       setViewport(window.matchMedia('(max-width: 900px)').matches
-        ? { height: vv.height, top: vv.offsetTop, keyboard: window.innerHeight - vv.height > 120 }
+        ? {
+            height: vv.height,
+            top: vv.offsetTop,
+            keyboard: window.innerHeight - vv.height > 120,
+            gap: topGap(),
+          }
         : null);
     measure();
     vv.addEventListener('resize', measure);
@@ -319,14 +343,13 @@ export const AiSheet = () => {
         style={{
           transform: `translateY(${dragY}px)`,
           transition: dragging ? 'none' : 'transform .22s cubic-bezier(.2,.8,.3,1)',
-          // 88% of what can actually be seen, which is not the window once
-          // the keyboard is up.
-          // Of what can be seen, not of the window — and all of it while
-          // the keyboard is up, because 88% of the strip above a keyboard
-          // is a letterbox with the conversation squeezed into it.
+          // Measured against what can actually be seen, which is not the
+          // window once the keyboard is up. All of it while typing;
+          // otherwise all but a strip at the top, which keeps the sheet
+          // clear of the status bar and leaves somewhere to tap to close.
           ...(viewport
             ? (() => {
-                const h = Math.round(viewport.height * (viewport.keyboard ? 1 : 0.88));
+                const h = Math.round(viewport.height) - (viewport.keyboard ? 0 : viewport.gap);
                 return { height: `${h}px`, maxHeight: `${h}px` };
               })()
             : {}),
@@ -695,7 +718,7 @@ export const AiSheet = () => {
         .ai-sheet {
           position: relative;
           width: 100%; max-width: 640px;
-          height: 88vh; max-height: 88vh;
+          height: calc(100vh - 46px); max-height: calc(100vh - 46px);
           background: var(--bg-primary);
           border: 1px solid var(--border2);
           border-bottom: none;
