@@ -2,26 +2,37 @@ import nodemailer, { type Transporter } from 'nodemailer';
 import type { EmailContent } from './emailTemplates';
 
 /**
- * Outbound email, over whatever SMTP the environment points at.
+ * Outbound email, by whichever route the environment provides.
  *
- * Configured entirely from the environment, so the credentials live on the
- * server and nowhere in this repository, and so moving from a Gmail account
- * to a proper sending service later is a change of four variables rather than
- * a change of code:
+ * Two of them, because the obvious one is not always available. DigitalOcean
+ * blocks outbound 25, 465 and 587 on new droplets to keep spam off its
+ * network, which this server confirmed the hard way: Gmail's address resolved
+ * and every mail port timed out while HTTPS answered 200. An HTTP API goes
+ * over 443 and is not affected.
  *
- *   SMTP_HOST   smtp.gmail.com
- *   SMTP_PORT   587
- *   SMTP_USER   the full address the mail is sent from
- *   SMTP_PASS   an app password, not the account password
- *   MAIL_FROM   OnlyFunds <you@gmail.com>          (optional)
- *   SITE_URL    https://onlyfunds.duckdns.org      (used to build links)
+ *   RESEND_API_KEY   re_...        → send over HTTPS, preferred when present
  *
- * With SMTP_HOST unset nothing is sent and every call says so in the log
- * instead of throwing: an unconfigured mailer must not be able to fail an
+ *   SMTP_HOST        smtp.gmail.com
+ *   SMTP_PORT        587
+ *   SMTP_USER        the full address the mail is sent from
+ *   SMTP_PASS        an app password, not the account password
+ *
+ *   MAIL_FROM        OnlyFunds <you@example.com>     (optional)
+ *   SITE_URL         https://onlyfunds.duckdns.org   (used to build links)
+ *
+ * Everything comes from the environment, so the credentials live on the
+ * server and nowhere in this repository, and swapping providers is a change
+ * of variables rather than a change of code.
+ *
+ * With neither configured nothing is sent: every call says so in the log
+ * instead of throwing. An unconfigured mailer must not be able to fail an
  * approval or a registration.
  */
 
+const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+
 const cfg = () => ({
+  resendKey: process.env.RESEND_API_KEY,
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT || '587', 10),
   user: process.env.SMTP_USER,
@@ -34,7 +45,54 @@ export const siteUrl = (): string =>
 
 export const isEmailConfigured = (): boolean => {
   const c = cfg();
-  return !!(c.host && c.user && c.pass);
+  return !!c.resendKey || !!(c.host && c.user && c.pass);
+};
+
+/** Which route a send will take, for the log and the startup check. */
+const route = (): 'resend' | 'smtp' | 'none' => {
+  const c = cfg();
+  if (c.resendKey) return 'resend';
+  if (c.host && c.user && c.pass) return 'smtp';
+  return 'none';
+};
+
+/**
+ * Resend's HTTP API. No SDK — it is one POST, and a dependency that wraps one
+ * POST is a dependency to keep updated for nothing.
+ */
+const sendViaResend = async (to: string, content: EmailContent): Promise<boolean> => {
+  const c = cfg();
+  try {
+    const res = await fetch(RESEND_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${c.resendKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: c.from || 'OnlyFunds <onboarding@resend.dev>',
+        to: [to],
+        subject: content.subject,
+        html: content.html,
+        text: content.text,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) {
+      // The body carries the reason — an unverified sending domain, a key
+      // without send permission — and it is the only place it is said.
+      const detail = await res.text().catch(() => '');
+      console.error(`[Email] Resend refused "${content.subject}" for ${to}: ${res.status} ${detail.slice(0, 300)}`);
+      return false;
+    }
+    const body = await res.json().catch(() => ({})) as { id?: string };
+    console.log(`[Email] sent "${content.subject}" to ${to} via Resend (${body.id ?? 'no id'})`);
+    return true;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[Email] Resend request failed for ${to}: ${msg}`);
+    return false;
+  }
 };
 
 let transporter: Transporter | null = null;
@@ -67,6 +125,8 @@ const getTransport = (): Transporter | null => {
  * went, for the callers that want to say so.
  */
 export const sendEmail = async (to: string, content: EmailContent): Promise<boolean> => {
+  if (route() === 'resend') return sendViaResend(to, content);
+
   const tx = getTransport();
   if (!tx) {
     console.warn(`[Email] not configured — would have sent "${content.subject}" to ${to}`);
@@ -94,9 +154,28 @@ export const sendEmail = async (to: string, content: EmailContent): Promise<bool
  * up in the log on deploy rather than the first time somebody is approved.
  */
 export const verifyEmailTransport = async (): Promise<void> => {
+  const c = cfg();
+
+  if (route() === 'resend') {
+    // Listing domains is a read the key is always allowed to make, so it
+    // checks the credential without sending anything.
+    try {
+      const res = await fetch('https://api.resend.com/domains', {
+        headers: { Authorization: `Bearer ${c.resendKey}` },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (res.ok) console.log(`[Email] Resend ready (from ${c.from || 'OnlyFunds <onboarding@resend.dev>'})`);
+      else console.error(`[Email] Resend key rejected: ${res.status} ${(await res.text().catch(() => '')).slice(0, 200)}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[Email] Resend unreachable: ${msg}`);
+    }
+    return;
+  }
+
   const tx = getTransport();
   if (!tx) {
-    console.log('[Email] SMTP not configured — approval and reset emails will not be sent');
+    console.log('[Email] not configured — approval and reset emails will not be sent');
     return;
   }
   try {
