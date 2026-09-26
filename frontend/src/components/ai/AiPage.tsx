@@ -477,8 +477,10 @@ export const AiSheet = () => {
           padding: 4px 16px calc(16px + env(safe-area-inset-bottom, 0px));
         }
         /* On a desktop it is a panel, not a sheet: nothing to swipe, and a
-           full-height column of chat on a wide screen reads badly. */
-        @media (min-width: 768px) {
+           full-height column of chat on a wide screen reads badly. The
+           breakpoint is the shell's own — the sidebar appears at 901px, and
+           anything narrower is still a screen you hold. */
+        @media (min-width: 901px) {
           .ai-backdrop { align-items: center; }
           .ai-sheet { height: 80vh; border-radius: 12px; border-bottom: 1px solid var(--border2); }
           .ai-catch {
@@ -542,7 +544,11 @@ export const AiFab = ({ onClick, hidden }: { onClick: () => void; hidden?: boole
           -webkit-tap-highlight-color: transparent;
         }
         .ai-fab:active { transform: scale(.94); }
-        @media (max-width: 767px) {
+        /* Wherever the sidebar is not — the sidebar is the only other way
+           in. At 767px this left a gap from 768 to 900 with neither: an
+           unfolded Pixel Fold lands at about 840 and had no way to open the
+           assistant at all. */
+        @media (max-width: 900px) {
           .ai-fab { display: flex; }
         }
       `}</style>
