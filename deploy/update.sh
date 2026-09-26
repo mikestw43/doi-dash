@@ -25,6 +25,12 @@ echo "[2/5] Pulling latest code..."
 git checkout -- backend/package-lock.json frontend/package-lock.json 2>/dev/null || true
 git pull
 
+# 1GB of RAM and two builds to run. Without somewhere to overflow to, the
+# frontend build is killed part-way and the site silently keeps serving the
+# previous version — the failure nobody notices. One-time, and a no-op
+# afterwards.
+bash deploy/ensure-swap.sh 2 || true
+
 echo ""
 echo "[3/5] Building backend..."
 cd backend
@@ -38,7 +44,9 @@ echo ""
 echo "[4/5] Building frontend..."
 cd frontend
 npm install
-npm run build
+# Keep the bundler's heap under what the box can actually give it, so it
+# fails with a message a person can read instead of being killed outright.
+NODE_OPTIONS="--max-old-space-size=900" npm run build
 cd ..
 
 echo ""
