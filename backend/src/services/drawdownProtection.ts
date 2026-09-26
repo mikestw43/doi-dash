@@ -3,6 +3,7 @@ import { commandQueue } from './commandQueue';
 import { sendTelegramMessage, escapeHtml } from './telegramService';
 import { logNotification } from './notificationLogger';
 import { logAudit } from './auditLogger';
+import { logCommandQueued } from './commandLog';
 import { decrypt } from '../lib/encryption';
 import type { Account } from '../mock/data';
 
@@ -66,11 +67,14 @@ export const checkDrawdownProtection = async (
     cooldowns.set(dbAcc.id, Date.now());
 
     // Enqueue close all command
-    commandQueue.enqueue(dbAcc.apiKey, {
+    const cmd = commandQueue.enqueue(dbAcc.apiKey, {
       type: 'CLOSE_ALL',
       accountId: dbAcc.id,
       userId,
     });
+
+    logCommandQueued(cmd.id, dbAcc.id, userId, 'CLOSE_ALL',
+      `drawdown protection at ${runtimeAcc.drawdown.toFixed(2)}% (limit ${dbAcc.protectionDrawdown}%)`);
 
     console.log(`[Protection] Triggered CLOSE_ALL for ${dbAcc.name} (DD: ${runtimeAcc.drawdown.toFixed(2)}% >= ${dbAcc.protectionDrawdown}%)`);
 

@@ -9,6 +9,7 @@ import { recordDailyPnl } from '../services/dailyPnlService';
 import { recordSnapshot } from '../services/equityService';
 import { markAsReal, unmarkAsReal } from '../mock/simulator';
 import prisma from '../lib/prisma';
+import { dropCommands, markCommandsSent, settleCommand } from '../services/commandLog';
 import type { Account, Order, PendingOrder } from '../mock/data';
 
 interface MT5PushPayload {
@@ -53,6 +54,10 @@ interface MT5PushPayload {
   /// Every symbol the broker offers, sent occasionally rather than on every
   /// tick — see storeSymbols below.
   symbols?: string[];
+  /// Set by an EA that will carry out commands. Absent from every reporter
+  /// before v1.3, and from v1.3 with trading switched off.
+  canExecute?: boolean;
+  eaVersion?: string;
   todayPnl?: number;
   closedOrdersToday?: number;
   closedDeals?: {
@@ -209,6 +214,12 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     ...(payload.brokerTimeOffset != null && { brokerTimeOffset: payload.brokerTimeOffset }),
     ...(payload.todayPnl != null && { todayPnl: parseFloat(payload.todayPnl.toFixed(2)) }),
     ...(payload.closedOrdersToday != null && { closedOrdersToday: payload.closedOrdersToday }),
+    // Reported every push, so switching EnableTrading off in the terminal
+    // shows in the dashboard within two seconds rather than at the next
+    // restart. Absent means no: a reporter that cannot execute must never
+    // be handed a command.
+    canExecute: payload.canExecute === true,
+    ...(payload.eaVersion && { eaVersion: payload.eaVersion }),
   };
 
   // Trace EA-reported today P/L (helps verify EA→backend handoff in prod logs)
@@ -295,10 +306,24 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
     pending: pending.length,
   };
 
-  if (commands.length > 0) {
+  if (commands.length > 0 && payload.canExecute !== true) {
+    // Nothing on the other end will run these. Holding them would be worse
+    // than dropping them: an order that waits for somebody to switch
+    // trading on is an order placed at a price that has moved on. The
+    // dashboard reads the reason from the command log.
+    const why = payload.eaVersion
+      ? 'Trading is switched off in the EA on this account'
+      : 'The EA on this account only reports — it cannot place orders';
+    console.warn(`[MT5] Dropped ${commands.length} command(s) for ${account.name}: ${why}`);
+    dropCommands(commands.map(c => c.id), why);
+  } else if (commands.length > 0) {
     // Send full command payload so EA can execute correctly
     response.commands = commands.map(cmd => {
-      const c: Record<string, unknown> = { id: cmd.id, type: cmd.type };
+      // The EA drops anything older than its CommandMaxAgeSec: an order
+      // that waited out a dropped connection is an order at a price that
+      // has moved. It needs the age from us, since its own clock is the
+      // broker's.
+      const c: Record<string, unknown> = { id: cmd.id, type: cmd.type, ageSec: Math.round((Date.now() - cmd.createdAt) / 1000) };
       if (cmd.symbol   != null) c.symbol  = cmd.symbol;
       if (cmd.action   != null) c.action  = cmd.action;
       if (cmd.volume   != null) c.volume  = cmd.volume;
@@ -318,6 +343,7 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
       }
     }
 
+    markCommandsSent(commands.map(c => c.id));
     console.log(`[MT5] Sent ${commands.length} command(s) to ${account.name}: ${commands.map(c => c.type).join(', ')}`);
   }
 
@@ -384,4 +410,50 @@ const resetHeartbeat = (accountId: string, userId: string): void => {
     }
     heartbeats.delete(accountId);
   }, 30000));
+};
+
+/**
+ * POST /api/mt5/ack — what the EA did with the commands it was handed.
+ *
+ * Without this the dashboard's last word on a trade is "queued", which says
+ * nothing about whether a position exists. The EA reports each command's
+ * outcome here: the ticket it opened, or the reason the broker or its own
+ * limits refused it.
+ *
+ * Authenticated the same way as the push — by the account's API key in the
+ * body — because it comes from the same EA, over the same connection, with
+ * no session to carry.
+ */
+export const receiveMT5Ack = async (req: Request, res: Response): Promise<void> => {
+  const payload = req.body as {
+    apiKey?: string;
+    results?: { id?: string; ok?: boolean; ticket?: number; error?: string }[];
+  };
+
+  if (!payload.apiKey) {
+    res.status(400).json({ error: 'apiKey is required' });
+    return;
+  }
+
+  const found = runtimeStore.findAccountByApiKey(payload.apiKey);
+  if (!found) {
+    res.status(404).json({ error: 'Account not found' });
+    return;
+  }
+
+  const results = Array.isArray(payload.results) ? payload.results.slice(0, 50) : [];
+  let settled = 0;
+
+  for (const r of results) {
+    if (!r || typeof r.id !== 'string') continue;
+    const ok = r.ok === true;
+    const detail = ok
+      ? (r.ticket ? `ticket ${r.ticket}` : 'done')
+      : (r.error || 'refused, no reason given').slice(0, 300);
+    await settleCommand(r.id, ok, detail);
+    settled += 1;
+    console.log(`[MT5] ${found.account.name} ${ok ? 'executed' : 'refused'} ${r.id}: ${detail}`);
+  }
+
+  res.json({ ok: true, settled });
 };

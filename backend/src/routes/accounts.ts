@@ -3,6 +3,7 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { runtimeStore } from '../services/runtimeStore';
 import { commandQueue } from '../services/commandQueue';
 import { logAudit } from '../services/auditLogger';
+import { logCommandQueued } from '../services/commandLog';
 import { isReal } from '../mock/simulator';
 import { broadcastToUser } from '../websocket/broadcaster';
 import prisma from '../lib/prisma';
@@ -107,13 +108,20 @@ router.post('/:id/close-all', (req: AuthRequest, res: Response) => {
 
   // Check if this is a real MT5 account or a simulated one
   if (isReal(id)) {
+    const refusal = executionRefusal(account);
+    if (refusal) {
+      res.status(409).json({ error: refusal });
+      return;
+    }
     // Real account: enqueue command — delivered to the EA on next push (~2s)
-    commandQueue.enqueue(account.apiKey, {
+    const cmd = commandQueue.enqueue(account.apiKey, {
       type: 'CLOSE_ALL',
       accountId: id,
       userId: req.user!.id,
     });
-    res.json({ message: 'Close all command queued', accountId: id, mode: 'queued' });
+    logCommandQueued(cmd.id, id, req.user!.id, 'CLOSE_ALL',
+      `${orderCount} open, ${pendingCount} pending`);
+    res.json({ message: 'Close all command queued', accountId: id, mode: 'queued', commandId: cmd.id });
   } else {
     // Simulated account: execute immediately in memory
     const updated: Account = {
@@ -144,6 +152,22 @@ router.post('/:id/close-all', (req: AuthRequest, res: Response) => {
     });
   }
 });
+
+
+/**
+ * Whether this account's EA will actually carry out a command.
+ *
+ * It reports that on every push, and the answer decides whether pressing a
+ * button does anything. Refusing here, with the reason, beats queueing a
+ * command that gets dropped two seconds later somewhere the person pressing
+ * the button cannot see.
+ */
+const executionRefusal = (account: Account): string | null => {
+  if (account.canExecute) return null;
+  return account.eaVersion
+    ? 'Trading is switched off in the EA on this account. Set EnableTrading = true on its chart in MT5.'
+    : 'The EA on this account only reports. Update it to the version that carries out orders.';
+};
 
 // POST /api/accounts/:id/open-trade — queue an open trade command to the EA
 router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
@@ -195,6 +219,12 @@ router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
     return;
   }
 
+  const refusal = executionRefusal(account);
+  if (refusal) {
+    res.status(409).json({ error: refusal });
+    return;
+  }
+
   const cmd = commandQueue.enqueue(account.apiKey, {
     type: 'OPEN_TRADE',
     accountId: id,
@@ -212,6 +242,9 @@ router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
     comment: 'OnlyFunds',
   });
 
+  logCommandQueued(cmd.id, id, req.user!.id, 'OPEN_TRADE',
+    `${action} ${volume} ${symbol}${kind === 'market' ? '' : ` ${kind} @ ${price}`}` +
+    `${sl ? ` SL ${sl}` : ''}${tp ? ` TP ${tp}` : ''}`);
   logAudit(req.user!.id, 'open_trade', 'account', id,
     JSON.stringify({ symbol, action, volume, orderType: kind, price, sl, tp }));
 
@@ -244,6 +277,12 @@ router.post('/:id/close-position', (req: AuthRequest, res: Response) => {
     return;
   }
 
+  const refusal = executionRefusal(account);
+  if (refusal) {
+    res.status(409).json({ error: refusal });
+    return;
+  }
+
   const cmd = commandQueue.enqueue(account.apiKey, {
     type: 'CLOSE_POSITION',
     accountId: id,
@@ -251,6 +290,7 @@ router.post('/:id/close-position', (req: AuthRequest, res: Response) => {
     ticket,
   });
 
+  logCommandQueued(cmd.id, id, req.user!.id, 'CLOSE_POSITION', `ticket ${ticket}`);
   logAudit(req.user!.id, 'close_position', 'account', id, JSON.stringify({ ticket }));
   res.json({ message: 'Close position command queued', commandId: cmd.id });
 });
@@ -281,6 +321,12 @@ router.post('/:id/set-sltp', (req: AuthRequest, res: Response) => {
     return;
   }
 
+  const refusal = executionRefusal(account);
+  if (refusal) {
+    res.status(409).json({ error: refusal });
+    return;
+  }
+
   const cmd = commandQueue.enqueue(account.apiKey, {
     type: 'SET_SLTP',
     accountId: id,
@@ -290,8 +336,48 @@ router.post('/:id/set-sltp', (req: AuthRequest, res: Response) => {
     tp: tp ?? 0,
   });
 
+  logCommandQueued(cmd.id, id, req.user!.id, 'SET_SLTP',
+    `ticket ${ticket}${sl ? ` SL ${sl}` : ''}${tp ? ` TP ${tp}` : ''}`);
   logAudit(req.user!.id, 'set_sltp', 'account', id, JSON.stringify({ ticket, sl, tp }));
   res.json({ message: 'Set SL/TP command queued', commandId: cmd.id });
+});
+
+// GET /api/accounts/:id/commands/:commandId — what became of one command
+//
+// The dashboard used to stop at "queued". This is how it finds out whether
+// the EA opened the position, what ticket it got, or which broker error
+// refused it — so the person who pressed the button gets the answer rather
+// than a hopeful message.
+router.get('/:id/commands/:commandId', async (req: AuthRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const commandId = Array.isArray(req.params.commandId) ? req.params.commandId[0] : req.params.commandId;
+
+  const row = await prisma.commandLog.findUnique({ where: { commandId } });
+  if (!row || row.accountId !== id || row.userId !== req.user!.id) {
+    res.status(404).json({ error: 'Command not found' });
+    return;
+  }
+
+  res.json({
+    commandId: row.commandId,
+    type: row.type,
+    detail: row.detail,
+    status: row.status,      // queued | sent | done | failed | dropped
+    result: row.result,
+    createdAt: row.createdAt,
+    settledAt: row.settledAt,
+  });
+});
+
+// GET /api/accounts/:id/commands — the last 20, newest first
+router.get('/:id/commands', async (req: AuthRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const rows = await prisma.commandLog.findMany({
+    where: { accountId: id, userId: req.user!.id },
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+  });
+  res.json(rows);
 });
 
 // GET /api/accounts/:id/symbols — what this account can be asked to trade

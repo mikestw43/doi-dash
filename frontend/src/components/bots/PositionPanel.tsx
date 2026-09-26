@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Order } from '../../types';
 import { FlashNumber } from '../ui/FlashNumber';
-import { closePosition, setPositionSLTP } from '../../services/api';
+import { closePosition, setPositionSLTP, waitForCommand } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 import { SwipeRow } from '../ui/SwipeRow';
 
@@ -45,10 +45,20 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
   const handleClose = async (ticket: number, symbol: string) => {
     setLoadingTicket(ticket);
     try {
-      await closePosition(accountId, ticket);
+      const { commandId } = await closePosition(accountId, ticket);
       addToast({ type: 'warning', title: 'Close queued', message: `Close #${ticket} (${symbol}) sent to EA (~2s)` });
+      setLoadingTicket(null);
+      // Follow it to an answer — see waitForCommand.
+      const outcome = await waitForCommand(accountId, commandId);
+      if (outcome?.status === 'done') {
+        addToast({ type: 'success', title: `#${ticket} closed`, message: outcome.result ?? '' });
+      } else if (outcome) {
+        addToast({ type: 'error', title: 'Close refused', message: outcome.result ?? 'no reason given' });
+      }
+      return;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to close position';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? (err instanceof Error ? err.message : 'Failed to close position');
       addToast({ type: 'error', title: 'Error', message: msg });
     } finally {
       setLoadingTicket(null);
@@ -67,11 +77,21 @@ export const PositionPanel = ({ accountId, orders, currency }: Props) => {
     const tp = parseFloat(editing.tp) || 0;
     setLoadingTicket(editing.ticket);
     try {
-      await setPositionSLTP(accountId, editing.ticket, sl, tp);
-      addToast({ type: 'success', title: 'SL/TP queued', message: `SL/TP update for #${editing.ticket} sent to EA (~2s)` });
+      const ticket = editing.ticket;
+      const { commandId } = await setPositionSLTP(accountId, ticket, sl, tp);
+      addToast({ type: 'warning', title: 'SL/TP queued', message: `SL/TP update for #${ticket} sent to EA (~2s)` });
       setEditing(null);
+      setLoadingTicket(null);
+      const outcome = await waitForCommand(accountId, commandId);
+      if (outcome?.status === 'done') {
+        addToast({ type: 'success', title: `#${ticket} updated`, message: outcome.result ?? '' });
+      } else if (outcome) {
+        addToast({ type: 'error', title: 'SL/TP refused', message: outcome.result ?? 'no reason given' });
+      }
+      return;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to set SL/TP';
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? (err instanceof Error ? err.message : 'Failed to set SL/TP');
       addToast({ type: 'error', title: 'Error', message: msg });
     } finally {
       setLoadingTicket(null);

@@ -350,3 +350,27 @@ model EmailLog {
 
   @@index([createdAt])
 }
+
+/// Every command sent to an EA and what became of it.
+///
+/// The dashboard used to say "queued" and stop there — which was the whole
+/// truth, since nothing executed them, and will be a lie the moment one
+/// does. A command can be refused by the broker, by the EA's own limits, or
+/// never picked up at all, and the person who pressed the button is owed
+/// that answer.
+model CommandLog {
+  id         String   @id @default(uuid())
+  commandId  String   @unique      // the id handed to the EA
+  accountId  String
+  userId     String
+  type       String                // OPEN_TRADE | CLOSE_POSITION | SET_SLTP | CLOSE_ALL
+  detail     String?               // what was asked, in words
+  status     String   @default("queued") // queued | sent | done | failed | dropped
+  result     String?               // ticket number, or the reason it failed
+  createdAt  DateTime @default(now())
+  sentAt     DateTime?
+  settledAt  DateTime?
+
+  @@index([accountId, createdAt])
+  @@index([userId, createdAt])
+}

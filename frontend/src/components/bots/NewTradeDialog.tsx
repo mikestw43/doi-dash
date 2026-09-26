@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Dialog } from '../ui/Dialog';
-import { fetchAccountSymbols, openTrade } from '../../services/api';
+import { fetchAccountSymbols, openTrade, waitForCommand } from '../../services/api';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
 
@@ -102,7 +102,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
     }
     setLoading(true);
     try {
-      await openTrade(accountId, {
+      const { commandId } = await openTrade(accountId, {
         symbol: symbol.trim(), action, volume: vol,
         orderType,
         price: needsPrice ? parseFloat(price) : 0,
@@ -113,6 +113,15 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
         message: `${action} ${vol} ${symbol.trim()} sent to EA (~2s)`,
       });
       onClose();
+
+      // "Queued" is not an outcome. Follow it until the EA answers, and say
+      // what actually happened — a ticket, or the reason it was refused.
+      const outcome = await waitForCommand(accountId, commandId);
+      if (outcome?.status === 'done') {
+        addToast({ type: 'success', title: `${action} ${symbol.trim()} placed`, message: outcome.result ?? '' });
+      } else if (outcome) {
+        addToast({ type: 'error', title: 'Order refused', message: outcome.result ?? 'no reason given' });
+      }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to queue trade';
       addToast({ type: 'error', title: 'Error', message: msg });

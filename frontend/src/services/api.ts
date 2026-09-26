@@ -139,6 +139,48 @@ export const openTrade = async (
   return res.data as { message: string; commandId: string };
 };
 
+export interface CommandOutcome {
+  commandId: string;
+  type: string;
+  detail: string | null;
+  status: 'queued' | 'sent' | 'done' | 'failed' | 'dropped';
+  result: string | null;
+}
+
+export const fetchCommand = async (accountId: string, commandId: string): Promise<CommandOutcome> => {
+  const res = await api.get(`/accounts/${accountId}/commands/${commandId}`);
+  return res.data as CommandOutcome;
+};
+
+/**
+ * Wait for the EA's answer to one command.
+ *
+ * The button used to end at "queued", which is not an outcome: between it
+ * and the broker the EA can refuse on its own limits and the broker can
+ * refuse outright. This asks until the answer arrives — the round trip is
+ * a push cycle, about two seconds — and gives up quietly after a while
+ * rather than leaving a spinner forever.
+ */
+export const waitForCommand = async (
+  accountId: string,
+  commandId: string,
+  timeoutMs = 20000,
+): Promise<CommandOutcome | null> => {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    await new Promise(r => setTimeout(r, 1500));
+    try {
+      const outcome = await fetchCommand(accountId, commandId);
+      if (outcome.status === 'done' || outcome.status === 'failed' || outcome.status === 'dropped') {
+        return outcome;
+      }
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 export const closePosition = async (accountId: string, ticket: number) => {
   const res = await api.post(`/accounts/${accountId}/close-position`, { ticket });
   return res.data as { message: string; commandId: string };

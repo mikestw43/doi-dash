@@ -54,4 +54,10 @@ export interface Account {
   brokerTimeOffset?: number; // seconds from UTC (e.g. 7200 = GMT+2)
   todayPnl?: number;          // realized P/L since broker midnight, computed in EA
   closedOrdersToday?: number; // count of closing deals included in todayPnl
+  /// Whether the EA on this account will carry out commands. It is the EA
+  /// that decides — its own EnableTrading input — and it says so on every
+  /// push. Older reporters never say it, which is exactly right: they
+  /// cannot execute anything and must never be sent a command to swallow.
+  canExecute?: boolean;
+  eaVersion?: string;
 }
