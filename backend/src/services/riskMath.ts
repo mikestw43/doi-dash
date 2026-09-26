@@ -21,6 +21,15 @@ export interface RiskRow {
   entry?: number;
   sl?: number;
   tp?: number;
+  /**
+   * A stop given as a distance instead of a price: "20 points away".
+   * A point is the terminal's own point — 0.01 on a two-decimal gold —
+   * and the conversion happens here rather than in the model, because
+   * "20 points" and "20 dollars" are a hundred times apart on that
+   * symbol and only one of them is what was meant.
+   */
+  slPoints?: number;
+  tpPoints?: number;
   lots: number;
 }
 
@@ -107,6 +116,16 @@ export const priceRisk = async (
       ? row.entry
       : (row.side === 'buy' ? spec.ask : spec.bid);
 
+    // A distance becomes a price here, once, from the terminal's point.
+    if (row.slPoints && row.slPoints > 0 && entry > 0 && spec.point > 0) {
+      const away = row.slPoints * spec.point;
+      row = { ...row, sl: row.side === 'buy' ? entry - away : entry + away };
+    }
+    if (row.tpPoints && row.tpPoints > 0 && entry > 0 && spec.point > 0) {
+      const away = row.tpPoints * spec.point;
+      row = { ...row, tp: row.side === 'buy' ? entry + away : entry - away };
+    }
+
     // A stop the broker is too close to accept is a refused order, and
     // the refusal arrives seconds after the button, not before it.
     if (row.sl && spec.stopsLevel > 0 && spec.point > 0 && entry > 0) {
@@ -131,6 +150,8 @@ export const priceRisk = async (
       ...row,
       lots,
       entry: round(entry, spec.digits || 5),
+      ...(row.sl ? { sl: round(row.sl, spec.digits || 5) } : {}),
+      ...(row.tp ? { tp: round(row.tp, spec.digits || 5) } : {}),
       risk,
       reward,
       slDistance: slDistance != null ? round(slDistance, spec.digits || 5) : null,

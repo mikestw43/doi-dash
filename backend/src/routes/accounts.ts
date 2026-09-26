@@ -422,6 +422,8 @@ router.post('/:id/risk', async (req: AuthRequest, res: Response) => {
       entry: Number(r.entry) || undefined,
       sl: Number(r.sl) || undefined,
       tp: Number(r.tp) || undefined,
+      slPoints: Number(r.slPoints) || undefined,
+      tpPoints: Number(r.tpPoints) || undefined,
       lots: Number(r.lots) || 0,
     }));
 

@@ -807,7 +807,14 @@ export interface RiskSummary {
  *  from the terminal's own figures, never by the model. */
 export const priceRisk = async (
   accountId: string,
-  rows: { symbol: string; side: 'buy' | 'sell'; entry?: number; sl?: number; tp?: number; lots: number }[],
+  rows: {
+    symbol: string; side: 'buy' | 'sell';
+    entry?: number; sl?: number; tp?: number;
+    /** A stop given as a distance in the terminal's own points; the
+     *  server turns it into a price and returns that. */
+    slPoints?: number; tpPoints?: number;
+    lots: number;
+  }[],
 ): Promise<RiskSummary> => {
   const res = await api.post(`/accounts/${accountId}/risk`, { rows });
   return res.data as RiskSummary;

@@ -32,6 +32,10 @@ export interface Row {
   price?: number;
   sl?: number;
   tp?: number;
+  /** A stop written as a distance — "20 points away" — which the server
+   *  turns into a price from the terminal's own point size. */
+  slPoints?: number;
+  tpPoints?: number;
   ticket?: number;
 }
 
@@ -63,6 +67,8 @@ const asRow = (raw: unknown): Row | null => {
     ...(num(r.price) !== undefined && { price: num(r.price) }),
     ...(num(r.sl) !== undefined && { sl: num(r.sl) }),
     ...(num(r.tp) !== undefined && { tp: num(r.tp) }),
+    ...(num(r.slPoints) !== undefined && { slPoints: num(r.slPoints) }),
+    ...(num(r.tpPoints) !== undefined && { tpPoints: num(r.tpPoints) }),
     ...(num(r.ticket) !== undefined && { ticket: num(r.ticket) }),
   };
 };
@@ -127,8 +133,32 @@ export const OrderDraftCard = ({ plan }: { plan: Plan }) => {
       ...(r.price ? { entry: r.price } : {}),
       ...(r.sl ? { sl: r.sl } : {}),
       ...(r.tp ? { tp: r.tp } : {}),
+      ...(r.slPoints ? { slPoints: r.slPoints } : {}),
+      ...(r.tpPoints ? { tpPoints: r.tpPoints } : {}),
       lots: r.lots ?? 0,
-    }))).then(r => { if (alive) setRisk(r); }).catch(() => {});
+    }))).then(r => {
+      if (!alive) return;
+      setRisk(r);
+      // A distance came back as a price. Put it on the row, so the field
+      // shows what will actually be sent and can be corrected — and so
+      // nothing downstream has to know about points at all.
+      setRows(list => {
+        let changed = false;
+        const next = list.map(row => {
+          if (!row.slPoints && !row.tpPoints) return row;
+          const priced = r.rows[list.filter(x => x.action === 'open').indexOf(row)];
+          if (!priced) return row;
+          changed = true;
+          const { slPoints, tpPoints, ...rest } = row;
+          return {
+            ...rest,
+            ...(priced.sl ? { sl: priced.sl } : {}),
+            ...(priced.tp ? { tp: priced.tp } : {}),
+          };
+        });
+        return changed ? next : list;
+      });
+    }).catch(() => {});
     return () => { alive = false; };
   }, [account?.id, JSON.stringify(opens)]);
 
