@@ -51,6 +51,8 @@ export interface Account {
   groupName?: string;
   groupColor?: string;
   isDemo?: boolean;
+  /** May the assistant send orders here without a confirmation? */
+  aiAutoTrade?: boolean;
   brokerTimeOffset?: number; // seconds from UTC (e.g. 7200 = GMT+2)
   todayPnl?: number;          // realized P/L since broker midnight, computed in EA
   closedOrdersToday?: number; // count of closing deals included in todayPnl

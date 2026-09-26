@@ -643,5 +643,18 @@
   "draft.cancelled": "Cancelled. Nothing was sent.",
   "draft.done": "The EA did it.",
   "draft.refused": "It was refused.",
-  "draft.sent_no_answer": "Sent. The EA has not answered yet — check the command history."
+  "draft.sent_no_answer": "Sent. The EA has not answered yet — check the command history.",
+  "draft.auto_title": "SENDING BY ITSELF",
+  "draft.auto_in": "SENDING IN",
+  "draft.confirm_all": "CONFIRM AND SEND ALL",
+  "draft.lots": "LOTS",
+  "draft.price": "PRICE",
+  "draft.price_market": "MARKET",
+  "draft.risk": "If the stop is hit:",
+  "draft.all_stops": "If every stop is hit:",
+  "draft.of_equity": "of this account",
+  "acc.ai_auto": "Let the assistant send orders here without asking",
+  "acc.ai_auto_demo": "A practice account — a good place to find out what it does before trusting it with money.",
+  "acc.ai_auto_live": "This account holds real money. Orders will be placed with no confirmation — the EA's own limits are all that stands in the way.",
+  "acc.ai_auto_saved": "Saved"
 }

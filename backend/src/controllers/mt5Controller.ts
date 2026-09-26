@@ -54,6 +54,8 @@ interface MT5PushPayload {
   /// Every symbol the broker offers, sent occasionally rather than on every
   /// tick — see storeSymbols below.
   symbols?: string[];
+  specs?: SymbolSpec[];
+  canPartialClose?: boolean;
   /// Set by an EA that will carry out commands. Absent from every reporter
   /// before v1.3, and from v1.3 with trading switched off.
   canExecute?: boolean;
@@ -128,6 +130,75 @@ const storeSymbols = async (accountId: string, incoming: unknown): Promise<void>
     console.log(`[MT5] Symbol list updated for ${accountId}: ${clean.length} symbols`);
   } catch (err) {
     console.error('[MT5] Failed to store symbols:', (err as Error).message);
+  }
+};
+
+/**
+ * What a lot of a symbol is worth, as the terminal reports it.
+ *
+ * The dashboard cannot work out a position size without these. A lot of
+ * gold is 100 ounces and a lot of silver is 5,000; a point is worth a
+ * different amount on each, and on a cent account a hundredth of what it
+ * looks like. EA v1.4 and up send them for the symbols in use.
+ */
+export interface SymbolSpec {
+  symbol: string;
+  bid: number;
+  ask: number;
+  digits: number;
+  point: number;
+  contractSize: number;
+  tickValue: number;
+  tickSize: number;
+  volMin: number;
+  volMax: number;
+  volStep: number;
+  stopsLevel: number;
+  atr14: number;
+}
+
+const SPEC_LIMIT = 40;
+
+const storeSpecs = async (accountId: string, incoming: unknown): Promise<void> => {
+  if (!Array.isArray(incoming) || incoming.length === 0) return;
+
+  const num = (v: unknown): number => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const clean: SymbolSpec[] = incoming
+    .filter((r): r is Record<string, unknown> => !!r && typeof r === 'object')
+    .filter(r => typeof r.symbol === 'string' && (r.symbol as string).length > 0)
+    .slice(0, SPEC_LIMIT)
+    .map(r => ({
+      symbol: String(r.symbol).slice(0, 32),
+      bid: num(r.bid),
+      ask: num(r.ask),
+      digits: num(r.digits),
+      point: num(r.point),
+      contractSize: num(r.contractSize),
+      tickValue: num(r.tickValue),
+      tickSize: num(r.tickSize),
+      volMin: num(r.volMin),
+      volMax: num(r.volMax),
+      volStep: num(r.volStep),
+      stopsLevel: num(r.stopsLevel),
+      atr14: num(r.atr14),
+    }));
+
+  if (clean.length === 0) return;
+
+  try {
+    // Written every time rather than only on change: bid and ask are in
+    // here, and a stale price is worse than no price when the number is
+    // used to decide between a limit and a stop.
+    await prisma.account.update({
+      where: { id: accountId },
+      data: { specs: clean as unknown as object, specsAt: new Date() },
+    });
+  } catch (err) {
+    console.error('[MT5] Failed to store symbol specs:', (err as Error).message);
   }
 };
 
@@ -295,6 +366,7 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
   // Fire and forget: a symbol list that fails to store must not fail a push
   // carrying the account's money.
   void storeSymbols(account.id, payload.symbols);
+  void storeSpecs(account.id, payload.specs);
 
   // Drain any pending commands for this apiKey
   const commands = commandQueue.drain(payload.apiKey);

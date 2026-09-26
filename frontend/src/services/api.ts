@@ -181,8 +181,11 @@ export const waitForCommand = async (
   return null;
 };
 
-export const closePosition = async (accountId: string, ticket: number) => {
-  const res = await api.post(`/accounts/${accountId}/close-position`, { ticket });
+export const closePosition = async (accountId: string, ticket: number, volume?: number) => {
+  // A volume closes part of the position — EA v1.4 and up. Older EAs
+  // ignore the field and close the whole thing, which is what they have
+  // always done.
+  const res = await api.post(`/accounts/${accountId}/close-position`, { ticket, ...(volume ? { volume } : {}) });
   return res.data as { message: string; commandId: string };
 };
 
@@ -775,6 +778,45 @@ export interface AiChatMessage {
   model: string | null;
   at: string;
 }
+
+export interface RiskRowResult {
+  symbol: string;
+  side: 'buy' | 'sell';
+  entry?: number;
+  sl?: number;
+  tp?: number;
+  lots: number;
+  risk: number | null;
+  reward: number | null;
+  slDistance: number | null;
+  rr: number | null;
+  problems: string[];
+}
+
+export interface RiskSummary {
+  currency: string;
+  cents: boolean;
+  rows: RiskRowResult[];
+  totalRisk: number;
+  riskPercent: number | null;
+  equity: number | null;
+  problems: string[];
+}
+
+/** What a plan costs if every stop is hit — worked out on the server
+ *  from the terminal's own figures, never by the model. */
+export const priceRisk = async (
+  accountId: string,
+  rows: { symbol: string; side: 'buy' | 'sell'; entry?: number; sl?: number; tp?: number; lots: number }[],
+): Promise<RiskSummary> => {
+  const res = await api.post(`/accounts/${accountId}/risk`, { rows });
+  return res.data as RiskSummary;
+};
+
+export const setAccountAiTrade = async (accountId: string, enabled: boolean) => {
+  const res = await api.patch(`/accounts/${accountId}/ai-trade`, { enabled });
+  return res.data as { id: string; aiAutoTrade: boolean; isDemo: boolean; name: string };
+};
 
 export interface CommandRow {
   commandId: string;

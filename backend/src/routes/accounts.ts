@@ -5,6 +5,7 @@ import { commandQueue } from '../services/commandQueue';
 import { logAudit } from '../services/auditLogger';
 import { logCommandQueued } from '../services/commandLog';
 import { isReal } from '../mock/simulator';
+import { priceRisk } from '../services/riskMath';
 import { broadcastToUser } from '../websocket/broadcaster';
 import prisma from '../lib/prisma';
 import type { Account } from '../mock/data';
@@ -254,10 +255,17 @@ router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
 // POST /api/accounts/:id/close-position — close a single position by ticket
 router.post('/:id/close-position', (req: AuthRequest, res: Response) => {
   const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const { ticket } = req.body as { ticket: number };
+  // A volume closes part of the position rather than all of it — EA
+  // v1.4 and up. Older EAs ignore the field and close the whole thing,
+  // which is what they have always done.
+  const { ticket, volume } = req.body as { ticket: number; volume?: number };
 
   if (!ticket) {
     res.status(400).json({ error: 'ticket is required' });
+    return;
+  }
+  if (volume !== undefined && (!Number.isFinite(volume) || volume < 0 || volume > 1000)) {
+    res.status(400).json({ error: 'volume must be a size in lots' });
     return;
   }
 
@@ -288,10 +296,12 @@ router.post('/:id/close-position', (req: AuthRequest, res: Response) => {
     accountId: id,
     userId: req.user!.id,
     ticket,
+    ...(volume ? { volume } : {}),
   });
 
-  logCommandQueued(cmd.id, id, req.user!.id, 'CLOSE_POSITION', `ticket ${ticket}`);
-  logAudit(req.user!.id, 'close_position', 'account', id, JSON.stringify({ ticket }));
+  logCommandQueued(cmd.id, id, req.user!.id, 'CLOSE_POSITION',
+    `ticket ${ticket}${volume ? ` · ${volume} lots of it` : ''}`);
+  logAudit(req.user!.id, 'close_position', 'account', id, JSON.stringify({ ticket, volume }));
   res.json({ message: 'Close position command queued', commandId: cmd.id });
 });
 
@@ -380,6 +390,44 @@ router.get('/:id/commands', async (req: AuthRequest, res: Response) => {
   res.json(rows);
 });
 
+/**
+ * POST /api/accounts/:id/risk — what a plan would cost if it went wrong
+ *
+ * The card in the chat shows this before anything is sent. It is worked
+ * out here, from the terminal's own figures, rather than taken from the
+ * model: a language model multiplying tick values on a cent account is
+ * usually right, and "usually" is the wrong standard for the number
+ * that says how much of an account is on the table.
+ */
+router.post('/:id/risk', async (req: AuthRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const rows = (req.body as { rows?: unknown }).rows;
+
+  const account = runtimeStore.getAccountsByUser(req.user!.id).find(a => a.id === id);
+  if (!account) {
+    res.status(404).json({ error: 'Account not found' });
+    return;
+  }
+  if (!Array.isArray(rows)) {
+    res.status(400).json({ error: 'rows must be an array' });
+    return;
+  }
+
+  const wanted = rows
+    .filter((r): r is Record<string, unknown> => !!r && typeof r === 'object')
+    .slice(0, 20)
+    .map(r => ({
+      symbol: String(r.symbol ?? ''),
+      side: r.side === 'sell' ? 'sell' as const : 'buy' as const,
+      entry: Number(r.entry) || undefined,
+      sl: Number(r.sl) || undefined,
+      tp: Number(r.tp) || undefined,
+      lots: Number(r.lots) || 0,
+    }));
+
+  res.json(await priceRisk(id, wanted, account.equity ?? null, account.currency || 'USD'));
+});
+
 // GET /api/accounts/:id/symbols — what this account can be asked to trade
 //
 // Every symbol the broker has shown us for this account: what is open now,
@@ -462,6 +510,41 @@ router.get('/:id/alerts', async (req: AuthRequest, res: Response) => {
     return;
   }
   res.json(dbAccount);
+});
+
+/**
+ * PATCH /api/accounts/:id/ai-trade — may the assistant send orders here
+ * without anybody pressing confirm?
+ *
+ * Off everywhere until it is switched on, and meant for a practice
+ * account: it is the difference between watching a model draft orders
+ * and watching it trade. The EA's own limits still apply — they live in
+ * the terminal, and no setting here can raise them.
+ */
+router.patch('/:id/ai-trade', async (req: AuthRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const { enabled } = req.body as { enabled?: boolean };
+
+  const dbAccount = await prisma.account.findFirst({ where: { id, userId: req.user!.id } });
+  if (!dbAccount) {
+    res.status(404).json({ error: 'Account not found' });
+    return;
+  }
+
+  const updated = await prisma.account.update({
+    where: { id },
+    data: { aiAutoTrade: !!enabled },
+    select: { id: true, aiAutoTrade: true, isDemo: true, name: true },
+  });
+
+  // The runtime copy is what every screen reads, so it has to learn
+  // about this too — the live figures on it stay as they are.
+  const live = runtimeStore.getAccountsByUser(req.user!.id).find(a => a.id === id);
+  if (live) runtimeStore.updateAccount(req.user!.id, { ...live, aiAutoTrade: updated.aiAutoTrade });
+  logAudit(req.user!.id, 'ai_auto_trade', 'account', id,
+    JSON.stringify({ name: updated.name, demo: updated.isDemo, enabled: updated.aiAutoTrade }));
+
+  res.json(updated);
 });
 
 // PATCH /api/accounts/:id/alerts — save alert thresholds

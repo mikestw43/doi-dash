@@ -1,25 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   fetchAccounts, openTrade, closePosition, setPositionSLTP, closeAllOrders, waitForCommand,
+  priceRisk, type RiskSummary,
 } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 import type { Account } from '../../types';
 
 /**
- * An order the assistant wrote out, and the button that sends it.
+ * The orders the assistant wrote out, and the button that sends them.
  *
- * The assistant does not place trades. It cannot: nothing it says
- * reaches the EA. What it can do is fill the form in — and the only
- * thing between that and a position in the market is a person reading
- * it and pressing confirm. That is the whole safety model, so the card
- * shows every field that will be sent, in words, and says which account
- * and whether that account is real money.
+ * It does not place trades — nothing it says reaches an EA. It fills the
+ * form in; a person reads it and presses confirm. That is the whole
+ * safety model, so every field that will be sent is on screen, in words,
+ * with the account named and marked when it is real money.
+ *
+ * Two things are deliberately not taken from the model: the money, which
+ * the server works out from the terminal's own contract figures, and the
+ * numbers themselves, which can be corrected here before anything goes.
+ *
+ * On an account marked for it — a practice account — there is no button:
+ * the card counts down and sends. That is the point of the setting.
  */
 
-export interface Draft {
+export interface Row {
   action: 'open' | 'close' | 'sltp' | 'closeAll';
-  account: string;
   symbol?: string;
   side?: 'buy' | 'sell';
   lots?: number;
@@ -30,64 +35,75 @@ export interface Draft {
   ticket?: number;
 }
 
-/** Fenced block, whatever the model labelled it, as long as it holds an
- *  object with an action we know. */
+export interface Plan {
+  account: string;
+  rows: Row[];
+}
+
 const BLOCK = /```[a-zA-Z]*\s*(\{[\s\S]*?\})\s*```/g;
+const ACTIONS = ['open', 'close', 'sltp', 'closeAll'];
 
 const num = (v: unknown): number | undefined => {
   const n = Number(v);
-  return Number.isFinite(n) ? n : undefined;
+  return Number.isFinite(n) && n !== 0 ? n : undefined;
+};
+
+const asRow = (raw: unknown): Row | null => {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const action = String(r.action ?? '');
+  if (!ACTIONS.includes(action)) return null;
+  return {
+    action: action as Row['action'],
+    ...(typeof r.symbol === 'string' && { symbol: r.symbol }),
+    ...(r.side === 'buy' || r.side === 'sell' ? { side: r.side } : {}),
+    ...(num(r.lots) !== undefined && { lots: num(r.lots) }),
+    ...(['market', 'limit', 'stop'].includes(String(r.orderType))
+      ? { orderType: String(r.orderType) as Row['orderType'] } : {}),
+    ...(num(r.price) !== undefined && { price: num(r.price) }),
+    ...(num(r.sl) !== undefined && { sl: num(r.sl) }),
+    ...(num(r.tp) !== undefined && { tp: num(r.tp) }),
+    ...(num(r.ticket) !== undefined && { ticket: num(r.ticket) }),
+  };
 };
 
 /**
- * Pull the draft out of an answer, and hand back the answer without it.
+ * Pull the plan out of an answer and hand back the answer without it.
  *
- * A model that writes two blocks, or a block of something else, gets the
- * first one that parses into an order and nothing more — the rest stays
- * as text, where a person can see it.
+ * Two shapes are accepted: the batch one, {account, orders:[…]}, and a
+ * single order written at the top level, which is what the first version
+ * of this asked for and what a model will sometimes write anyway.
  */
-export const readDraft = (text: string): { draft: Draft | null; rest: string } => {
-  let draft: Draft | null = null;
-  let rest = text;
-
+export const readPlan = (text: string): { plan: Plan | null; rest: string } => {
   for (const m of text.matchAll(BLOCK)) {
     let parsed: Record<string, unknown>;
     try { parsed = JSON.parse(m[1]) as Record<string, unknown>; } catch { continue; }
-
-    const action = String(parsed.action ?? '');
-    if (!['open', 'close', 'sltp', 'closeAll'].includes(action)) continue;
     if (typeof parsed.account !== 'string') continue;
 
-    draft = {
-      action: action as Draft['action'],
-      account: parsed.account,
-      ...(typeof parsed.symbol === 'string' && { symbol: parsed.symbol }),
-      ...(parsed.side === 'buy' || parsed.side === 'sell' ? { side: parsed.side } : {}),
-      ...(num(parsed.lots) !== undefined && { lots: num(parsed.lots) }),
-      ...(['market', 'limit', 'stop'].includes(String(parsed.orderType))
-        ? { orderType: String(parsed.orderType) as Draft['orderType'] } : {}),
-      ...(num(parsed.price) !== undefined && { price: num(parsed.price) }),
-      ...(num(parsed.sl) !== undefined && { sl: num(parsed.sl) }),
-      ...(num(parsed.tp) !== undefined && { tp: num(parsed.tp) }),
-      ...(num(parsed.ticket) !== undefined && { ticket: num(parsed.ticket) }),
-    };
-    rest = text.replace(m[0], '').trim();
-    break;
-  }
+    const rows = Array.isArray(parsed.orders)
+      ? parsed.orders.map(asRow).filter((r): r is Row => !!r).slice(0, 10)
+      : [asRow(parsed)].filter((r): r is Row => !!r);
 
-  return { draft, rest };
+    if (rows.length === 0) continue;
+    return { plan: { account: parsed.account, rows }, rest: text.replace(m[0], '').trim() };
+  }
+  return { plan: null, rest: text };
 };
 
-type State =
-  | { kind: 'idle' }
-  | { kind: 'sending' }
-  | { kind: 'waiting' }
-  | { kind: 'settled'; ok: boolean; text: string }
-  | { kind: 'cancelled' };
+type Outcome = { row: number; ok: boolean; text: string };
+type State = 'idle' | 'counting' | 'sending' | 'done' | 'cancelled';
 
-export const OrderDraftCard = ({ draft }: { draft: Draft }) => {
+/** Seconds before an account that trades on its own goes ahead. */
+const AUTO_DELAY = 5;
+
+export const OrderDraftCard = ({ plan }: { plan: Plan }) => {
   const t = useTranslation();
-  const [state, setState] = useState<State>({ kind: 'idle' });
+  const [rows, setRows] = useState<Row[]>(plan.rows);
+  const [state, setState] = useState<State>('idle');
+  const [outcomes, setOutcomes] = useState<Outcome[]>([]);
+  const [risk, setRisk] = useState<RiskSummary | null>(null);
+  const [countdown, setCountdown] = useState(AUTO_DELAY);
+  const sentOnce = useRef(false);
 
   const { data: accounts } = useQuery<Account[]>({
     queryKey: ['accounts'],
@@ -95,105 +111,216 @@ export const OrderDraftCard = ({ draft }: { draft: Draft }) => {
     staleTime: 30_000,
   });
 
-  // The model is told to use the account number, with its #, because that
-  // is what appears in front of a person. Match on the digits either way.
-  const wanted = draft.account.replace(/[^0-9]/g, '');
+  const wanted = plan.account.replace(/[^0-9]/g, '');
   const account = (accounts ?? []).find(a => a.accountNumber.replace(/[^0-9]/g, '') === wanted);
+  const auto = !!account?.aiAutoTrade;
+  const opens = rows.filter(r => r.action === 'open');
 
-  const lots = draft.lots ?? 0;
-  const kind = draft.orderType ?? 'market';
-  const noStop = draft.action === 'open' && !draft.sl;
+  // What it costs if every stop is hit. Asked of the server, because the
+  // model's arithmetic is not what should decide that number.
+  useEffect(() => {
+    if (!account || opens.length === 0) { setRisk(null); return; }
+    let alive = true;
+    void priceRisk(account.id, opens.map(r => ({
+      symbol: r.symbol ?? '',
+      side: r.side ?? 'buy',
+      ...(r.price ? { entry: r.price } : {}),
+      ...(r.sl ? { sl: r.sl } : {}),
+      ...(r.tp ? { tp: r.tp } : {}),
+      lots: r.lots ?? 0,
+    }))).then(r => { if (alive) setRisk(r); }).catch(() => {});
+    return () => { alive = false; };
+  }, [account?.id, JSON.stringify(opens)]);
 
-  const what = (): string => {
-    if (draft.action === 'close') return `${t('draft.close')} #${draft.ticket}`;
-    if (draft.action === 'closeAll') return t('draft.close_all');
-    if (draft.action === 'sltp') {
-      return `#${draft.ticket} · SL ${draft.sl || '—'} · TP ${draft.tp || '—'}`;
-    }
-    const side = draft.side === 'sell' ? t('draft.sell') : t('draft.buy');
-    const at = kind === 'market' ? t('draft.at_market') : `${kind} @ ${draft.price}`;
-    return `${side} ${draft.symbol} ${lots.toFixed(2)} lot · ${at}`;
-  };
+  const sendAll = async () => {
+    if (!account || state === 'sending') return;
+    setState('sending');
+    const results: Outcome[] = [];
 
-  const send = async () => {
-    if (!account) return;
-    setState({ kind: 'sending' });
-    try {
-      let commandId = '';
-      if (draft.action === 'open') {
-        const r = await openTrade(account.id, {
-          symbol: draft.symbol ?? '',
-          action: draft.side === 'sell' ? 'SELL' : 'BUY',
-          volume: lots,
-          orderType: kind,
-          ...(kind !== 'market' && { price: draft.price ?? 0 }),
-          ...(draft.sl ? { sl: draft.sl } : {}),
-          ...(draft.tp ? { tp: draft.tp } : {}),
-        });
-        commandId = r.commandId;
-      } else if (draft.action === 'close') {
-        commandId = (await closePosition(account.id, draft.ticket ?? 0)).commandId;
-      } else if (draft.action === 'sltp') {
-        commandId = (await setPositionSLTP(account.id, draft.ticket ?? 0, draft.sl ?? 0, draft.tp ?? 0)).commandId;
-      } else {
-        const r = await closeAllOrders(account.id) as { commandId?: string };
-        commandId = r.commandId ?? '';
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      try {
+        let commandId = '';
+        if (r.action === 'open') {
+          commandId = (await openTrade(account.id, {
+            symbol: r.symbol ?? '',
+            action: r.side === 'sell' ? 'SELL' : 'BUY',
+            volume: r.lots ?? 0,
+            orderType: r.orderType ?? 'market',
+            ...(r.orderType && r.orderType !== 'market' ? { price: r.price ?? 0 } : {}),
+            ...(r.sl ? { sl: r.sl } : {}),
+            ...(r.tp ? { tp: r.tp } : {}),
+          })).commandId;
+        } else if (r.action === 'close') {
+          commandId = (await closePosition(account.id, r.ticket ?? 0, r.lots)).commandId;
+        } else if (r.action === 'sltp') {
+          commandId = (await setPositionSLTP(account.id, r.ticket ?? 0, r.sl ?? 0, r.tp ?? 0)).commandId;
+        } else {
+          commandId = ((await closeAllOrders(account.id)) as { commandId?: string }).commandId ?? '';
+        }
+
+        const outcome = commandId ? await waitForCommand(account.id, commandId) : null;
+        results.push(outcome
+          ? { row: i, ok: outcome.status === 'done', text: outcome.result || (outcome.status === 'done' ? t('draft.done') : t('draft.refused')) }
+          : { row: i, ok: true, text: t('draft.sent_no_answer') });
+      } catch (err) {
+        const data = (err as { response?: { data?: { error?: string; message?: string } } }).response?.data;
+        results.push({ row: i, ok: false, text: data?.error || data?.message || t('ai.unreachable') });
       }
-
-      setState({ kind: 'waiting' });
-      const outcome = commandId ? await waitForCommand(account.id, commandId) : null;
-      if (!outcome) {
-        setState({ kind: 'settled', ok: true, text: t('draft.sent_no_answer') });
-        return;
-      }
-      setState({
-        kind: 'settled',
-        ok: outcome.status === 'done',
-        text: outcome.result || (outcome.status === 'done' ? t('draft.done') : t('draft.refused')),
-      });
-    } catch (err) {
-      const data = (err as { response?: { data?: { error?: string; message?: string } } }).response?.data;
-      setState({ kind: 'settled', ok: false, text: data?.error || data?.message || t('ai.unreachable') });
+      setOutcomes([...results]);
     }
+    setState('done');
   };
 
-  const row: React.CSSProperties = {
-    display: 'flex', justifyContent: 'space-between', gap: '12px',
-    fontFamily: 'var(--ff-body)', fontSize: '14px', color: 'var(--text-primary)',
-    padding: '3px 0',
+  // Always the newest version, so a row edited during the countdown is
+  // the row that gets sent — not the one this card was born with.
+  const sendRef = useRef(sendAll);
+  sendRef.current = sendAll;
+
+  /**
+   * An account that trades on its own still waits a few seconds, so a
+   * plan that is plainly wrong can be stopped by whoever is watching.
+   *
+   * The deadline is a timestamp rather than a countdown variable, and
+   * the guard is "has it been sent" rather than "has it started": in
+   * development React mounts every component twice, which cleared the
+   * first interval and left the card counting 5… for ever.
+   */
+  useEffect(() => {
+    if (!auto || !account || sentOnce.current) return;
+    setState('counting');
+    const deadline = Date.now() + AUTO_DELAY * 1000;
+    const tick = setInterval(() => {
+      const left = Math.ceil((deadline - Date.now()) / 1000);
+      setCountdown(Math.max(0, left));
+      if (left > 0) return;
+      clearInterval(tick);
+      if (sentOnce.current) return;
+      sentOnce.current = true;
+      void sendRef.current();
+    }, 250);
+    return () => clearInterval(tick);
+  }, [auto, account?.id]);
+
+  const edit = (i: number, field: keyof Row, value: string) => {
+    setRows(list => list.map((r, k) => (k === i ? { ...r, [field]: field === 'symbol' ? value : Number(value) } : r)));
+    setRisk(null);
   };
-  const dim: React.CSSProperties = { color: 'var(--text-muted)' };
+
+  const money = (n: number): string =>
+    `${n.toLocaleString('en-US', { maximumFractionDigits: 2 })} ${risk?.currency ?? ''}`;
+
+  const label = (r: Row): string => {
+    if (r.action === 'close') return `${t('draft.close')} #${r.ticket}${r.lots ? ` · ${r.lots} lot` : ''}`;
+    if (r.action === 'closeAll') return t('draft.close_all');
+    if (r.action === 'sltp') return `#${r.ticket} · SL ${r.sl || '—'} · TP ${r.tp || '—'}`;
+    const side = r.side === 'sell' ? t('draft.sell') : t('draft.buy');
+    const kind = r.orderType ?? 'market';
+    return `${side} ${r.symbol} · ${kind === 'market' ? t('draft.at_market') : kind}`;
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', background: 'var(--bg-input)', border: '1px solid var(--border2)',
+    borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)',
+    fontFamily: 'var(--ff-body)', fontSize: '15px', padding: '7px 8px', outline: 'none',
+    boxSizing: 'border-box', textAlign: 'right',
+  };
+  const cap: React.CSSProperties = {
+    fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-micro)', letterSpacing: '.5px',
+    color: 'var(--text-muted)', display: 'block', marginBottom: '3px',
+  };
+
+  const busy = state === 'sending';
+  const finished = state === 'done';
 
   return (
     <div style={{
       background: 'var(--bg-card)',
-      border: `1px solid ${state.kind === 'settled' ? (state.ok ? 'var(--success)' : 'var(--danger)') : 'var(--accent-blue)'}`,
+      border: `1px solid ${finished ? 'var(--border2)' : auto ? 'var(--warning)' : 'var(--accent-blue)'}`,
       borderRadius: 'var(--radius-sm)', padding: '12px', minWidth: 0,
     }}>
       <div style={{
+        display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px',
         fontFamily: 'var(--ff-label)', fontSize: 'var(--fs-micro)', letterSpacing: '1px',
-        color: 'var(--accent-blue)', marginBottom: '8px',
-      }}>{t('draft.title')}</div>
-
-      <div style={{ ...row, fontSize: '16px', fontWeight: 600 }}>{what()}</div>
-
-      <div style={row}>
-        <span style={dim}>{t('draft.account')}</span>
-        <span>
-          {account ? `${account.name} · #${account.accountNumber}` : `#${draft.account.replace(/[^0-9]/g, '')}`}
-          {account && !account.isDemo && (
-            <span style={{ color: 'var(--warning)' }}> · {t('draft.live')}</span>
-          )}
-          {account?.isDemo && <span style={{ color: 'var(--text-muted)' }}> · DEMO</span>}
+        color: auto ? 'var(--warning)' : 'var(--accent-blue)',
+      }}>
+        <span>{auto ? t('draft.auto_title') : t('draft.title')}</span>
+        <span style={{ marginLeft: 'auto', color: 'var(--text-primary)', letterSpacing: 0 }}>
+          {account ? `${account.name} · #${account.accountNumber}` : `#${wanted}`}
+          {account && (account.isDemo
+            ? <span style={{ color: 'var(--text-muted)' }}> · DEMO</span>
+            : <span style={{ color: 'var(--warning)' }}> · {t('draft.live')}</span>)}
         </span>
       </div>
 
-      {draft.action === 'open' && (
-        <div style={row}>
-          <span style={dim}>SL / TP</span>
-          <span style={noStop ? { color: 'var(--warning)' } : undefined}>
-            {draft.sl ? draft.sl : t('draft.no_sl')} / {draft.tp ? draft.tp : '—'}
-          </span>
+      {rows.map((r, i) => {
+        const priced = risk?.rows[opens.indexOf(r)];
+        const outcome = outcomes.find(o => o.row === i);
+        return (
+          <div key={i} style={{
+            padding: '9px 0',
+            borderTop: i === 0 ? 'none' : '1px dashed var(--border-color)',
+          }}>
+            <div style={{
+              fontFamily: 'var(--ff-body)', fontSize: '15.5px', color: 'var(--text-primary)',
+              fontWeight: 600, marginBottom: r.action === 'open' ? '8px' : 0,
+            }}>{label(r)}</div>
+
+            {r.action === 'open' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                {([
+                  ['lots', t('draft.lots')],
+                  ['price', r.orderType === 'market' ? t('draft.price_market') : t('draft.price')],
+                  ['sl', 'SL'],
+                  ['tp', 'TP'],
+                ] as const).map(([field, caption]) => (
+                  <label key={field}>
+                    <span style={cap}>{caption}</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={(r[field] as number | undefined) ?? ''}
+                      disabled={busy || finished || r.orderType === 'market' && field === 'price'}
+                      onChange={e => edit(i, field, e.target.value)}
+                      style={inputStyle}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {priced && (priced.risk != null || priced.problems.length > 0) && (
+              <div style={{
+                marginTop: '6px', fontFamily: 'var(--ff-body)', fontSize: '13px', lineHeight: 1.6,
+                color: priced.problems.length ? 'var(--danger)' : 'var(--text-muted)',
+              }}>
+                {priced.problems.length
+                  ? priced.problems.join(' · ')
+                  : `${t('draft.risk')} ${money(priced.risk ?? 0)}${priced.rr ? ` · RR 1:${priced.rr}` : ''}`}
+              </div>
+            )}
+
+            {outcome && (
+              <div style={{
+                marginTop: '6px', fontFamily: 'var(--ff-body)', fontSize: '13.5px', lineHeight: 1.6,
+                color: outcome.ok ? 'var(--success)' : 'var(--danger)',
+              }}>{outcome.ok ? '✓ ' : '✕ '}{outcome.text}</div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* What the whole plan costs if every stop is hit — the line that
+          stops a plan that looked reasonable row by row. */}
+      {risk && risk.totalRisk > 0 && (
+        <div style={{
+          marginTop: '10px', padding: '9px 10px', borderRadius: 'var(--radius-sm)',
+          background: 'var(--bg-input)',
+          fontFamily: 'var(--ff-body)', fontSize: '14px', lineHeight: 1.6,
+          color: (risk.riskPercent ?? 0) > 5 ? 'var(--danger)' : 'var(--text-primary)',
+        }}>
+          {t('draft.all_stops')} <strong>−{money(risk.totalRisk)}</strong>
+          {risk.riskPercent != null && ` · ${risk.riskPercent}% ${t('draft.of_equity')}`}
         </div>
       )}
 
@@ -204,53 +331,37 @@ export const OrderDraftCard = ({ draft }: { draft: Draft }) => {
         }}>{t('draft.no_account')}</div>
       )}
 
-      {noStop && account && (
-        <div style={{
-          marginTop: '8px', fontFamily: 'var(--ff-body)', fontSize: '13px',
-          color: 'var(--warning)', lineHeight: 1.6,
-        }}>{t('draft.no_sl_warning')}</div>
+      {state === 'cancelled' && (
+        <div style={{ marginTop: '10px', fontFamily: 'var(--ff-body)', fontSize: '14px', color: 'var(--text-muted)' }}>
+          {t('draft.cancelled')}
+        </div>
       )}
 
-      {state.kind === 'settled' && (
-        <div style={{
-          marginTop: '10px', padding: '8px 10px', borderRadius: 'var(--radius-sm)',
-          background: state.ok ? 'rgba(52,211,153,.08)' : 'rgba(248,113,113,.08)',
-          color: state.ok ? 'var(--success)' : 'var(--danger)',
-          fontFamily: 'var(--ff-body)', fontSize: '14px', lineHeight: 1.6,
-        }}>{state.ok ? '✓ ' : '✕ '}{state.text}</div>
-      )}
-
-      {state.kind === 'cancelled' && (
-        <div style={{
-          marginTop: '10px', fontFamily: 'var(--ff-body)', fontSize: '14px', color: 'var(--text-muted)',
-        }}>{t('draft.cancelled')}</div>
-      )}
-
-      {(state.kind === 'idle' || state.kind === 'sending' || state.kind === 'waiting') && (
+      {(state === 'idle' || state === 'counting' || busy) && account && (
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
           <button
-            onClick={() => void send()}
-            disabled={!account || state.kind !== 'idle'}
+            onClick={() => { sentOnce.current = true; void sendAll(); }}
+            disabled={busy}
             style={{
               flex: 2, padding: '11px', borderRadius: 'var(--radius-sm)', border: 'none',
-              background: 'var(--accent-blue)', color: '#12151a',
+              background: auto ? 'var(--warning)' : 'var(--accent-blue)', color: '#12151a',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-              cursor: !account || state.kind !== 'idle' ? 'default' : 'pointer',
-              opacity: !account || state.kind !== 'idle' ? .55 : 1,
+              cursor: busy ? 'default' : 'pointer', opacity: busy ? .6 : 1,
             }}
           >
-            {state.kind === 'sending' ? t('draft.sending')
-              : state.kind === 'waiting' ? t('draft.waiting')
+            {busy ? t('draft.sending')
+              : state === 'counting' ? `${t('draft.auto_in')} ${countdown}…`
+              : rows.length > 1 ? `${t('draft.confirm_all')} (${rows.length})`
               : t('draft.confirm')}
           </button>
           <button
-            onClick={() => setState({ kind: 'cancelled' })}
-            disabled={state.kind !== 'idle'}
+            onClick={() => { sentOnce.current = true; setState('cancelled'); }}
+            disabled={busy}
             style={{
               flex: 1, padding: '11px', borderRadius: 'var(--radius-sm)',
               background: 'none', border: '1px solid var(--border2)', color: 'var(--text-primary)',
               fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-section)', letterSpacing: '.5px',
-              cursor: state.kind !== 'idle' ? 'default' : 'pointer',
+              cursor: busy ? 'default' : 'pointer',
             }}
           >{t('common.cancel')}</button>
         </div>

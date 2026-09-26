@@ -28,6 +28,13 @@ const money = (n: number, currency: string): string =>
 const hoursSince = (t: string | Date): number =>
   Math.max(0, Math.round((Date.now() - new Date(t).getTime()) / 36e5));
 
+/** The shape EA v1.4 sends, as stored on the account. */
+interface SpecRow {
+  symbol: string; bid: number; ask: number; digits: number; point: number;
+  contractSize: number; tickValue: number; tickSize: number;
+  volMin: number; volMax: number; volStep: number; stopsLevel: number; atr14: number;
+}
+
 export interface PortfolioContext {
   text: string;
   /** For the page: what it was built from, in numbers. */
@@ -86,6 +93,44 @@ export const buildPortfolioContext = async (userId: string): Promise<PortfolioCo
     for (const o of pending.slice(0, 30)) {
       lines.push(`- #${o.ticket} ${o.symbol} ${o.type} ${o.lots} lots at ${o.openPrice} on ${o.account}`);
     }
+    lines.push('');
+  }
+
+  // ── What a lot is actually worth ───────────────────────────────────────
+  //
+  // Without these the assistant is guessing at position size, and a guess
+  // about lots is worse than no answer at all. They arrive from EA v1.4.
+  const withSpecs = await prisma.account.findMany({
+    where: { userId },
+    select: { id: true, name: true, accountNumber: true, currency: true, specs: true, specsAt: true },
+  });
+
+  const specLines: string[] = [];
+  for (const a of withSpecs) {
+    const specs = Array.isArray(a.specs) ? (a.specs as unknown as SpecRow[]) : [];
+    if (specs.length === 0) continue;
+    const cur = a.currency || 'USD';
+    for (const sp of specs.slice(0, 25)) {
+      const perLot = sp.tickSize > 0 ? sp.tickValue / sp.tickSize : 0;
+      specLines.push(
+        `- ${sp.symbol} on ${a.name} (#${a.accountNumber}): bid ${sp.bid}, ask ${sp.ask}, ` +
+        `1 lot = ${sp.contractSize} units, moving 1.0 in price = ${perLot.toFixed(2)} ${cur} per lot, ` +
+        `lots ${sp.volMin}–${sp.volMax} in steps of ${sp.volStep}, ` +
+        `broker's minimum stop ${sp.stopsLevel} points (1 point = ${sp.point}), ` +
+        `ATR over 14 days ${sp.atr14}`,
+      );
+    }
+  }
+
+  if (specLines.length > 0) {
+    lines.push('SYMBOL FACTS, FROM THE TERMINAL');
+    lines.push(...specLines);
+    lines.push('Risk on one order = (distance from entry to stop) ÷ 1.0 × (that symbol\'s money per lot) × lots.');
+    lines.push('Use these numbers. Do not use remembered contract sizes — this broker\'s may differ.');
+    lines.push('');
+  } else {
+    lines.push('SYMBOL FACTS: none yet. The EA sends them a few minutes after starting (v1.4 and up).');
+    lines.push('Without them you cannot work out what a lot is worth: say so rather than estimating.');
     lines.push('');
   }
 

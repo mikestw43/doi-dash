@@ -63,6 +63,8 @@ export interface Account {
   groupName?: string;
   groupColor?: string;
   isDemo?: boolean;
+  /** The assistant may send orders here without a confirmation. */
+  aiAutoTrade?: boolean;
   protectionEnabled?: boolean;
   protectionDrawdown?: number | null;
   brokerTimeOffset?: number | null;

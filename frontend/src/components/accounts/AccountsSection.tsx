@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { fetchAccounts, deleteAccount, createAccount, getAccountAlerts, saveAccountAlerts, revealApiKey } from '../../services/api';
+import { fetchAccounts, deleteAccount, createAccount, getAccountAlerts, saveAccountAlerts, revealApiKey, setAccountAiTrade } from '../../services/api';
 import type { Account, AccountAlerts } from '../../types';
 import { useUIStore } from '../../stores/uiStore';
 import { Dialog } from '../ui/Dialog';
@@ -234,6 +234,15 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
     if (alerts) setForm({ alertDrawdown: alerts.alertDrawdown, alertEquityBelow: alerts.alertEquityBelow, alertMarginLevel: alerts.alertMarginLevel, alertOffline: alerts.alertOffline });
   }, [alerts]);
 
+  const aiTrade = useMutation({
+    mutationFn: (enabled: boolean) => setAccountAiTrade(account.id, enabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      addToast({ type: 'success', title: t('acc.ai_auto_saved') });
+    },
+    onError: () => { addToast({ type: 'error', title: t('acc.alerts_failed') }); },
+  });
+
   const mutation = useMutation({
     mutationFn: () => saveAccountAlerts(account.id, form),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['account-alerts', account.id] }); addToast({ type: 'success', title: t('acc.alerts_saved') }); onClose(); },
@@ -253,6 +262,35 @@ const AlertThresholdsDialog = ({ account, onClose }: { account: Account; onClose
           <NumField label={t('acc.alert_dd')} value={form.alertDrawdown} onChange={v => setForm(p => ({ ...p, alertDrawdown: v }))} onClear={() => setForm(p => ({ ...p, alertDrawdown: null }))} placeholder="e.g. 10" unit="%" />
           <NumField label={t('acc.alert_eq')} value={form.alertEquityBelow} onChange={v => setForm(p => ({ ...p, alertEquityBelow: v }))} onClear={() => setForm(p => ({ ...p, alertEquityBelow: null }))} placeholder="e.g. 4500" unit="$" />
           <NumField label={t('acc.alert_ml')} value={form.alertMarginLevel} onChange={v => setForm(p => ({ ...p, alertMarginLevel: v }))} onClear={() => setForm(p => ({ ...p, alertMarginLevel: null }))} placeholder="e.g. 200" unit="%" />
+
+          {/* Whether the assistant may send orders here on its own. It
+              lives with the alerts because this is the one dialog per
+              account, and it is the single most consequential switch on
+              it — so it says what it means, in full. */}
+          <div style={{
+            border: `1px solid ${account.aiAutoTrade ? 'var(--warning)' : 'var(--border2)'}`,
+            borderRadius: 'var(--radius-sm)', padding: '10px 12px',
+            display: 'flex', flexDirection: 'column', gap: '6px',
+          }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={!!account.aiAutoTrade}
+                onChange={e => aiTrade.mutate(e.target.checked)}
+                disabled={aiTrade.isPending}
+                style={{ width: '16px', height: '16px', accentColor: 'var(--warning)', cursor: 'pointer' }}
+              />
+              <span style={{ fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text-primary)' }}>
+                {t('acc.ai_auto')}
+              </span>
+            </label>
+            <div style={{
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', lineHeight: 1.6,
+              color: account.isDemo ? 'var(--text-muted)' : 'var(--warning)',
+            }}>
+              {account.isDemo ? t('acc.ai_auto_demo') : t('acc.ai_auto_live')}
+            </div>
+          </div>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
             <input

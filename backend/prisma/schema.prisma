@@ -85,6 +85,10 @@ model Account {
   alertOffline     Boolean  @default(false)
   // Demo / sandbox flag
   isDemo             Boolean  @default(false)
+  /// May the assistant send orders on this account without anybody
+  /// pressing confirm? Off everywhere until it is switched on, and
+  /// meant for a practice account.
+  aiAutoTrade        Boolean  @default(false)
   // Drawdown Protection
   protectionEnabled  Boolean  @default(false)
   protectionDrawdown Float?
@@ -112,6 +116,12 @@ model Account {
   /// survives both restarts and the gaps between pushes.
   symbols           Json?
   symbolsAt         DateTime?
+  /// What a lot of each symbol in use is worth, straight from the
+  /// terminal: contract size, tick value, the volume steps, the live
+  /// bid and ask and a 14-day ATR. Sent by EA v1.4 and up. Without
+  /// these, anything said about position size is a guess.
+  specs              Json?
+  specsAt            DateTime?
   /// When that snapshot arrived — null means the EA has never connected.
   lastPushAt        DateTime?
   createdAt        DateTime @default(now())
