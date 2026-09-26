@@ -48,6 +48,11 @@ export const AiSheet = () => {
   // True while a Thai or other IME is mid-word: Enter there confirms the
   // word being composed and must not send the question.
   const [typing, setTyping] = useState(false);
+  // The keyboard is up when the box has focus. visualViewport says so too,
+  // but not on every iOS — a web app added to the home screen has been
+  // known not to report the change at all. Focus is the signal the browser
+  // cannot get wrong.
+  const [writing, setWriting] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLTextAreaElement>(null);
   // The question in flight, so STOP has something to cancel.
@@ -540,7 +545,7 @@ export const AiSheet = () => {
           title={t('ai.to_latest')}
           // The composer loses its safe-area padding while the keyboard is
           // up, so the button follows it down.
-          style={viewport?.keyboard ? { bottom: '76px' } : undefined}
+          style={viewport?.keyboard || writing ? { bottom: '76px' } : undefined}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 5v14M6 13l6 6 6-6" />
@@ -552,7 +557,7 @@ export const AiSheet = () => {
           clear of — the keyboard is over it — so the safe-area padding
           under the composer is just a strip of empty sheet between the
           box and the keys. */}
-      <div className={viewport?.keyboard ? 'ai-foot ai-foot-kb' : 'ai-foot'}>
+      <div className={viewport?.keyboard || writing ? 'ai-foot ai-foot-kb' : 'ai-foot'}>
       {/* Photos waiting to be sent */}
       {photos.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -625,6 +630,8 @@ export const AiSheet = () => {
             }}
             onCompositionStart={() => setTyping(true)}
             onCompositionEnd={() => setTyping(false)}
+            onFocus={() => setWriting(true)}
+            onBlur={() => setWriting(false)}
             placeholder={mic.listening ? t('ai.listening') : t('ai.ask_placeholder')}
             className="ai-box"
             style={{
