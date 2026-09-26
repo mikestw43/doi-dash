@@ -50,6 +50,10 @@ export const AiSheet = () => {
   const [typing, setTyping] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLTextAreaElement>(null);
+  // The question in flight, so STOP has something to cancel.
+  const inflight = useRef<AbortController | null>(null);
+  // Shown only once the conversation has been scrolled away from the end.
+  const [awayFromEnd, setAwayFromEnd] = useState(false);
 
   // How far the sheet has been pushed down, in px, while a finger is on it.
   const [dragY, setDragY] = useState(0);
@@ -137,9 +141,46 @@ export const AiSheet = () => {
     return () => { alive = false; };
   }, []);
 
+  const toEnd = (behavior: ScrollBehavior = 'smooth') =>
+    endRef.current?.scrollIntoView({ behavior, block: 'end' });
+
+  // Following the conversation should not yank the page out from under
+  // someone who has scrolled up to read an earlier answer. It follows when
+  // they are at the end, and when the new message is their own.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    const mine = messages[messages.length - 1]?.who === 'me';
+    if (mine || !awayFromEnd) toEnd();
   }, [messages.length]);
+
+  /** How far from the bottom counts as "reading something else". */
+  const onScroll = () => {
+    const el = scroller.current;
+    if (!el) return;
+    setAwayFromEnd(el.scrollHeight - el.scrollTop - el.clientHeight > 120);
+  };
+
+  /**
+   * On a phone the keyboard does not resize the window, it covers it — so
+   * a sheet that is 88% of the window ends up with its composer behind the
+   * keys. visualViewport is the part still visible, and the sheet is sized
+   * to that instead.
+   */
+  const [viewport, setViewport] = useState<number | null>(null);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    // Only where it is a sheet held in a hand. On a desktop it is a panel
+    // with its own height and no keyboard covering anything.
+    const measure = () =>
+      setViewport(window.matchMedia('(max-width: 900px)').matches ? vv.height : null);
+    measure();
+    vv.addEventListener('resize', measure);
+    vv.addEventListener('scroll', measure);
+    return () => {
+      vv.removeEventListener('resize', measure);
+      vv.removeEventListener('scroll', measure);
+    };
+  }, []);
 
   // The box follows the text: measured from nothing each time, because a
   // textarea that has already grown reports its own height as the content
@@ -190,14 +231,30 @@ export const AiSheet = () => {
         role: (m.who === 'me' ? 'user' : 'assistant') as 'user' | 'assistant',
         text: m.text,
       }));
-      const { reply } = await askAi(question, attached, priorTurns, language);
+      const control = new AbortController();
+      inflight.current = control;
+      const { reply } = await askAi(question, attached, priorTurns, language, control.signal);
       addMessage({ who: 'ai', text: reply });
     } catch (err) {
-      const answer = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
-      addMessage({ who: 'ai', text: answer || 'Could not reach the server. Please try again.' });
+      // A question the person stopped themselves needs no error in the
+      // conversation; they know why it ended.
+      const stopped = (err as { code?: string; name?: string }).code === 'ERR_CANCELED'
+        || (err as { name?: string }).name === 'CanceledError';
+      if (!stopped) {
+        const answer = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+        addMessage({ who: 'ai', text: answer || 'Could not reach the server. Please try again.' });
+      }
     } finally {
+      inflight.current = null;
       setBusy(false);
     }
+  };
+
+  /** Abandon the question in flight. */
+  const stop = () => {
+    inflight.current?.abort();
+    inflight.current = null;
+    setBusy(false);
   };
 
   const lbl: React.CSSProperties = {
@@ -244,6 +301,9 @@ export const AiSheet = () => {
         style={{
           transform: `translateY(${dragY}px)`,
           transition: dragging ? 'none' : 'transform .22s cubic-bezier(.2,.8,.3,1)',
+          // 88% of what can actually be seen, which is not the window once
+          // the keyboard is up.
+          ...(viewport ? { height: `${Math.round(viewport * 0.88)}px`, maxHeight: `${Math.round(viewport * 0.88)}px` } : {}),
         }}
       >
         {/* The handle. Dragging it works wherever the conversation happens to
@@ -269,7 +329,8 @@ export const AiSheet = () => {
           />
         )}
 
-        <div className="ai-scroll" ref={scroller} style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0, flex: 1 }}>
+        {/* Fixed head: who this is, and what it is looking at. */}
+        <div className="ai-head">
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
         <span style={{
@@ -364,8 +425,12 @@ export const AiSheet = () => {
         </div>
       )}
 
-      {/* The conversation, which is what the screen is for */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0, flex: 1 }}>
+        </div>
+
+      {/* The conversation, and the only part that scrolls. Everything used
+          to sit in here together, so a long conversation pushed the box to
+          type in clean off the bottom of the screen. */}
+      <div className="ai-scroll" ref={scroller} onScroll={onScroll}>
         {messages.length === 0 && (
           <div style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
             <div style={{
@@ -426,9 +491,35 @@ export const AiSheet = () => {
             </div>
           </div>
         ))}
+        {/* Something is happening, and it can be called off. Until now the
+            only sign was the send button going pale. */}
+        {busy && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '2px 2px 2px 4px', minWidth: 0,
+          }}>
+            <span className="ai-dots" aria-hidden="true"><i /><i /><i /></span>
+            <span style={{
+              fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body-sm)', color: 'var(--text-dim)',
+            }}>{t('ai.thinking')}</span>
+            <button onClick={stop} className="ai-stop">
+              <span className="ai-stop-mark" />
+              {t('ai.stop')}
+            </button>
+          </div>
+        )}
+
         <div ref={endRef} />
       </div>
 
+      {/* Back to the newest answer, from wherever the reading got to. */}
+      {awayFromEnd && (
+        <button className="ai-jump" onClick={() => toEnd()} aria-label={t('ai.to_latest')} title={t('ai.to_latest')}>
+          ↓
+        </button>
+      )}
+
+      <div className="ai-foot">
       {/* Photos waiting to be sent */}
       {photos.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -538,7 +629,7 @@ export const AiSheet = () => {
           {t('ai.send')}
         </button>
       </div>
-        </div>
+      </div>
       </div>
 
       <style>{`
@@ -642,10 +733,67 @@ export const AiSheet = () => {
           width: 42px; height: 4px; border-radius: 2px;
           background: var(--border2); display: block;
         }
-        .ai-scroll {
-          overflow-y: auto; overscroll-behavior: contain;
-          padding: 4px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+        /* Three rows that do not move: the head, the conversation, the box
+           to type in. min-height:0 is the part that matters — without it a
+           flex child refuses to shrink below its content, which is how the
+           composer ended up pushed off the bottom of the sheet. */
+        .ai-head {
+          flex-shrink: 0;
+          display: flex; flex-direction: column; gap: 10px;
+          padding: 4px 16px 10px;
         }
+        .ai-scroll {
+          flex: 1 1 auto; min-height: 0;
+          overflow-y: auto; overscroll-behavior: contain;
+          display: flex; flex-direction: column; gap: 10px;
+          min-width: 0;
+          padding: 0 16px 8px;
+        }
+        .ai-foot {
+          flex-shrink: 0;
+          display: flex; flex-direction: column; gap: 8px;
+          padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+          border-top: 1px solid var(--border-color);
+          background: var(--bg-primary);
+        }
+        /* Three dots that say the question is on its way. */
+        .ai-dots { display: inline-flex; gap: 4px; align-items: center; }
+        .ai-dots i {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: var(--accent-blue); display: block;
+          animation: ai-think 1.1s ease-in-out infinite;
+        }
+        .ai-dots i:nth-child(2) { animation-delay: .15s; }
+        .ai-dots i:nth-child(3) { animation-delay: .3s; }
+        @keyframes ai-think {
+          0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+          40%           { opacity: 1;   transform: translateY(-3px); }
+        }
+        .ai-stop {
+          display: inline-flex; align-items: center; gap: 6px;
+          background: none; border: 1px solid var(--border2);
+          border-radius: 999px; padding: 4px 11px; cursor: pointer;
+          color: var(--text-dim);
+          font-family: var(--ff-label); font-size: var(--fs-micro); letter-spacing: 1px;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-stop:active { background: var(--bg-input); }
+        .ai-stop-mark {
+          width: 8px; height: 8px; border-radius: 1px;
+          background: var(--danger); display: block;
+        }
+        /* Sits just above the composer, out of the way of the text. */
+        .ai-jump {
+          position: absolute; right: 16px; z-index: 7;
+          bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+          width: 34px; height: 34px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--bg-card); border: 1px solid var(--border2);
+          color: var(--text-dim); font-size: 16px; line-height: 1;
+          cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.35);
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-jump:active { background: var(--bg-input); }
         /* On a desktop it is a panel, not a sheet: nothing to swipe, and a
            full-height column of chat on a wide screen reads badly. The
            breakpoint is the shell's own — the sidebar appears at 901px, and

@@ -586,5 +586,8 @@
   "aiset.err_bad_key": "อันนี้ดูไม่เหมือน API key ลองเช็คว่าก๊อปมาครบหรือยัง",
   "aiset.err_bad_base": "ที่อยู่ไม่ถูกต้อง ต้องอยู่ในรูปแบบ https://api.example.com/v1",
   "aiset.err_no_base": "ต้องใส่ที่อยู่เซิร์ฟเวอร์ที่จะให้ตอบก่อน",
-  "aiset.err_save": "บันทึกไม่สำเร็จ"
+  "aiset.err_save": "บันทึกไม่สำเร็จ",
+  "ai.thinking": "กำลังคิด…",
+  "ai.stop": "หยุด",
+  "ai.to_latest": "ไปข้อความล่าสุด"
 }

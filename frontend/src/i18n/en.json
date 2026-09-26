@@ -586,5 +586,8 @@
   "aiset.err_bad_key": "That does not look like an API key — check you copied all of it.",
   "aiset.err_bad_base": "That address is not right. It should look like https://api.example.com/v1",
   "aiset.err_no_base": "Fill in the address of the server that answers first.",
-  "aiset.err_save": "Could not save."
+  "aiset.err_save": "Could not save.",
+  "ai.thinking": "Thinking…",
+  "ai.stop": "STOP",
+  "ai.to_latest": "Jump to the newest"
 }
