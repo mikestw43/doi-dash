@@ -533,14 +533,26 @@ export const AiSheet = () => {
 
       {/* Back to the newest answer, from wherever the reading got to. */}
       {awayFromEnd && (
-        <button className="ai-jump" onClick={() => toEnd()} aria-label={t('ai.to_latest')} title={t('ai.to_latest')}>
+        <button
+          className="ai-jump"
+          onClick={() => toEnd()}
+          aria-label={t('ai.to_latest')}
+          title={t('ai.to_latest')}
+          // The composer loses its safe-area padding while the keyboard is
+          // up, so the button follows it down.
+          style={viewport?.keyboard ? { bottom: '76px' } : undefined}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 5v14M6 13l6 6 6-6" />
           </svg>
         </button>
       )}
 
-      <div className="ai-foot">
+      {/* While the keyboard is up there is no home indicator to keep
+          clear of — the keyboard is over it — so the safe-area padding
+          under the composer is just a strip of empty sheet between the
+          box and the keys. */}
+      <div className={viewport?.keyboard ? 'ai-foot ai-foot-kb' : 'ai-foot'}>
       {/* Photos waiting to be sent */}
       {photos.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -797,6 +809,7 @@ export const AiSheet = () => {
           border-top: 1px solid var(--border-color);
           background: var(--bg-primary);
         }
+        .ai-foot-kb { padding-bottom: 8px; }
         /* Three dots that say the question is on its way. */
         .ai-dots { display: inline-flex; gap: 4px; align-items: center; }
         .ai-dots i {
@@ -829,6 +842,7 @@ export const AiSheet = () => {
         .ai-jump {
           position: absolute; left: 50%; transform: translateX(-50%); z-index: 7;
           bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+          transition: bottom .15s;
           width: 40px; height: 40px; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           background: var(--bg-tertiary); border: 1px solid var(--border2);
