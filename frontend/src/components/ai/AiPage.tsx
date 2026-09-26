@@ -42,7 +42,6 @@ export const AiSheet = () => {
   const [draft, setDraft] = useState('');
   // Photos waiting to go with the next question, already shrunk.
   const [photos, setPhotos] = useState<{ dataUrl: string; name: string }[]>([]);
-  const filePick = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -439,24 +438,22 @@ export const AiSheet = () => {
 
       {/* Composer */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
-        {/* accept="image/*" with no capture attribute is what makes the phone
-            offer the camera and the library both, which is the whole ask. */}
-        <input
-          ref={filePick}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={e => { void pickPhotos(e.target.files); e.target.value = ''; }}
-          style={{ display: 'none' }}
-        />
-        <button
-          onPointerDown={() => filePick.current?.click()}
-          aria-label={t('ai.attach')}
-          title={t('ai.attach')}
-          className="ai-plus"
-        >
+        {/* A label, not a button that calls click() on a hidden input: iOS
+            only opens the picker for a real activation, and a programmatic
+            click from pointerdown is not one — the button did nothing at
+            all on the phone. Tapping a label is the browser's own path to
+            the input and needs no script.
+            accept="image/*" with no capture attribute is what makes the
+            phone offer the camera and the library both. */}
+        <label className="ai-plus" title={t('ai.attach')} aria-label={t('ai.attach')}>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={e => { void pickPhotos(e.target.files); e.target.value = ''; }}
+          />
           <IconPlus size={19} />
-        </button>
+        </label>
         <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex' }}>
           <input
             value={draft}
@@ -542,6 +539,7 @@ export const AiSheet = () => {
           background: transparent;
         }
         .ai-plus {
+          position: relative;
           width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
           background: none; border: 1px solid var(--border2);
@@ -549,6 +547,12 @@ export const AiSheet = () => {
           -webkit-tap-highlight-color: transparent;
         }
         .ai-plus:active { background: var(--bg-input); }
+        /* Covers the label so the tap lands on the input itself wherever it
+           is pressed, which is the most reliable path on iOS. */
+        .ai-plus input[type="file"] {
+          position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%;
+          cursor: pointer;
+        }
         .ai-mic {
           position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
           z-index: 6;
@@ -590,6 +594,7 @@ export const AiSheet = () => {
           background: transparent;
         }
         .ai-plus {
+          position: relative;
           width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
           background: none; border: 1px solid var(--border2);
@@ -597,6 +602,12 @@ export const AiSheet = () => {
           -webkit-tap-highlight-color: transparent;
         }
         .ai-plus:active { background: var(--bg-input); }
+        /* Covers the label so the tap lands on the input itself wherever it
+           is pressed, which is the most reliable path on iOS. */
+        .ai-plus input[type="file"] {
+          position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%;
+          cursor: pointer;
+        }
         .ai-mic {
           position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
           z-index: 6;
