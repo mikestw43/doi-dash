@@ -17,6 +17,18 @@ type EaRelease = {
 const EA_RELEASES: EaRelease[] = [
   {
     name: 'OnlyFunds Reporter',
+    version: 'v1.4',
+    description:
+      'Everything v1.3 does, plus closing part of a position and sending the ' +
+      'contract figures the assistant needs to work out a position size — ' +
+      'what a lot is worth, the volume steps, the live price and a 14-day ' +
+      'ATR. Source only for now: open it in MetaEditor and press Compile.',
+    downloads: [
+      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.4.mq5', ext: '.MQ5 SOURCE' },
+    ],
+  },
+  {
+    name: 'OnlyFunds Reporter',
     version: 'v1.3',
     description:
       'Reports the account, and carries out dashboard orders when you switch ' +
