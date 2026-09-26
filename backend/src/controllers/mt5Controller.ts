@@ -50,6 +50,9 @@ interface MT5PushPayload {
     expiration: string;
   }[];
   brokerTimeOffset?: number;
+  /// Every symbol the broker offers, sent occasionally rather than on every
+  /// tick — see storeSymbols below.
+  symbols?: string[];
   todayPnl?: number;
   closedOrdersToday?: number;
   closedDeals?: {
@@ -80,6 +83,47 @@ const PENDING_TYPE_MAP: Record<number, PendingOrder['type']> = {
   5: 'SELL_STOP',
   6: 'BUY_STOP_LIMIT',
   7: 'SELL_STOP_LIMIT',
+};
+
+/**
+ * Keep the broker's symbol list.
+ *
+ * A reporter that sends it is sending a few hundred names, so it sends them
+ * rarely; this writes only when the list actually differs from the one on
+ * record, which makes a repeat push free. Names are capped and cleaned here
+ * rather than trusted: this arrives from an EA over the open internet, and
+ * it ends up in a dropdown.
+ */
+const SYMBOL_LIMIT = 2000;
+
+const storeSymbols = async (accountId: string, incoming: unknown): Promise<void> => {
+  if (!Array.isArray(incoming)) return;
+
+  const clean = [...new Set(
+    incoming
+      .filter((s): s is string => typeof s === 'string')
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && s.length <= 32),
+  )].sort((a, b) => a.localeCompare(b)).slice(0, SYMBOL_LIMIT);
+
+  if (clean.length === 0) return;
+
+  try {
+    const row = await prisma.account.findUnique({
+      where: { id: accountId },
+      select: { symbols: true },
+    });
+    const current = Array.isArray(row?.symbols) ? (row!.symbols as string[]) : [];
+    if (current.length === clean.length && current.every((s, i) => s === clean[i])) return;
+
+    await prisma.account.update({
+      where: { id: accountId },
+      data: { symbols: clean, symbolsAt: new Date() },
+    });
+    console.log(`[MT5] Symbol list updated for ${accountId}: ${clean.length} symbols`);
+  } catch (err) {
+    console.error('[MT5] Failed to store symbols:', (err as Error).message);
+  }
 };
 
 export const receiveMT5Push = (req: Request, res: Response): void => {
@@ -236,6 +280,10 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
 
   markAsReal(account.id);
   resetHeartbeat(account.id, userId);
+
+  // Fire and forget: a symbol list that fails to store must not fail a push
+  // carrying the account's money.
+  void storeSymbols(account.id, payload.symbols);
 
   // Drain any pending commands for this apiKey
   const commands = commandQueue.drain(payload.apiKey);

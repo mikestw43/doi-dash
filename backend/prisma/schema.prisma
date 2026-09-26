@@ -99,6 +99,13 @@ model Account {
   todayPnl          Float?
   closedOrdersToday Int?
   brokerTimeOffset  Int?
+  /// Every symbol the broker offers on this account, as the EA last listed
+  /// them (JSON array of names). It is what the NEW TRADE box searches. The
+  /// reporter only sends it occasionally — a broker's list runs to hundreds
+  /// of names and does not change between ticks — so this is the copy that
+  /// survives both restarts and the gaps between pushes.
+  symbols           Json?
+  symbolsAt         DateTime?
   /// When that snapshot arrived — null means the EA has never connected.
   lastPushAt        DateTime?
   createdAt        DateTime @default(now())

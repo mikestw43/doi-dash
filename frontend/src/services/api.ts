@@ -110,12 +110,17 @@ export const closeAllOrders = async (id: string) => {
   return res.data;
 };
 
-/** Every symbol this account has actually traded or holds now. Not the
- *  broker's whole list — the reporter EA does not send one — so the symbol
- *  box stays free text on top of these suggestions. */
-export const fetchAccountSymbols = async (accountId: string): Promise<string[]> => {
+/** What this account can be asked to trade: the broker's own list once the
+ *  reporter has sent one, plus everything held or traded either way. The
+ *  symbol box stays free text on top of these suggestions. */
+export const fetchAccountSymbols = async (
+  accountId: string,
+): Promise<{ symbols: string[]; fromBroker: number }> => {
   const res = await api.get(`/accounts/${accountId}/symbols`);
-  return (res.data?.symbols ?? []) as string[];
+  return {
+    symbols: (res.data?.symbols ?? []) as string[],
+    fromBroker: (res.data?.fromBroker ?? 0) as number,
+  };
 };
 
 export const openTrade = async (

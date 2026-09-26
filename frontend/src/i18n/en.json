@@ -346,5 +346,7 @@
   "trade.cancel": "CANCEL",
   "trade.sending": "SENDING...",
   "trade.confirm": "CONFIRM",
-  "trade.no_symbols": "No symbols match"
+  "trade.no_symbols": "No symbols match",
+  "trade.from_broker": "symbols from your broker",
+  "trade.from_history": "This account's history only — update the EA to search your broker's full list"
 }

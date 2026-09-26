@@ -39,6 +39,7 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
   // a text field on top of them, so an instrument we have never seen can
   // still be typed in full.
   const [known, setKnown] = useState<string[]>([]);
+  const [fromBroker, setFromBroker] = useState(0);
   const [openList, setOpenList] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -48,7 +49,11 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
   useEffect(() => {
     let alive = true;
     fetchAccountSymbols(accountId)
-      .then(list => { if (alive) setKnown(list); })
+      .then(({ symbols, fromBroker: n }) => {
+        if (!alive) return;
+        setKnown(symbols);
+        setFromBroker(n);
+      })
       .catch(() => { /* suggestions are a convenience, not a requirement */ });
     return () => { alive = false; };
   }, [accountId]);
@@ -145,7 +150,10 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
               // XAUUSD.v, which XAUUSD.V would not find.
               style={inp}
               autoComplete="off"
-              autoFocus
+              // No autofocus where focusing means a keyboard sliding over
+              // half the dialog. On a tablet or a phone the first thing to
+              // read is the warning, not a keyboard.
+              autoFocus={typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches}
             />
             {openList && known.length > 0 && (
               <div style={{
@@ -173,6 +181,21 @@ export const NewTradeDialog = ({ accountId, accountName, currency, onClose }: Pr
                     }}
                   >{s}</button>
                 ))}
+
+                {/* Where these names come from. Until the reporter EA sends
+                    the broker's list this is only what the account has
+                    touched, and saying so beats looking incomplete. */}
+                <div style={{
+                  position: 'sticky', bottom: 0,
+                  padding: '6px 10px', borderTop: '1px solid var(--border2)',
+                  background: 'var(--bg-card)',
+                  fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+                  color: 'var(--text-muted)', lineHeight: 1.5,
+                }}>
+                  {fromBroker > 0
+                    ? `${known.length} ${t('trade.from_broker')}`
+                    : t('trade.from_history')}
+                </div>
               </div>
             )}
           </div>

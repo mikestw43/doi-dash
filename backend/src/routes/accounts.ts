@@ -317,17 +317,31 @@ router.get('/:id/symbols', async (req: AuthRequest, res: Response) => {
     ...(account.pending ?? []).map(o => o.symbol),
   ];
 
-  const traded = await prisma.closedTrade.findMany({
-    where: { accountId: id },
-    select: { symbol: true },
-    distinct: ['symbol'],
-  });
+  const [row, traded] = await Promise.all([
+    prisma.account.findUnique({ where: { id }, select: { symbols: true, symbolsAt: true } }),
+    prisma.closedTrade.findMany({
+      where: { accountId: id },
+      select: { symbol: true },
+      distinct: ['symbol'],
+    }),
+  ]);
 
-  const symbols = [...new Set([...live, ...traded.map(t => t.symbol)])]
+  // The broker's own list when the EA has sent one, and what this account has
+  // touched either way — so the box is useful before the EA is updated, and
+  // complete afterwards.
+  const fromBroker = Array.isArray(row?.symbols) ? (row!.symbols as string[]) : [];
+
+  const symbols = [...new Set([...fromBroker, ...live, ...traded.map(t => t.symbol)])]
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b));
 
-  res.json({ symbols });
+  res.json({
+    symbols,
+    // What the list is made of, so the dialog can say whether it is the
+    // broker's own or only this account's history.
+    fromBroker: fromBroker.length,
+    brokerListAt: row?.symbolsAt ?? null,
+  });
 });
 
 // GET /api/accounts/:id/apikey — reveal full API key (for copy)
