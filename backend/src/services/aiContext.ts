@@ -36,7 +36,11 @@ export interface PortfolioContext {
 }
 
 export const buildPortfolioContext = async (userId: string): Promise<PortfolioContext> => {
-  const accounts = runtimeStore.getAccountsByUser(userId).filter(a => !a.isDemo);
+  // Demo accounts are in, marked as such. They were left out when the
+  // assistant could only talk: now that it can draft an order for the
+  // person to confirm, the practice account is exactly where that should
+  // be tried first.
+  const accounts = runtimeStore.getAccountsByUser(userId);
   const lines: string[] = [];
 
   lines.push(`Now: ${new Date().toISOString()} (UTC).`);
@@ -50,7 +54,8 @@ export const buildPortfolioContext = async (userId: string): Promise<PortfolioCo
     const cents = cur.toUpperCase() === 'USC';
     totalUsd += toUsd(a.equity ?? 0, cur);
     lines.push(
-      `- ${a.name} (#${a.accountNumber}, ${a.broker}, ${cur}${cents ? ' — cent account, 100 units = 1 USD' : ''}, ${a.status}): ` +
+      `- ${a.name} (#${a.accountNumber}, ${a.broker}, ${cur}${cents ? ' — cent account, 100 units = 1 USD' : ''}` +
+      `${a.isDemo ? ', DEMO — practice money' : ''}, ${a.status}): ` +
       `balance ${money(a.balance ?? 0, cur)}, equity ${money(a.equity ?? 0, cur)}, ` +
       `floating ${money(a.profit ?? 0, cur)}, today ${a.todayPnl != null ? money(a.todayPnl, cur) : 'unknown'}, ` +
       `drawdown ${(a.drawdown ?? 0).toFixed(1)}%, free margin ${money(a.freeMargin ?? 0, cur)}, ` +

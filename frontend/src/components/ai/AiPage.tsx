@@ -7,6 +7,7 @@ import { IconSpark, IconMic, IconPlus, IconCopy, IconRetry, IconPencil, IconArro
 import { prepareImage } from '../../utils/imagePrep';
 import { useDictation } from '../../hooks/useDictation';
 import { RichText } from './RichText';
+import { readDraft, OrderDraftCard } from './OrderDraft';
 
 /**
  * The assistant's room.
@@ -755,9 +756,25 @@ export const AiSheet = () => {
             <div style={{ ...lbl, marginBottom: '6px' }}>AI</div>
             {/* --text-dim is right for a meta line in a table and wrong
                 for three paragraphs to read on a phone in daylight. */}
-            <div className="ai-msg" style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}>
-              <RichText text={m.text} />
-            </div>
+            {(() => {
+              // An answer may carry an order written out for confirming.
+              // It comes out of the text and becomes a card with a button:
+              // printing the JSON at somebody is not an offer they can act
+              // on, and leaving it in the prose is just noise.
+              const { draft, rest } = readDraft(m.text);
+              return (
+                <>
+                  <div className="ai-msg" style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}>
+                    <RichText text={rest} />
+                  </div>
+                  {draft && (
+                    <div style={{ marginTop: '10px' }}>
+                      <OrderDraftCard draft={draft} />
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
           <div className="ai-meta">
             <span>{clock(m.at)}</span>
