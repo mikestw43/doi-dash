@@ -250,3 +250,13 @@ export const IconTrash = ({ size }: IconProps) => (
     <path d="M6.6 6.6 7.5 19a1.5 1.5 0 0 0 1.5 1.4h6a1.5 1.5 0 0 0 1.5-1.4l.9-12.4" />
   </Svg>
 );
+
+/** AI: a four-point spark. Drawn on the same grid as the rest rather than
+ *  borrowed from an emoji font, which renders at a different weight and
+ *  baseline on every device — the reason the old ⚙ and ✈ marks had to go. */
+export const IconSpark = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M12 3.2 13.9 9 19.8 11 13.9 13 12 18.8 10.1 13 4.2 11 10.1 9z" />
+    <path d="M18.4 3.6 19 5.4l1.8.6-1.8.6-.6 1.8-.6-1.8L16 5.9l1.8-.5z" />
+  </Svg>
+);

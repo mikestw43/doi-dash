@@ -603,3 +603,39 @@ export const downloadEaFile = async (fileId: string, filename: string): Promise<
   a.remove();
   URL.revokeObjectURL(href);
 };
+
+// ── AI assistant ─────────────────────────────────────────────────────────────
+
+export interface AiStatus {
+  configured: boolean;
+  provider: string;
+  model: string | null;
+}
+
+export interface AiContext {
+  accounts: number;
+  online: number;
+  openOrders: number;
+  losingOrders: number;
+  ordersWithoutStop: number;
+  floating: number;
+  todayPnl: number;
+  closedTrades30d: number;
+}
+
+export const fetchAiStatus = async (): Promise<AiStatus> => {
+  const res = await api.get('/ai/status');
+  return res.data as AiStatus;
+};
+
+export const fetchAiContext = async (): Promise<AiContext> => {
+  const res = await api.get('/ai/context');
+  return res.data as AiContext;
+};
+
+/** Ask a question. Until a provider is connected the server answers 503 with
+ *  a reason, which the page shows rather than swallowing. */
+export const askAi = async (message: string): Promise<{ reply: string }> => {
+  const res = await api.post('/ai/chat', { message });
+  return res.data as { reply: string };
+};

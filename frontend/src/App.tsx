@@ -22,6 +22,7 @@ import { EaRepository } from './components/ea/EaRepository';
 import { DownloadPage } from './components/download/DownloadPage';
 import { AnnouncePage } from './components/admin/AnnouncePage';
 import { TradingViewChart } from './components/chart/TradingViewChart';
+import { AiPage, AiFab } from './components/ai/AiPage';
 import { ToastContainer } from './components/ui/Toast';
 
 /** Sync theme class on <html> element */
@@ -75,6 +76,8 @@ const Dashboard = () => {
       {currentPage === 'ea-repository' && <EaRepository />}
       {currentPage === 'download' && <DownloadPage />}
       {currentPage === 'announce' && <AnnouncePage />}
+      {currentPage === 'ai' && <AiPage />}
+      <AiFab hidden={currentPage === 'ai'} onClick={() => useUIStore.getState().setCurrentPage('ai')} />
       <ToastContainer />
     </Layout>
   );

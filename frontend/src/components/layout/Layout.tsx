@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Header } from './Header';
 import { useUIStore } from '../../stores/uiStore';
 import { useTranslation } from '../../i18n/useTranslation';
-import { IconHome, IconCandles, IconCalendar, IconBars } from '../icons';
+import { IconHome, IconCandles, IconCalendar, IconBars, IconSpark } from '../icons';
 import type { IconProps } from '../icons';
 
 type Page = ReturnType<typeof useUIStore.getState>['currentPage'];
@@ -31,9 +31,11 @@ export const Layout = ({ children }: LayoutProps) => {
   const setCurrentPage = useUIStore(s => s.setCurrentPage);
   const t = useTranslation();
 
-  // Same buttons in both shells — the sidebar on desktop, the bottom bar on
-  // phones. Only one shell is displayed at a time.
-  const navButtons = NAV_ITEMS.map(({ page, labelKey, Icon }) => {
+  // Almost the same buttons in both shells — the sidebar on desktop, the
+  // bottom bar on phones, only one displayed at a time. AI is the exception:
+  // on a phone it is the floating button over the content, so it would be in
+  // two places at once if it were also in the bar.
+  const button = ({ page, labelKey, Icon }: NavItem) => {
     const active = currentPage === page;
     const label = t(labelKey);
     return (
@@ -52,7 +54,13 @@ export const Layout = ({ children }: LayoutProps) => {
         <span className="sb-label">{label}</span>
       </button>
     );
-  });
+  };
+
+  const navButtons = NAV_ITEMS.map(button);
+  const sidebarButtons = [
+    ...navButtons,
+    button({ page: 'ai', labelKey: 'nav.ai', Icon: IconSpark }),
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -60,7 +68,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
       {/* ── Body: sidebar + content ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
-        <aside className="sidebar-nav">{navButtons}</aside>
+        <aside className="sidebar-nav">{sidebarButtons}</aside>
         <main className="main-content">{children}</main>
       </div>
 
