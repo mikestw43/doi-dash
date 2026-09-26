@@ -90,10 +90,20 @@ export const AiSheet = () => {
   const onTouchEnd = () => {
     if (!dragging) return;
     const travelled = dragY;
-    const ms = Date.now() - startedAt.current;
-    const flick = travelled > 60 && ms < 300;
+    const ms = Math.max(1, Date.now() - startedAt.current);
+    const speed = travelled / ms;           // px per millisecond
+
+    // Two ways to mean it, and a short quick swipe is neither. The first
+    // version closed on 60px in under 300ms, which is also what flicking
+    // the conversation to scroll it feels like — so the sheet kept leaving
+    // when the intent was to read. A throw now has to cover 140px as well
+    // as be quick: distance is what separates "away with it" from a flick
+    // of the wrist, and it is the part a thumb does on purpose.
+    const deliberate = travelled > window.innerHeight * 0.3;
+    const thrown = speed > 0.7 && travelled > 140;
+
     setDragging(false);
-    if (flick || travelled > window.innerHeight * 0.28) close();
+    if (deliberate || thrown) close();
     else setDragY(0);
   };
 
