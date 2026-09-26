@@ -15,6 +15,8 @@
  * mail service.
  */
 
+import { loadAiConfig } from './aiSettings';
+
 export type AiProvider = 'anthropic' | 'openai' | 'google' | 'openrouter';
 
 export interface AiTurn {
@@ -44,14 +46,31 @@ const DEFAULT_BASE: Record<AiProvider, string> = {
   openrouter: 'https://openrouter.ai/api/v1',
 };
 
-export const aiProvider = (): AiProvider => {
-  const raw = (process.env.AI_PROVIDER || 'anthropic').trim().toLowerCase();
-  return (['anthropic', 'openai', 'google', 'openrouter'].includes(raw) ? raw : 'anthropic') as AiProvider;
+/** The settings an admin saved, or the environment behind them. Resolved
+ *  per call, because a key saved from the dashboard has to take effect
+ *  without a restart. */
+export interface ResolvedAi {
+  provider: AiProvider;
+  model: string;
+  apiKey: string;
+  base: string;
+}
+
+const asProvider = (raw: string): AiProvider =>
+  (['anthropic', 'openai', 'google', 'openrouter'].includes(raw) ? raw : 'anthropic') as AiProvider;
+
+export const resolveAi = async (): Promise<ResolvedAi> => {
+  const cfg = await loadAiConfig();
+  const provider = asProvider(cfg.provider);
+  return {
+    provider,
+    model: cfg.model || DEFAULT_MODEL[provider],
+    apiKey: cfg.apiKey,
+    base: (process.env.AI_API_BASE?.trim() || DEFAULT_BASE[provider]).replace(/\/+$/, ''),
+  };
 };
 
-export const aiModel = (): string => process.env.AI_MODEL?.trim() || DEFAULT_MODEL[aiProvider()];
-export const aiConfigured = (): boolean => !!process.env.AI_API_KEY;
-const aiBase = (): string => (process.env.AI_API_BASE?.trim() || DEFAULT_BASE[aiProvider()]).replace(/\/+$/, '');
+export const aiDefaultModel = (provider: string): string => DEFAULT_MODEL[asProvider(provider)];
 
 const MAX_OUTPUT_TOKENS = 1200;
 const TIMEOUT_MS = 60_000;
@@ -82,9 +101,9 @@ const post = async (url: string, headers: Record<string, string>, body: unknown)
   }
 };
 
-const askAnthropic = async (system: string, turns: AiTurn[]): Promise<AiAnswer> => {
+const askAnthropic = async (ai: ResolvedAi, system: string, turns: AiTurn[]): Promise<AiAnswer> => {
   const body = {
-    model: aiModel(),
+    model: ai.model,
     max_tokens: MAX_OUTPUT_TOKENS,
     system,
     messages: turns.map(turn => ({
@@ -98,8 +117,8 @@ const askAnthropic = async (system: string, turns: AiTurn[]): Promise<AiAnswer> 
       ],
     })),
   };
-  const json = await post(`${aiBase()}/v1/messages`, {
-    'x-api-key': process.env.AI_API_KEY as string,
+  const json = await post(`${ai.base}/v1/messages`, {
+    'x-api-key': ai.apiKey,
     'anthropic-version': '2023-06-01',
   }, body) as {
     content?: { type: string; text?: string }[];
@@ -113,9 +132,9 @@ const askAnthropic = async (system: string, turns: AiTurn[]): Promise<AiAnswer> 
 };
 
 /** OpenAI's shape, which OpenRouter also speaks. */
-const askOpenAiShaped = async (system: string, turns: AiTurn[]): Promise<AiAnswer> => {
+const askOpenAiShaped = async (ai: ResolvedAi, system: string, turns: AiTurn[]): Promise<AiAnswer> => {
   const body = {
-    model: aiModel(),
+    model: ai.model,
     max_tokens: MAX_OUTPUT_TOKENS,
     messages: [
       { role: 'system', content: system },
@@ -128,8 +147,8 @@ const askOpenAiShaped = async (system: string, turns: AiTurn[]): Promise<AiAnswe
       })),
     ],
   };
-  const json = await post(`${aiBase()}/chat/completions`, {
-    Authorization: `Bearer ${process.env.AI_API_KEY}`,
+  const json = await post(`${ai.base}/chat/completions`, {
+    Authorization: `Bearer ${ai.apiKey}`,
   }, body) as {
     choices?: { message?: { content?: string } }[];
     usage?: { prompt_tokens?: number; completion_tokens?: number };
@@ -141,7 +160,7 @@ const askOpenAiShaped = async (system: string, turns: AiTurn[]): Promise<AiAnswe
   };
 };
 
-const askGoogle = async (system: string, turns: AiTurn[]): Promise<AiAnswer> => {
+const askGoogle = async (ai: ResolvedAi, system: string, turns: AiTurn[]): Promise<AiAnswer> => {
   const body = {
     systemInstruction: { parts: [{ text: system }] },
     contents: turns.map(turn => ({
@@ -157,7 +176,7 @@ const askGoogle = async (system: string, turns: AiTurn[]): Promise<AiAnswer> => 
     generationConfig: { maxOutputTokens: MAX_OUTPUT_TOKENS },
   };
   const json = await post(
-    `${aiBase()}/v1beta/models/${aiModel()}:generateContent?key=${encodeURIComponent(process.env.AI_API_KEY as string)}`,
+    `${ai.base}/v1beta/models/${ai.model}:generateContent?key=${encodeURIComponent(ai.apiKey)}`,
     {}, body,
   ) as {
     candidates?: { content?: { parts?: { text?: string }[] } }[];
@@ -172,10 +191,11 @@ const askGoogle = async (system: string, turns: AiTurn[]): Promise<AiAnswer> => 
 
 /** Ask whichever provider is configured. Throws with the provider's own
  *  words, which the caller turns into something a person can act on. */
-export const askModel = async (system: string, turns: AiTurn[]): Promise<AiAnswer> => {
-  switch (aiProvider()) {
-    case 'anthropic': return askAnthropic(system, turns);
-    case 'google':    return askGoogle(system, turns);
-    default:          return askOpenAiShaped(system, turns);
+export const askModel = async (system: string, turns: AiTurn[], override?: ResolvedAi): Promise<AiAnswer> => {
+  const ai = override ?? await resolveAi();
+  switch (ai.provider) {
+    case 'anthropic': return askAnthropic(ai, system, turns);
+    case 'google':    return askGoogle(ai, system, turns);
+    default:          return askOpenAiShaped(ai, system, turns);
   }
 };

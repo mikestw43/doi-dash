@@ -552,5 +552,21 @@
   "ai.attach": "เพิ่มรูป",
   "ai.attach_failed": "อ่านไฟล์นี้เป็นรูปภาพไม่ได้",
   "ai.attach_limit": "ใส่ได้ครั้งละไม่เกิน 4 รูป",
-  "ai.remove_photo": "เอาออก"
+  "ai.remove_photo": "เอาออก",
+  "aiset.title": "◈ ผู้ช่วย AI",
+  "aiset.intro": "ใส่ key แล้ว AI จะเริ่มตอบทันที key ถูกเข้ารหัสเก็บไว้ในเซิร์ฟเวอร์ และจะไม่แสดงให้เห็นอีก",
+  "aiset.provider": "ผู้ให้บริการ",
+  "aiset.model": "รุ่นโมเดล",
+  "aiset.model_hint": "เว้นว่าง = ใช้ค่าเริ่มต้น",
+  "aiset.key": "API KEY",
+  "aiset.key_saved": "มี key บันทึกไว้แล้ว",
+  "aiset.key_replace": "วาง key ใหม่เพื่อเปลี่ยน",
+  "aiset.key_none": "ยังไม่มี key",
+  "aiset.from_env": "ตั้งไว้ในไฟล์ .env ของเซิร์ฟเวอร์",
+  "aiset.test": "ทดสอบ",
+  "aiset.testing": "กำลังทดสอบ…",
+  "aiset.saved": "บันทึกแล้ว",
+  "aiset.test_ok": "ตอบกลับแล้ว",
+  "aiset.where": "สมัคร key ได้ที่ไหน",
+  "aiset.clear": "ลบ key ที่บันทึกไว้"
 }

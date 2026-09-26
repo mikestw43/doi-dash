@@ -4,7 +4,9 @@ import { runtimeStore } from '../services/runtimeStore';
 import prisma from '../lib/prisma';
 import { rateLimit } from '../middleware/rateLimit';
 import { buildPortfolioContext } from '../services/aiContext';
-import { askModel, aiConfigured, aiModel, aiProvider, type AiTurn } from '../services/aiProvider';
+import { askModel, resolveAi, aiDefaultModel, type AiTurn, type ResolvedAi } from '../services/aiProvider';
+import { loadAiConfig, saveAiConfig, redacted } from '../services/aiSettings';
+import { adminMiddleware } from '../middleware/auth';
 import { logAudit } from '../services/auditLogger';
 
 /**
@@ -32,9 +34,7 @@ import { logAudit } from '../services/auditLogger';
 const router = Router();
 router.use(authMiddleware);
 
-const provider = aiProvider;
-const model = aiModel;
-const configured = aiConfigured;
+
 
 /**
  * What the assistant is and is not.
@@ -75,6 +75,22 @@ WHAT YOU MUST NOT DO
   every paragraph.
 `.trim();
 
+/** The provider's own words, turned into the thing to do about them. A
+ *  refused key, an unpaid bill and a misspelt model all look the same
+ *  otherwise, and each needs something different. */
+const explainProviderError = (detail: string, model: string): string =>
+  /^401|invalid[_ ]api[_ ]key|authentication|incorrect api key/i.test(detail)
+    ? 'The key was refused. Check it, or paste a new one.'
+  : /^402|credit|quota|billing|insufficient/i.test(detail)
+    ? 'That account is out of credit. Top it up with the provider.'
+  : /^404|model/i.test(detail)
+    ? `The model "${model}" does not exist for this provider. Leave the model empty to use the default.`
+  : /^429/.test(detail)
+    ? 'The provider is rate-limiting us. Try again in a moment.'
+  : /timeout|aborted/i.test(detail)
+    ? 'The model took too long to answer. Try again.'
+  : 'Could not reach the provider.';
+
 /** Twenty questions an hour is far more than a person asks and far less
  *  than a runaway loop costs. */
 const chatLimiter = rateLimit({
@@ -88,14 +104,112 @@ const chatLimiter = rateLimit({
 const MAX_HISTORY_TURNS = 10;
 
 // GET /api/ai/status
-router.get('/status', (_req: AuthRequest, res: Response) => {
+router.get('/status', async (_req: AuthRequest, res: Response) => {
+  const ai = await resolveAi();
   res.json({
-    configured: configured(),
-    provider: provider(),
-    // Never the key itself, and not even its tail: this answer goes to a
-    // browser.
-    model: configured() ? model() : null,
+    configured: !!ai.apiKey,
+    provider: ai.provider,
+    model: ai.apiKey ? ai.model : null,
   });
+});
+
+/**
+ * The settings page for the assistant — admin only.
+ *
+ * It exists so that connecting a model, swapping a provider or replacing a
+ * key that has been refused does not mean SSH, nano and a restart. The key
+ * goes in encrypted and never comes back out: the page is told only that
+ * there is one, and its last four characters.
+ */
+const PROVIDERS = ['anthropic', 'openai', 'google', 'openrouter'] as const;
+
+router.get('/settings', adminMiddleware, async (_req: AuthRequest, res: Response) => {
+  const cfg = await loadAiConfig();
+  const ai = await resolveAi();
+  res.json({
+    provider: ai.provider,
+    model: ai.model,
+    defaultModel: aiDefaultModel(ai.provider),
+    hasKey: !!ai.apiKey,
+    keyHint: redacted(ai.apiKey),
+    source: cfg.source,               // dashboard | environment | none
+    providers: PROVIDERS,
+    defaults: Object.fromEntries(PROVIDERS.map(p => [p, aiDefaultModel(p)])),
+  });
+});
+
+router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response) => {
+  const body = req.body as { provider?: unknown; model?: unknown; apiKey?: unknown };
+
+  if (body.provider != null && !PROVIDERS.includes(String(body.provider).toLowerCase() as typeof PROVIDERS[number])) {
+    res.status(400).json({ error: 'bad_provider', message: `Provider must be one of: ${PROVIDERS.join(', ')}` });
+    return;
+  }
+  if (body.apiKey != null && typeof body.apiKey === 'string' && body.apiKey.trim() !== '' && body.apiKey.trim().length < 20) {
+    res.status(400).json({ error: 'bad_key', message: 'That does not look like an API key.' });
+    return;
+  }
+
+  await saveAiConfig({
+    provider: body.provider != null ? String(body.provider) : undefined,
+    model: body.model != null ? String(body.model) : undefined,
+    apiKey: body.apiKey != null ? String(body.apiKey) : undefined,
+  }, req.user!.email);
+
+  const ai = await resolveAi();
+  const cfg = await loadAiConfig();
+  logAudit(req.user!.id, 'ai_settings', 'ai', undefined,
+    JSON.stringify({ provider: ai.provider, model: ai.model, keyChanged: body.apiKey != null }));
+
+  res.json({
+    provider: ai.provider, model: ai.model, hasKey: !!ai.apiKey,
+    keyHint: redacted(ai.apiKey), source: cfg.source,
+  });
+});
+
+/**
+ * Try it, now, and say what happened.
+ *
+ * A saved key that is wrong looks exactly like a saved key that is right
+ * until somebody asks a question. This asks the cheapest possible one —
+ * and can test a key that has been typed but not yet saved, so a mistake
+ * is caught before it is stored.
+ */
+router.post('/settings/test', adminMiddleware, async (req: AuthRequest, res: Response) => {
+  const body = req.body as { provider?: string; model?: string; apiKey?: string };
+  const current = await resolveAi();
+
+  const provider = (body.provider || current.provider) as ResolvedAi['provider'];
+  const trial: ResolvedAi = {
+    provider,
+    model: (body.model || '').trim() || aiDefaultModel(provider),
+    apiKey: (body.apiKey || '').trim() || current.apiKey,
+    base: current.base,
+  };
+
+  if (!trial.apiKey) {
+    res.status(400).json({ ok: false, message: 'There is no key to test yet.' });
+    return;
+  }
+
+  try {
+    const started = Date.now();
+    const answer = await askModel(
+      'Reply with exactly: OK',
+      [{ role: 'user', text: 'Say OK.' }],
+      trial,
+    );
+    res.json({
+      ok: true,
+      ms: Date.now() - started,
+      model: trial.model,
+      said: answer.text.slice(0, 80),
+      tokens: { in: answer.inputTokens, out: answer.outputTokens },
+    });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    res.json({ ok: false, message: explainProviderError(detail, trial.model), detail: detail.slice(0, 200) });
+  }
 });
 
 // GET /api/ai/context
@@ -180,10 +294,11 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  if (!configured()) {
+  const ai = await resolveAi();
+  if (!ai.apiKey) {
     res.status(503).json({
       error: 'not_configured',
-      message: 'No AI provider is connected yet. Add AI_API_KEY on the server to switch this on.',
+      message: 'No AI provider is connected yet. An admin can add one in Settings → AI.',
     });
     return;
   }
@@ -212,11 +327,11 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
     ];
 
     const started = Date.now();
-    const answer = await askModel(systemPrompt(context.text, language), turns);
+    const answer = await askModel(systemPrompt(context.text, language), turns, ai);
     const ms = Date.now() - started;
 
     console.log(
-      `[AI] ${provider()}/${model()} answered ${req.user!.email} in ${ms}ms ` +
+      `[AI] ${ai.provider}/${ai.model} answered ${req.user!.email} in ${ms}ms ` +
       `(${answer.inputTokens ?? '?'} in, ${answer.outputTokens ?? '?'} out, ` +
       `${context.accounts} accounts, ${context.openOrders} open, ${checked.images.length} photo(s))`,
     );
@@ -228,23 +343,19 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    res.json({ reply: answer.text, model: model(), tokens: { in: answer.inputTokens, out: answer.outputTokens } });
+    res.json({ reply: answer.text, model: ai.model, tokens: { in: answer.inputTokens, out: answer.outputTokens } });
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    console.error(`[AI] ${provider()}/${model()} failed for ${req.user!.email}: ${detail}`);
+    console.error(`[AI] failed for ${req.user!.email}: ${detail}`);
 
     // The provider's status code is the useful part: a key that is wrong,
     // a bill unpaid and a model that does not exist all look the same
     // otherwise, and each needs a different thing done about it.
-    const friendly =
-      /^401|invalid[_ ]api[_ ]key|authentication/i.test(detail) ? 'The AI key was refused. Check AI_API_KEY on the server.'
-      : /^402|credit|quota|billing|insufficient/i.test(detail) ? 'The AI account is out of credit.'
-      : /^404|model/i.test(detail) ? `The model "${model()}" was not found for this provider. Check AI_MODEL.`
-      : /^429/.test(detail) ? 'The provider is rate-limiting us. Try again in a moment.'
-      : /timeout|aborted/i.test(detail) ? 'The model took too long to answer. Try again.'
-      : 'Could not reach the AI provider.';
-
-    res.status(502).json({ error: 'provider_failed', message: friendly, detail: detail.slice(0, 200) });
+    res.status(502).json({
+      error: 'provider_failed',
+      message: explainProviderError(detail, (await resolveAi()).model),
+      detail: detail.slice(0, 200),
+    });
   }
 });
 

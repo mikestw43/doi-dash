@@ -374,3 +374,17 @@ model CommandLog {
   @@index([accountId, createdAt])
   @@index([userId, createdAt])
 }
+
+/// Settings an admin changes from the dashboard rather than from a shell.
+///
+/// The AI provider lives here because the alternative is SSH, nano and a
+/// restart for something as ordinary as swapping a key — and because the
+/// person who owns this dashboard reads it on a phone. Anything secret is
+/// stored encrypted, the same way Telegram bot tokens are, and is never
+/// sent back to the browser.
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}

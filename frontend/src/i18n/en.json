@@ -552,5 +552,21 @@
   "ai.attach": "Add a photo",
   "ai.attach_failed": "That file could not be read as an image.",
   "ai.attach_limit": "Four photos at a time is the limit.",
-  "ai.remove_photo": "Remove"
+  "ai.remove_photo": "Remove",
+  "aiset.title": "◈ AI ASSISTANT",
+  "aiset.intro": "Connect a model and the assistant starts answering. The key is stored encrypted on the server and never shown again.",
+  "aiset.provider": "PROVIDER",
+  "aiset.model": "MODEL",
+  "aiset.model_hint": "Leave empty for the default",
+  "aiset.key": "API KEY",
+  "aiset.key_saved": "A key is saved",
+  "aiset.key_replace": "Paste a new key to replace it",
+  "aiset.key_none": "No key yet",
+  "aiset.from_env": "Set in the server environment",
+  "aiset.test": "TEST",
+  "aiset.testing": "TESTING…",
+  "aiset.saved": "Saved",
+  "aiset.test_ok": "It answered",
+  "aiset.where": "Where to get a key",
+  "aiset.clear": "Remove the saved key"
 }

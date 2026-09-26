@@ -665,6 +665,34 @@ export interface AiContext {
   closedTrades30d: number;
 }
 
+export interface AiSettings {
+  provider: string;
+  model: string;
+  defaultModel: string;
+  hasKey: boolean;
+  keyHint: string | null;
+  source: 'dashboard' | 'environment' | 'none';
+  providers: string[];
+  defaults: Record<string, string>;
+}
+
+export const fetchAiSettings = async (): Promise<AiSettings> => {
+  const res = await api.get('/ai/settings');
+  return res.data as AiSettings;
+};
+
+export const saveAiSettings = async (next: { provider?: string; model?: string; apiKey?: string }) => {
+  const res = await api.put('/ai/settings', next);
+  return res.data as { provider: string; model: string; hasKey: boolean; keyHint: string | null; source: string };
+};
+
+/** Ask the provider one cheap question, with a key that may not be saved
+ *  yet — a mistake is better caught before it is stored. */
+export const testAiSettings = async (next: { provider?: string; model?: string; apiKey?: string }) => {
+  const res = await api.post('/ai/settings/test', next);
+  return res.data as { ok: boolean; ms?: number; model?: string; said?: string; message?: string; detail?: string };
+};
+
 export const fetchAiStatus = async (): Promise<AiStatus> => {
   const res = await api.get('/ai/status');
   return res.data as AiStatus;
