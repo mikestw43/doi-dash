@@ -28,12 +28,6 @@ import { RichText } from './RichText';
  * down, tapping the dimmed page behind it and Escape all close it.
  */
 
-/** What is actually typed in the composer. innerText keeps the line
- *  breaks that a contenteditable stores as <br>; a non-breaking space,
- *  which some keyboards insert, is just a space to everyone reading. */
-const readBox = (el: HTMLElement): string =>
-  el.innerText.replace(/\u00a0/g, ' ').replace(/\n+$/, '');
-
 export const AiSheet = () => {
   const t = useTranslation();
   const addToast = useUIStore(st => st.addToast);
@@ -55,7 +49,7 @@ export const AiSheet = () => {
   // word being composed and must not send the question.
   const [typing, setTyping] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  const boxRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLTextAreaElement>(null);
   // The question in flight, so STOP has something to cancel.
   const inflight = useRef<AbortController | null>(null);
   // Shown only once the conversation has been scrolled away from the end.
@@ -171,14 +165,16 @@ export const AiSheet = () => {
    * keys. visualViewport is the part still visible, and the sheet is sized
    * to that instead.
    */
-  const [viewport, setViewport] = useState<number | null>(null);
+  const [viewport, setViewport] = useState<{ height: number; top: number; keyboard: boolean } | null>(null);
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
     // Only where it is a sheet held in a hand. On a desktop it is a panel
     // with its own height and no keyboard covering anything.
     const measure = () =>
-      setViewport(window.matchMedia('(max-width: 900px)').matches ? vv.height : null);
+      setViewport(window.matchMedia('(max-width: 900px)').matches
+        ? { height: vv.height, top: vv.offsetTop, keyboard: window.innerHeight - vv.height > 120 }
+        : null);
     measure();
     vv.addEventListener('resize', measure);
     vv.addEventListener('scroll', measure);
@@ -188,16 +184,16 @@ export const AiSheet = () => {
     };
   }, []);
 
-  // An editable div grows on its own, so nothing has to be measured. What
-  // does have to happen is the other direction: when the text is set from
-  // outside — cleared after sending, filled by the microphone — the box
-  // has to be told. Only when it differs, or the caret jumps to the front
-  // on every keystroke.
+  // The box follows the text: measured from nothing each time, because a
+  // textarea that has already grown reports its own height as the content
+  // height and would never shrink again. An empty box is left at one row
+  // rather than measured — measuring it measures the placeholder.
   useEffect(() => {
     const box = boxRef.current;
     if (!box) return;
-    if (readBox(box) !== draft) box.textContent = draft;
-    if (draft === '') box.innerHTML = '';
+    if (draft === '') { box.style.height = ''; return; }
+    box.style.height = 'auto';
+    box.style.height = `${Math.min(box.scrollHeight, 132)}px`;
   }, [draft]);
 
   const MAX_PHOTOS = 4;
@@ -291,7 +287,16 @@ export const AiSheet = () => {
   if (!open) return null;
 
   return (
-    <div className="ai-backdrop">
+    <div
+      className="ai-backdrop"
+      style={viewport
+        // inset:0 is the page, which on a phone runs on behind the
+        // keyboard and behind iOS's own bar above it. Sitting the sheet in
+        // the part that can actually be seen is what puts the box to type
+        // in directly above the keys, with no dead strip under it.
+        ? { top: `${viewport.top}px`, height: `${viewport.height}px`, bottom: 'auto' }
+        : undefined}
+    >
       {/* The dimming is its own layer. Fading the container faded the sheet
           with it — text over the dashboard, unreadable — because opacity
           applies to everything inside. Only the dark should lift. */}
@@ -311,7 +316,15 @@ export const AiSheet = () => {
           transition: dragging ? 'none' : 'transform .22s cubic-bezier(.2,.8,.3,1)',
           // 88% of what can actually be seen, which is not the window once
           // the keyboard is up.
-          ...(viewport ? { height: `${Math.round(viewport * 0.88)}px`, maxHeight: `${Math.round(viewport * 0.88)}px` } : {}),
+          // Of what can be seen, not of the window — and all of it while
+          // the keyboard is up, because 88% of the strip above a keyboard
+          // is a letterbox with the conversation squeezed into it.
+          ...(viewport
+            ? (() => {
+                const h = Math.round(viewport.height * (viewport.keyboard ? 1 : 0.88));
+                return { height: `${h}px`, maxHeight: `${h}px` };
+              })()
+            : {}),
         }}
       >
         {/* The handle. Dragging it works wherever the conversation happens to
@@ -579,56 +592,37 @@ export const AiSheet = () => {
           <IconPlus size={19} />
         </label>
         <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex' }}>
-          {/* Not a textarea.
-              iOS puts its own grey bar — ‹ › Done — above the keyboard for
-              every form field on a web page, and it sits between the
-              keyboard and the question being typed. A box that is editable
-              text rather than a form control does not get that bar, which
-              is why chat apps are built this way. It also grows by itself
-              as the question gets longer. */}
-          <div
+          {/* A textarea, because a question can be three lines long and a
+              single-line input just scrolls sideways under the thumb. It
+              grows with the text to a point and then scrolls.
+              This was briefly a contenteditable div, to try to stop iOS
+              putting its ‹ › Done bar above the keyboard. iOS shows that
+              bar for editable text too, so the trick bought nothing and
+              cost the plain, well-behaved form control. */}
+          <textarea
             ref={boxRef}
-            className="ai-box"
-            contentEditable
-            suppressContentEditableWarning
-            role="textbox"
-            aria-multiline="true"
-            aria-label={t('ai.ask_placeholder')}
-            data-placeholder={mic.listening ? t('ai.listening') : t('ai.ask_placeholder')}
-            onInput={e => {
-              const el = e.currentTarget;
-              // innerText, not textContent: a line break in an editable
-              // element is a <br>, which textContent leaves out — three
-              // lines came back as one run-on line when sent.
-              const text = readBox(el);
-              // Deleting the last letter can leave a stray <br> behind,
-              // and an element that is not empty shows no placeholder.
-              if (text === '') el.innerHTML = '';
-              setDraft(text);
-            }}
-            onPaste={e => {
-              // Text only: pasting from a web page otherwise brings its
-              // fonts and colours into the box.
-              e.preventDefault();
-              document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
-            }}
+            value={draft}
+            rows={1}
+            onChange={e => setDraft(e.target.value)}
             onKeyDown={e => {
-              if (e.key !== 'Enter' || typing) return;
-              // With a real keyboard Enter sends and Shift+Enter breaks the
-              // line, as every chat on a desktop does. On a phone the
-              // return key writes a new line and the SEND button sends.
-              const shouldSend = !e.shiftKey && !window.matchMedia('(pointer: coarse)').matches;
+              if (e.key !== 'Enter' || e.shiftKey || typing) return;
+              // On a phone the return key writes a new line; there is a
+              // SEND button an inch away. With a real keyboard Enter sends
+              // and Shift+Enter breaks the line.
+              if (window.matchMedia('(pointer: coarse)').matches) return;
               e.preventDefault();
-              if (shouldSend) { void send(draft); return; }
-              document.execCommand('insertText', false, '\n');
+              void send(draft);
             }}
             onCompositionStart={() => setTyping(true)}
             onCompositionEnd={() => setTyping(false)}
+            placeholder={mic.listening ? t('ai.listening') : t('ai.ask_placeholder')}
+            className="ai-box"
             style={{
               border: `1px solid ${mic.listening ? 'var(--danger)' : 'var(--border2)'}`,
               paddingRight: mic.supported ? '42px' : '12px',
             }}
           />
+
           {/* Only where the browser can actually listen. A microphone that
               does nothing is worse than none. */}
           {mic.supported && (
@@ -737,16 +731,8 @@ export const AiSheet = () => {
           overflow-y: auto;
           max-height: 132px;
           box-sizing: border-box;
-          /* It is text being edited, so line breaks and runs of spaces are
-             kept, and a long word wraps instead of widening the sheet. */
-          white-space: pre-wrap;
+          resize: none;
           overflow-wrap: anywhere;
-          -webkit-user-modify: read-write-plaintext-only;
-        }
-        .ai-box:empty::before {
-          content: attr(data-placeholder);
-          color: var(--text-muted);
-          pointer-events: none;
         }
         .ai-mic {
           /* Pinned to the bottom, not the middle: the box grows upward as
