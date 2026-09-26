@@ -675,9 +675,10 @@ export const fetchAiContext = async (): Promise<AiContext> => {
   return res.data as AiContext;
 };
 
-/** Ask a question. Until a provider is connected the server answers 503 with
- *  a reason, which the page shows rather than swallowing. */
-export const askAi = async (message: string): Promise<{ reply: string }> => {
-  const res = await api.post('/ai/chat', { message });
+/** Ask a question, with photos if there are any — data URLs, which is the
+ *  shape every vision API takes. Until a provider is connected the server
+ *  answers 503 with a reason, which the page shows rather than swallowing. */
+export const askAi = async (message: string, images: string[] = []): Promise<{ reply: string }> => {
+  const res = await api.post('/ai/chat', { message, ...(images.length ? { images } : {}) });
   return res.data as { reply: string };
 };

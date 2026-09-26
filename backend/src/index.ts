@@ -62,6 +62,12 @@ const corsOrigins = process.env.CORS_ORIGIN
   : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 app.use(cors({ origin: corsOrigins, credentials: true }));
 
+// Photos go to the assistant inline, base64, four at a time — which will
+// not fit in the 2mb the rest of the API needs. The bigger limit is mounted
+// on that path only, and before the global parser, because whichever runs
+// first is the one that decides.
+app.use('/api/ai', express.json({ limit: '14mb' }));
+
 app.use(express.json({ limit: '2mb' })); // Increased for large closedDeals payloads (500+ trades)
 
 app.use('/api/auth', authRouter);

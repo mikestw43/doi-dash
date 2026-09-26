@@ -548,5 +548,9 @@
   "ai.listening": "Listening… tap to stop",
   "ai.mic_denied": "Microphone permission was refused. Allow it in your browser settings to speak.",
   "ai.mic_failed": "Could not hear anything. Try again, or type it.",
-  "ai.new_chat": "NEW CHAT"
+  "ai.new_chat": "NEW CHAT",
+  "ai.attach": "Add a photo",
+  "ai.attach_failed": "That file could not be read as an image.",
+  "ai.attach_limit": "Four photos at a time is the limit.",
+  "ai.remove_photo": "Remove"
 }

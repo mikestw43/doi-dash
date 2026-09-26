@@ -75,8 +75,44 @@ router.get('/context', async (req: AuthRequest, res: Response) => {
   });
 });
 
+/**
+ * What a question may carry with it.
+ *
+ * Photos arrive as data URLs, which is the shape every vision API takes, and
+ * are never written to disk: a picture of somebody's account goes with the
+ * question and lives only in that conversation. The limits are here rather
+ * than at the model because an oversized request should be refused by us,
+ * cheaply, and because a browser is not a thing to be trusted about size.
+ */
+const MAX_IMAGES = 4;
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024;   // after the browser has shrunk it
+
+const checkImages = (raw: unknown): { images: string[] } | { error: string } => {
+  if (raw == null) return { images: [] };
+  if (!Array.isArray(raw)) return { error: 'images must be a list' };
+  if (raw.length > MAX_IMAGES) return { error: `At most ${MAX_IMAGES} photos per question` };
+
+  const images: string[] = [];
+  for (const one of raw) {
+    if (typeof one !== 'string') return { error: 'each photo must be a data URL' };
+    if (!/^data:image\/(png|jpe?g|webp|gif);base64,/.test(one)) {
+      return { error: 'photos must be PNG, JPEG, WebP or GIF data URLs' };
+    }
+    const bytes = Math.round((one.length - one.indexOf(',') - 1) * 0.75);
+    if (bytes > MAX_IMAGE_BYTES) return { error: 'that photo is too large — 3MB each is the limit' };
+    images.push(one);
+  }
+  return { images };
+};
+
 // POST /api/ai/chat
-router.post('/chat', (_req: AuthRequest, res: Response) => {
+router.post('/chat', (req: AuthRequest, res: Response) => {
+  const checked = checkImages((req.body as { images?: unknown }).images);
+  if ('error' in checked) {
+    res.status(400).json({ error: 'bad_images', message: checked.error });
+    return;
+  }
+
   if (!configured()) {
     res.status(503).json({
       error: 'not_configured',
@@ -85,8 +121,9 @@ router.post('/chat', (_req: AuthRequest, res: Response) => {
     return;
   }
 
-  // The provider adapter lands here. Until then this cannot be reached with
-  // a key set, so it says what it is rather than pretending to answer.
+  // The provider adapter lands here, and `checked.images` goes to it as the
+  // question's attachments. Until then this cannot be reached with a key
+  // set, so it says what it is rather than pretending to answer.
   res.status(501).json({
     error: 'not_implemented',
     message: 'The chat backend is not built yet — only the screens are.',

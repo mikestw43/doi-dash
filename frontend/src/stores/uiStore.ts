@@ -41,8 +41,8 @@ interface UIState {
    * of was gone. Held for the session; a reload still starts fresh, and
    * conversations that survive that belong on the server, with the model.
    */
-  aiMessages: { id: number; who: 'me' | 'ai'; text: string }[];
-  addAiMessage: (m: { who: 'me' | 'ai'; text: string }) => void;
+  aiMessages: { id: number; who: 'me' | 'ai'; text: string; images?: string[] }[];
+  addAiMessage: (m: { who: 'me' | 'ai'; text: string; images?: string[] }) => void;
   clearAiMessages: () => void;
   /** Go to the trade history already filtered to one account. */
   openTradeHistory: (accountId: string) => void;

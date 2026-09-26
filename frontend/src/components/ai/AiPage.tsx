@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { askAi, fetchAiContext, fetchAiStatus, type AiContext, type AiStatus } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useUIStore } from '../../stores/uiStore';
-import { IconSpark, IconMic } from '../icons';
+import { IconSpark, IconMic, IconPlus } from '../icons';
+import { prepareImage } from '../../utils/imagePrep';
 import { useDictation } from '../../hooks/useDictation';
 
 /**
@@ -39,6 +40,9 @@ export const AiSheet = () => {
   const addMessage = useUIStore(st => st.addAiMessage);
   const clearMessages = useUIStore(st => st.clearAiMessages);
   const [draft, setDraft] = useState('');
+  // Photos waiting to go with the next question, already shrunk.
+  const [photos, setPhotos] = useState<{ dataUrl: string; name: string }[]>([]);
+  const filePick = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -133,14 +137,38 @@ export const AiSheet = () => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages.length]);
 
+  const MAX_PHOTOS = 4;
+
+  const pickPhotos = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const room = MAX_PHOTOS - photos.length;
+    if (room <= 0) {
+      addToast({ type: 'warning', title: t('ai.title'), message: t('ai.attach_limit') });
+      return;
+    }
+    const chosen = Array.from(files).slice(0, room);
+    for (const file of chosen) {
+      try {
+        const ready = await prepareImage(file);
+        setPhotos(p => [...p, { dataUrl: ready.dataUrl, name: ready.name }]);
+      } catch {
+        addToast({ type: 'error', title: t('ai.title'), message: t('ai.attach_failed') });
+      }
+    }
+  };
+
   const send = async (text: string) => {
     const question = text.trim();
-    if (!question || busy) return;
+    const attached = photos.map(p => p.dataUrl);
+    // A photo on its own is a question — "what do you make of this?" — so
+    // an empty box with a picture in it still sends.
+    if ((!question && attached.length === 0) || busy) return;
     setDraft('');
-    addMessage({ who: 'me', text: question });
+    setPhotos([]);
+    addMessage({ who: 'me', text: question, ...(attached.length ? { images: attached } : {}) });
     setBusy(true);
     try {
-      const { reply } = await askAi(question);
+      const { reply } = await askAi(question, attached);
       addMessage({ who: 'ai', text: reply });
     } catch (err) {
       const answer = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
@@ -348,7 +376,25 @@ export const AiSheet = () => {
             background: 'rgba(96,165,250,.10)', border: '1px solid rgba(96,165,250,.35)',
             fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)', color: 'var(--text)',
             lineHeight: 1.6, wordBreak: 'break-word',
-          }}>{m.text}</div>
+          }}>
+            {m.images && m.images.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: m.text ? '8px' : 0 }}>
+                {m.images.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    style={{
+                      width: m.images!.length === 1 ? '100%' : 'calc(50% - 3px)',
+                      maxHeight: '220px', objectFit: 'cover',
+                      borderRadius: 'var(--radius-sm)', display: 'block',
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            {m.text}
+          </div>
         ) : (
           <div key={m.id} style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
             <div style={{ ...lbl, marginBottom: '6px' }}>AI</div>
@@ -361,8 +407,56 @@ export const AiSheet = () => {
         <div ref={endRef} />
       </div>
 
+      {/* Photos waiting to be sent */}
+      {photos.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {photos.map((ph, i) => (
+            <div key={i} style={{ position: 'relative', width: '64px', height: '64px', flexShrink: 0 }}>
+              <img
+                src={ph.dataUrl}
+                alt={ph.name}
+                style={{
+                  width: '100%', height: '100%', objectFit: 'cover',
+                  borderRadius: 'var(--radius-sm)', border: '1px solid var(--border2)', display: 'block',
+                }}
+              />
+              <button
+                onPointerDown={() => setPhotos(p => p.filter((_, k) => k !== i))}
+                aria-label={t('ai.remove_photo')}
+                title={t('ai.remove_photo')}
+                style={{
+                  position: 'absolute', top: '-6px', right: '-6px',
+                  width: '20px', height: '20px', borderRadius: '50%',
+                  background: 'var(--bg-card)', border: '1px solid var(--border2)',
+                  color: 'var(--text)', fontSize: '11px', lineHeight: 1,
+                  cursor: 'pointer', padding: 0,
+                }}
+              >✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Composer */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
+        {/* accept="image/*" with no capture attribute is what makes the phone
+            offer the camera and the library both, which is the whole ask. */}
+        <input
+          ref={filePick}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={e => { void pickPhotos(e.target.files); e.target.value = ''; }}
+          style={{ display: 'none' }}
+        />
+        <button
+          onPointerDown={() => filePick.current?.click()}
+          aria-label={t('ai.attach')}
+          title={t('ai.attach')}
+          className="ai-plus"
+        >
+          <IconPlus size={19} />
+        </button>
         <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex' }}>
           <input
             value={draft}
@@ -395,15 +489,15 @@ export const AiSheet = () => {
         </div>
         <button
           onClick={() => send(draft)}
-          disabled={busy || !draft.trim()}
+          disabled={busy || (!draft.trim() && photos.length === 0)}
           title={t('ai.send')}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0,
             background: 'var(--accent-blue)', color: '#12151a', border: 'none',
             borderRadius: 'var(--radius-sm)', padding: '10px 13px',
             fontFamily: 'var(--ff-section)', fontSize: 'var(--fs-label)', letterSpacing: '1px',
-            cursor: busy || !draft.trim() ? 'default' : 'pointer',
-            opacity: busy || !draft.trim() ? .5 : 1,
+            cursor: busy || (!draft.trim() && photos.length === 0) ? 'default' : 'pointer',
+            opacity: busy || (!draft.trim() && photos.length === 0) ? .5 : 1,
           }}
         >
           <IconSpark size={14} />
@@ -447,6 +541,14 @@ export const AiSheet = () => {
           position: absolute; inset: 0; z-index: 5;
           background: transparent;
         }
+        .ai-plus {
+          width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: none; border: 1px solid var(--border2);
+          color: var(--text-muted); cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-plus:active { background: var(--bg-input); }
         .ai-mic {
           position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
           z-index: 6;
@@ -487,6 +589,14 @@ export const AiSheet = () => {
           position: absolute; inset: 0; z-index: 5;
           background: transparent;
         }
+        .ai-plus {
+          width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: none; border: 1px solid var(--border2);
+          color: var(--text-muted); cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-plus:active { background: var(--bg-input); }
         .ai-mic {
           position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
           z-index: 6;

@@ -269,3 +269,10 @@ export const IconMic = ({ size }: IconProps) => (
     <path d="M12 18v3" />
   </Svg>
 );
+
+/** Add something: a plain plus, on the same grid as the rest. */
+export const IconPlus = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <path d="M12 5v14M5 12h14" />
+  </Svg>
+);
