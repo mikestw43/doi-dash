@@ -17,8 +17,19 @@ type EaRelease = {
 const EA_RELEASES: EaRelease[] = [
   {
     name: 'OnlyFunds Reporter',
+    version: 'v1.3',
+    description:
+      'Reports the account, and carries out dashboard orders when you switch ' +
+      'EnableTrading on (off by default). Source only — open it in MetaEditor ' +
+      'and press Compile (F7).',
+    downloads: [
+      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.3.mq5', ext: '.MQ5 SOURCE' },
+    ],
+  },
+  {
+    name: 'OnlyFunds Reporter',
     version: 'v1.1',
-    description: 'Real-time portfolio reporter for MetaTrader',
+    description: 'Report-only, ready compiled. The version running today.',
     // MT4 has no compiled build yet, so it gets no button — a link to a
     // missing .ex4 would just 404.
     downloads: [
@@ -34,7 +45,8 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL || window.location.origin;
 const INSTALL_STEPS = [
   'Open MetaTrader → File → Open Data Folder',
   'Navigate to MQL5/Experts',
-  'Copy the downloaded .ex5 into the Experts folder',
+  'Copy the downloaded file into the Experts folder',
+  'A .mq5 must be opened in MetaEditor and compiled (F7) first',
   'Restart MetaTrader or refresh Navigator',
   'Drag EA onto any chart, set your API Key',
   'Enable AutoTrading, add ServerURL to WebRequest whitelist',
