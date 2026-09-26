@@ -681,6 +681,8 @@ export interface AiSettings {
   models: Record<string, string>;
   /** The address saved for each provider ('' = the provider's own). */
   bases: Record<string, string>;
+  /** Baht per million tokens, for the estimate on the usage line. */
+  prices: { inPerM: number; outPerM: number };
 }
 
 export interface AiModelList {
@@ -697,7 +699,7 @@ export const fetchAiSettings = async (): Promise<AiSettings> => {
   return res.data as AiSettings;
 };
 
-export const saveAiSettings = async (next: { provider?: string; model?: string; apiKey?: string; baseUrl?: string; activate?: boolean }) => {
+export const saveAiSettings = async (next: { provider?: string; model?: string; apiKey?: string; baseUrl?: string; activate?: boolean; prices?: { inPerM?: number; outPerM?: number } }) => {
   const res = await api.put('/ai/settings', next);
   return res.data as { provider: string; model: string; hasKey: boolean; keyHint: string | null; source: string };
 };
@@ -773,6 +775,24 @@ export interface AiChatMessage {
   model: string | null;
   at: string;
 }
+
+export interface AiUsageRow {
+  userId: string;
+  questions: number;
+  inTokens: number;
+  outTokens: number;
+  today: number;
+}
+
+export const setUserAi = async (id: string, next: { enabled?: boolean; dailyLimit?: number }) => {
+  const res = await api.patch(`/admin/users/${id}/ai`, next);
+  return res.data as { id: string; aiEnabled: boolean; aiDailyLimit: number };
+};
+
+export const fetchAiUsage = async () => {
+  const res = await api.get('/admin/ai-usage');
+  return res.data as { usage: AiUsageRow[]; prices: { inPerM: number; outPerM: number } };
+};
 
 export const fetchAiChats = async (): Promise<AiChatSummary[]> => {
   const res = await api.get('/ai/chats');

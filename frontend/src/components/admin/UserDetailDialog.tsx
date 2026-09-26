@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  changeUserRole, changeUserStatus, resetUserPassword,
+  changeUserRole, changeUserStatus, resetUserPassword, setUserAi, fetchAiUsage,
 } from '../../services/api';
+import { useQuery } from '@tanstack/react-query';
 import { useUIStore } from '../../stores/uiStore';
 import { Dialog } from '../ui/Dialog';
 import type { UserInfo } from '../../types';
@@ -65,6 +66,28 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
   const [resetPw, setResetPw] = useState<string | null>(null);
   const [resetConfirm, setResetConfirm] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [limitDraft, setLimitDraft] = useState<string | null>(null);
+
+  /** What this person has cost so far this month. A limit with no usage
+   *  beside it is a number picked out of the air. */
+  const usage = useQuery({
+    queryKey: ['ai-usage'],
+    queryFn: fetchAiUsage,
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  const aiMutation = useMutation({
+    mutationFn: ({ id, ...next }: { id: string; enabled?: boolean; dailyLimit?: number }) => setUserAi(id, next),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      addToast({ type: 'success', title: t('ud.ai_saved') });
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Failed';
+      addToast({ type: 'error', title: msg });
+    },
+  });
 
   const open = !!user;
   const isSelf = user?.id === currentUserId;
@@ -204,6 +227,72 @@ export const UserDetailDialog = ({ user, currentUserId, onClose, onDelete }: Pro
                   </select>
                 </div>
               </div>
+
+              {/* The assistant: who may ask, and how often */}
+              <div style={rowStyle}>
+                <span style={lblStyle}>{t('ud.ai_access')}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  {user.role === 'admin' ? (
+                    <span style={{ ...valStyle, color: 'var(--success)' }}>{t('ud.ai_admin')}</span>
+                  ) : (
+                    <>
+                      <select
+                        value={user.aiEnabled ? 'on' : 'off'}
+                        onChange={e => aiMutation.mutate({ id: user.id, enabled: e.target.value === 'on' })}
+                        disabled={aiMutation.isPending}
+                        style={sel}
+                      >
+                        <option value="off">{t('ud.ai_off')}</option>
+                        <option value="on">{t('ud.ai_on')}</option>
+                      </select>
+                      {user.aiEnabled && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', ...valStyle }}>
+                          <input
+                            type="number"
+                            min={0}
+                            max={10000}
+                            value={limitDraft ?? String(user.aiDailyLimit ?? 30)}
+                            onChange={e => setLimitDraft(e.target.value)}
+                            onBlur={() => {
+                              const n = Number(limitDraft);
+                              setLimitDraft(null);
+                              if (limitDraft !== null && Number.isFinite(n) && n !== user.aiDailyLimit) {
+                                aiMutation.mutate({ id: user.id, dailyLimit: Math.max(0, Math.round(n)) });
+                              }
+                            }}
+                            style={{ ...sel, width: '74px', cursor: 'text' }}
+                          />
+                          <span style={{ color: 'var(--text-dim)' }}>{t('ud.ai_per_day')}</span>
+                        </label>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* What it has cost this month */}
+              {(() => {
+                const row = usage.data?.usage.find(u => u.userId === user.id);
+                const prices = usage.data?.prices;
+                if (!row || !prices) return null;
+                const baht = (row.inTokens / 1e6) * prices.inPerM + (row.outTokens / 1e6) * prices.outPerM;
+                return (
+                  <div style={rowStyle}>
+                    <span style={lblStyle}>{t('ud.ai_usage')}</span>
+                    <div style={valStyle}>
+                      {row.questions} {t('ud.ai_questions')} · {(row.inTokens + row.outTokens).toLocaleString()} tokens
+                      {/* A handful of questions costs fractions of a baht,
+                          and ฿0.00 reads as free rather than as small. */}
+                      <span style={{ color: 'var(--text-dim)' }}>
+                        {' · ≈ '}{baht > 0 && baht < 0.01 ? '< ฿0.01' : `฿${baht.toFixed(2)}`}
+                      </span>
+                      {user.role !== 'admin' && !!user.aiDailyLimit && (
+                        <span style={{ color: 'var(--text-dim)' }}> · {t('ud.ai_today')} {row.today}/{user.aiDailyLimit}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Suspend / Activate */}
               <div style={rowStyle}>

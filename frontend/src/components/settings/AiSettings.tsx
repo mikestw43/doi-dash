@@ -41,6 +41,8 @@ export const AiSettings = () => {
   const [model, setModel] = useState('');
   const [key, setKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
+  const [priceIn, setPriceIn] = useState('');
+  const [priceOut, setPriceOut] = useState('');
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [list, setList] = useState<AiModelList | null>(null);
@@ -60,6 +62,8 @@ export const AiSettings = () => {
       setProvider(s.provider);
       setModel(s.models[s.provider] ?? '');
       setBaseUrl(s.bases[s.provider] ?? '');
+      setPriceIn(String(s.prices.inPerM));
+      setPriceOut(String(s.prices.outPerM));
     } catch { /* not an admin, or not reachable */ }
   };
 
@@ -111,6 +115,7 @@ export const AiSettings = () => {
         provider, model,
         ...(key.trim() ? { apiKey: key.trim() } : {}),
         ...(isCustom ? { baseUrl } : {}),
+        prices: { inPerM: Number(priceIn) || 0, outPerM: Number(priceOut) || 0 },
       });
       const justTyped = key.trim();
       setKey('');
@@ -321,6 +326,36 @@ export const AiSettings = () => {
             ? `${t('aiset.key_saved')}${envHere ? ` (${t('aiset.from_env')})` : ''}`
             : t('aiset.key_none')}
         </div>
+      </div>
+
+      {/* What a question costs, for the estimate on the admin usage line.
+          A price belongs in a setting rather than in the code: providers
+          change theirs, and a number written here would be quietly wrong
+          six months later. */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={lbl}>{t('aiset.price')}</label>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {([['in', priceIn, setPriceIn], ['out', priceOut, setPriceOut]] as const).map(([which, value, set]) => (
+            <label key={which} style={{ flex: 1, minWidth: 0 }}>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={value}
+                onChange={e => set(e.target.value)}
+                style={inp}
+              />
+              <span style={{
+                display: 'block', marginTop: '4px',
+                fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)', color: 'var(--text-muted)',
+              }}>{which === 'in' ? t('aiset.price_in') : t('aiset.price_out')}</span>
+            </label>
+          ))}
+        </div>
+        <div style={{
+          fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-micro)',
+          color: 'var(--text-muted)', marginTop: '6px', lineHeight: 1.6,
+        }}>{t('aiset.price_hint')}</div>
       </div>
 
       {result && (

@@ -30,6 +30,12 @@ model User {
   reportFrequency  String    @default("daily")
   reportTime       String    @default("20:00")
   reportDay        Int       @default(1)
+  // The assistant. Off for everyone but an admin until it is switched on
+  // per person: every question is paid for by whoever owns the API key,
+  // which is the person running the dashboard, not the one asking.
+  aiEnabled        Boolean   @default(false)
+  /// Questions a day. 0 means no limit; admins are never limited.
+  aiDailyLimit     Int       @default(30)
   // Preferences
   language         String    @default("en")
   theme            String    @default("dark")
@@ -421,4 +427,23 @@ model AiMessage {
   createdAt DateTime @default(now())
 
   @@index([chatId, createdAt])
+}
+
+/// What the assistant cost, per person per day.
+///
+/// A limit nobody can see the usage behind is a number picked out of the
+/// air. This is the row the daily limit is counted against and the month's
+/// total is added up from.
+model AiUsage {
+  id        String   @id @default(uuid())
+  userId    String
+  /// YYYY-MM-DD in the server's timezone — a day, not a timestamp.
+  day       String
+  questions Int      @default(0)
+  inTokens  Int      @default(0)
+  outTokens Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, day])
+  @@index([day])
 }

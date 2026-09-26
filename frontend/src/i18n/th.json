@@ -600,5 +600,18 @@
   "ai.copy_failed": "คัดลอกไม่ได้",
   "ai.retry": "ถามใหม่",
   "ai.had_photo": "มีรูปแนบไปด้วย",
-  "ai.had_photos": "รูปแนบไปด้วย"
+  "ai.had_photos": "รูปแนบไปด้วย",
+  "ud.ai_access": "ผู้ช่วย AI",
+  "ud.ai_admin": "ไม่จำกัด (แอดมิน)",
+  "ud.ai_on": "ใช้ได้",
+  "ud.ai_off": "ใช้ไม่ได้",
+  "ud.ai_per_day": "คำถาม/วัน (0 = ไม่จำกัด)",
+  "ud.ai_usage": "เดือนนี้",
+  "ud.ai_questions": "คำถาม",
+  "ud.ai_today": "วันนี้",
+  "ud.ai_saved": "บันทึกแล้ว",
+  "aiset.price": "ราคา บาทต่อล้าน token",
+  "aiset.price_in": "คำถาม (ขาเข้า)",
+  "aiset.price_out": "คำตอบ (ขาออก)",
+  "aiset.price_hint": "ใช้ประมาณค่าใช้จ่ายในหน้าจัดการผู้ใช้เท่านั้น ยอดจริงดูที่บิลของผู้ให้บริการ"
 }

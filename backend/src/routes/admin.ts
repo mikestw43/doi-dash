@@ -1,6 +1,8 @@
 import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
+import { usageThisMonth } from '../services/aiUsage';
+import { aiPrices } from '../services/aiSettings';
 import { authMiddleware, adminMiddleware, AuthRequest } from '../middleware/auth';
 import { runtimeStore } from '../services/runtimeStore';
 import { logAudit } from '../services/auditLogger';
@@ -18,6 +20,7 @@ router.get('/users', async (_req: AuthRequest, res: Response) => {
       id: true, email: true, name: true, displayName: true,
       mobile: true, phoneCountry: true,
       role: true, status: true,
+      aiEnabled: true, aiDailyLimit: true,
       createdAt: true, lastLoginAt: true,
       // Not the hash itself — only whether there is one. A Google-only account
       // has none, which is why a password reset can do nothing for it.
@@ -31,6 +34,57 @@ router.get('/users', async (_req: AuthRequest, res: Response) => {
     ...u,
     signIn: password && googleId ? 'both' : googleId ? 'google' : password ? 'password' : 'none',
   })));
+});
+
+/**
+ * PATCH /api/admin/users/:id/ai
+ *
+ * Who may ask the assistant, and how often. Off by default for everyone
+ * but an admin, because every question is paid for by whoever owns the
+ * API key — the person running this dashboard.
+ */
+router.patch('/users/:id/ai', async (req: AuthRequest, res: Response) => {
+  const body = req.body as { enabled?: unknown; dailyLimit?: unknown };
+  const id = String(req.params.id);
+
+  const user = await prisma.user.findUnique({ where: { id }, select: { email: true } });
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  const limit = body.dailyLimit === undefined ? undefined : Number(body.dailyLimit);
+  if (limit !== undefined && (!Number.isFinite(limit) || limit < 0 || limit > 10000)) {
+    res.status(400).json({ error: 'The daily limit must be a number between 0 and 10000 (0 means no limit).' });
+    return;
+  }
+
+  const updated = await prisma.user.update({
+    where: { id },
+    data: {
+      ...(body.enabled !== undefined && { aiEnabled: !!body.enabled }),
+      ...(limit !== undefined && { aiDailyLimit: Math.round(limit) }),
+    },
+    select: { id: true, aiEnabled: true, aiDailyLimit: true },
+  });
+
+  logAudit(req.user!.id, 'change_ai_access', 'user', id,
+    JSON.stringify({ email: user.email, enabled: updated.aiEnabled, dailyLimit: updated.aiDailyLimit }));
+
+  res.json(updated);
+});
+
+/**
+ * GET /api/admin/ai-usage
+ *
+ * This month, per person: questions asked and tokens spent, with today's
+ * count so a daily limit can be read against something. The money is an
+ * estimate from a price an admin sets, since only the provider's own bill
+ * is the truth.
+ */
+router.get('/ai-usage', async (_req: AuthRequest, res: Response) => {
+  const [rows, prices] = await Promise.all([usageThisMonth(), aiPrices()]);
+  res.json({ usage: rows, prices });
 });
 
 // GET /api/admin/email-log

@@ -162,3 +162,39 @@ export const savedKeyHints = async (providers: readonly string[]): Promise<Recor
 };
 
 export const forgetAiConfig = (): void => { cached = null; };
+
+/* ------------------------------------------------------------------ *
+ * What a question costs.
+ *
+ * Providers quote per million tokens and change the number when they
+ * like, so the price is a setting rather than something written into the
+ * code and quietly wrong six months from now. The default is what
+ * gpt-4o-mini cost at the time of writing, converted to baht: an
+ * estimate, clearly labelled as one, and the provider's own bill remains
+ * the truth.
+ * ------------------------------------------------------------------ */
+
+const PRICE_IN = 'ai.price.in';    // THB per 1M input tokens
+const PRICE_OUT = 'ai.price.out';  // THB per 1M output tokens
+
+export interface AiPrices { inPerM: number; outPerM: number }
+
+const DEFAULT_PRICES: AiPrices = { inPerM: 5, outPerM: 21 };
+
+export const aiPrices = async (): Promise<AiPrices> => {
+  const [i, o] = await Promise.all([read(PRICE_IN), read(PRICE_OUT)]);
+  // Number(null) is 0, not NaN — without this an unset price reads as
+  // free, and every estimate on the usage screen comes out ฿0.00.
+  const num = (raw: string | null): number => (raw === null || raw.trim() === '' ? NaN : Number(raw));
+  const inPerM = num(i);
+  const outPerM = num(o);
+  return {
+    inPerM: Number.isFinite(inPerM) && inPerM >= 0 ? inPerM : DEFAULT_PRICES.inPerM,
+    outPerM: Number.isFinite(outPerM) && outPerM >= 0 ? outPerM : DEFAULT_PRICES.outPerM,
+  };
+};
+
+export const saveAiPrices = async (next: Partial<AiPrices>, who: string): Promise<void> => {
+  if (next.inPerM !== undefined) await write(PRICE_IN, String(next.inPerM), who);
+  if (next.outPerM !== undefined) await write(PRICE_OUT, String(next.outPerM), who);
+};

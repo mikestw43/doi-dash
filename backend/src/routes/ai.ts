@@ -5,8 +5,9 @@ import prisma from '../lib/prisma';
 import { rateLimit } from '../middleware/rateLimit';
 import { buildPortfolioContext } from '../services/aiContext';
 import { askModel, resolveAi, aiDefaultModel, aiBaseFor, listModels, AI_PROVIDERS, type AiTurn, type ResolvedAi } from '../services/aiProvider';
-import { loadAiConfig, saveAiConfig, redacted, configForProvider, savedKeyHints } from '../services/aiSettings';
+import { loadAiConfig, saveAiConfig, redacted, configForProvider, savedKeyHints, aiPrices, saveAiPrices } from '../services/aiSettings';
 import { listChats, getChat, saveTurn, deleteChat, truncateFrom } from '../services/aiChats';
+import { mayAsk, recordAsk } from '../services/aiUsage';
 import { adminMiddleware } from '../middleware/auth';
 import { logAudit } from '../services/auditLogger';
 
@@ -96,12 +97,16 @@ const explainProviderError = (detail: string, model: string): string =>
     ? 'The model took too long to answer. Try again.'
   : 'Could not reach the provider.';
 
-/** Twenty questions an hour is far more than a person asks and far less
- *  than a runaway loop costs. */
+/**
+ * Not the policy — the policy is a switch and a daily number per person,
+ * kept in aiUsage. This is the backstop against a loop in a browser tab
+ * spending the account's credit while nobody is watching. No person asks
+ * two questions a minute for an hour.
+ */
 const chatLimiter = rateLimit({
   windowMs: 60 * 60_000,
-  max: 20,
-  message: 'That is a lot of questions in an hour. Give it a few minutes.',
+  max: 120,
+  message: 'That is a great many questions in one hour. Give it a few minutes.',
 });
 
 /** How much of the conversation goes back with each question. Enough to
@@ -176,6 +181,8 @@ router.get('/settings', adminMiddleware, async (_req: AuthRequest, res: Response
     bases: Object.fromEntries(await Promise.all(
       PROVIDERS.map(async p => [p, (await configForProvider(p)).baseUrl] as const),
     )),
+    // For turning tokens into an estimate of money on the usage screen.
+    prices: await aiPrices(),
   });
 });
 
@@ -214,7 +221,7 @@ router.post('/settings/models', adminMiddleware, async (req: AuthRequest, res: R
 router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response) => {
   const body = req.body as {
     provider?: unknown; model?: unknown; apiKey?: unknown;
-    baseUrl?: unknown; activate?: unknown;
+    baseUrl?: unknown; activate?: unknown; prices?: unknown;
   };
 
   if (body.provider != null && !PROVIDERS.includes(String(body.provider).toLowerCase() as typeof PROVIDERS[number])) {
@@ -225,6 +232,19 @@ router.put('/settings', adminMiddleware, async (req: AuthRequest, res: Response)
     res.status(400).json({ error: 'bad_key', message: 'That does not look like an API key.' });
     return;
   }
+  const prices = body.prices as { inPerM?: unknown; outPerM?: unknown } | undefined;
+  if (prices) {
+    const nums = [prices.inPerM, prices.outPerM].filter(v => v !== undefined).map(Number);
+    if (nums.some(n => !Number.isFinite(n) || n < 0 || n > 100000)) {
+      res.status(400).json({ error: 'bad_price', message: 'A price must be a number, in baht per million tokens.' });
+      return;
+    }
+    await saveAiPrices({
+      ...(prices.inPerM !== undefined && { inPerM: Number(prices.inPerM) }),
+      ...(prices.outPerM !== undefined && { outPerM: Number(prices.outPerM) }),
+    }, req.user!.email);
+  }
+
   if (body.baseUrl != null && String(body.baseUrl).trim() !== '') {
     const wrong = badAddress(String(body.baseUrl).trim());
     if (wrong) {
@@ -446,6 +466,18 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
     return;
   }
 
+  // Who may ask, and how often. Checked before the portfolio is built and
+  // long before the provider is called: a refusal should cost nothing.
+  const allowed = await mayAsk(req.user!.id);
+  if (!allowed.ok) {
+    res.status(allowed.code === 'ai_off' ? 403 : 429).json({
+      error: allowed.code,
+      message: allowed.message,
+      ...(allowed.limit !== undefined && { used: allowed.used, limit: allowed.limit }),
+    });
+    return;
+  }
+
   const ai = await resolveAi();
   if (!isReady(ai)) {
     res.status(503).json({
@@ -487,6 +519,7 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
       `(${answer.inputTokens ?? '?'} in, ${answer.outputTokens ?? '?'} out, ` +
       `${context.accounts} accounts, ${context.openOrders} open, ${checked.images.length} photo(s))`,
     );
+    await recordAsk(req.user!.id, answer.inputTokens ?? 0, answer.outputTokens ?? 0);
     logAudit(req.user!.id, 'ai_chat', 'ai', undefined,
       JSON.stringify({ chars: message.length, images: checked.images.length, inputTokens: answer.inputTokens, outputTokens: answer.outputTokens }));
 

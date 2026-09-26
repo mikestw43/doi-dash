@@ -161,6 +161,10 @@ export interface UserInfo {
   // How this account gets in. A Google-only account has no password, which is
   // why a password reset can do nothing for it.
   signIn?: 'password' | 'google' | 'both' | 'none';
+  /** Whether this person may ask the assistant, and how many questions a
+   *  day (0 = no limit). An admin is never limited. */
+  aiEnabled?: boolean;
+  aiDailyLimit?: number;
   _count: { accounts: number };
 }
 

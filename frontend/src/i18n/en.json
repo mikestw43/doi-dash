@@ -600,5 +600,18 @@
   "ai.copy_failed": "Could not copy.",
   "ai.retry": "Ask again",
   "ai.had_photo": "a photo went with this",
-  "ai.had_photos": "photos went with this"
+  "ai.had_photos": "photos went with this",
+  "ud.ai_access": "AI ASSISTANT",
+  "ud.ai_admin": "Unlimited (admin)",
+  "ud.ai_on": "Allowed",
+  "ud.ai_off": "Not allowed",
+  "ud.ai_per_day": "questions a day (0 = no limit)",
+  "ud.ai_usage": "THIS MONTH",
+  "ud.ai_questions": "questions",
+  "ud.ai_today": "today",
+  "ud.ai_saved": "Saved",
+  "aiset.price": "PRICE, IN BAHT PER MILLION TOKENS",
+  "aiset.price_in": "questions (input)",
+  "aiset.price_out": "answers (output)",
+  "aiset.price_hint": "Only used to estimate what the assistant has cost on the user screen. The provider's own bill is the real number."
 }
