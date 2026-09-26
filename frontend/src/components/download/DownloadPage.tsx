@@ -20,9 +20,10 @@ const EA_RELEASES: EaRelease[] = [
     version: 'v1.3',
     description:
       'Reports the account, and carries out dashboard orders when you switch ' +
-      'EnableTrading on (off by default). Source only — open it in MetaEditor ' +
-      'and press Compile (F7).',
+      'EnableTrading on (off by default). Take the .EX5 to install; the .MQ5 ' +
+      'is the source it was built from.',
     downloads: [
+      { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.3.ex5', ext: '.EX5' },
       { platform: 'MT5', filename: 'OnlyFunds_Reporter_v1.3.mq5', ext: '.MQ5 SOURCE' },
     ],
   },
@@ -113,7 +114,7 @@ export const DownloadPage = () => {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {ea.downloads.map(d => (
                 <a
-                  key={d.platform}
+                  key={d.filename}
                   href={`/ea/${d.filename}`}
                   download
                   style={{
