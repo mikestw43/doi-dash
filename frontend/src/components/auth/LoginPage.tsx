@@ -56,8 +56,13 @@ export const LoginPage = () => {
     try {
       const { token, user } = await login(email, password);
       setAuth(token, user);
-    } catch {
-      setError('Invalid credentials');
+    } catch (err: unknown) {
+      // The server's own sentence, not a guess. It answers "pending admin
+      // approval", "suspended" and "too many attempts" here, and this used
+      // to print "Invalid credentials" over all of them — so someone waiting
+      // to be approved was told their password was wrong.
+      const answer = (err as { response?: { data?: { error?: string } } }).response?.data?.error;
+      setError(answer || 'Invalid credentials');
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,11 @@ import prisma from '../lib/prisma';
 import { toUsd } from './fxService';
 import type { Order } from '../mock/data';
 
-const MAX_AGE_DAYS = 90;
+// A year, not a quarter. The calendar and the statistics pages both offer
+// six months, and at 90 days half of what they offered was already deleted —
+// silently, by the nightly clean. A year of this account's volume is on the
+// order of 80,000 rows, which SQLite does not notice.
+const MAX_AGE_DAYS = 365;
 
 // In-memory: previous orders per account for comparison
 const previousOrders = new Map<string, Map<number, Order>>();

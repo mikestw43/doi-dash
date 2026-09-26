@@ -1,7 +1,11 @@
 import prisma from '../lib/prisma';
 
 const SNAPSHOT_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
-const MAX_AGE_DAYS = 90;
+// A year, not a quarter. The calendar and the statistics pages both offer
+// six months, and at 90 days half of what they offered was already deleted —
+// silently, by the nightly clean. A year of this account's volume is on the
+// order of 80,000 rows, which SQLite does not notice.
+const MAX_AGE_DAYS = 365;
 
 // In-memory cache of last snapshot time per account
 const lastSnapshot = new Map<string, number>();

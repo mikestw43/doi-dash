@@ -13,6 +13,38 @@ import { rateLimit } from '../middleware/rateLimit';
 
 const router = Router();
 
+/**
+ * Guessing passwords.
+ *
+ * Ten wrong tries a quarter of an hour is more than anyone typing their own
+ * password from memory needs, and it turns a dictionary run from minutes
+ * into months. Nothing here locks an account: a lockout that any stranger
+ * can trigger by typing a known address ten times is a way to lock the
+ * owner out, not the attacker. The limit is on the caller, not the account.
+ */
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: 10,
+  message: 'Too many sign-in attempts. Please wait a few minutes and try again.',
+});
+
+/** Registration is open to anyone who finds the page; this keeps the user
+ *  table from being filled by a script while an admin sleeps. */
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60_000,
+  max: 5,
+  message: 'Too many registrations from here. Please try again later.',
+});
+
+// Six tries a quarter of an hour is more than a person who mistyped their own
+// address will ever need, and far too slow to work through a list of them.
+const forgotLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  max: 6,
+  message: 'Too many attempts. Please wait a few minutes and try again.',
+});
+
+
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
@@ -36,7 +68,7 @@ const publicUser = (u: {
 });
 
 // POST /api/auth/login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', loginLimiter, async (req: Request, res: Response) => {
   const { email, password } = req.body as { email: string; password: string };
   if (!email || !password) {
     res.status(400).json({ error: 'Email and password are required' });
@@ -263,13 +295,6 @@ router.post('/google/unlink', authMiddleware, async (req: AuthRequest, res: Resp
 
 /** How long a reset link stays usable. Long enough to find the mail, short
  *  enough that a mailbox read later is not a way in. */
-// Six tries a quarter of an hour is more than a person who mistyped their own
-// address will ever need, and far too slow to work through a list of them.
-const forgotLimiter = rateLimit({
-  windowMs: 15 * 60_000,
-  max: 6,
-  message: 'Too many attempts. Please wait a few minutes and try again.',
-});
 
 const RESET_TTL_MINUTES = 30;
 
@@ -394,7 +419,7 @@ router.post('/reset-password', async (req: Request, res: Response) => {
 });
 
 // POST /api/auth/register
-router.post('/register', async (req: Request, res: Response) => {
+router.post('/register', registerLimiter, async (req: Request, res: Response) => {
   const { email, password, name, displayName, mobile, phoneCountry } = req.body as {
     email: string; password: string; name?: string; displayName?: string;
     mobile?: string; phoneCountry?: string;
