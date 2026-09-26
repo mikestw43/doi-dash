@@ -301,6 +301,10 @@ export const AiSheet = () => {
     if ((!question && attached.length === 0) || busy) return;
     setDraft('');
     setPhotos([]);
+    // The composer holds focus through the tap so the button does not
+    // move out from under the finger; once the question is away, the
+    // keyboard has nothing left to do and the answer wants the room.
+    boxRef.current?.blur();
     addMessage({ who: 'me', text: question, ...(attached.length ? { images: attached } : {}) });
     setBusy(true);
     try {
@@ -549,8 +553,8 @@ export const AiSheet = () => {
             aria-label={t('ai.new_chat')}
             style={{
               background: 'none', border: '1px solid var(--border2)', borderRadius: '999px',
-              padding: '3px 10px', cursor: 'pointer', flexShrink: 0,
-              color: 'var(--text-muted)', fontFamily: 'var(--ff-label)',
+              padding: '5px 12px', cursor: 'pointer', flexShrink: 0,
+              color: 'var(--text-primary)', fontFamily: 'var(--ff-label)',
               fontSize: 'var(--fs-micro)', letterSpacing: '1px',
             }}
           >{t('ai.new_chat')}</button>
@@ -562,7 +566,7 @@ export const AiSheet = () => {
           aria-label="Close"
           style={{
             background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
-            color: 'var(--text-muted)', fontSize: '16px', lineHeight: 1, flexShrink: 0,
+            color: 'var(--text-primary)', fontSize: '17px', lineHeight: 1, flexShrink: 0,
           }}
         >✕</button>
       </div>
@@ -777,7 +781,7 @@ export const AiSheet = () => {
                 title={t('ai.retry')}
               ><IconRetry size={17} /></button>
             )}
-            {m.model && <span style={{ marginLeft: 'auto', opacity: .75 }}>{m.model}</span>}
+            {m.model && <span style={{ marginLeft: 'auto' }}>{m.model}</span>}
           </div>
           </div>
         ))}
@@ -1017,8 +1021,8 @@ export const AiSheet = () => {
         .ai-meta {
           display: flex; align-items: center; gap: 12px;
           padding: 0 2px;
-          font-family: var(--ff-body); font-size: var(--fs-micro);
-          color: var(--text-muted);
+          font-family: var(--ff-body); font-size: 12px;
+          color: var(--text-primary);
         }
         /* Icons, and a target a thumb can actually hit: the words "Copy"
            and "Edit" at micro size were both hard to read and hard to
@@ -1049,10 +1053,10 @@ export const AiSheet = () => {
         /* A small round button: the history clock, and the ✕ on a row in
            the list of past conversations. */
         .ai-round {
-          width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+          width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
           display: flex; align-items: center; justify-content: center;
           background: none; border: 1px solid var(--border2);
-          color: var(--text-muted); cursor: pointer; padding: 0;
+          color: var(--text-primary); cursor: pointer; padding: 0;
           font-size: 12px; line-height: 1;
           -webkit-tap-highlight-color: transparent;
         }
