@@ -167,7 +167,11 @@ export const AiSheet = () => {
     addMessage({ who: 'me', text: question, ...(attached.length ? { images: attached } : {}) });
     setBusy(true);
     try {
-      const { reply } = await askAi(question, attached);
+      const priorTurns = messages.map(m => ({
+        role: (m.who === 'me' ? 'user' : 'assistant') as 'user' | 'assistant',
+        text: m.text,
+      }));
+      const { reply } = await askAi(question, attached, priorTurns, language);
       addMessage({ who: 'ai', text: reply });
     } catch (err) {
       const answer = (err as { response?: { data?: { message?: string } } }).response?.data?.message;

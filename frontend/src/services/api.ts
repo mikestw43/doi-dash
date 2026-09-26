@@ -675,10 +675,25 @@ export const fetchAiContext = async (): Promise<AiContext> => {
   return res.data as AiContext;
 };
 
-/** Ask a question, with photos if there are any — data URLs, which is the
- *  shape every vision API takes. Until a provider is connected the server
- *  answers 503 with a reason, which the page shows rather than swallowing. */
-export const askAi = async (message: string, images: string[] = []): Promise<{ reply: string }> => {
-  const res = await api.post('/ai/chat', { message, ...(images.length ? { images } : {}) });
-  return res.data as { reply: string };
+/**
+ * Ask a question, with photos and the conversation so far.
+ *
+ * The browser holds the conversation, so it goes back with each question —
+ * text only. Old photos are not re-sent: the model has already been told
+ * what was in them, and paying to re-read them every turn is how a chat
+ * becomes expensive.
+ */
+export const askAi = async (
+  message: string,
+  images: string[] = [],
+  history: { role: 'user' | 'assistant'; text: string }[] = [],
+  language = 'en',
+): Promise<{ reply: string; model?: string }> => {
+  const res = await api.post('/ai/chat', {
+    message,
+    language,
+    ...(images.length ? { images } : {}),
+    ...(history.length ? { history } : {}),
+  });
+  return res.data as { reply: string; model?: string };
 };
