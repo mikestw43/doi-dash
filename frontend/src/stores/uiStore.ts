@@ -12,6 +12,20 @@ type Language = 'en' | 'th';
 type Theme = 'dark' | 'light';
 type BotViewMode = 'card' | 'table';
 
+/** One turn on screen. `at` is a timestamp so the time can be shown; on a
+ *  message loaded from the server it is when it was actually said. */
+export interface AiMsg {
+  id: string;
+  who: 'me' | 'ai';
+  text: string;
+  at: number;
+  /** Only ever on a message still in this browser — photos are not kept
+   *  on the server, so a loaded conversation shows a count instead. */
+  images?: string[];
+  photos?: number;
+  model?: string | null;
+}
+
 interface UIState {
   toasts: Toast[];
   botFilter: { status: string; broker: string; search: string; sort: string; group: string };
@@ -41,9 +55,18 @@ interface UIState {
    * of was gone. Held for the session; a reload still starts fresh, and
    * conversations that survive that belong on the server, with the model.
    */
-  aiMessages: { id: number; who: 'me' | 'ai'; text: string; images?: string[] }[];
-  addAiMessage: (m: { who: 'me' | 'ai'; text: string; images?: string[] }) => void;
+  aiMessages: AiMsg[];
+  addAiMessage: (m: Omit<AiMsg, 'id' | 'at'> & { id?: string; at?: number }) => void;
   clearAiMessages: () => void;
+  /** Replace the lot — loading a saved conversation from the server. */
+  setAiMessages: (messages: AiMsg[]) => void;
+  /** Drop this message and everything said after it (editing, or asking
+   *  again). */
+  truncateAiFrom: (id: string) => void;
+  /** The conversation on the server these messages belong to. Null until
+   *  the first answer comes back with one. */
+  aiChatId: string | null;
+  setAiChatId: (id: string | null) => void;
   /** Go to the trade history already filtered to one account. */
   openTradeHistory: (accountId: string) => void;
   clearTradeHistoryAccount: () => void;
@@ -61,6 +84,7 @@ export const useUIStore = create<UIState>()(
       currentPage: 'dashboard',
       aiOpen: false,
       aiMessages: [],
+      aiChatId: null,
       language: 'en',
       theme: 'dark',
       tradeHistoryAccountId: null,
@@ -76,9 +100,21 @@ export const useUIStore = create<UIState>()(
       setCurrentPage: (page) => set({ currentPage: page }),
       setAiOpen: (open) => set({ aiOpen: open }),
       addAiMessage: (m) => set(state => ({
-        aiMessages: [...state.aiMessages, { ...m, id: Date.now() + state.aiMessages.length }],
+        aiMessages: [...state.aiMessages, {
+          ...m,
+          // The server's id once there is one; until then something of our
+          // own, so React has a key and edit has something to point at.
+          id: m.id ?? `local-${Date.now()}-${state.aiMessages.length}`,
+          at: m.at ?? Date.now(),
+        }],
       })),
-      clearAiMessages: () => set({ aiMessages: [] }),
+      clearAiMessages: () => set({ aiMessages: [], aiChatId: null }),
+      setAiMessages: (aiMessages) => set({ aiMessages }),
+      truncateAiFrom: (id) => set(state => {
+        const at = state.aiMessages.findIndex(m => m.id === id);
+        return at < 0 ? {} : { aiMessages: state.aiMessages.slice(0, at) };
+      }),
+      setAiChatId: (aiChatId) => set({ aiChatId }),
       openTradeHistory: (accountId) =>
         set({ currentPage: 'trade-history', tradeHistoryAccountId: accountId }),
       clearTradeHistoryAccount: () => set({ tradeHistoryAccountId: null }),

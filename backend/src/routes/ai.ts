@@ -6,6 +6,7 @@ import { rateLimit } from '../middleware/rateLimit';
 import { buildPortfolioContext } from '../services/aiContext';
 import { askModel, resolveAi, aiDefaultModel, aiBaseFor, listModels, AI_PROVIDERS, type AiTurn, type ResolvedAi } from '../services/aiProvider';
 import { loadAiConfig, saveAiConfig, redacted, configForProvider, savedKeyHints } from '../services/aiSettings';
+import { listChats, getChat, saveTurn, deleteChat, truncateFrom } from '../services/aiChats';
 import { adminMiddleware } from '../middleware/auth';
 import { logAudit } from '../services/auditLogger';
 
@@ -55,8 +56,12 @@ It is the only account data you have; you cannot look anything else up.
 ${contextText}
 
 HOW TO ANSWER
-- Answer in ${language === 'th' ? 'Thai' : 'English'}, plainly. This person
-  is a trader, not a programmer.
+- Answer plainly. This person is a trader, not a programmer.
+- Start in ${language === 'th' ? 'Thai' : 'English'} — that is the language
+  the dashboard is set to. It is a default, not a rule: answer in whatever
+  language the question is asked in, and if this person asks you to switch,
+  switch and stay switched. You are able to write both. Never tell them you
+  cannot answer in a language.
 - Be specific and use their real figures. Name the position, the symbol,
   the amount. Vague advice is worse than none.
 - Lead with the answer, then the reasoning. Keep it short unless asked.
@@ -316,6 +321,47 @@ router.post('/settings/test', adminMiddleware, async (req: AuthRequest, res: Res
   }
 });
 
+/* ------------------------------------------------------------------ *
+ * Conversations
+ *
+ * Everything here is scoped to the person asking. The service takes the
+ * user id on every call rather than trusting an id from the browser.
+ * ------------------------------------------------------------------ */
+
+// GET /api/ai/chats — the list, newest first
+router.get('/chats', async (req: AuthRequest, res: Response) => {
+  res.json({ chats: await listChats(req.user!.id) });
+});
+
+// GET /api/ai/chats/:id — one conversation, in full
+router.get('/chats/:id', async (req: AuthRequest, res: Response) => {
+  const chat = await getChat(req.user!.id, String(req.params.id));
+  if (!chat) {
+    res.status(404).json({ error: 'not_found', message: 'That conversation is not there.' });
+    return;
+  }
+  res.json(chat);
+});
+
+// DELETE /api/ai/chats/:id
+router.delete('/chats/:id', async (req: AuthRequest, res: Response) => {
+  const gone = await deleteChat(req.user!.id, String(req.params.id));
+  if (!gone) {
+    res.status(404).json({ error: 'not_found', message: 'That conversation is not there.' });
+    return;
+  }
+  res.json({ ok: true });
+});
+
+// DELETE /api/ai/chats/:id/from/:messageId
+//
+// Editing a question, or asking again: the old question, the answer it
+// got and anything after it go, and what comes next takes their place.
+router.delete('/chats/:id/from/:messageId', async (req: AuthRequest, res: Response) => {
+  const removed = await truncateFrom(req.user!.id, String(req.params.id), String(req.params.messageId));
+  res.json({ removed });
+});
+
 // GET /api/ai/context
 //
 // What the assistant would be told about the portfolio. It is shown in the
@@ -380,7 +426,9 @@ const checkImages = (raw: unknown): { images: string[] } | { error: string } => 
 
 // POST /api/ai/chat
 router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
-  const body = req.body as { message?: unknown; images?: unknown; history?: unknown; language?: unknown };
+  const body = req.body as {
+    message?: unknown; images?: unknown; history?: unknown; language?: unknown; chatId?: unknown;
+  };
 
   const checked = checkImages(body.images);
   if ('error' in checked) {
@@ -447,7 +495,32 @@ router.post('/chat', chatLimiter, async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    res.json({ reply: answer.text, model: ai.model, tokens: { in: answer.inputTokens, out: answer.outputTokens } });
+    // Written once the answer exists: a question stored on its own would
+    // come back tomorrow as a conversation that stops mid-sentence.
+    let saved: { chatId: string; questionId: string; answerId: string; at: Date } | null = null;
+    try {
+      saved = await saveTurn(req.user!.id, typeof body.chatId === 'string' ? body.chatId : null, {
+        question: message,
+        photos: checked.images.length,
+        answer: answer.text,
+        model: ai.model,
+      });
+    } catch (err) {
+      // The answer is worth more than the record of it.
+      console.error('[AI] could not save the conversation:', err instanceof Error ? err.message : err);
+    }
+
+    res.json({
+      reply: answer.text,
+      model: ai.model,
+      tokens: { in: answer.inputTokens, out: answer.outputTokens },
+      ...(saved && {
+        chatId: saved.chatId,
+        questionId: saved.questionId,
+        answerId: saved.answerId,
+        at: saved.at,
+      }),
+    });
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     console.error(`[AI] failed for ${req.user!.email}: ${detail}`);

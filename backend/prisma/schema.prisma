@@ -388,3 +388,37 @@ model AppSetting {
   updatedAt DateTime @updatedAt
   updatedBy String?
 }
+
+/// A conversation with the assistant, kept so it is still there tomorrow.
+///
+/// It used to live in the browser's memory and nowhere else: a refresh, a
+/// phone that put the app to sleep, or simply coming back in the morning
+/// and yesterday's reading of the portfolio was gone. Chats belong to one
+/// person and are never shared — the assistant is looking at their money.
+model AiChat {
+  id        String      @id @default(uuid())
+  userId    String
+  /// The first question, shortened — enough to find it again in a list.
+  title     String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  messages  AiMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+/// One turn. Photos are deliberately not kept: a few of them would be
+/// larger than every other row in this database put together, and their
+/// value is in the answer, which is kept. A message that had one says so.
+model AiMessage {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      AiChat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      String   // 'user' | 'assistant'
+  text      String
+  photos    Int      @default(0)
+  model     String?  // which model answered, for an answer
+  createdAt DateTime @default(now())
+
+  @@index([chatId, createdAt])
+}

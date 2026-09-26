@@ -23,6 +23,7 @@ import { runtimeStore } from './services/runtimeStore';
 import { cleanOldSnapshots } from './services/equityService';
 import { cleanOldTrades } from './services/tradeHistoryService';
 import { cleanOldAuditLogs, cleanOldNotificationLogs } from './services/retentionService';
+import { cleanOldChats } from './services/aiChats';
 import { reportScheduler } from './services/reportScheduler';
 import { errorHandler } from './middleware/errorHandler';
 import { warmFxCache } from './services/fxService';
@@ -145,5 +146,6 @@ applySqlitePragmas().then(() => runtimeStore.initialize()).then(() => {
     cleanOldTrades().catch(err => console.error('[Cleanup] trades:', err.message));
     cleanOldAuditLogs().catch(err => console.error('[Cleanup] audit:', err.message));
     cleanOldNotificationLogs().catch(err => console.error('[Cleanup] notifications:', err.message));
+    cleanOldChats().catch(err => console.error('[Cleanup] ai chats:', err.message));
   }, 24 * 60 * 60 * 1000);
 });

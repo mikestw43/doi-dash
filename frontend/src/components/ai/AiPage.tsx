@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { askAi, fetchAiContext, fetchAiStatus, type AiContext, type AiStatus } from '../../services/api';
+import { askAi, fetchAiContext, fetchAiStatus, type AiContext, type AiStatus, fetchAiChats, fetchAiChat, deleteAiChat, truncateAiChat,
+  type AiChatSummary } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useUIStore } from '../../stores/uiStore';
 import { IconSpark, IconMic, IconPlus } from '../icons';
@@ -27,6 +28,32 @@ import { RichText } from './RichText';
  * which is how this app is mostly used. Dragging the handle, flicking it
  * down, tapping the dimmed page behind it and Escape all close it.
  */
+
+/**
+ * Whether the last conversation has already been fetched.
+ *
+ * Opening the assistant should show what was being talked about, not an
+ * empty room — but only the first time it is opened. After NEW CHAT, an
+ * empty room is exactly what was asked for, and re-opening the sheet must
+ * not undo that. It lives outside the component because the sheet is
+ * unmounted every time it closes.
+ */
+let pickedUpWhereWeLeftOff = false;
+
+/** The time of day, in figures, which reads the same in both languages. */
+const clock = (ms: number): string =>
+  new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+/** When a past conversation was last touched: the time if that was today,
+ *  the date if it was not. */
+const when = (iso: string): string => {
+  const d = new Date(iso);
+  const today = new Date();
+  const sameDay = d.getDate() === today.getDate()
+    && d.getMonth() === today.getMonth()
+    && d.getFullYear() === today.getFullYear();
+  return sameDay ? clock(d.getTime()) : d.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+};
 
 /**
  * What is left of the screen above the sheet: the strip the clock and the
@@ -59,6 +86,10 @@ export const AiSheet = () => {
   const messages = useUIStore(st => st.aiMessages);
   const addMessage = useUIStore(st => st.addAiMessage);
   const clearMessages = useUIStore(st => st.clearAiMessages);
+  const setMessages = useUIStore(st => st.setAiMessages);
+  const truncateFrom = useUIStore(st => st.truncateAiFrom);
+  const chatId = useUIStore(st => st.aiChatId);
+  const setChatId = useUIStore(st => st.setAiChatId);
   const [draft, setDraft] = useState('');
   // Photos waiting to go with the next question, already shrunk.
   const [photos, setPhotos] = useState<{ dataUrl: string; name: string }[]>([]);
@@ -78,6 +109,10 @@ export const AiSheet = () => {
   const inflight = useRef<AbortController | null>(null);
   // Shown only once the conversation has been scrolled away from the end.
   const [awayFromEnd, setAwayFromEnd] = useState(false);
+  // The list of past conversations, when it is open.
+  const [chats, setChats] = useState<AiChatSummary[] | null>(null);
+  const [loadingChat, setLoadingChat] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
 
   // How far the sheet has been pushed down, in px, while a finger is on it.
   const [dragY, setDragY] = useState(0);
@@ -163,6 +198,19 @@ export const AiSheet = () => {
     fetchAiStatus().then(s => { if (alive) setStatus(s); }).catch(() => {});
     fetchAiContext().then(c => { if (alive) setCtx(c); }).catch(() => {});
     return () => { alive = false; };
+  }, []);
+
+  // Carry on from the last conversation, once, if there is nothing on
+  // screen to carry on from.
+  useEffect(() => {
+    if (pickedUpWhereWeLeftOff || messages.length > 0 || chatId) return;
+    pickedUpWhereWeLeftOff = true;
+    void (async () => {
+      try {
+        const [recent] = await fetchAiChats();
+        if (recent) await openChat(recent.id);
+      } catch { /* an empty room is a fine place to start */ }
+    })();
   }, []);
 
   const toEnd = (behavior: ScrollBehavior = 'smooth') =>
@@ -262,8 +310,11 @@ export const AiSheet = () => {
       }));
       const control = new AbortController();
       inflight.current = control;
-      const { reply } = await askAi(question, attached, priorTurns, language, control.signal);
-      addMessage({ who: 'ai', text: reply });
+      const answer = await askAi(question, attached, priorTurns, language, control.signal, chatId);
+      // The reply carries the ids the server filed this turn under. Taking
+      // them means edit and delete point at the same rows the server has.
+      if (answer.chatId) setChatId(answer.chatId);
+      addMessage({ who: 'ai', text: answer.reply, id: answer.answerId, model: answer.model });
     } catch (err) {
       // A question the person stopped themselves needs no error in the
       // conversation; they know why it ended.
@@ -280,6 +331,87 @@ export const AiSheet = () => {
     } finally {
       inflight.current = null;
       setBusy(false);
+    }
+  };
+
+  /** Everything said in one saved conversation, onto the screen. */
+  const openChat = async (id: string) => {
+    setLoadingChat(true);
+    try {
+      const chat = await fetchAiChat(id);
+      setMessages(chat.messages.map(m => ({
+        id: m.id,
+        who: m.who,
+        text: m.text,
+        at: new Date(m.at).getTime(),
+        photos: m.photos,
+        model: m.model,
+      })));
+      setChatId(chat.id);
+      setChats(null);
+      setTimeout(() => toEnd('auto'), 60);
+    } catch {
+      addToast({ type: 'error', title: t('ai.title'), message: t('ai.chat_load_failed') });
+    } finally {
+      setLoadingChat(false);
+    }
+  };
+
+  const showChats = async () => {
+    setChats([]);
+    try {
+      setChats(await fetchAiChats());
+    } catch {
+      setChats(null);
+      addToast({ type: 'error', title: t('ai.title'), message: t('ai.chat_load_failed') });
+    }
+  };
+
+  const removeChat = async (id: string) => {
+    setChats(list => (list ?? []).filter(c => c.id !== id));
+    try {
+      await deleteAiChat(id);
+      if (id === chatId) clearMessages();
+    } catch {
+      void showChats();
+    }
+  };
+
+  /**
+   * Take a question back to be asked differently.
+   *
+   * The old question, the answer it got and anything after go — on screen
+   * and on the server — because a conversation that carries both versions
+   * is one the model reads both of.
+   */
+  const editMessage = async (m: { id: string; text: string }) => {
+    setDraft(m.text);
+    truncateFrom(m.id);
+    boxRef.current?.focus();
+    if (chatId && !m.id.startsWith('local-')) {
+      try { await truncateAiChat(chatId, m.id); } catch { /* the screen is what matters */ }
+    }
+  };
+
+  /** Ask the same question again — for an answer that went wrong. */
+  const retry = async (answerId: string) => {
+    const at = messages.findIndex(m => m.id === answerId);
+    const question = at > 0 ? messages[at - 1] : null;
+    if (!question || question.who !== 'me' || busy) return;
+    truncateFrom(question.id);
+    if (chatId && !question.id.startsWith('local-')) {
+      try { await truncateAiChat(chatId, question.id); } catch { /* as above */ }
+    }
+    void send(question.text);
+  };
+
+  const copy = async (m: { id: string; text: string }) => {
+    try {
+      await navigator.clipboard.writeText(m.text);
+      setCopied(m.id);
+      setTimeout(() => setCopied(c => (c === m.id ? null : c)), 1600);
+    } catch {
+      addToast({ type: 'error', title: t('ai.title'), message: t('ai.copy_failed') });
     }
   };
 
@@ -387,9 +519,21 @@ export const AiSheet = () => {
           color: 'var(--text-dim)', letterSpacing: '2px',
         }}>{t('ai.title')}</span>
         <div style={{ flex: 1 }} />
+        <button
+          onClick={() => (chats ? setChats(null) : void showChats())}
+          title={t('ai.past_chats')}
+          aria-label={t('ai.past_chats')}
+          className="ai-round"
+          style={chats ? { borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' } : undefined}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+          </svg>
+        </button>
+
         {messages.length > 0 && (
           <button
-            onClick={clearMessages}
+            onClick={() => { pickedUpWhereWeLeftOff = true; setChats(null); clearMessages(); }}
             title={t('ai.new_chat')}
             aria-label={t('ai.new_chat')}
             style={{
@@ -482,6 +626,41 @@ export const AiSheet = () => {
           to sit in here together, so a long conversation pushed the box to
           type in clean off the bottom of the screen. */}
       <div className="ai-scroll" ref={scroller} onScroll={onScroll}>
+
+        {/* What was asked before today. Tapping one brings it back. */}
+        {chats !== null && (
+          <div style={{ ...card, padding: '6px' }}>
+            <div style={{ ...lbl, padding: '6px 8px 8px' }}>{t('ai.past_chats')}</div>
+            {chats.length === 0 && (
+              <div style={{
+                padding: '6px 8px 12px', fontFamily: 'var(--ff-body)',
+                fontSize: 'var(--fs-body-sm)', color: 'var(--text-muted)',
+              }}>{t('ai.no_past_chats')}</div>
+            )}
+            {chats.map(c => (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <button
+                  onClick={() => void openChat(c.id)}
+                  className="ai-chat-row"
+                  style={c.id === chatId ? { color: 'var(--accent-blue)' } : undefined}
+                >
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-micro)', flexShrink: 0 }}>
+                    {when(c.updatedAt)}
+                  </span>
+                </button>
+                <button
+                  onClick={() => void removeChat(c.id)}
+                  aria-label={t('common.delete')}
+                  title={t('common.delete')}
+                  className="ai-round"
+                  style={{ width: '30px', height: '30px', flexShrink: 0 }}
+                >✕</button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {messages.length === 0 && (
           <div style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
             <div className="ai-msg" style={{ color: 'var(--text-primary)', marginBottom: '12px' }}>
@@ -505,7 +684,8 @@ export const AiSheet = () => {
         )}
 
         {messages.map(m => m.who === 'me' ? (
-          <div key={m.id} style={{
+          <div key={m.id} style={{ display: 'grid', gap: '3px', justifyItems: 'stretch' }}>
+          <div style={{
             marginLeft: '28px', padding: '10px 12px', borderRadius: 'var(--radius-sm)',
             background: 'rgba(96,165,250,.10)', border: '1px solid rgba(96,165,250,.35)',
             color: 'var(--text)', wordBreak: 'break-word', whiteSpace: 'pre-wrap',
@@ -527,15 +707,47 @@ export const AiSheet = () => {
               </div>
             )}
             {m.text}
+            {/* A conversation brought back from the server remembers that
+                photos went with a question, but not the photos: keeping
+                them would outweigh everything else in the database. */}
+            {!m.images && !!m.photos && (
+              <div style={{
+                marginTop: '6px', fontFamily: 'var(--ff-body)',
+                fontSize: 'var(--fs-micro)', color: 'var(--text-muted)',
+              }}>{m.photos === 1 ? t('ai.had_photo') : `${m.photos} ${t('ai.had_photos')}`}</div>
+            )}
+          </div>
+          {/* Under the question: when it was asked, and a way to ask it
+              differently — which is what editing a sent message means
+              here, since the answer to the old wording is no longer
+              wanted. */}
+          <div className="ai-meta" style={{ justifyContent: 'flex-end' }}>
+            <span>{clock(m.at)}</span>
+            {!busy && (
+              <button onClick={() => void editMessage(m)} className="ai-act">{t('ai.edit')}</button>
+            )}
+          </div>
           </div>
         ) : (
-          <div key={m.id} style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
+          <div key={m.id} style={{ display: 'grid', gap: '3px' }}>
+          <div style={{ ...card, borderLeft: '2px solid var(--accent-blue)' }}>
             <div style={{ ...lbl, marginBottom: '6px' }}>AI</div>
             {/* --text-dim is right for a meta line in a table and wrong
                 for three paragraphs to read on a phone in daylight. */}
             <div className="ai-msg" style={{ color: 'var(--text-primary)', wordBreak: 'break-word' }}>
               <RichText text={m.text} />
             </div>
+          </div>
+          <div className="ai-meta">
+            <span>{clock(m.at)}</span>
+            <button onClick={() => void copy(m)} className="ai-act">
+              {copied === m.id ? t('ai.copied') : t('ai.copy')}
+            </button>
+            {!busy && (
+              <button onClick={() => void retry(m.id)} className="ai-act">{t('ai.retry')}</button>
+            )}
+            {m.model && <span style={{ marginLeft: 'auto', opacity: .75 }}>{m.model}</span>}
+          </div>
           </div>
         ))}
         {/* Something is happening, and it can be called off. Until now the
@@ -772,6 +984,41 @@ export const AiSheet = () => {
           -webkit-tap-highlight-color: transparent;
         }
         .ai-chip:active { background: var(--bg-tertiary); }
+        /* The line under a message: when it was said, and what can be
+           done with it. Quiet enough to ignore while reading. */
+        .ai-meta {
+          display: flex; align-items: center; gap: 12px;
+          padding: 0 2px;
+          font-family: var(--ff-body); font-size: var(--fs-micro);
+          color: var(--text-muted);
+        }
+        .ai-act {
+          background: none; border: none; padding: 2px 0;
+          font-family: var(--ff-body); font-size: var(--fs-micro);
+          color: var(--text-dim); cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-act:active { color: var(--accent-blue); }
+        /* A small round button: the history clock, and the ✕ on a row in
+           the list of past conversations. */
+        .ai-round {
+          width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          background: none; border: 1px solid var(--border2);
+          color: var(--text-muted); cursor: pointer; padding: 0;
+          font-size: 12px; line-height: 1;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-round:active { background: var(--bg-input); }
+        .ai-chat-row {
+          flex: 1; min-width: 0;
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          background: none; border: none; text-align: left;
+          padding: 10px 8px; cursor: pointer;
+          font-family: var(--ff-body); font-size: 14.5px; color: var(--text-primary);
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-chat-row:active { background: var(--bg-input); border-radius: var(--radius-sm); }
         .ai-box {
           flex: 1; min-width: 0; width: 100%;
           background: var(--bg-input);
