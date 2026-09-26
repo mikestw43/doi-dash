@@ -10,7 +10,12 @@ export interface Command {
   symbol?: string;
   action?: 'BUY' | 'SELL';
   volume?: number;
-  price?: number;   // 0 = market order
+  // Which kind of order. 'market' fills now; 'limit' waits for the price to
+  // come back to it; 'stop' waits for the price to break through it. The EA
+  // cannot tell a limit from a stop by the price alone — above or below the
+  // market means the opposite thing for each — so it is said outright.
+  orderType?: 'market' | 'limit' | 'stop';
+  price?: number;   // 0 = market order, otherwise the pending order's price
   sl?: number;
   tp?: number;
   comment?: string;

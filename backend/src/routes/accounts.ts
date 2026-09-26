@@ -148,14 +148,14 @@ router.post('/:id/close-all', (req: AuthRequest, res: Response) => {
 // POST /api/accounts/:id/open-trade — queue an open trade command to the EA
 router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
   const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const { symbol, action, volume, price, sl, tp, comment } = req.body as {
+  const { symbol, action, volume, orderType, price, sl, tp } = req.body as {
     symbol: string;
     action: 'BUY' | 'SELL';
     volume: number;
+    orderType?: 'market' | 'limit' | 'stop';
     price?: number;
     sl?: number;
     tp?: number;
-    comment?: string;
   };
 
   if (!symbol || !action || !volume) {
@@ -164,6 +164,18 @@ router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
   }
   if (action !== 'BUY' && action !== 'SELL') {
     res.status(400).json({ error: 'action must be BUY or SELL' });
+    return;
+  }
+
+  // An older client sends no orderType and means market unless it sent a
+  // price, which is how this worked before limit and stop were told apart.
+  const kind = orderType ?? ((price ?? 0) > 0 ? 'limit' : 'market');
+  if (kind !== 'market' && kind !== 'limit' && kind !== 'stop') {
+    res.status(400).json({ error: 'orderType must be market, limit or stop' });
+    return;
+  }
+  if (kind !== 'market' && !(price && price > 0)) {
+    res.status(400).json({ error: `A ${kind} order needs a price` });
     return;
   }
 
@@ -190,14 +202,18 @@ router.post('/:id/open-trade', (req: AuthRequest, res: Response) => {
     symbol,
     action,
     volume,
-    price: price ?? 0,
+    orderType: kind,
+    price: kind === 'market' ? 0 : price ?? 0,
     sl: sl ?? 0,
     tp: tp ?? 0,
-    comment: comment || 'OnlyFunds',
+    // Fixed on purpose. The comment is how a position opened from here is
+    // recognised in MT5; letting it be edited only creates positions nobody
+    // can account for later.
+    comment: 'OnlyFunds',
   });
 
   logAudit(req.user!.id, 'open_trade', 'account', id,
-    JSON.stringify({ symbol, action, volume, price, sl, tp }));
+    JSON.stringify({ symbol, action, volume, orderType: kind, price, sl, tp }));
 
   res.json({ message: 'Open trade command queued', commandId: cmd.id });
 });
@@ -276,6 +292,42 @@ router.post('/:id/set-sltp', (req: AuthRequest, res: Response) => {
 
   logAudit(req.user!.id, 'set_sltp', 'account', id, JSON.stringify({ ticket, sl, tp }));
   res.json({ message: 'Set SL/TP command queued', commandId: cmd.id });
+});
+
+// GET /api/accounts/:id/symbols — what this account can be asked to trade
+//
+// Every symbol the broker has shown us for this account: what is open now,
+// what is waiting as a pending order, and everything closed in the stored
+// history. That is not the broker's whole Market Watch — the reporter EA
+// does not send one — but it is every instrument this account has actually
+// touched, which is what someone typing into the box is reaching for.
+// The field stays free text, so a symbol we have never seen can still be
+// typed in full.
+router.get('/:id/symbols', async (req: AuthRequest, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+  const account = runtimeStore.getAccountsByUser(req.user!.id).find(a => a.id === id);
+  if (!account) {
+    res.status(404).json({ error: 'Account not found' });
+    return;
+  }
+
+  const live = [
+    ...(account.orders ?? []).map(o => o.symbol),
+    ...(account.pending ?? []).map(o => o.symbol),
+  ];
+
+  const traded = await prisma.closedTrade.findMany({
+    where: { accountId: id },
+    select: { symbol: true },
+    distinct: ['symbol'],
+  });
+
+  const symbols = [...new Set([...live, ...traded.map(t => t.symbol)])]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b));
+
+  res.json({ symbols });
 });
 
 // GET /api/accounts/:id/apikey — reveal full API key (for copy)

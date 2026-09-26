@@ -254,6 +254,7 @@ export const receiveMT5Push = (req: Request, res: Response): void => {
       if (cmd.symbol   != null) c.symbol  = cmd.symbol;
       if (cmd.action   != null) c.action  = cmd.action;
       if (cmd.volume   != null) c.volume  = cmd.volume;
+      if (cmd.orderType!= null) c.orderType = cmd.orderType;
       if (cmd.price    != null) c.price   = cmd.price;
       if (cmd.sl       != null) c.sl      = cmd.sl;
       if (cmd.tp       != null) c.tp      = cmd.tp;
