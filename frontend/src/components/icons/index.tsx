@@ -260,3 +260,12 @@ export const IconSpark = ({ size }: IconProps) => (
     <path d="M18.4 3.6 19 5.4l1.8.6-1.8.6-.6 1.8-.6-1.8L16 5.9l1.8-.5z" />
   </Svg>
 );
+
+/** A microphone, for speaking instead of typing. Same grid, same stroke. */
+export const IconMic = ({ size }: IconProps) => (
+  <Svg size={size}>
+    <rect x="9" y="3" width="6" height="11" rx="3" />
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" />
+    <path d="M12 18v3" />
+  </Svg>
+);

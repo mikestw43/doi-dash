@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { askAi, fetchAiContext, fetchAiStatus, type AiContext, type AiStatus } from '../../services/api';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useUIStore } from '../../stores/uiStore';
-import { IconSpark } from '../icons';
+import { IconSpark, IconMic } from '../icons';
+import { useDictation } from '../../hooks/useDictation';
 
 /**
  * The assistant's room.
@@ -33,8 +34,11 @@ interface Message {
 
 export const AiSheet = () => {
   const t = useTranslation();
+  const addToast = useUIStore(st => st.addToast);
   const open = useUIStore(st => st.aiOpen);
   const setOpen = useUIStore(st => st.setAiOpen);
+  const language = useUIStore(st => st.language);
+  const mic = useDictation(language);
   const [status, setStatus] = useState<AiStatus | null>(null);
   const [ctx, setCtx] = useState<AiContext | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -52,6 +56,22 @@ export const AiSheet = () => {
   const scroller = useRef<HTMLDivElement>(null);
 
   const close = () => { setDragY(0); setDragging(false); setOpen(false); };
+
+  // What the microphone hears goes into the box, never straight out: this
+  // box can open a trade, and saying something aloud is not the same as
+  // meaning it. The person still presses send.
+  useEffect(() => {
+    if (mic.heard) setDraft(mic.heard);
+  }, [mic.heard]);
+
+  useEffect(() => {
+    if (!mic.error) return;
+    addToast({
+      type: 'error',
+      title: t('ai.title'),
+      message: mic.error === 'denied' ? t('ai.mic_denied') : t('ai.mic_failed'),
+    });
+  }, [mic.error]);
 
   // Escape closes it, like any other overlay.
   useEffect(() => {
@@ -164,12 +184,16 @@ export const AiSheet = () => {
   if (!open) return null;
 
   return (
-    <div
-      className="ai-backdrop"
-      onClick={e => { if (e.target === e.currentTarget) close(); }}
-      onTouchEnd={e => { if (e.target === e.currentTarget) close(); }}
-      style={{ opacity: dragging ? Math.max(0.25, 1 - dragY / 400) : 1 }}
-    >
+    <div className="ai-backdrop">
+      {/* The dimming is its own layer. Fading the container faded the sheet
+          with it — text over the dashboard, unreadable — because opacity
+          applies to everything inside. Only the dark should lift. */}
+      <div
+        className="ai-dim"
+        onClick={close}
+        onTouchEnd={close}
+        style={{ opacity: dragging ? Math.max(0.15, 1 - dragY / 420) : 1 }}
+      />
       <div
         className="ai-sheet"
         onTouchStart={e => onTouchStart(e)}
@@ -324,18 +348,33 @@ export const AiSheet = () => {
 
       {/* Composer */}
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
-        <input
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') send(draft); }}
-          placeholder={t('ai.ask_placeholder')}
-          style={{
-            flex: 1, minWidth: 0, background: 'var(--bg-input)',
-            border: '1px solid var(--border2)', borderRadius: 'var(--radius-sm)',
-            color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
-            padding: '10px 12px', outline: 'none',
-          }}
-        />
+        <div style={{ position: 'relative', flex: 1, minWidth: 0, display: 'flex' }}>
+          <input
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') send(draft); }}
+            placeholder={mic.listening ? t('ai.listening') : t('ai.ask_placeholder')}
+            style={{
+              flex: 1, minWidth: 0, background: 'var(--bg-input)',
+              border: `1px solid ${mic.listening ? 'var(--danger)' : 'var(--border2)'}`,
+              borderRadius: 'var(--radius-sm)',
+              color: 'var(--text)', fontFamily: 'var(--ff-body)', fontSize: 'var(--fs-body)',
+              padding: mic.supported ? '10px 42px 10px 12px' : '10px 12px', outline: 'none',
+            }}
+          />
+          {/* Only where the browser can actually listen. A microphone that
+              does nothing is worse than none. */}
+          {mic.supported && (
+            <button
+              onClick={() => (mic.listening ? mic.stop() : mic.start())}
+              title={mic.listening ? t('ai.listening') : t('ai.speak')}
+              aria-label={t('ai.speak')}
+              className={mic.listening ? 'ai-mic ai-mic-on' : 'ai-mic'}
+            >
+              <IconMic size={17} />
+            </button>
+          )}
+        </div>
         <button
           onClick={() => send(draft)}
           disabled={busy || !draft.trim()}
@@ -363,9 +402,15 @@ export const AiSheet = () => {
              while it is open, and the header also swallowed taps meant for
              the dimmed area behind it. */
           position: fixed; inset: 0; z-index: 900;
-          background: rgba(0,0,0,.5);
           display: flex; align-items: flex-end; justify-content: center;
+          pointer-events: none;
         }
+        .ai-dim {
+          position: absolute; inset: 0;
+          background: rgba(0,0,0,.55);
+          pointer-events: auto;
+        }
+        .ai-backdrop > .ai-sheet { pointer-events: auto; }
         .ai-sheet {
           width: 100%; max-width: 640px;
           height: 88vh; max-height: 88vh;
@@ -379,6 +424,22 @@ export const AiSheet = () => {
           animation: ai-rise .24s cubic-bezier(.2,.8,.3,1);
         }
         @keyframes ai-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .ai-mic {
+          position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+          width: 32px; height: 32px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: none; border: 1px solid var(--border2);
+          color: var(--text-muted); cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-mic-on {
+          color: var(--danger); border-color: var(--danger);
+          animation: ai-pulse 1.1s ease-in-out infinite;
+        }
+        @keyframes ai-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,.45); }
+          50%      { box-shadow: 0 0 0 6px rgba(248,113,113,0); }
+        }
         .ai-grip {
           padding: 10px 0 6px; display: flex; justify-content: center;
           flex-shrink: 0; cursor: pointer; touch-action: none;
@@ -396,7 +457,23 @@ export const AiSheet = () => {
         @media (min-width: 768px) {
           .ai-backdrop { align-items: center; }
           .ai-sheet { height: 80vh; border-radius: 12px; border-bottom: 1px solid var(--border2); }
-          .ai-grip { display: none; }
+          .ai-mic {
+          position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+          width: 32px; height: 32px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: none; border: 1px solid var(--border2);
+          color: var(--text-muted); cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .ai-mic-on {
+          color: var(--danger); border-color: var(--danger);
+          animation: ai-pulse 1.1s ease-in-out infinite;
+        }
+        @keyframes ai-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,.45); }
+          50%      { box-shadow: 0 0 0 6px rgba(248,113,113,0); }
+        }
+        .ai-grip { display: none; }
         }
       `}</style>
     </div>
